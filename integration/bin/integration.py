@@ -322,10 +322,10 @@ if __name__ == "__main__":
         prefix = tmp[len(tmp)-1]
         prefix = prefix.replace(" ", "_")+"_"
 
-    if envFilename is None:
+    if len(envFilenames) <=0:
         envFilename = execDirAbs+"/.env"
-        if not os.path.isfile(envFilename):
-            envFilename = None
+        if os.path.isfile(envFilename):
+            envFilenames.append(envFilename)
     integration = Integration(prefix, envFilenames, profile)
     #print("args="+str(sys.argv))
     if cmd == "info":
