@@ -41,14 +41,15 @@ class Integration:
         self.odlTrpceClient = TrpceOdlClient(self.getUrl(trpceConfig), trpceConfig['username'], trpceConfig['password'])
         self.odlSdnrClients = []
         self.primarySdncClient = None
-        for sconfig in cconfig['sdnr']:
-            client = OdlClient(self.getUrl(sconfig), sconfig['username'], sconfig['password'])
-            if sconfig['primary']:
-                client.setPrimary(True)
-                self.primarySdncClient = client
-            else:
-                self.odlSdnrClients.append(client)
-        
+        if self.config.isRemoteEnabled():
+            for sconfig in cconfig['sdnr']:
+                client = OdlClient(self.getUrl(sconfig), sconfig['username'], sconfig['password'])
+                if sconfig['primary']:
+                    client.setPrimary(True)
+                    self.primarySdncClient = client
+                else:
+                    self.odlSdnrClients.append(client)
+           
     def resolveFile(self, filename):
         return os.path.dirname(__file__)+"/"+filename
 
