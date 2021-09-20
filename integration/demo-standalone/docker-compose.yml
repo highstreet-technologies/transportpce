@@ -2,6 +2,7 @@ version: '3'
 
 services:
   transportpce:
+    container_name: transportpce
     image: odl/transportpce
     environment: 
       - REMOTE_SDNRURL=${REMOTE_SDNR_URL}
@@ -10,7 +11,7 @@ services:
       - REMOTE_ODL_PASSWORD=${SDNR_PASSWORD}
       - REMOTE_ODL_ENABLED=${REMOTE_ODL_ENABLED}
       - REMOTE_ODL_TRUSTALL=${TRUSTALL}
-      - TRANSPORTPCE_SIMULATOR_MODE=true
+      - TRANSPORTPCE_SIMULATOR_MODE=false
     ports: 
       - '18181:8181'
 #    depends_on: 
