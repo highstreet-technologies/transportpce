@@ -15,26 +15,28 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class YangToolsNamingStrategy extends KebabCaseStrategy{
+public class YangToolsNamingStrategy extends KebabCaseStrategy {
 
     private static final Logger LOG = LoggerFactory.getLogger(YangToolsNamingStrategy.class);
-     private static final long serialVersionUID = 1L;
-     private final List<String> exceptions;
+    private static final long serialVersionUID = 1L;
+    private final List<String> exceptions;
 
-     public YangToolsNamingStrategy() {
-         this.exceptions = Arrays.asList("ifName","adminStatus");
-     }
+    public YangToolsNamingStrategy() {
+        this.exceptions = Arrays.asList("ifName", "adminStatus");
+    }
+
     @Override
     public String translate(String input) {
-        if(this.exceptions.contains(input)) {
-            LOG.debug("translate not {}",input);
+        if (this.exceptions.contains(input)) {
+            LOG.debug("translate not {}", input);
             return input;
         }
         String output = super.translate(input);
-        LOG.debug("translate {} to {}",input,output);
+        LOG.debug("translate {} to {}", input, output);
 
         return output;
     }
+
     @Override
     public String nameForSetterMethod(MapperConfig<?> config, AnnotatedMethod method, String defaultName) {
         // TODO Auto-generated method stub

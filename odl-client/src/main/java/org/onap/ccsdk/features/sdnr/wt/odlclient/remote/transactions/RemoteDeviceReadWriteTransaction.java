@@ -92,7 +92,8 @@ public class RemoteDeviceReadWriteTransaction extends RemoteTransaction implemen
     }
 
 //    @Override
-//    public <T extends DataObject> void merge(@NonNull LogicalDatastoreType store, @NonNull InstanceIdentifier<T> instanceIdentifier,
+//    public <T extends DataObject> void merge(@NonNull LogicalDatastoreType store,
+//            @NonNull InstanceIdentifier<T> instanceIdentifier,
 //            @NonNull T data, boolean createMissingParents) {
 //        LOG.debug("rw transaction now implemented: deprecated merge ");
 //        try {

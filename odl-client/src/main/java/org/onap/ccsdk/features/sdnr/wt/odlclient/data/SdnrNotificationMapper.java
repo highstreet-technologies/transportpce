@@ -1,4 +1,11 @@
 /*
+ * Copyright (C) 2021 highstreet technologies GmbH Intellectual Property.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v1.0 which accompanies this distribution,
+ * and is available at http://www.eclipse.org/legal/epl-v10.html
+ */
+/*
  * ============LICENSE_START=======================================================
  * ONAP : ccsdk features
  * ================================================================================
@@ -47,22 +54,21 @@ public class SdnrNotificationMapper extends YangToolsMapper {
         this.notificationClasses.put(ObjectCreationNotification.QNAME, ObjectCreationNotification.class);
         this.notificationClasses.put(ObjectDeletionNotification.QNAME, ObjectDeletionNotification.class);
         this.notificationClasses.put(AttributeValueChangedNotification.QNAME, AttributeValueChangedNotification.class);
-
     }
 
     public <T extends Notification> NotificationInput<T> readNotification(String value)
             throws JsonMappingException, JsonProcessingException {
         NotificationInputBase base = this.readValue(value, NotificationInputBase.class);
         for (Entry<QName, Class<? extends Notification>> entry : this.notificationClasses.entrySet()) {
-            if (base.getType()!=null && base.getType().equals(entry.getKey())) {
+            if (base.getType() != null && base.getType().equals(entry.getKey())) {
                 @SuppressWarnings("unchecked")
                 T notification = (T) super.readValue(base.getData().toString(), entry.getValue());
                 return new NotificationInput<T>(base, notification);
             }
         }
-
         return null;
     }
+
     public <T extends Notification> NotificationInput<T> readNotification(File value)
             throws IOException {
         NotificationInputBase base = this.readValue(value, NotificationInputBase.class);
@@ -73,7 +79,6 @@ public class SdnrNotificationMapper extends YangToolsMapper {
                 return new NotificationInput<T>(base, notification);
             }
         }
-
         return null;
     }
 

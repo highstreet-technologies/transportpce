@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.cfg.MapperConfig;
 import com.fasterxml.jackson.databind.introspect.AnnotatedClass;
 import com.fasterxml.jackson.databind.introspect.AnnotatedMethod;
 import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.List;
@@ -29,6 +30,12 @@ import org.osgi.framework.FrameworkUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+//TODO check if another solution  would not be more indicated here
+@SuppressFBWarnings(
+    value = {"SE_BAD_FIELD"},
+    justification =
+      "This field is not Serializable but the class implements JacksonAnnotationIntrospector to delegate serialization."
+      + "Thus instances of this class aren't serialized. SpotBugs does not recognize this.")
 public class YangToolsBuilderAnnotationIntrospector extends JacksonAnnotationIntrospector {
 
     private static final Logger LOG = LoggerFactory.getLogger(YangToolsBuilderAnnotationIntrospector.class);
@@ -114,25 +121,26 @@ public class YangToolsBuilderAnnotationIntrospector extends JacksonAnnotationInt
         return findClass(name, ctx);
     }
 
-    public Class<?> findClass(String name, BundleContext context) throws ClassNotFoundException {
+    // In a class finder, the expected behavior is not to catch an exception when a Bundle is a class is not found
+    // but to try the next ones.
+    @SuppressWarnings("EmptyBlock")
+    public Class<?> findClass(String name, BundleContext bundleContext) throws ClassNotFoundException {
         // Try to find in other bundles
-        if (context != null) {
-            //OSGi environment
-            for (Bundle b : context.getBundles()) {
-                try {
-                    return b.loadClass(name);
-                } catch (ClassNotFoundException e) {
-                }
-            }
-            try {
-                return Class.forName(name);
-            } catch (ClassNotFoundException e) {
-            }
-            throw new ClassNotFoundException("Can not find Class in OSGi context.");
-        } else {
+        //OSGi environment
+        if (bundleContext == null) {
             return Class.forName(name);
         }
-        // not found in any bundle
+        for (Bundle b : bundleContext.getBundles()) {
+            try {
+                return b.loadClass(name);
+            } catch (ClassNotFoundException e) {
+            }
+        }
+        try {
+            return Class.forName(name);
+        } catch (ClassNotFoundException e) {
+        }
+        throw new ClassNotFoundException("Can not find Class in OSGi context.");
     }
 
     @Override

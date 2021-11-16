@@ -17,29 +17,36 @@ import java.util.concurrent.ScheduledExecutorService;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.onap.ccsdk.features.sdnr.wt.odlclient.restconf.RestconfHttpClient;
 import org.opendaylight.mdsal.common.api.CommitInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class RemoteTransaction {
 
+    private static final Logger LOG = LoggerFactory.getLogger(RemoteTransaction.class);
     public static final long COMMIT_DELAY = 2000;
 
     protected final List<FutureCallback<CommitInfo>> callbacks;
     protected final RestconfHttpClient client;
     protected final String nodeId;
+
     public RemoteTransaction(RestconfHttpClient remoteOdlClient, String nodeId) {
         this.callbacks = new ArrayList<>();
         this.client = remoteOdlClient;
         this.nodeId = nodeId;
     }
+
     public void addCallback(FutureCallback<CommitInfo> cb, ScheduledExecutorService scheduledExecutorService) {
         this.callbacks.add(cb);
     }
-    protected void pushFailure(Throwable t) {
-        for(FutureCallback<CommitInfo> cb:this.callbacks) {
-            cb.onFailure(t);
+
+    protected void pushFailure(Throwable toThrow) {
+        for (FutureCallback<CommitInfo> cb:this.callbacks) {
+            cb.onFailure(toThrow);
         }
     }
+
     protected void pushSuccess(@Nullable CommitInfo result) {
-        for(FutureCallback<CommitInfo> cb:this.callbacks) {
+        for (FutureCallback<CommitInfo> cb:this.callbacks) {
             cb.onSuccess(result);
         }
     }
@@ -52,13 +59,14 @@ public class RemoteTransaction {
                 try {
                     Thread.sleep(delayMillis);
                 } catch (InterruptedException e) {
-
+                    LOG.error("pushSuccess Runnable interrupted", e);
                 }
                 RemoteTransaction.this.pushSuccess(result);
             }
 
         }).start();
     }
+
     public static String whoCalledMe() {
         StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
         StackTraceElement caller = stackTraceElements[3];
@@ -72,14 +80,17 @@ public class RemoteTransaction {
         return whoCalledMeAll(Arrays
                 .asList("org.opendaylight.transportpce.common.device.DeviceTransactionManagerImpl.getDataFromDevice"));
     }
+
+    //printStacktrace is used here to fill a String buffer and not to log error
+    @SuppressWarnings("RegexpSinglelineJava")
     public static String whoCalledMeAll(final List<String> ignoreIfContains) {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
         new Throwable().printStackTrace(pw);
         final String exception = sw.toString();
-        if(ignoreIfContains!=null) {
-            for(String ignore:ignoreIfContains) {
-                if(exception.contains(ignore)) {
+        if (ignoreIfContains != null) {
+            for (String ignore:ignoreIfContains) {
+                if (exception.contains(ignore)) {
                     return "";
                 }
             }

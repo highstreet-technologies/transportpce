@@ -36,8 +36,8 @@ public class RemoteRpcConsumerRegistry implements RpcConsumerRegistry, BindingSe
         }
         if (serviceInterface.equals(
                 org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.OrgOpenroadmDeviceService.class)) {
-            return (@NonNull T) new org.onap.ccsdk.features.sdnr.wt.odlclient.remote.mountpoint.rpc.rev181019.RemoteOrgOpenroadmDeviceServiceImpl(
-                    this.client, this.nodeId);
+            return (@NonNull T) new org.onap.ccsdk.features.sdnr.wt.odlclient.remote.mountpoint.rpc.rev181019
+                    .RemoteOrgOpenroadmDeviceServiceImpl(this.client, this.nodeId);
         }
         // NotificationsService.class
         if (serviceInterface.equals(NotificationsService.class)) {

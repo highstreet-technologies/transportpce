@@ -11,6 +11,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -135,10 +136,14 @@ public class TestMapper {
     //    @Test
     public void testLeafListSerializing() throws ParserConfigurationException, TransformerException {
         OrgOpenroadmDeviceBuilder builder = new OrgOpenroadmDeviceBuilder();
-        builder.setUsers(new UsersBuilder().setUser(Arrays.asList(
-                //new UserBuilder().setName(new UsernameType("openroadm")).setPassword(new PasswordType("openroadm")).setGroup(Group.Sudo).build(),
-                new UserBuilder().setName(new UsernameType("openroadm2")).setPassword(new PasswordType("openroadm"))
-                        .setGroup(Group.Sudo).build()))
+        builder.setUsers(new UsersBuilder()
+                .setUser(Arrays.asList(
+                    new UserBuilder()
+                        //.setName(new UsernameType("openroadm"))
+                        .setName(new UsernameType("openroadm2"))
+                        .setPassword(new PasswordType("openroadm"))
+                        .setGroup(Group.Sudo)
+                        .build()))
                 .build());
 
         OdlXmlSerializer mapper = new OdlXmlSerializer();
@@ -150,7 +155,6 @@ public class TestMapper {
             assertTrue(
                     XMLUnit.compareXML(this.getTrimmedFileContent("/xml/roadm-device2.xml"), inputPayload).similar());
         } catch (SAXException | IOException e) {
-
             fail(e.getMessage());
         }
         inputPayload = mapper2.writeValueAsString(builder.build(), "org-openroadm-device");
@@ -187,20 +191,21 @@ public class TestMapper {
 
     @Test
     public void testTopologyNodeDeser() throws IOException {
-
         String xml = this.getTrimmedFileContent("/xml/roadma-netconfnode.xml");
         OdlObjectMapperXml mapper = new OdlObjectMapperXml(true);
-        NetconfNode nNode = mapper.readValue(xml, NetconfNode.class);
-        LOG.debug("{}", nNode);
-        assertNotNull(nNode.getAvailableCapabilities());
+        NetconfNode netconfNode = mapper.readValue(xml, NetconfNode.class);
+        LOG.debug("{}", netconfNode);
+        assertNotNull(netconfNode.getAvailableCapabilities());
         @Nullable
-        List<AvailableCapability> caps = nNode.getAvailableCapabilities().getAvailableCapability();
+        List<AvailableCapability> caps = netconfNode.getAvailableCapabilities().getAvailableCapability();
         assertTrue(caps.size() > 0);
         assertTrue(caps.stream().filter(new Predicate<AvailableCapability>() {
             @Override
             public boolean test(AvailableCapability arg0) {
                 return arg0.getCapability().contains("org-openroadm-device");
-            };
+            }
+
+            ;
         }).count() > 0);
     }
 
@@ -286,8 +291,7 @@ public class TestMapper {
         } catch (IOException e1) {
             fail(e1.getMessage());
         }
-        NetconfNode nNode = xmlMapper.readValue(fileContent, NetconfNode.class);
-        LOG.info("res={}", nNode);
+        LOG.info("res={}", xmlMapper.readValue(fileContent, NetconfNode.class));
     }
 
     @Test
@@ -383,6 +387,7 @@ public class TestMapper {
             fail(e.getMessage());
         }
     }
+
     @Test
     public void testInterfaceOCHDeSerializer() {
         OdlObjectMapperXml mapper = new OdlObjectMapperXml(true);
@@ -400,6 +405,7 @@ public class TestMapper {
         }
         LOG.info("deser={}",iface);
     }
+
     @Ignore
     @Test
     public void testPowerSerializer() {
@@ -414,14 +420,13 @@ public class TestMapper {
         try {
             interfaceObj = mapper.readValue(interfaceString, Interface.class);
         } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            LOG.error("caught IOexception when reading values in XML content {}", interfaceString, e);
         }
 
         InterfaceBuilder ochInterfaceBuilder = new InterfaceBuilder(interfaceObj);
         org.opendaylight.yang.gen.v1.http.org.openroadm.optical.channel.interfaces.rev181019.Interface1 if1 =
-                ochInterfaceBuilder.augmentation(
-                        org.opendaylight.yang.gen.v1.http.org.openroadm.optical.channel.interfaces.rev181019.Interface1.class);
+            ochInterfaceBuilder.augmentation(
+                org.opendaylight.yang.gen.v1.http.org.openroadm.optical.channel.interfaces.rev181019.Interface1.class);
         OchBuilder ochBuilder = new OchBuilder(if1.getOch());
         BigDecimal txPower = BigDecimal.valueOf(1);
         ochBuilder.setTransmitPower(new PowerDBm(txPower));
@@ -446,8 +451,7 @@ public class TestMapper {
         try {
             interfaceObj = mapper.readValue(interfaceString, Interface.class);
         } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            LOG.error("caught IOexception when reading values in XML content {}", interfaceString, e);
         }
         assertNotNull(interfaceObj);
         try {
@@ -455,8 +459,7 @@ public class TestMapper {
             builder.addAugmentation(Interface1.class, mapper.readValue(interfaceString, Interface1.class));
             interfaceObj = builder.build();
         } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            LOG.error("caught IOexception when reading values in XML content {}", interfaceString, e);
         }
 
         LOG.info("if = {}", interfaceObj);
@@ -481,8 +484,7 @@ public class TestMapper {
         try {
             interfaceObj = mapper.readValue(interfaceString, Interface.class, Interface1.class);
         } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            LOG.error("caught IOexception when reading values in XML content {}", interfaceString, e);
         }
         assertNotNull(interfaceObj);
         LOG.info("if = {}", interfaceObj);
@@ -503,14 +505,14 @@ public class TestMapper {
         try {
             interfaceObj = mapper.readValue(fileContent, Interface.class);
         } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            LOG.error("caught IOexception when reading values in roadm-interface-odu.xml file", e);
         }
         assertNotNull(interfaceObj);
         LOG.info("if = {}", interfaceObj);
         org.opendaylight.yang.gen.v1.http.org.openroadm.otn.odu.interfaces.rev181019.Interface1Builder oduBuilder =
                 new org.opendaylight.yang.gen.v1.http.org.openroadm.otn.odu.interfaces.rev181019.Interface1Builder(
-                        interfaceObj.augmentation(org.opendaylight.yang.gen.v1.http.org.openroadm.otn.odu.interfaces.rev181019.Interface1.class));
+                    interfaceObj.augmentation(
+                        org.opendaylight.yang.gen.v1.http.org.openroadm.otn.odu.interfaces.rev181019.Interface1.class));
         OduBuilder odu = new OduBuilder(oduBuilder.getOdu());
         LOG.info("odu = {}", odu.build());
     }
@@ -557,6 +559,7 @@ public class TestMapper {
             fail(e.getMessage());
         }
     }
+
     @Test
     public void testNodeDeserializer() {
         String fileContent = null;
@@ -572,6 +575,7 @@ public class TestMapper {
             fail(e.getMessage());
         }
     }
+
     @Test
     public void testRoadmPortDeserializer() {
         String fileContent = null;
@@ -606,6 +610,7 @@ public class TestMapper {
             fail(e.getMessage());
         }
     }
+
     @Test
     public void testRoadmInterfaces3Deserializer() {
         String fileContent = null;

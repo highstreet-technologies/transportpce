@@ -11,11 +11,11 @@
 
  * build artifacts
 ```
-mvn clean install -DskipTests
+mvn clean install -s tests/odl_settings.xml -DskipTests -Dmaven.javadoc.skip=true -Dodlparent.spotbugs.skip -Dodlparent.checkstyle.skip
 ```
   * build docker image
 ```
-mvn clean install -f distribution/odltrpce-alpine-standalone
+mvn clean install -s tests/odl_settings.xml -f distribution/odltrpce-alpine-standalone
 ```
 
 This creates a docker image 'odl/transportpce' with the latest tag.

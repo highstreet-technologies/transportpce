@@ -7,10 +7,18 @@
  */
 package org.onap.ccsdk.features.sdnr.wt.odlclient.data.serializer;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ObjectSerializerMap extends HashMap<String, ObjectSerializer>{
+
+//TODO check if another solution  would not be more indicated here
+@SuppressFBWarnings(
+    value = {"SE_BAD_FIELD"},
+    justification =
+       "This field is not Serializable but the class implements HashMap<?, ObjectSerializer> to delegate serialization."
+       + "Thus instances of this class aren't serialized. SpotBugs does not recognize this.")
+public class ObjectSerializerMap extends HashMap<String, ObjectSerializer> {
 
     private static final long serialVersionUID = 1L;
 
@@ -35,6 +43,7 @@ public class ObjectSerializerMap extends HashMap<String, ObjectSerializer>{
     private String getKey(String parentClassName, String propertyName) {
         return String.format("%s:%s", parentClassName,propertyName);
     }
+
     private String getKey(Class<?> parentClass, String propertyName) {
         return this.getKey(parentClass.getName(),propertyName);
     }
@@ -45,8 +54,10 @@ public class ObjectSerializerMap extends HashMap<String, ObjectSerializer>{
     public ObjectSerializer getOrDefault(Object key, ObjectSerializer defaultValue) {
         return this.getOrDefault(key, null, null, defaultValue);
     }
-    public ObjectSerializer getOrDefault(Object key, Class<?> parentClass, String propertyName, ObjectSerializer defaultValue) {
-        if(parentClass!=null && propertyName!=null) {
+
+    public ObjectSerializer getOrDefault(Object key, Class<?> parentClass, String propertyName,
+            ObjectSerializer defaultValue) {
+        if (parentClass != null && propertyName != null) {
             return this.others.getOrDefault(getKey(parentClass,propertyName), defaultValue);
         }
         return super.getOrDefault(key, defaultValue);
@@ -55,6 +66,7 @@ public class ObjectSerializerMap extends HashMap<String, ObjectSerializer>{
     public void put(Class<?> parentClass, String propertyName, ObjectSerializer value) {
         this.others.put(getKey(parentClass, propertyName), value);
     }
+
     public void put(String parentClazzName, String propertyName, ObjectSerializer value) {
         this.others.put(getKey(parentClazzName, propertyName), value);
     }

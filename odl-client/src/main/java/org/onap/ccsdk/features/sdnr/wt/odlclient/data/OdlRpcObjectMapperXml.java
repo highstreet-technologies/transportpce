@@ -8,9 +8,16 @@
 package org.onap.ccsdk.features.sdnr.wt.odlclient.data;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategy.KebabCaseStrategy;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.onap.ccsdk.features.sdnr.wt.odlclient.data.serializer.KeepPropertyNameSerializer;
 import org.opendaylight.yangtools.yang.binding.DataObject;
 
+//TODO check if another solution  would not be more indicated here
+@SuppressFBWarnings(
+    value = {"SE_BAD_FIELD"},
+    justification =
+       "This field is not Serializable but the class implements OdlObjectMapperXml to delegate serialization."
+       + "Thus instances of this class aren't serialized. SpotBugs does not recognize this.")
 public class OdlRpcObjectMapperXml extends OdlObjectMapperXml {
 
     private static final long serialVersionUID = 1L;
@@ -20,28 +27,38 @@ public class OdlRpcObjectMapperXml extends OdlObjectMapperXml {
         super(true);
         this.serializer = new OdlXmlSerializer(this);
         this.serializer.setNullValueExcluded(true);
-        this.serializer.addSerializer(org.opendaylight.yang.gen.v1.http.org.openroadm.common.types.rev181019.OpticalControlMode.class, new KeepPropertyNameSerializer());
-        this.serializer.addSerializer("org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.circuit.packs.CircuitPacksBuilder$CircuitPacksImpl","_subSlot",new KeepPropertyNameSerializer());
-        this.serializer.addSerializer("org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.org.openroadm.device.container.org.openroadm.device.RoadmConnectionsBuilder$RoadmConnectionsImpl","_opticalControlMode",new KeepPropertyNameSerializer());
-//        this.serializer.addSerializer(org.opendaylight.yang.gen.v1.http.org.openroadm.equipment.states.types.rev171215.States.class, new KeepPropertyNameSerializer());
+        this.serializer.addSerializer(org.opendaylight.yang.gen.v1.http.org.openroadm.common.types.rev181019
+                    .OpticalControlMode.class,
+                new KeepPropertyNameSerializer());
+        this.serializer.addSerializer("org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019"
+                + ".circuit.packs.CircuitPacksBuilder$CircuitPacksImpl",
+                "_subSlot",
+                new KeepPropertyNameSerializer());
+        this.serializer.addSerializer("org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019"
+                + ".org.openroadm.device.container.org.openroadm.device.RoadmConnectionsBuilder$RoadmConnectionsImpl",
+                "_opticalControlMode",
+                new KeepPropertyNameSerializer());
+//        this.serializer.addSerializer(org.opendaylight.yang.gen.v1.http.org.openroadm.equipment.states.types.rev171215
+//                    .States.class,
+//                new KeepPropertyNameSerializer());
     }
 
 
     public <T extends DataObject> String writeValueAsString(T value) {
-    	return this.serializer.writeValueAsString(value, "input");
+        return this.serializer.writeValueAsString(value, "input");
     }
 
     public <T extends DataObject> String writeValueAsString(T value, String rootName) {
-    	return this.serializer.writeValueAsString(value, rootName);
+        return this.serializer.writeValueAsString(value, rootName);
     }
 
     public <T extends DataObject> String writeValueAsString(T data, Class<?> clazz) {
         KebabCaseStrategy converter = new KebabCaseStrategy();
         String clsName = clazz.getSimpleName();
-        if(clsName.endsWith("Impl")) {
-            clsName = clsName.substring(0, clsName.length()-4);
+        if (clsName.endsWith("Impl")) {
+            clsName = clsName.substring(0, clsName.length() - 4);
         }
-       return this.writeValueAsString(data, converter.translate(clsName));
+        return this.writeValueAsString(data, converter.translate(clsName));
     }
 
 

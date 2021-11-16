@@ -15,7 +15,7 @@ import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.devicema
 import org.opendaylight.yangtools.concepts.ListenerRegistration;
 import org.opendaylight.yangtools.yang.binding.NotificationListener;
 
-public class RemoteNotificationService implements NotificationService{
+public class RemoteNotificationService implements NotificationService {
 
     private final String nodeId;
     private final SdnrWebsocketClient wsClient;
@@ -33,10 +33,12 @@ public class RemoteNotificationService implements NotificationService{
         return (@NonNull ListenerRegistration<T>) new WebsocketListenerRegistration(this.wsClient,this.nodeId);
     }
 
-    public class WebsocketListenerRegistration extends FilteredNotificationWebsocketCallback implements ListenerRegistration<NotificationListener> {
+    public static class WebsocketListenerRegistration extends FilteredNotificationWebsocketCallback
+            implements ListenerRegistration<NotificationListener> {
 
         private final SdnrWebsocketClient wsClient;
         private final NotificationListener instance;
+
         public WebsocketListenerRegistration(SdnrWebsocketClient wsClient,String nodeId) {
             super(nodeId);
             this.wsClient = wsClient;
@@ -44,21 +46,21 @@ public class RemoteNotificationService implements NotificationService{
             this.instance = new NotificationListener() {
             };
         }
+
         @Override
         public @NonNull NotificationListener getInstance() {
-           return this.instance;
+            return this.instance;
         }
+
         @Override
         public void close() {
             this.wsClient.unregisterWebsocketEventListener(this);
-
         }
+
         @Override
         public void onFilteredNotificationReceived(ProblemNotification notification) {
 
         }
-
-
 
     }
 }

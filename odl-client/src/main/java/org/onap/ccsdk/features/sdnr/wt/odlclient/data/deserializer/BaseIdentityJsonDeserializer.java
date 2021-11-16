@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import org.onap.ccsdk.features.sdnr.wt.odlclient.data.ClassFinder;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.types.rev181019.R100G;
@@ -124,22 +125,25 @@ public class BaseIdentityJsonDeserializer<T> extends JsonDeserializer<Class<? ex
             int lastDot = clazzToSearch.lastIndexOf(".");
             clazzToSearch = clazzToSearch.substring(lastDot + 1);
         } else {
-            clazzToSearch = clazzToSearch.substring(0, 1).toUpperCase()
+            clazzToSearch = clazzToSearch.substring(0, 1).toUpperCase(Locale.getDefault())
                     + clazzToSearch.substring(1).replace("-", "").replace(".", "");
         }
         Class<?> clazz;
         clazz = this.identityMap.get(clazzToSearch);
-        if (clazz != null)
+        if (clazz != null) {
             return (Class<? extends T>) clazz;
+        }
         try {
             clazz = ctxt.findClass(clazzToSearch);
-            if (clazz != null)
+            if (clazz != null) {
                 return (Class<? extends T>) clazz;
+            }
         } catch (ClassNotFoundException e) {
             try {
                 clazz = this.clsFinder.findClass(clazzToSearch);
-                if (clazz != null)
+                if (clazz != null) {
                     return (Class<? extends T>) clazz;
+                }
             } catch (ClassNotFoundException e2) {
                 LOG.warn("BaseIdentityDeserializer class not found for '{}({})'", clazzToSearch,
                         parser.getValueAsString(), e2);

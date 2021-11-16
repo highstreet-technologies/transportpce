@@ -16,11 +16,6 @@
     <version>2.3.0-SNAPSHOT</version>
     <packaging>bundle</packaging>
 
-    <properties>
-        <checkstyle.skip>true</checkstyle.skip>
-        <skip.checkstyle>true</skip.checkstyle>
-        <odlparent.spotbugs.enforce>false</odlparent.spotbugs.enforce>
-    </properties>
     <dependencies>
         <dependency>
             <groupId>org.osgi</groupId>

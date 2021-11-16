@@ -7,6 +7,7 @@
  */
 package org.onap.ccsdk.features.sdnr.wt.odlclient.remote;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.eclipse.jdt.annotation.NonNull;
 import org.onap.ccsdk.features.sdnr.wt.odlclient.data.NotificationInput;
 import org.opendaylight.mdsal.binding.api.DataObjectModification;
@@ -14,6 +15,11 @@ import org.opendaylight.mdsal.binding.api.DataTreeIdentifier;
 import org.opendaylight.mdsal.binding.api.DataTreeModification;
 import org.opendaylight.yang.gen.v1.urn.tbd.params.xml.ns.yang.network.topology.rev131021.network.topology.topology.Node;
 
+
+//FIXME this class skeleton is almost empty
+@SuppressFBWarnings(
+    value = {"URF_UNREAD_FIELD"},
+    justification = "Auto-generated class waiting to be filled")
 public class RemoteDataTreeModification<N extends Node> implements DataTreeModification<N> {
 
     private final NotificationInput<?> source;

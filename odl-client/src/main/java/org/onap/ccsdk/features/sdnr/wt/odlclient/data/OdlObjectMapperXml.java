@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory;
 
 
 
-public class OdlObjectMapperXml extends XmlMapper implements ClassFinder{
+public class OdlObjectMapperXml extends XmlMapper implements ClassFinder {
 
     private static final Logger LOG = LoggerFactory.getLogger(OdlObjectMapperXml.class);
     private static final long serialVersionUID = 1L;
@@ -52,6 +52,7 @@ public class OdlObjectMapperXml extends XmlMapper implements ClassFinder{
     private final boolean doNormalize;
     private final YangToolsBuilderAnnotationIntrospector introspector;
     private final Map<Class<?>,List<Class<?>>> autoAugmentationList;
+
     public OdlObjectMapperXml() {
         this(false);
     }
@@ -81,30 +82,42 @@ public class OdlObjectMapperXml extends XmlMapper implements ClassFinder{
 
     public static Map<Class<?>,List<Class<?>>> initAutoAugmentationList() {
         final Map<Class<?>,List<Class<?>>> map = new HashMap<>();
-        map.put(org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.interfaces.grp.Interface.class, Arrays
-                .asList(org.opendaylight.yang.gen.v1.http.org.openroadm.otn.otu.interfaces.rev181019.Interface1.class,
-                        org.opendaylight.yang.gen.v1.http.org.openroadm.otn.odu.interfaces.rev181019.Interface1.class,
-                        org.opendaylight.yang.gen.v1.http.org.openroadm.optical.transport.interfaces.rev181019.Interface1.class,
-                        org.opendaylight.yang.gen.v1.http.org.openroadm.optical.channel.interfaces.rev181019.Interface1.class));
-        map.put(Interface.class, Arrays.asList(
-                org.opendaylight.yang.gen.v1.http.org.openroadm.optical.transport.interfaces.rev181019.Interface1.class));
-        map.put(org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.networks.network.Node.class,
+        map.put(org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.interfaces.grp.Interface.class,
+                Arrays.asList(
+                    org.opendaylight.yang.gen.v1.http.org.openroadm.otn.otu.interfaces.rev181019.Interface1.class,
+                    org.opendaylight.yang.gen.v1.http.org.openroadm.otn.odu.interfaces.rev181019.Interface1.class,
+                    org.opendaylight.yang.gen.v1.http.org.openroadm.optical.transport.interfaces.rev181019
+                        .Interface1.class,
+                    org.opendaylight.yang.gen.v1.http.org.openroadm.optical.channel.interfaces.rev181019
+                        .Interface1.class));
+        map.put(Interface.class,
+                Arrays.asList(org.opendaylight.yang.gen.v1.http.org.openroadm.optical.transport.interfaces.rev181019
+                    .Interface1.class));
+        map.put(org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226
+                    .networks.network.Node.class,
                 Arrays.asList(org.opendaylight.yang.gen.v1.http.org.openroadm.network.rev200529.Node1.class,
                         org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev200529.Node1.class));
         map.put(org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.Network1.class,
-                Arrays.asList(org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.Network1.class));
-        map.put(org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.networks.network.Link.class,
+                Arrays.asList(org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226
+                    .Network1.class));
+        map.put(org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226
+                    .networks.network.Link.class,
                 Arrays.asList(org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev200529.Link1.class,
                         org.opendaylight.yang.gen.v1.http.org.openroadm.otn.network.topology.rev200529.Link1.class,
                         org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev200529.Link1.class));
-        map.put(org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.networks.network.Node.class,
-                Arrays.asList(org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.Node1.class,
+        map.put(org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226
+                    .networks.network.Node.class,
+                Arrays.asList(org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226
+                            .Node1.class,
                         org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev200529.Node1.class));
-        map.put(org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.networks.network
-                .node.TerminationPoint.class,
-                Arrays.asList(org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev200529.TerminationPoint1.class,
-                        org.opendaylight.yang.gen.v1.http.org.openroadm.otn.network.topology.rev200529.TerminationPoint1.class));
-        map.put(org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.org.openroadm.device.container.org.openroadm.device.Protocols.class,
+        map.put(org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226
+                    .networks.network.node.TerminationPoint.class,
+                Arrays.asList(org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev200529
+                            .TerminationPoint1.class,
+                        org.opendaylight.yang.gen.v1.http.org.openroadm.otn.network.topology.rev200529
+                            .TerminationPoint1.class));
+        map.put(org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019
+                    .org.openroadm.device.container.org.openroadm.device.Protocols.class,
                 Arrays.asList(org.opendaylight.yang.gen.v1.http.org.openroadm.lldp.rev181019.Protocols1.class)
                 );
         return map;
@@ -117,13 +130,13 @@ public class OdlObjectMapperXml extends XmlMapper implements ClassFinder{
             content = this.normalizeContent(content);
         }
         List<Class<?>> augs = this.autoAugmentationList.getOrDefault(valueType, null);
-        if(augs!=null) {
-            Class<?>[] a = new Class<?>[augs.size()];
+        if (augs != null) {
+            Class<?>[] a1 = new Class<?>[augs.size()];
             try {
-                return this.readValue(content, valueType, this.autoAugmentationList.get(valueType).toArray(a));
+                return this.readValue(content, valueType, this.autoAugmentationList.get(valueType).toArray(a1));
             } catch (IOException e) {
                 LOG.warn("problem reading value");
-                throw new JsonIOException(e.getCause());
+                throw new JsonIOException(e);
             }
         }
         return super.readValue(content, valueType);
@@ -141,12 +154,12 @@ public class OdlObjectMapperXml extends XmlMapper implements ClassFinder{
             if (builder != null) {
                 Method addAugmentationMethod = null;
                 for (Method m : builder.getClass().getDeclaredMethods()) {
-                    if ((m.getName() == "addAugmentation") && m.getParameterCount()==2) {
+                    if (m.getName().equals("addAugmentation") && m.getParameterCount() == 2) {
                         addAugmentationMethod = m;
                         break;
                     }
                 }
-                if(addAugmentationMethod!=null) {
+                if (addAugmentationMethod != null) {
                     for (Class<?> augmentedType : augmentedTypes) {
                         try {
                             addAugmentationMethod.invoke(builder,augmentedType, this.readValue(content, augmentedType));
@@ -182,7 +195,8 @@ public class OdlObjectMapperXml extends XmlMapper implements ClassFinder{
         String builder = clazz.getName() + "Builder";
         try {
             Class<?> clazzBuilder = this.introspector.findClass(builder);
-            return (org.opendaylight.yangtools.concepts.@Nullable Builder<T>) clazzBuilder.getDeclaredConstructor(clazz).newInstance(value);
+            return (org.opendaylight.yangtools.concepts.@Nullable Builder<T>)
+                    clazzBuilder.getDeclaredConstructor(clazz).newInstance(value);
         } catch (IllegalAccessException | InstantiationException | IllegalArgumentException | InvocationTargetException
                 | NoSuchMethodException | SecurityException | ClassNotFoundException e) {
             // TODO Auto-generated catch block
@@ -205,11 +219,11 @@ public class OdlObjectMapperXml extends XmlMapper implements ClassFinder{
             }
         }
         final Matcher xmlnsMatcher = XMLNS_PATTERN.matcher(content);
-        while(xmlnsMatcher.find()) {
+        while (xmlnsMatcher.find()) {
             if (xmlnsMatcher.groupCount() > 2) {
                 attr = xmlnsMatcher.group(3);
-                if(attr.startsWith(xmlnsMatcher.group(1)+":")) {
-                    copy = copy.replaceFirst(attr,attr.substring(xmlnsMatcher.group(1).length()+1));
+                if (attr.startsWith(xmlnsMatcher.group(1) + ":")) {
+                    copy = copy.replaceFirst(attr,attr.substring(xmlnsMatcher.group(1).length() + 1));
                 }
             }
         }
@@ -221,8 +235,9 @@ public class OdlObjectMapperXml extends XmlMapper implements ClassFinder{
     public Class<?> findClass(String name, Class<?> clazz) throws ClassNotFoundException {
         return this.introspector.findClass(name, clazz);
     }
+
     @Override
-    public Class<?> findClass(String name) throws ClassNotFoundException{
+    public Class<?> findClass(String name) throws ClassNotFoundException {
         return this.introspector.findClass(name);
     }
 

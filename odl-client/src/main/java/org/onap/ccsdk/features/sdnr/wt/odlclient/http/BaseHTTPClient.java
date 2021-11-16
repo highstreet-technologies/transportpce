@@ -81,7 +81,7 @@ public class BaseHTTPClient {
             sc = setupSsl(trustAll, certFilename, passphrase, sslCertType);
         } catch (KeyManagementException | NoSuchAlgorithmException | UnrecoverableKeyException
                 | CertificateException | KeyStoreException | IOException | InvalidKeySpecException e) {
-            LOG.warn("problem ssl setup: " + e.getMessage());
+            LOG.warn("problem ssl setup: ", e);
         }
     }
 
@@ -109,12 +109,12 @@ public class BaseHTTPClient {
             uri = uri.substring(1);
         }
         surl += uri;
-        LOG.debug("try to send request with url=" + this.baseUrl + uri + " as method=" + method);
-        LOG.trace("body:" + (body == null ? "null" : new String(body, CHARSET)));
+        LOG.debug("try to send request with url={}{} as method={}", this.baseUrl, uri, method);
+        LOG.trace("body:{}", (body == null ? "null" : new String(body, CHARSET)));
         URL url = new URL(surl);
         URLConnection http = url.openConnection();
         http.setConnectTimeout(timeout);
-        if (surl.toString().startsWith("https")) {
+        if (surl.startsWith("https")) {
             if (sc != null) {
                 ((HttpsURLConnection) http).setSSLSocketFactory(sc.getSocketFactory());
                 if (trustAll) {
@@ -131,9 +131,11 @@ public class BaseHTTPClient {
         ((HttpURLConnection) http).setRequestMethod(method);
         http.setDoOutput(true);
         if (headers != null && headers.size() > 0) {
-            for (String key : headers.keySet()) {
-                http.setRequestProperty(key, headers.get(key));
-                LOG.trace("set http header " + key + ": " + headers.get(key));
+            for (Map.Entry<String, String> entry : headers.entrySet()) {
+                String key = entry.getKey();
+                String value = entry.getValue();
+                http.setRequestProperty(key, value);
+                LOG.trace("set http header {} : {}", key, value);
             }
         }
         byte[] buffer = new byte[BUFSIZE];
@@ -183,7 +185,7 @@ public class BaseHTTPClient {
                 response.close();
             }
         }
-        LOG.debug("ResponseCode: " + responseCode);
+        LOG.debug("ResponseCode: {}", responseCode);
         LOG.trace("Response (len:{}): {}", String.valueOf(lensum), sresponse);
         return new BaseHTTPResponse(responseCode, sresponse, contentType);
     }
@@ -227,19 +229,23 @@ public class BaseHTTPClient {
         if (certFilename != null && passPhrase != null && !certFilename.isEmpty()
                 && !passPhrase.isEmpty()) {
             if (certType == SSLCERT_PCKS) {
-                LOG.debug("try to load pcks file " + certFilename + " with passphrase=" + passPhrase);
+                LOG.debug("try to load pcks file {} with passphrase={}", certFilename, passPhrase);
                 KeyStore keyStore = KeyStore.getInstance("PKCS12");
-                FileInputStream fileInputStream = new FileInputStream(certFilename);
-                keyStore.load(fileInputStream, passPhrase.toCharArray());
-                KeyManagerFactory kmf = KeyManagerFactory
+                try {
+                    FileInputStream fileInputStream = new FileInputStream(certFilename);
+                    keyStore.load(fileInputStream, passPhrase.toCharArray());
+                    KeyManagerFactory kmf = KeyManagerFactory
                         .getInstance(KeyManagerFactory.getDefaultAlgorithm());
-                kmf.init(keyStore, passPhrase.toCharArray());
-                kms = kmf.getKeyManagers();
-                fileInputStream.close();
-                LOG.debug("successful");
+                    kmf.init(keyStore, passPhrase.toCharArray());
+                    kms = kmf.getKeyManagers();
+                    fileInputStream.close();
+                    LOG.debug("successful");
+                } catch (SecurityException | IOException | IndexOutOfBoundsException e) {
+                    LOG.error("Something went wrong when trying to access file {}:", certFilename, e);
+                }
 
             } else if (certType == SSLCERT_PEM) {
-                LOG.debug("try to load pem files cert=" + certFilename + " key=" + passPhrase);
+                LOG.debug("try to load pem files cert={} key={}", certFilename, passPhrase);
                 File fcert = new File(certFilename);
                 File fkey = new File(passPhrase);
                 KeyStore keyStore = KeyStore.getInstance("JKS");
@@ -267,7 +273,7 @@ public class BaseHTTPClient {
     }
 
     protected static byte[] parseDERFromPEM(byte[] pem, String beginDelimiter, String endDelimiter) {
-        String data = new String(pem);
+        String data = new String(pem, Charset.defaultCharset());
         String[] tokens = data.split(beginDelimiter);
         tokens = tokens[1].split(endDelimiter);
         return DatatypeConverter.parseBase64Binary(tokens[0]);
@@ -290,7 +296,9 @@ public class BaseHTTPClient {
     }
 
     public static String getAuthorizationHeaderValue(String username, String password) {
-        return "Basic " + new String(Base64.getEncoder().encode((username + ":" + password).getBytes()));
+        return "Basic " + new String(
+                Base64.getEncoder().encode((username + ":" + password).getBytes(Charset.defaultCharset())),
+                Charset.defaultCharset());
     }
 
     public static int getSslCertPcks() {

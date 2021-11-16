@@ -47,57 +47,57 @@ public class TypeObjectJsonDeserializer<T> extends JsonDeserializer<T> {
                 Method method = clazz.getDeclaredMethod(TYPEOBJECT_INSTANCE_METHOD, String.class);
                 T res = (T) method.invoke(null, arg);
                 return res;
-            } else {
-                //try to find builder with getDefaultInstance method
+            }
+
+            //try to find builder with getDefaultInstance method
+            try {
+                Class<?> builderClazz = findBuilderClass(ctxt, clazz);
+                if (hasClassDeclaredMethod(builderClazz, TYPEOBJECT_INSTANCE_METHOD, String.class)) {
+                    Method method = builderClazz.getDeclaredMethod(TYPEOBJECT_INSTANCE_METHOD, String.class);
+                    T res = (T) method.invoke(null, arg);
+                    return res;
+                }
+            } catch (ClassNotFoundException e) {
+                LOG.debug("unable to process BuilderClazz ", e);
+            }
+
+
+            // find constructor argument types
+            List<Class<?>> ctypes = getConstructorParameterTypes(clazz, String.class);
+            for (Class<?> ctype : ctypes) {
                 try {
-                    Class<?> builderClazz = findBuilderClass(ctxt, clazz);
-                    if (hasClassDeclaredMethod(builderClazz, TYPEOBJECT_INSTANCE_METHOD, String.class)) {
-                        Method method = builderClazz.getDeclaredMethod(TYPEOBJECT_INSTANCE_METHOD, String.class);
-                        T res = (T) method.invoke(null, arg);
-                        return res;
+                    if (ctype.equals(String.class)) {
+                        return (T) clazz.getConstructor(ctype).newInstance(arg);
+                    } else if (hasClassDeclaredMethod(ctype, TYPEOBJECT_INSTANCE_METHOD, String.class)) {
+                        Method method = ctype.getDeclaredMethod(TYPEOBJECT_INSTANCE_METHOD, String.class);
+                        return (T) clazz.getConstructor(ctype).newInstance(method.invoke(null, arg));
                     }
-                } catch (ClassNotFoundException e) {
-
+                } catch (InvocationTargetException e) {
+                    LOG.debug("unable to instantiate {} with value {}", ctype.getName(), arg);
+                }
+            }
+            // TODO: recursive instantiation down to string constructor or
+            // e.g org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev130715.Host
+            // Host->IpAddress->Ipv4Address/Ipv6Address
+            ctypes = getConstructorParameterTypes(clazz, null);
+            for (Class<?> ctype : ctypes) {
+                //ignore string(hasn't worked before) and self class
+                if (ctype.equals(String.class) || ctype.equals(clazz)) {
+                    continue;
+                }
+                try {
+                    Object value = recurseInstantiate(arg, ctype, 0, 4);
+                    if (value != null) {
+                        return (T) clazz.getConstructor(ctype).newInstance(value);
+                    }
+                } catch (InvocationTargetException ex) {
+                    LOG.debug("unable to instantiate {} with value {}", ctype.getName(), arg);
                 }
 
-
-                // find constructor argument types
-                List<Class<?>> ctypes = getConstructorParameterTypes(clazz, String.class);
-                for (Class<?> ctype : ctypes) {
-                    try {
-                        if (ctype.equals(String.class)) {
-                            return (T) clazz.getConstructor(ctype).newInstance(arg);
-                        } else if (hasClassDeclaredMethod(ctype, TYPEOBJECT_INSTANCE_METHOD, String.class)) {
-                            Method method = ctype.getDeclaredMethod(TYPEOBJECT_INSTANCE_METHOD, String.class);
-                            return (T) clazz.getConstructor(ctype).newInstance(method.invoke(null, arg));
-                        }
-                    } catch (InvocationTargetException e) {
-                        LOG.debug("unable to instantiate {} with value {}", ctype.getName(), arg);
-                    }
-                }
-                // TODO: recursive instantiation down to string constructor or
-                // e.g org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev130715.Host
-                // Host->IpAddress->Ipv4Address/Ipv6Address
-                ctypes = getConstructorParameterTypes(clazz, null);
-                for (Class<?> ctype : ctypes) {
-                    //ignore string(hasn't worked before) and self class
-                    if (ctype.equals(String.class) || ctype.equals(clazz)) {
-                        continue;
-                    }
-                    try {
-                        Object value = recurseInstantiate(arg, ctype, 0, 4);
-                        if (value != null) {
-                            return (T) clazz.getConstructor(ctype).newInstance(value);
-                        }
-                    } catch (InvocationTargetException ex) {
-                        LOG.debug("unable to instantiate {} with value {}", ctype.getName(), arg);
-                    }
-
-                }
             }
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException
                 | NoSuchElementException | SecurityException | InstantiationException e) {
-            LOG.warn("problem deserializing {} with value {}: {}", clazz.getName(), arg, e);
+            LOG.warn("problem deserializing {} with value {}: ", clazz.getName(), arg, e);
         }
         return (T) deser.deserialize(parser, ctxt);
     }

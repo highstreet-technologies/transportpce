@@ -53,7 +53,7 @@ public class CustomOdlDeserializer extends BeanDeserializerModifier {
                     return res;
                 } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException
                         | NoSuchMethodException | NoSuchElementException | SecurityException e) {
-                    LOG.warn("problem deserializing enum for {} with value {}: {}", clazz.getName(),
+                    LOG.warn("problem deserializing enum for {} with value {}: ", clazz.getName(),
                             jp.getValueAsString(), e);
                 }
                 throw new IOException(
@@ -85,6 +85,7 @@ public class CustomOdlDeserializer extends BeanDeserializerModifier {
 
         return deser;
     }
+
     public static boolean implementsInterface(Class<?> clz, Class<?> ifToImplement) {
         return ifToImplement.isAssignableFrom(clz);
     }

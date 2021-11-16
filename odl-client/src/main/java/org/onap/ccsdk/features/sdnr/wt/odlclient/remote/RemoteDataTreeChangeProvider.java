@@ -7,6 +7,7 @@
  */
 package org.onap.ccsdk.features.sdnr.wt.odlclient.remote;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.ArrayList;
 import java.util.List;
 import org.eclipse.jdt.annotation.NonNull;
@@ -18,6 +19,11 @@ import org.opendaylight.mdsal.binding.api.DataTreeModification;
 import org.opendaylight.yang.gen.v1.urn.tbd.params.xml.ns.yang.network.topology.rev131021.network.topology.topology.Node;
 import org.opendaylight.yangtools.concepts.ListenerRegistration;
 
+
+//FIXME Spotbugs issue here
+@SuppressFBWarnings(
+    value = {"URF_UNREAD_FIELD", "UPM_UNCALLED_PRIVATE_METHOD"},
+    justification = "waiting for more update")
 public class RemoteDataTreeChangeProvider<N extends Node, D extends DataTreeChangeListener<N>> {
 
     private final RestconfHttpClient client;

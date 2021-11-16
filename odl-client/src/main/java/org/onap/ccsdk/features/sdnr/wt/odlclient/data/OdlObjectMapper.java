@@ -37,11 +37,12 @@ import org.osgi.framework.FrameworkUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class OdlObjectMapper extends ObjectMapper implements ClassFinder{
+public class OdlObjectMapper extends ObjectMapper implements ClassFinder {
 
     private static final Logger LOG = LoggerFactory.getLogger(OdlObjectMapper.class);
     private static final long serialVersionUID = 1L;
     private final YangToolsBuilderAnnotationIntrospector introspector;
+
     public OdlObjectMapper() {
         super();
         Bundle bundle = FrameworkUtil.getBundle(OdlObjectMapper.class);
@@ -64,7 +65,7 @@ public class OdlObjectMapper extends ObjectMapper implements ClassFinder{
                     String[] hlp = key.split(":");
                     key = hlp[hlp.length - 1];
                 }
-                LOG.trace("using key=", key);
+                LOG.trace("using key={}", key);
                 return ctxt.getAttribute(key);
             }
         });
@@ -96,6 +97,28 @@ public class OdlObjectMapper extends ObjectMapper implements ClassFinder{
             return null;
         }
     }
+
+    /**
+     * Get Builder object for yang tools interface.
+     *
+     * @param <T> yang-tools base datatype
+     * @param clazz class with interface.
+     * @return builder for interface or null if not existing
+     */
+    @SuppressWarnings({"unchecked"})
+    @Override
+    public @Nullable <T> Builder<T> getBuilder(Class<T> clazz, T value) {
+        String builder = clazz.getName() + "Builder";
+        try {
+            Class<?> clazzBuilder = this.introspector.findClass(builder);
+            return (Builder<T>) clazzBuilder.getDeclaredConstructor(clazz).newInstance(value);
+        } catch (IllegalAccessException | InstantiationException | IllegalArgumentException | InvocationTargetException
+                | NoSuchMethodException | SecurityException | ClassNotFoundException e) {
+            // TODO Auto-generated catch block
+        }
+        return null;
+    }
+
 
     /**
      * Callback for handling mapping failures.
@@ -148,30 +171,10 @@ public class OdlObjectMapper extends ObjectMapper implements ClassFinder{
     public Class<?> findClass(String name, Class<?> clazz) throws ClassNotFoundException {
         return this.introspector.findClass(name, clazz);
     }
+
     @Override
-    public Class<?> findClass(String name) throws ClassNotFoundException{
+    public Class<?> findClass(String name) throws ClassNotFoundException {
         return this.introspector.findClass(name);
     }
 
-    /**
-     * Get Builder object for yang tools interface.
-     *
-     * @param <T> yang-tools base datatype
-     * @param clazz class with interface.
-     * @return builder for interface or null if not existing
-     */
-    @SuppressWarnings({"unchecked"})
-    @Override
-    public @Nullable <T> Builder<T> getBuilder(Class<T> clazz, T value) {
-        String builder = clazz.getName() + "Builder";
-        try {
-            Class<?> clazzBuilder = this.introspector.findClass(builder);
-            return (Builder<T>) clazzBuilder.getDeclaredConstructor(clazz).newInstance(value);
-        } catch (IllegalAccessException | InstantiationException | IllegalArgumentException | InvocationTargetException
-                | NoSuchMethodException | SecurityException | ClassNotFoundException e) {
-            // TODO Auto-generated catch block
-
-        }
-        return null;
-    }
 }

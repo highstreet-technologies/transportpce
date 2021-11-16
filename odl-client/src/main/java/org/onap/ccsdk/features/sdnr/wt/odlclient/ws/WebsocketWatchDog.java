@@ -28,6 +28,8 @@ public abstract class WebsocketWatchDog implements SdnrWebsocketCallback {
         private long timeToConnect = new Date().getTime();
         private boolean triggered = false;
 
+        //FIXME catch only needed exceptions here
+        @SuppressWarnings("IllegalCatch")
         @Override
         public void run() {
 
@@ -151,6 +153,8 @@ public abstract class WebsocketWatchDog implements SdnrWebsocketCallback {
 
     }
 
+    //FIXME catch only needed exceptions here
+    @SuppressWarnings("IllegalCatch")
     public void stop() {
         try {
             this.closed = true;
@@ -158,7 +162,6 @@ public abstract class WebsocketWatchDog implements SdnrWebsocketCallback {
                 this.session.close();
             }
             this.watcherThread.join();
-
         } catch (Exception e) {
             LOG.warn("problem closing watcher thread: ", e);
         }

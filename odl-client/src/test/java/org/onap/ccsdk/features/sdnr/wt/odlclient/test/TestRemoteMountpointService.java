@@ -7,12 +7,10 @@
  */
 package org.onap.ccsdk.features.sdnr.wt.odlclient.test;
 
-import com.google.common.util.concurrent.FluentFuture;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 import org.junit.Test;
 import org.onap.ccsdk.features.sdnr.wt.odlclient.config.RemoteOdlConfig.AuthMethod;
@@ -48,52 +46,51 @@ public class TestRemoteMountpointService {
 
     //@Test
     public void test() throws Exception {
-
-        RestconfHttpClient restClient = new RestconfHttpClient(BASEURL, false, AuthMethod.BASIC,
-                ODL_USERNAME, ODL_PASSWD);
+        RestconfHttpClient restClient =
+                new RestconfHttpClient(BASEURL, false, AuthMethod.BASIC, ODL_USERNAME, ODL_PASSWD);
         MountPoint mountPoint = new RemoteMountPoint(restClient,null, DEVICEID);
         final Optional<RpcConsumerRegistry> service = mountPoint.getService(RpcConsumerRegistry.class);
         if (!service.isPresent()) {
             LOG.error("Failed to get RpcService for node {}", DEVICEID);
         }
-        final OrgOpenroadmDeviceService rpcService = service.get()
-                .getRpcService(OrgOpenroadmDeviceService.class);
+        final OrgOpenroadmDeviceService rpcService = service.get().getRpcService(OrgOpenroadmDeviceService.class);
         final LedControlInputBuilder builder = new LedControlInputBuilder();
         builder.setEnabled(true).setEquipmentEntity(new CircuitPackBuilder().setCircuitPackName("1/0").build());
-        final Future<RpcResult<LedControlOutput>> output = rpcService
-                .ledControl(builder.build());
+        final Future<RpcResult<LedControlOutput>> output = rpcService.ledControl(builder.build());
         LOG.info("{}",output);
     }
+
     //@Test
     public void testRpcDeserializer() throws IOException {
         OdlRpcObjectMapperXml mapper = new OdlRpcObjectMapperXml();
-       LedControlOutput output = mapper.readValue("<output xmlns=\"http://org/openroadm/device\">\n" +
-                "    <status>Successful</status>\n" +
-                "    <status-message>test</status-message>\n" +
-                "</output>",LedControlOutput.class);
+        LedControlOutput output = mapper.readValue(
+                "<output xmlns=\"http://org/openroadm/device\">\n"
+                + "    <status>Successful</status>\n"
+                + "    <status-message>test</status-message>\n"
+                + "</output>", LedControlOutput.class);
         LOG.info("{}",output);
     }
+
     @Test
-    public void testAugment() throws NotImplementedException, ClassNotFoundException, NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException, InterruptedException, ExecutionException, IOException {
+    public void testAugment() throws NotImplementedException, ClassNotFoundException, NoSuchFieldException,
+            SecurityException, IllegalArgumentException, IllegalAccessException, InterruptedException,
+            ExecutionException, IOException {
         RestconfHttpClient restClient = new RestconfHttpClient(BASEURL, false, AuthMethod.BASIC,
                 ODL_USERNAME, ODL_PASSWD);
-
-        InstanceIdentifier<Protocols> protocoliid = InstanceIdentifier.create(OrgOpenroadmDevice.class)
-                .child(Protocols.class);
-        Optional<Protocols> protocolObject = restClient.read(LogicalDatastoreType.OPERATIONAL,
-                   protocoliid,"onapext3roadma1").get();
-            if (protocolObject.isPresent()) {
-
-                LOG.info("pro={}",protocolObject);
-                @Nullable
-                //Protocols1 pr = protocolObject.get().augmentation(Protocols1.class);
-                Protocols1 pr = restClient.read(LogicalDatastoreType.OPERATIONAL,
-                        protocoliid.augmentation(Protocols1.class),"onapext3roadma1").get().get();
-                LOG.info("pr={}",pr);
-                Lldp lldp = pr.getLldp();
-                LOG.info("{}",lldp);
-
-            }
+        InstanceIdentifier<Protocols> protocoliid =
+                InstanceIdentifier.create(OrgOpenroadmDevice.class).child(Protocols.class);
+        Optional<Protocols> protocolObject =
+                restClient.read(LogicalDatastoreType.OPERATIONAL, protocoliid,"onapext3roadma1").get();
+        if (protocolObject.isPresent()) {
+            LOG.info("pro={}",protocolObject);
+            @Nullable
+            //Protocols1 pr = protocolObject.get().augmentation(Protocols1.class);
+            Protocols1 pr = restClient.read(LogicalDatastoreType.OPERATIONAL,
+                    protocoliid.augmentation(Protocols1.class),"onapext3roadma1").get().get();
+            LOG.info("pr={}",pr);
+            Lldp lldp = pr.getLldp();
+            LOG.info("{}",lldp);
+        }
     }
 
 }

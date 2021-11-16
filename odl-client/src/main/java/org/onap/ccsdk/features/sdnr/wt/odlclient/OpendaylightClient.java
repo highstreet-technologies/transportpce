@@ -73,26 +73,23 @@ public class OpendaylightClient<N extends Node, D extends DataTreeChangeListener
 
         @Override
         public void onError(Throwable cause) {
-           LOG.error("ws connection error: {}",cause.getMessage());
-
+            LOG.error("ws connection error: {}", cause.getMessage());
         }
 
         @Override
         public void onDisconnect(int statusCode, String reason) {
             LOG.warn("ws connection to sdnr broken: {} {}", statusCode, reason);
-            if(OpendaylightClient.this.statusServlet!=null) {
+            if (OpendaylightClient.this.statusServlet != null) {
                 OpendaylightClient.this.statusServlet.setWebsocketStatus("disconnected");
             }
-
         }
 
         @Override
         public void onConnect(Session lsession) {
             LOG.info("ws connection to sdnr established");
-            if(OpendaylightClient.this.statusServlet!=null) {
+            if (OpendaylightClient.this.statusServlet != null) {
                 OpendaylightClient.this.statusServlet.setWebsocketStatus("connected");
             }
-
         }
 
         /**
@@ -109,7 +106,6 @@ public class OpendaylightClient<N extends Node, D extends DataTreeChangeListener
             else {
                 LOG.debug("up to now not handled");
             }
-
         }
     };
 
@@ -131,18 +127,16 @@ public class OpendaylightClient<N extends Node, D extends DataTreeChangeListener
                     this.config.getAuthenticationMethod(), this.config.getCredentialUsername(),
                     this.config.getCredentialPassword());
             this.wsClient = this.config.getWebsocketUrl() == null ? null
-                    : new SdnrWebsocketClient(this.config.getWebsocketUrl(), this.wsCallback, this.config.trustAllCerts());
+                : new SdnrWebsocketClient(this.config.getWebsocketUrl(), this.wsCallback, this.config.trustAllCerts());
             if (this.wsClient != null) {
                 LOG.info("starting wsclient");
                 this.wsClient.start();
-
             }
             this.dataBroker = new RemoteDataBroker(this.restClient);
         } else {
             this.restClient = null;
             this.dataBroker = null;
             this.wsClient = null;
-
         }
         this.dataTreeChangeProvider = new RemoteDataTreeChangeProvider<>(this.restClient);
         this.deviceConnectionChangeProvider = new RemoteDeviceConnectionChangeProvider(this.restClient);
@@ -158,7 +152,6 @@ public class OpendaylightClient<N extends Node, D extends DataTreeChangeListener
         if (this.wsClient != null) {
             LOG.info("starting wsclient");
             this.wsClient.start();
-
         }
         this.dataBroker = new RemoteDataBroker(this.restClient);
         this.dataTreeChangeProvider = new RemoteDataTreeChangeProvider<>(this.restClient);
@@ -194,6 +187,7 @@ public class OpendaylightClient<N extends Node, D extends DataTreeChangeListener
         }
         return false;
     }
+
     @Override
     public boolean isDeviceMounted(String nodeId) {
 
@@ -210,6 +204,7 @@ public class OpendaylightClient<N extends Node, D extends DataTreeChangeListener
         }
         return false;
     }
+
     @Override
     public DataBroker getRemoteDeviceDataBroker(String nodeId) {
         DataBroker broker = this.deviceDataBrokers.get(nodeId);
@@ -227,12 +222,11 @@ public class OpendaylightClient<N extends Node, D extends DataTreeChangeListener
 
     @Override
     public MountPoint getMountPoint(String deviceId) {
-    	if(this.isDeviceMounted(deviceId)) {
-    		return new RemoteMountPoint(this.restClient, this.wsClient, deviceId);
-    	}
-    	else {
-    		return null;
-    	}
+        if (this.isDeviceMounted(deviceId)) {
+            return new RemoteMountPoint(this.restClient, this.wsClient, deviceId);
+        } else {
+            return null;
+        }
     }
 
     @Override
@@ -258,7 +252,8 @@ public class OpendaylightClient<N extends Node, D extends DataTreeChangeListener
 
     @Override
     public <T extends DataObject> Optional<T> getDataFromDevice(String nodeId, LogicalDatastoreType datastore,
-            InstanceIdentifier<T> xciid, long deviceReadTimeout, TimeUnit deviceReadTimeoutUnit) throws InterruptedException, TimeoutException, ExecutionException {
+            InstanceIdentifier<T> xciid, long deviceReadTimeout, TimeUnit deviceReadTimeoutUnit)
+            throws InterruptedException, TimeoutException, ExecutionException {
         DataBroker db = this.getRemoteDeviceDataBroker(nodeId);
         return db.newReadOnlyTransaction().read(datastore, xciid).get(deviceReadTimeout, deviceReadTimeoutUnit);
     }

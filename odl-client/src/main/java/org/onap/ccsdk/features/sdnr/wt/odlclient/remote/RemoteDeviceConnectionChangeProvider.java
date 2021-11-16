@@ -114,6 +114,8 @@ public class RemoteDeviceConnectionChangeProvider {
         }
     }
 
+    //FIXME catch only needed exceptions here
+    @SuppressWarnings("IllegalCatch")
     private void pushConnect(String nodeId, NetconfNode netconfNode) {
         for (DeviceConnectionChangedHandler listener : this.listeners) {
             LOG.debug("push connected to {}", listener.getClass());
@@ -125,6 +127,7 @@ public class RemoteDeviceConnectionChangeProvider {
         }
     }
 
+    @SuppressWarnings("IllegalCatch")
     private void pushConnecting(String nodeId, NetconfNode netconfNode) {
         for (DeviceConnectionChangedHandler listener : this.listeners) {
             LOG.debug("push connecting to {}", listener.getClass());
@@ -136,6 +139,7 @@ public class RemoteDeviceConnectionChangeProvider {
         }
     }
 
+    @SuppressWarnings("IllegalCatch")
     private void pushUnableToConnect(String nodeId, NetconfNode netconfNode) {
         for (DeviceConnectionChangedHandler listener : this.listeners) {
             LOG.debug("push unable to connect to {}", listener.getClass());
@@ -147,6 +151,7 @@ public class RemoteDeviceConnectionChangeProvider {
         }
     }
 
+    @SuppressWarnings("IllegalCatch")
     private void pushDisconnect(String nodeId) {
         for (DeviceConnectionChangedHandler listener : this.listeners) {
             LOG.debug("push disconnect to {}", listener.getClass());

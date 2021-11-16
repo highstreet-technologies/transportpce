@@ -115,7 +115,7 @@ public class SdnrWebsocket {
 
     @OnWebSocketError
     public void onError(Throwable cause) {
-        LOG.warn("WebSocket Error: {}", cause);
+        LOG.warn("WebSocket Error:", cause);
         this.callback.onError(cause);
     }
 

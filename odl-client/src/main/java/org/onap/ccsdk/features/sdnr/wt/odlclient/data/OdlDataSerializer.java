@@ -12,6 +12,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import org.onap.ccsdk.features.sdnr.wt.odlclient.data.serializer.ObjectSerializer;
 import org.onap.ccsdk.features.sdnr.wt.odlclient.data.serializer.ObjectSerializerMap;
@@ -32,12 +33,14 @@ import org.slf4j.LoggerFactory;
 
 public abstract class OdlDataSerializer {
 
-    abstract SerializerElem preValueWrite(String key, Object o, boolean withNsPrefix, Class<?> rootClass);
-    abstract SerializerElem preValueWrite(String key, Object o, boolean withNsPrefix,boolean withNamespace, Class<?> rootClass);
+    abstract SerializerElem preValueWrite(String key, Object o1, boolean withNsPrefix, Class<?> rootClass);
 
-    abstract void postValueWrite(SerializerElem e, String key);
+    abstract SerializerElem preValueWrite(String key, Object o1, boolean withNsPrefix, boolean withNamespace,
+            Class<?> rootClass);
 
-    abstract void onValueWrite(SerializerElem e, Object o);
+    abstract void postValueWrite(SerializerElem e1, String key);
+
+    abstract void onValueWrite(SerializerElem e1, Object o1);
 
     abstract void clear();
 
@@ -48,23 +51,23 @@ public abstract class OdlDataSerializer {
     private final ObjectSerializerMap extraMappers;
     private final ClassFinder clsFinder;
     private final Map<Class<?>, List<Class<?>>> augmentations = OdlObjectMapperXml.initAutoAugmentationList();
-    private static final ObjectSerializer defaultSerializer = new ObjectSerializer();
+    private static final ObjectSerializer DEFAULT_SERIALIZER = new ObjectSerializer();
 
     public OdlDataSerializer(ClassFinder clsFinder) {
         this.clsFinder = clsFinder;
         this.extraMappers = new ObjectSerializerMap();
     }
 
-    public void addSerializer(Class<?> clazz, ObjectSerializer s) {
-        this.extraMappers.put(clazz.getName(), s);
+    public void addSerializer(Class<?> clazz, ObjectSerializer s1) {
+        this.extraMappers.put(clazz.getName(), s1);
     }
 
-    public void addSerializer(Class<?> parentClazz, String propertyName, ObjectSerializer s) {
-        this.extraMappers.put(parentClazz, propertyName, s);
+    public void addSerializer(Class<?> parentClazz, String propertyName, ObjectSerializer s1) {
+        this.extraMappers.put(parentClazz, propertyName, s1);
     }
 
-    public void addSerializer(String parentClazzName, String propertyName, ObjectSerializer s) {
-        this.extraMappers.put(parentClazzName, propertyName, s);
+    public void addSerializer(String parentClazzName, String propertyName, ObjectSerializer s1) {
+        this.extraMappers.put(parentClazzName, propertyName, s1);
     }
 
     public void setNullValueExcluded(boolean exclude) {
@@ -79,124 +82,127 @@ public abstract class OdlDataSerializer {
 
         this.clear();
         Class<?> rootClass = value.getClass();
-        SerializerElem e = this.startElem(rootKey, value, false, rootClass);
-        this.writeRecurseProperties(e, value, 0, rootClass);
-        this.stopElem(e, rootKey);
-        return e.toString();
+        SerializerElem e1 = this.startElem(rootKey, value, false, rootClass);
+        this.writeRecurseProperties(e1, value, 0, rootClass);
+        this.stopElem(e1, rootKey);
+        return e1.toString();
     }
 
     @SuppressWarnings("unchecked")
-    private void writeRecurseProperties(SerializerElem e, Object object, int level, Class<?> rootClass) {
-        ObjectSerializer extraSerializer = null;
+    private void writeRecurseProperties(SerializerElem e1, Object object, int level, Class<?> rootClass) {
         if (level > 15) {
-            System.out.println("Level to deep protection.");
-        } else {
-            if (object != null) {
-                Class<?> clazz = object.getClass();
-                Field[] fields = clazz.getDeclaredFields();
-                boolean found = false;
-                Field nameField = null;
-                SerializerElem e2 = null;
-                for (Field field : fields) {
-                    try {
-                        String name = field.getName();
-                        field.setAccessible(true);
-                        Object value = field.get(object);
-                        //only _xxx properties are interesting
-                        if (name.startsWith("_")) {
-                            if (this.nullValueExcluded && value == null) {
-                                continue;
-                            }
-                            Class<?> type = field.getType();
-                            extraSerializer =
-                                    this.extraMappers.getOrDefault(type.getName(), clazz, name, defaultSerializer);
-                            //convert property name to kebab-case (yang-spec writing)
-                            name = extraSerializer.convertPropertyName(name);
-                            //if has inner childs
-                            if (DataObject.class.isAssignableFrom(type)) {
-                                e2 = this.startElem(name, value, false, rootClass);
-                                this.writeRecurseProperties(e2, value, level + 1, rootClass);
-                                this.stopElem(e2, name);
-                                e.addChild(e2);
-                            } else {
-                                //if enum
-                                if (Enum.class.isAssignableFrom(type)) {
-                                    e2 = this.startElem(name, value, false, false, rootClass);
-                                    String svalue = this.getEnumStringValue(value);
-                                    this.writeElemValue(e2, svalue.substring(0, 1).toLowerCase() + svalue.substring(1));
-                                    this.stopElem(e2, name);
-                                    e.addChild(e2);
-                                }
-                                // type object (new type of base type) => use getValue()
-                                else if (TypeObject.class.isAssignableFrom(type)) {
-                                    e2 = this.startElem(name, value, false, false, rootClass);
-                                    this.writeElemValue(e2, this.getTypeObjectStringValue(value, type));
-                                    this.stopElem(e2, name);
-                                    e.addChild(e2);
-                                }
-                                //if choice then jump over field and step into next java level, but not in xml
-                                else if (ChoiceIn.class.isAssignableFrom(type)) {
-                                    this.writeRecurseProperties(e, value, level, rootClass);
-                                }
-                                //if type is Identity reference
-                                else if (type == Class.class && BaseIdentity.class.isAssignableFrom((Class<?>) value)) {
-                                    e2 = this.startElem(name, value, rootClass);
-                                    this.writeElemValue(e2, this.getIdentity((Class<?>) value));
-                                    this.stopElem(e2, name);
-                                    e.addChild(e2);
-                                }
-                                //if list of elems
-                                else if (value != null && Map.class.isAssignableFrom(type)) {
-                                    for (Object listObject : ((Map<?,Object>) value).values()) {
-                                        e2 = this.startElem(name, listObject, rootClass);
-                                        this.writeRecurseProperties(e2, listObject, level + 1, rootClass);
-                                        this.stopElem(e2, name);
-                                        e.addChild(e2);
-                                    }
-                                }
-                                //if list of elems
-                                else if (value != null && List.class.isAssignableFrom(type)) {
-                                    for (Object listObject : (List<Object>) value) {
-                                        e2 = this.startElem(name, listObject, rootClass);
-                                        this.writeRecurseProperties(e2, listObject, level + 1, rootClass);
-                                        this.stopElem(e2, name);
-                                        e.addChild(e2);
-                                    }
-                                }
-                                //by exclude all others it is basic value element
-                                else {
-                                    e2 = this.startElem(name, value, false, false, rootClass);
-                                    this.writeElemValue(e2, value);
-                                    this.stopElem(e2, name);
-                                    e.addChild(e2);
-                                }
-                                found = true;
+            LOG.error("Level to deep protection.");
+            return;
+        }
+        if (object == null) {
+            return;
+        }
 
+        ObjectSerializer extraSerializer = null;
+        Class<?> clazz = object.getClass();
+        Field[] fields = clazz.getDeclaredFields();
+        boolean found = false;
+        Field nameField = null;
+        SerializerElem e2 = null;
+        for (Field field : fields) {
+            try {
+                String name = field.getName();
+                field.setAccessible(true);
+                Object value = field.get(object);
+                //only _xxx properties are interesting
+                if (name.startsWith("_")) {
+                    if (this.nullValueExcluded && value == null) {
+                        continue;
+                    }
+                    Class<?> type = field.getType();
+                    extraSerializer =
+                            this.extraMappers.getOrDefault(type.getName(), clazz, name, DEFAULT_SERIALIZER);
+                    //convert property name to kebab-case (yang-spec writing)
+                    name = extraSerializer.convertPropertyName(name);
+                    //if has inner childs
+                    if (DataObject.class.isAssignableFrom(type)) {
+                        e2 = this.startElem(name, value, false, rootClass);
+                        this.writeRecurseProperties(e2, value, level + 1, rootClass);
+                        this.stopElem(e2, name);
+                        e1.addChild(e2);
+                    } else {
+                        //if enum
+                        if (Enum.class.isAssignableFrom(type)) {
+                            e2 = this.startElem(name, value, false, false, rootClass);
+                            String svalue = this.getEnumStringValue(value);
+                            this.writeElemValue(e2,
+                                svalue.substring(0, 1).toLowerCase(Locale.getDefault()) + svalue.substring(1));
+                            this.stopElem(e2, name);
+                            e1.addChild(e2);
+                        }
+                        // type object (new type of base type) => use getValue()
+                        else if (TypeObject.class.isAssignableFrom(type)) {
+                            e2 = this.startElem(name, value, false, false, rootClass);
+                            this.writeElemValue(e2, this.getTypeObjectStringValue(value, type));
+                            this.stopElem(e2, name);
+                            e1.addChild(e2);
+                        }
+                        //if choice then jump over field and step into next java level, but not in xml
+                        else if (ChoiceIn.class.isAssignableFrom(type)) {
+                            this.writeRecurseProperties(e1, value, level, rootClass);
+                        }
+                        //if type is Identity reference
+                        else if (type == Class.class && BaseIdentity.class.isAssignableFrom((Class<?>) value)) {
+                            e2 = this.startElem(name, value, rootClass);
+                            this.writeElemValue(e2, this.getIdentity((Class<?>) value));
+                            this.stopElem(e2, name);
+                            e1.addChild(e2);
+                        }
+                        //if list of elems
+                        else if (value != null && Map.class.isAssignableFrom(type)) {
+                            for (Object listObject : ((Map<?,Object>) value).values()) {
+                                e2 = this.startElem(name, listObject, rootClass);
+                                this.writeRecurseProperties(e2, listObject, level + 1, rootClass);
+                                this.stopElem(e2, name);
+                                e1.addChild(e2);
                             }
-                        } else if (name.equals("name")) {
-                            nameField = field;
                         }
-                    } catch (IllegalArgumentException | IllegalAccessException ex) {
-                        LOG.warn("problem accessing value during mapping: ", ex);
-                    }
-                }
-                if (!found && nameField != null) {
-                    try {
-                        Object value = nameField.get(object);
-                        Class<?> type = nameField.getType();
-                        if (type == String.class) {
-                            this.writeElemValue(e, this.getIdentity((String) value));
+                        //if list of elems
+                        else if (value != null && List.class.isAssignableFrom(type)) {
+                            for (Object listObject : (List<Object>) value) {
+                                e2 = this.startElem(name, listObject, rootClass);
+                                this.writeRecurseProperties(e2, listObject, level + 1, rootClass);
+                                this.stopElem(e2, name);
+                                e1.addChild(e2);
+                            }
                         }
-                    } catch (IllegalArgumentException | IllegalAccessException | ClassNotFoundException ex) {
-                        LOG.warn("problem accessing value during mapping2: ", ex);
+                        //by exclude all others it is basic value element
+                        else {
+                            e2 = this.startElem(name, value, false, false, rootClass);
+                            this.writeElemValue(e2, value);
+                            this.stopElem(e2, name);
+                            e1.addChild(e2);
+                        }
+                        found = true;
+
                     }
+                } else if (name.equals("name")) {
+                    nameField = field;
                 }
-                Collection<Object> augmentations = getAugmentations(object, clazz);
-                if (augmentations != null && augmentations.size() > 0) {
-                    for (Object augment : augmentations) {
-                        this.writeRecurseProperties(e, augment, level, augment.getClass());
-                    }
+            } catch (IllegalArgumentException | IllegalAccessException ex) {
+                LOG.warn("problem accessing value during mapping: ", ex);
+            }
+        }
+        if (!found && nameField != null) {
+            try {
+                Object value = nameField.get(object);
+                Class<?> type = nameField.getType();
+                if (type == String.class) {
+                    this.writeElemValue(e1, this.getIdentity((String) value));
                 }
+            } catch (IllegalArgumentException | IllegalAccessException | ClassNotFoundException ex) {
+                LOG.warn("problem accessing value during mapping2: ", ex);
+            }
+        }
+        Collection<Object> augmentations0 = getAugmentations(object, clazz);
+        if (augmentations0 != null && augmentations0.size() > 0) {
+            for (Object augment : augmentations0) {
+                this.writeRecurseProperties(e1, augment, level, augment.getClass());
             }
         }
     }
@@ -221,23 +227,25 @@ public abstract class OdlDataSerializer {
         return null;
     }
 
-    private SerializerElem startElem(String elem, Object o, Class<?> rootClass) {
-        return this.startElem(elem, o, true, rootClass);
+    private SerializerElem startElem(String elem, Object o1, Class<?> rootClass) {
+        return this.startElem(elem, o1, true, rootClass);
     }
 
-    private SerializerElem startElem(String elem, Object o, boolean withNsPrefix, Class<?> rootClass) {
-        return this.preValueWrite(elem, o, withNsPrefix, rootClass);
-    }
-    private SerializerElem startElem(String elem, Object o, boolean withNsPrefix, boolean withNamespace, Class<?> rootClass) {
-        return this.preValueWrite(elem, o, withNsPrefix, withNamespace, rootClass);
+    private SerializerElem startElem(String elem, Object o1, boolean withNsPrefix, Class<?> rootClass) {
+        return this.preValueWrite(elem, o1, withNsPrefix, rootClass);
     }
 
-    private void writeElemValue(SerializerElem e, Object elemValue) {
-        this.onValueWrite(e, elemValue);
+    private SerializerElem startElem(String elem, Object o1, boolean withNsPrefix, boolean withNamespace,
+            Class<?> rootClass) {
+        return this.preValueWrite(elem, o1, withNsPrefix, withNamespace, rootClass);
     }
 
-    private void stopElem(SerializerElem e, String elem) {
-        this.postValueWrite(e, elem);
+    private void writeElemValue(SerializerElem e1, Object elemValue) {
+        this.onValueWrite(e1, elemValue);
+    }
+
+    private void stopElem(SerializerElem e1, String elem) {
+        this.postValueWrite(e1, elem);
     }
 
     private String getIdentity(String clsName)
@@ -250,7 +258,7 @@ public abstract class OdlDataSerializer {
         QName qname = null;
         Field[] fields = value.getDeclaredFields();
         for (Field f : fields) {
-            if (f.getName() == "QNAME") {
+            if (f.getName().equals("QNAME")) {
                 qname = (QName) f.get(value);
                 break;
             }

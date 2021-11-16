@@ -43,9 +43,9 @@ public interface RemoteOpendaylightClient<N extends Node, D extends DataTreeChan
     void unregisterDeviceConnectionChangeListener(DeviceConnectionChangedHandler listener);
 
     <T extends DataObject> Optional<T> getDataFromDevice(String nodeId, LogicalDatastoreType configuration,
-            InstanceIdentifier<T> xciid, long deviceReadTimeout, TimeUnit deviceReadTimeoutUnit) throws
-        InterruptedException, TimeoutException, ExecutionException;
+            InstanceIdentifier<T> xciid, long deviceReadTimeout, TimeUnit deviceReadTimeoutUnit)
+            throws InterruptedException, TimeoutException, ExecutionException;
 
-	boolean isDeviceMounted(String nodeId);
+    boolean isDeviceMounted(String nodeId);
 
 }

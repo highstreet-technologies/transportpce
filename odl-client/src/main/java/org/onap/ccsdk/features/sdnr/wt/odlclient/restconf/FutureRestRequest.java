@@ -24,7 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public class FutureRestRequest<T> implements ListenableFuture<Optional<T>> {
+public final class FutureRestRequest<T> implements ListenableFuture<Optional<T>> {
 
     private static final Logger LOG = LoggerFactory.getLogger(FutureRestRequest.class);
 
@@ -67,6 +67,7 @@ public class FutureRestRequest<T> implements ListenableFuture<Optional<T>> {
             Map<String, String> headers, Class<T> clazz, boolean clearWrappingParent) {
         this(client, uri, method, data, headers, clazz, clearWrappingParent, null);
     }
+
     private FutureRestRequest(BaseHTTPClient client, String uri, String method, String data,
             Map<String, String> headers, Class<T> clazz, boolean clearWrappingParent, RequestCallback callback) {
         this.client = client;

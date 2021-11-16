@@ -8,6 +8,7 @@
 package org.onap.ccsdk.features.sdnr.wt.odlclient.test;
 
 import static org.junit.Assert.assertEquals;
+
 import java.util.Optional;
 import org.eclipse.jdt.annotation.NonNull;
 import org.junit.Test;
@@ -75,6 +76,7 @@ public class TestIifToUri {
         Optional<Topology> output = restconfClient.read(LogicalDatastoreType.CONFIGURATION,iif).get();
         Topology topo = output.get();
     }
+
     private class TestRestconfHttpClient extends RestconfHttpClient {
 
         TestRestconfHttpClient(String base, boolean trustAllCerts, AuthMethod authMethod,
@@ -90,18 +92,17 @@ public class TestIifToUri {
             // TODO Auto-generated method stub
             return super.getRfc8040UriFromIif(storage, instanceIdentifier, nodeId, isRpc);
         }
-
-
     }
 
     @Test
     public void testIIF2() throws Exception {
-        String connectionNumber="1";;
-        InstanceIdentifier<OduConnection> iif = InstanceIdentifier.create(OrgOpenroadmDevice.class).child(OduConnection.class,
-                new OduConnectionKey(connectionNumber));
-        TestRestconfHttpClient restconfClient = new TestRestconfHttpClient("http://localhost:8181/", false, AuthMethod.BASIC,"","");
-
-        LOG.info("odu uri={}",restconfClient.getRfc8040UriFromIif(LogicalDatastoreType.CONFIGURATION, iif, "abc", false));
-
+        String connectionNumber = "1";
+        InstanceIdentifier<OduConnection> iif =
+                InstanceIdentifier.create(OrgOpenroadmDevice.class)
+                    .child(OduConnection.class, new OduConnectionKey(connectionNumber));
+        TestRestconfHttpClient restconfClient =
+                new TestRestconfHttpClient("http://localhost:8181/", false, AuthMethod.BASIC, "", "");
+        LOG.info("odu uri={}",
+            restconfClient.getRfc8040UriFromIif(LogicalDatastoreType.CONFIGURATION, iif, "abc", false));
     }
 }

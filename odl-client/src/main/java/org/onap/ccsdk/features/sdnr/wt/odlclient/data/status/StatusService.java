@@ -9,7 +9,8 @@ package org.onap.ccsdk.features.sdnr.wt.odlclient.data.status;
 
 public interface StatusService {
 
+    void setWebsocketStatus(String connectionStatus);
 
-    public void setWebsocketStatus(String connectionStatus);
-    public void addResponse(boolean success);
+    void addResponse(boolean success);
+
 }

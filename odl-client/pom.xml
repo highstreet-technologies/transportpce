@@ -17,9 +17,6 @@
     <properties>
         <transportpce.groupId>org.opendaylight.transportpce</transportpce.groupId>
         <transportpce.version>${project.version}</transportpce.version>
-        <checkstyle.skip>true</checkstyle.skip>
-        <skip.checkstyle>true</skip.checkstyle>
-        <odlparent.spotbugs.enforce>false</odlparent.spotbugs.enforce>
         <ccsdk.features.version>1.2.0-SNAPSHOT</ccsdk.features.version>
     </properties>
     <dependencyManagement>

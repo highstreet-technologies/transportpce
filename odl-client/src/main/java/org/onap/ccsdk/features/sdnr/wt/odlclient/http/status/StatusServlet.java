@@ -7,6 +7,7 @@
  */
 package org.onap.ccsdk.features.sdnr.wt.odlclient.http.status;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import javax.servlet.ServletException;
@@ -18,6 +19,12 @@ import org.onap.ccsdk.features.sdnr.wt.odlclient.data.status.StatusService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+//TODO check if another solution such as using OSGi annotations would not be more indicated here
+@SuppressFBWarnings(
+    value = {"SE_BAD_FIELD"},
+    justification =
+       "This field is not Serializable but this class implements HttpServlet to delegate serialization."
+       + "Thus instances of this class aren't serialized. SpotBugs does not recognize this.")
 public class StatusServlet extends HttpServlet implements StatusService {
 
     private static final Logger LOG = LoggerFactory.getLogger(StatusServlet.class);

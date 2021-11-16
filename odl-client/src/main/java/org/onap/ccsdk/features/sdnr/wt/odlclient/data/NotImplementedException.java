@@ -9,7 +9,7 @@ package org.onap.ccsdk.features.sdnr.wt.odlclient.data;
 
 public class NotImplementedException extends Exception {
 
-   private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
     public NotImplementedException() {
         super("not yet implemented");

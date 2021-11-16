@@ -72,6 +72,12 @@ public class RestconfHttpClient extends BaseHTTPClient {
                 instanceIdentifier.getTargetType(), isLeafList);
     }
 
+    public <T extends DataObject> @NonNull FluentFuture<Optional<T>> read(LogicalDatastoreType store,
+            InstanceIdentifier<T> instanceIdentifier) throws ClassNotFoundException, NoSuchFieldException,
+            SecurityException, IllegalArgumentException, IllegalAccessException, IOException {
+        return this.read(store, instanceIdentifier, null);
+    }
+
     private <T extends DataObject> boolean isCompleteLeafListRequest(InstanceIdentifier<T> instanceIdentifier) {
         Iterable<PathArgument> iterable = instanceIdentifier.getPathArguments();
         Iterator<PathArgument> it = iterable.iterator();
@@ -84,12 +90,6 @@ public class RestconfHttpClient extends BaseHTTPClient {
             isLeafList = pa.getType().isAssignableFrom(List.class);
         }
         return isLeafList;
-    }
-
-    public <T extends DataObject> @NonNull FluentFuture<Optional<T>> read(LogicalDatastoreType store,
-            InstanceIdentifier<T> instanceIdentifier) throws ClassNotFoundException, NoSuchFieldException,
-            SecurityException, IllegalArgumentException, IllegalAccessException, IOException {
-        return this.read(store, instanceIdentifier, null);
     }
 
     protected <T extends DataObject> String getRfc8040UriFromIif(LogicalDatastoreType storage,
@@ -135,15 +135,6 @@ public class RestconfHttpClient extends BaseHTTPClient {
         return retValue;
     }
 
-    private static final String urlencode(String value) {
-        try {
-            return URLEncoder.encode(value, StandardCharsets.UTF_8.toString()).replace(":","%3A");
-        } catch (UnsupportedEncodingException ex) {
-            LOG.warn("problem encode {}:", value, ex);
-        }
-        return value;
-    }
-
     protected <T extends DataObject> String getRfc8040UriFromIif(LogicalDatastoreType storage, String postUri,
             String nodeId, boolean isRpc) {
         if (!postUri.startsWith("/")) {
@@ -153,6 +144,15 @@ public class RestconfHttpClient extends BaseHTTPClient {
         return nodeId != null ? String.format(
                 "/rests/%s/network-topology:network-topology/topology=topology-netconf/node=%s/yang-ext:mount%s",
                 sstore, nodeId, postUri) : String.format("/rests/%s%s", sstore, postUri);
+    }
+
+    private static String urlencode(String value) {
+        try {
+            return URLEncoder.encode(value, StandardCharsets.UTF_8.toString()).replace(":","%3A");
+        } catch (UnsupportedEncodingException ex) {
+            LOG.warn("problem encode {}:", value, ex);
+        }
+        return value;
     }
 
     private static boolean implementsChildOf(Class<?> clazz) {
@@ -171,7 +171,7 @@ public class RestconfHttpClient extends BaseHTTPClient {
             Class<? extends PathArgument> clazz = pa.getClass();
 
             Field field = getDeclaredFieldOrNull(clazz,"key");
-            if(field==null) {
+            if (field == null) {
                 return null;
             }
             field.setAccessible(true);
@@ -200,23 +200,25 @@ public class RestconfHttpClient extends BaseHTTPClient {
 
     private static Field getDeclaredFieldOrNull(Class<?> clazz, String key) {
         Field[] fields = clazz.getDeclaredFields();
-        for(Field f:fields) {
-            if(f.getName()==key) {
+        for (Field f:fields) {
+            if (f.getName().equals(key)) {
                 return f;
             }
         }
         return null;
     }
 
+    //printStrackTrace used to fill a String buffer here
+    @SuppressWarnings("RegexpSinglelineJava")
     private static String assembleExceptionMessage(Exception exception) {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
         exception.printStackTrace(pw);
 
-        StringBuffer buf = new StringBuffer();
-        buf.append("Exception: ");
-        buf.append(sw.toString());
-        return buf.toString();
+        return new StringBuilder()
+                .append("Exception: ")
+                .append(sw.toString())
+                .toString();
     }
 
     public <O extends DataObject, I extends DataObject> ListenableFuture<RpcResult<O>> executeRpc(String nodeId,
@@ -272,7 +274,7 @@ public class RestconfHttpClient extends BaseHTTPClient {
                 instanceIdentifier.getTargetType(), false);
     }
 
-    public void registerRequestCallback(RequestCallback callback) {
-        this.callback = callback;
+    public void registerRequestCallback(RequestCallback callback0) {
+        this.callback = callback0;
     }
 }

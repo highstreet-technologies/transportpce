@@ -16,8 +16,10 @@ import org.opendaylight.yangtools.yang.common.QName;
 
 public class OdlXmlSerializer extends OdlDataSerializer {
 
-    private static final String[] xmlNamespacePrefixes = ("a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,aa,ab,ac"
-            + ",ad,ae,af,ag,ah,ai,aj,ak,al,am,an,ao,ap,aq,ar,as,at,au,av,aw,ax,ay,az").split(",");
+    private static final String[] XML_NAMESPACE_PREFIXES =
+            ("a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,"
+            + "aa,ab,ac,ad,ae,af,ag,ah,ai,aj,ak,al,am,an,ao,ap,aq,ar,as,at,au,av,aw,ax,ay,az")
+                .split(",");
     private int prefixIndex = 0;
     private boolean hasNamespace;
 
@@ -50,7 +52,7 @@ public class OdlXmlSerializer extends OdlDataSerializer {
     }
 
     private String getPrefix() {
-        return this.prefixIndex < xmlNamespacePrefixes.length ? xmlNamespacePrefixes[this.prefixIndex++] : "";
+        return this.prefixIndex < XML_NAMESPACE_PREFIXES.length ? XML_NAMESPACE_PREFIXES[this.prefixIndex++] : "";
     }
 
     @Override
@@ -59,52 +61,52 @@ public class OdlXmlSerializer extends OdlDataSerializer {
     }
 
     @Override
-    SerializerElem preValueWrite(String key, Object o, boolean withNsPrefix, Class<?> rootClass) {
-        final String ns = this.getXmlNameSpace(o, rootClass);
+    SerializerElem preValueWrite(String key, Object o1, boolean withNsPrefix, Class<?> rootClass) {
+        final String ns = this.getXmlNameSpace(o1, rootClass);
         this.hasNamespace = ns.length() > 0;
         return new SerializerElem(key, ns, (withNsPrefix && hasNamespace) ? this.getPrefix() : null);
     }
 
     @Override
-    SerializerElem preValueWrite(String key, Object o, boolean withNsPrefix, boolean withNamespace,
+    SerializerElem preValueWrite(String key, Object o1, boolean withNsPrefix, boolean withNamespace,
             Class<?> rootClass) {
         if (withNamespace) {
-            return this.preValueWrite(key, o, withNsPrefix, rootClass);
+            return this.preValueWrite(key, o1, withNsPrefix, rootClass);
         }
         return new SerializerElem(key, null, null);
     }
 
     @Override
-    void postValueWrite(SerializerElem e, String key) {
+    void postValueWrite(SerializerElem e1, String key) {
 
     }
 
     @Override
-    void onValueWrite(SerializerElem e, Object o) {
-        e.setValue(o);
+    void onValueWrite(SerializerElem e1, Object o1) {
+        e1.setValue(o1);
     }
 
-    private String getXmlNameSpace(Object o, Class<?> rootClass) {
-        if (o != null) {
-            Field f;
+    private String getXmlNameSpace(Object o1, Class<?> rootClass) {
+        if (o1 != null) {
+            Field f1;
             Object couldQName = null;
             try {
 
-                f = o.getClass().getField("QNAME");
-                couldQName = f.get(o);
+                f1 = o1.getClass().getField("QNAME");
+                couldQName = f1.get(o1);
             } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
                 //no need to handle this
             }
             if (couldQName instanceof QName) {
                 QName qname = (QName) couldQName;
                 return qname.getNamespace().toString();
-            } else if (o.getClass() == Class.class && BaseIdentity.class.isAssignableFrom((Class<?>) o)) {
+            } else if (o1.getClass() == Class.class && BaseIdentity.class.isAssignableFrom((Class<?>) o1)) {
                 try {
-                    Class<?> value = (Class<?>) o;
+                    Class<?> value = (Class<?>) o1;
                     QName qname = null;
                     Field[] fields = value.getDeclaredFields();
                     for (Field f2 : fields) {
-                        if (f2.getName() == "QNAME") {
+                        if (f2.getName().equals("QNAME")) {
                             qname = (QName) f2.get(value);
                             break;
                         }
@@ -116,7 +118,7 @@ public class OdlXmlSerializer extends OdlDataSerializer {
                     // no need to catch
                 }
             }
-            return this.getNamespaceOrDefault(o.getClass(), rootClass, "");
+            return this.getNamespaceOrDefault(o1.getClass(), rootClass, "");
         }
         return "";
     }

@@ -18,7 +18,6 @@ import org.opendaylight.mdsal.binding.api.WriteTransaction;
 
 public class RemoteDeviceDataBroker extends RemoteDataBroker {
 
-
     private final String nodeId;
 
     public RemoteDeviceDataBroker(RestconfHttpClient odlClient, String nodeId) {
@@ -35,9 +34,9 @@ public class RemoteDeviceDataBroker extends RemoteDataBroker {
     public @NonNull ReadWriteTransaction newReadWriteTransaction() {
         return new RemoteDeviceReadWriteTransaction(this.remoteOdlClient, this.nodeId);
     }
+
     @Override
     public @NonNull WriteTransaction newWriteOnlyTransaction() {
         return new RemoteWriteOnlyTransaction(this.remoteOdlClient, this.nodeId);
     }
-
 }

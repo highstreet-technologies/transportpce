@@ -22,13 +22,16 @@ public class SdnrWebsocketClient extends WebsocketWatchDog {
     private final URI url;
     private WebSocketClient wsClient;
     private final boolean trustAllCerts;
-    private static final HostnameVerifier allHostnamesValidVerifier = new HostnameVerifier() {
+
+    private static final HostnameVerifier ALL_HOSTNAMES_VALID_VERIFIER = new HostnameVerifier() {
         @Override
-        public boolean verify(String s, SSLSession sslSession) {
+        public boolean verify(String anyString, SSLSession sslSession) {
             return true;
         }
     };
-    public SdnrWebsocketClient(String url, SdnrWebsocketCallback callback, boolean trustAllCerts) throws URISyntaxException {
+
+    public SdnrWebsocketClient(String url, SdnrWebsocketCallback callback, boolean trustAllCerts)
+            throws URISyntaxException {
         super(callback);
         this.url = new URI(url);
         this.trustAllCerts = trustAllCerts;

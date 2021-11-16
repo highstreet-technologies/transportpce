@@ -24,11 +24,11 @@ public class InternalStatus {
     public void setWebSocket(String status) {
         this.webSocket = status;
     }
+
     public void addResponse(boolean succeeded) {
-        if(succeeded) {
+        if (succeeded) {
             this.responses.succeeded++;
-        }
-        else {
+        } else {
             this.responses.failed++;
         }
     }
@@ -38,18 +38,18 @@ public class InternalStatus {
     }
 
 
-    private class ResponseStatus {
+    private static class ResponseStatus {
 
         private int succeeded;
         private int failed;
 
-        ResponseStatus(){
+        ResponseStatus() {
             this.succeeded = 0;
             this.failed = 0;
         }
 
         public String toJSON() {
-            return String.format(JSON_FORMAT_RESPONSES, this.succeeded,this.failed);
+            return String.format(JSON_FORMAT_RESPONSES, this.succeeded, this.failed);
         }
     }
 

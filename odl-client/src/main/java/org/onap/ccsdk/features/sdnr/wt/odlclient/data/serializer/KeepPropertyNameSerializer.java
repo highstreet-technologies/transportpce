@@ -7,10 +7,11 @@
  */
 package org.onap.ccsdk.features.sdnr.wt.odlclient.data.serializer;
 
-public class KeepPropertyNameSerializer extends ObjectSerializer{
+public class KeepPropertyNameSerializer extends ObjectSerializer {
 
-	@Override
-	public String convertPropertyName(String name) {
-		return name.substring(1);
-	}
+    @Override
+    public String convertPropertyName(String name) {
+        return name.substring(1);
+    }
+
 }
