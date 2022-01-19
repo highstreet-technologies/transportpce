@@ -543,7 +543,7 @@
     <administrative-state>inService</administrative-state>
   </interface>
 
-  <protocols>
+  <!--<protocols>
     <lldp xmlns="http://org/openroadm/lldp">
       <global-config>
         <adminStatus>enable</adminStatus>
@@ -581,8 +581,7 @@
         <adminStatus>txandrx</adminStatus>
       </port-config>
     </lldp>
-  </protocols>
-
+  </protocols>-->
   <degree>
     <degree-number>1</degree-number>
     <max-wavelengths>96</max-wavelengths>

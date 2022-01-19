@@ -38,5 +38,13 @@
         "username":"netconf",
         "password":"netconf",
         "container":"xpdra"
+    },
+        {
+        "node-id": "XPDR-B1",
+        "host": "",
+        "port": 830,
+        "username":"netconf",
+        "password":"netconf",
+        "container":"xpdrb"
     }
 ]

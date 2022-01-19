@@ -64,6 +64,13 @@ class End2EndTest(BaseTest):
             print("problem configure Roadms")
             return False
         time.sleep(self.WAITING)
+        success = self.createRoadmLinks()
+        if success:
+            print("creating R2R links succeeded")
+        else:
+            print("problem creating R2R links")
+            return False
+        time.sleep(self.WAITING)
         success = self.createService1()
         if success:
             print("creating service 1 succeeded")
@@ -218,10 +225,10 @@ class End2EndTest(BaseTest):
                 self.assertIn('openroadm-topology', networkIds) and
                 self.assertIn('openroadm-network', networkIds))
             if success:
-                success = (self.assertNodesInIetfNetwork('otn-topology', ['XPDR-C1-XPDR1','XPDR-A1-XPDR1']) and
-                self.assertNodesInIetfNetwork('openroadm-network', ['ROADM-A1','ROADM-C1', 'XPDR-A1', 'XPDR-C1']) and
+                success = (self.assertNodesInIetfNetwork('otn-topology', ['XPDR-C1-XPDR1','XPDR-A1-XPDR1','XPDR-B1-XPDR1']) and
+                self.assertNodesInIetfNetwork('openroadm-network', ['ROADM-A1','ROADM-C1', 'XPDR-A1', 'XPDR-C1', 'XPDR-B1']) and
                 self.assertNodesInIetfNetwork('openroadm-topology',['ROADM-A1-DEG1','ROADM-A1-DEG2','ROADM-A1-SRG1','ROADM-A1-SRG3',
-                'ROADM-C1-DEG1','ROADM-C1-DEG2','ROADM-C1-SRG1','XPDR-A1-XPDR1','XPDR-C1-XPDR1']))
+                'ROADM-C1-DEG1','ROADM-C1-DEG2','ROADM-C1-SRG1','XPDR-A1-XPDR1','XPDR-C1-XPDR1', 'XPDR-B1-XPDR1']))
                 if success:
                     break
             retries-=1
@@ -263,6 +270,14 @@ class End2EndTest(BaseTest):
                         #connect_roadmC_PP1_to_xpdrC_N1
                         response = self.trpceClient.linkRoadmTpXpdr("XPDR-C1", "1", "1",
                             "ROADM-C1", "1", "SRG1-PP1-TXRX")
+                        if response.isSucceeded():
+                            # connect_xprdC_N1_to_roadmC_PP1
+                            response = self.trpceClient.linkXpdrToRoadm("XPDR-B1", "1", "1",
+                                                                        "ROADM-B1", "1", "SRG1-PP1-TXRX")
+                            if response.isSucceeded():
+                                # connect_roadmC_PP1_to_xpdrC_N1
+                                response = self.trpceClient.linkRoadmTpXpdr("XPDR-B1", "1", "1",
+                                                                            "ROADM-B1", "1", "SRG1-PP1-TXRX")
             retries-=1
             success = response.isSucceeded()
             if success:
@@ -271,11 +286,49 @@ class End2EndTest(BaseTest):
                 print("creating links failed. waiting for retry...")
             else:
                 break
-            
+
             time.sleep(delayForRetries)
-            
+
         return success
 
+    def createRoadmLinks(self, retries=2, delayForRetries=10):
+        success = False
+        while retries >= 0:
+            # connect_xprdA_N1_to_roadmA_PP1
+            response = self.trpceClient.linkRoadmToRoadm("ROADM-C1", "1", "DEG1-TTP-TXRX",
+                                                        "ROADM-A1", "2", "DEG2-TTP-TXRX")
+            if response.isSucceeded():
+                # connect_roadmA_PP1_to_xpdrA_N1
+                response = self.trpceClient.linkRoadmToRoadm("ROADM-A1", "2", "DEG2-TTP-TXRX",
+                                                            "ROADM-C1", "1", "DEG1-TTP-TXRX")
+                if response.isSucceeded():
+                    # connect_xprdC_N1_to_roadmC_PP1
+                    response = self.trpceClient.linkRoadmToRoadm("ROADM-A1", "1", "DEG1-TTP-TXRX",
+                                                                "ROADM-B1", "1", "DEG1-TTP-TXRX")
+                    if response.isSucceeded():
+                        # connect_roadmC_PP1_to_xpdrC_N1
+                        response = self.trpceClient.linkRoadmToRoadm("ROADM-B1", "1", "DEG1-TTP-TXRX",
+                                                                    "ROADM-A1", "1", "DEG1-TTP-TXRX")
+                        if response.isSucceeded():
+                            # connect_roadmC_PP1_to_xpdrC_N1
+                            response = self.trpceClient.linkRoadmToRoadm("ROADM-B1", "2", "DEG2-TTP-TXRX",
+                                                                        "ROADM-C1", "2", "DEG2-TTP-TXRX")
+                            if response.isSucceeded():
+                                # connect_roadmC_PP1_to_xpdrC_N1
+                                response = self.trpceClient.linkRoadmToRoadm("ROADM-C1", "2", "DEG2-TTP-TXRX",
+                                                                            "ROADM-B1", "2", "DEG2-TTP-TXRX")
+            retries -= 1
+            success = response.isSucceeded()
+            if success:
+                break
+            if retries > 0:
+                print("creating links failed. waiting for retry...")
+            else:
+                break
+
+            time.sleep(delayForRetries)
+
+        return success
 
     def configROADMS(self):
         #add_omsAttributes_ROADMA_ROADMC
@@ -619,6 +672,14 @@ class End2EndTest(BaseTest):
                         #connect_roadmC_PP2_to_xpdrC_N2
                         response = self.trpceClient.linkRoadmTpXpdr("XPDR-C1", "1", "2",
                             "ROADM-C1", "1", "SRG1-PP2-TXRX")
+                        if response.isSucceeded():
+                            # connect_xprdC_N2_to_roadmC_PP2
+                            response = self.trpceClient.linkXpdrToRoadm("XPDR-B1", "1", "2",
+                                                                        "ROADM-B1", "1", "SRG1-PP2-TXRX")
+                            if response.isSucceeded():
+                                # connect_roadmC_PP2_to_xpdrC_N2
+                                response = self.trpceClient.linkRoadmTpXpdr("XPDR-B1", "1", "2",
+                                                                            "ROADM-B1", "1", "SRG1-PP2-TXRX")
             retries-=1
             success = response.isSucceeded()
             if success:

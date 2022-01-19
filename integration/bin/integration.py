@@ -214,12 +214,15 @@ class Integration:
         if not os.path.exists('logs'):
             os.makedirs('logs')
         c = Docker()
-        src = "/opt/opendaylight/data/log/karaf.log"
+        src_karaf = "/opt/opendaylight/data/log/karaf.log"
+        src_netconf = "/opt/opendaylight/data/log/netconf.log"
         prefix = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
         if container == "sdnc" or container is None:
-            c.copy(self.getContainerName("sdnr"),src,"logs/"+prefix+"_sdnr.log")
+            c.copy(self.getContainerName("sdnr"),src_karaf,"logs/"+prefix+"_sdnr_karaf.log")
+            c.copy(self.getContainerName("sdnr"), src_netconf, "logs/" + prefix + "_sdnr_netconf.log")
         if container == "trpce" or container is None:
-            c.copy("transportpce",src,"logs/"+prefix+"_trpce.log")
+            c.copy("transportpce",src_karaf,"logs/"+prefix+"_trpce_karaf.log")
+            c.copy("transportpce", src_netconf, "logs/" + prefix + "_trpce_netconf.log")
 
     def waitForReadyState(self, args=[]):
         timeout=60

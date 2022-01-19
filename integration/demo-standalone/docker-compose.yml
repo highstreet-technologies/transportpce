@@ -2,8 +2,8 @@ version: '3'
 
 services:
   transportpce:
-    container_name: transportpce
     image: odl/transportpce
+    container_name: transportpce
     environment: 
       - REMOTE_SDNRURL=${REMOTE_SDNR_URL}
       - REMOTE_WSURL=${REMOTE_SDNR_WSURL}
@@ -11,20 +11,22 @@ services:
       - REMOTE_ODL_PASSWORD=${SDNR_PASSWORD}
       - REMOTE_ODL_ENABLED=${REMOTE_ODL_ENABLED}
       - REMOTE_ODL_TRUSTALL=${TRUSTALL}
-      - TRANSPORTPCE_SIMULATOR_MODE=false
+      - TRANSPORTPCE_SIMULATOR_MODE=true
+    volumes:
+      - ./conf/org.ops4j.pax.logging.cfg:/opt/opendaylight/etc/org.ops4j.pax.logging.cfg
     ports: 
       - '18181:8181'
 #    depends_on: 
 #      - sdnr
-  transportpce-gui:
-    image: odl/transportpce-gui
-    environment: 
-      - IETF_NETWORK_BASEURL=http://transportpce:8181
-      - TRANSPORTPCE_BASEURL=http://transportpce:8181
-    ports:
-      - '18082:8082'
-    depends_on: 
-      - transportpce
+#  transportpce-gui:
+ #   image: odl/transportpce-gui
+  #  environment: 
+   #   - IETF_NETWORK_BASEURL=http://transportpce:8181
+    #  - TRANSPORTPCE_BASEURL=http://transportpce:8181
+#    ports:
+#      - '18082:8082'
+#    depends_on: 
+#      - transportpce
 #  sdncweb:
 #    image: nexus3.onap.org:10001/onap/sdnc-web-image:latest
 #    image: 10.20.6.10:30000/hightec/sdnc-web-image:2.0.0-SNAPSHOT-20200731T064656Z
@@ -53,8 +55,8 @@ services:
     image: ${NTSIM_ROADM_STANDALONE_IMAGE}
     container_name: roadma
     environment: 
-      - NTS_IP=10.20.11.121
-      - EXTERNAL_NTS_IP=10.20.11.121
+      - NTS_IP=192.168.178.27
+      - EXTERNAL_NTS_IP=192.168.178.27
       - NETCONF_BASE=${SIMPORT}
       - SCRIPTS_DIR=/opt/dev/scripts
       - K8S_DEPLOYMENT=false
@@ -70,8 +72,8 @@ services:
     image: ${NTSIM_ROADM_STANDALONE_IMAGE}
     container_name: roadmb
     environment: 
-      - NTS_IP=10.20.11.121
-      - EXTERNAL_NTS_IP=10.20.11.121
+      - NTS_IP=192.168.178.27
+      - EXTERNAL_NTS_IP=192.168.178.27
       - NETCONF_BASE=${SIMPORT}
       - SCRIPTS_DIR=/opt/dev/scripts
       - K8S_DEPLOYMENT=false
@@ -87,8 +89,8 @@ services:
     image: ${NTSIM_ROADM_STANDALONE_IMAGE}
     container_name: roadmc
     environment: 
-      - NTS_IP=10.20.11.121
-      - EXTERNAL_NTS_IP=10.20.11.121
+      - NTS_IP=192.168.178.27
+      - EXTERNAL_NTS_IP=192.168.178.27
       - NETCONF_BASE=${SIMPORT}
       - SCRIPTS_DIR=/opt/dev/scripts
       - K8S_DEPLOYMENT=false
@@ -105,8 +107,8 @@ services:
     image: ${NTSIM_ROADM_STANDALONE_IMAGE}
     container_name: xpdra
     environment: 
-      - NTS_IP=10.20.11.121
-      - EXTERNAL_NTS_IP=10.20.11.121
+      - NTS_IP=192.168.178.27
+      - EXTERNAL_NTS_IP=192.168.178.27
       - NETCONF_BASE=${SIMPORT}
       - SCRIPTS_DIR=/opt/dev/scripts
       - K8S_DEPLOYMENT=false
@@ -123,8 +125,8 @@ services:
     image: ${NTSIM_ROADM_STANDALONE_IMAGE}
     container_name: xpdrc
     environment: 
-      - NTS_IP=10.20.11.121
-      - EXTERNAL_NTS_IP=10.20.11.121
+      - NTS_IP=192.168.178.27
+      - EXTERNAL_NTS_IP=192.168.178.27
       - NETCONF_BASE=${SIMPORT}
       - SCRIPTS_DIR=/opt/dev/scripts
       - K8S_DEPLOYMENT=false
@@ -137,3 +139,22 @@ services:
                                           
     ports: 
       - 50014:${SIMPORT}
+
+  xpdrb:
+    image: ${NTSIM_ROADM_STANDALONE_IMAGE}
+    container_name: xpdrb
+    environment:
+      - NTS_IP=192.168.178.27
+      - EXTERNAL_NTS_IP=192.168.178.27
+      - NETCONF_BASE=${SIMPORT}
+      - SCRIPTS_DIR=/opt/dev/scripts
+      - K8S_DEPLOYMENT=false
+      - IPv6Enabled=false
+    volumes:
+      - ./conf/ntsim_configuration.json:/opt/dev/scripts/configuration.json
+      - ./conf/oper-XPDRB.xml:/opt/dev/scripts/startup-load.xml
+    #    depends_on:
+    #      - sdnr
+
+    ports:
+      - 50015:${SIMPORT}
