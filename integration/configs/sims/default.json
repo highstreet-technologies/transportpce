@@ -46,5 +46,13 @@
         "username":"netconf",
         "password":"netconf",
         "container":"xpdrb"
+    },
+    {
+        "node-id": "ROADM-TEST",
+        "host": "",
+        "port": 830,
+        "username":"netconf",
+        "password":"netconf",
+        "container":"roadmtest"
     }
 ]
