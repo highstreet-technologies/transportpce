@@ -160,7 +160,7 @@ del(cp_list[:4])
 cp_body_list=roadm_root.findall('device:circuit-packs', ns)
 for ckt in cp_body_list:
    # print(ckt.find('device:circuit-pack-name', ns).text)
-    if ckt.find('device:circuit-pack-name', ns).text=='1/0':
+    if ckt.find('device:circuit-pack-name', ns).text=='2/0':
         parent_cp =copy.deepcopy(ckt)
     elif ckt.find('device:circuit-pack-name', ns).text=='1/0/ETH-PLUG':
         eth_cp = copy.deepcopy(ckt)
@@ -219,13 +219,14 @@ for c in cp_list:
                 port_label=ports.find('device:label', ns)
                 port_label.text=port_label.text[:3] + c[0] + port_label.text[4:]
                 #print(port_label.text)
-            if  ports.find('device:supported-interface-capability', ns) is not None:
-                s_interface=ports.findall('device:supported-interface-capability', ns)
-                for s in s_interface:
-                    #s.tag = '{x:http://org/openroadm/port/types}supported-interface-capability'
-                    print(s.tag)
-                    # s=ET.Element(s,ns=custom_namespace)
-                    # print(s.attrib)
+
+            if (ports.find('device:interfaces', ns)) is not None:
+                interfaces=ports.findall('device:interfaces', ns)
+                for ifc in interfaces:
+                    ifc_name= ifc.find('device:interface-name', ns)
+                    ifc_name.text=ifc_name.text[:7] + '3' +  ifc_name.text[8:]
+
+                   # print(ifc_name.text)
 
         parent_cp_list.append(parent_cp_modify)
         cp_list_body.append(parent_cp_modify)
@@ -345,3 +346,12 @@ node_id.text="ROADM-TEST"
 print(node_id.text)
 tree1= ET.ElementTree(roadm_root)
 tree1.write('/home/shabnam/TransportPCE/transportpce/integration/demo-standalone/ROADMs/ROADM-TEST.xml',  encoding="utf-8", xml_declaration=True)
+
+with open("/home/shabnam/TransportPCE/transportpce/integration/demo-standalone/conf/oper-XPDRA.xml", 'r') as x:
+    xmlxpdr=x.read()
+    x.close()
+xpdr_root=ET.fromstring(xmlxpdr)
+xpdr_info=xpdr_root.find('device:info', ns)
+xpdr_id=xpdr_info.find('device:node-id', ns)
+xpdr_id.text= xpdr_id.text[:5] + 'Berlin'
+print(xpdr_id.text)

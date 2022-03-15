@@ -102,24 +102,6 @@ services:
 #      - sdnr  
     ports: 
       - 50012:${SIMPORT}
-  roadmtest:
-    image: ${NTSIM_ROADM_STANDALONE_IMAGE}
-    container_name: roadmtest
-    environment: 
-      - NTS_IP=192.168.178.27
-      - EXTERNAL_NTS_IP=192.168.178.27
-      - NETCONF_BASE=${SIMPORT}
-      - SCRIPTS_DIR=/opt/dev/scripts
-      - K8S_DEPLOYMENT=false
-      - IPv6Enabled=false
-    volumes: 
-      - ./conf/ntsim_configuration.json:/opt/dev/scripts/configuration.json
-      - ./conf/ROADM-TEST.xml:/opt/dev/scripts/startup-load.xml
-  #    depends_on: 
-  #      - sdnr  
-    ports: 
-      - 50016:${SIMPORT}
-
   xpdra:
     image: ${NTSIM_ROADM_STANDALONE_IMAGE}
     container_name: xpdra
@@ -175,3 +157,38 @@ services:
 
     ports:
       - 50015:${SIMPORT}
+
+  roadmtest:
+    image: ${NTSIM_ROADM_STANDALONE_IMAGE}
+    container_name: roadmtest
+    environment: 
+      - NTS_IP=192.168.178.27
+      - EXTERNAL_NTS_IP=192.168.178.27
+      - NETCONF_BASE=${SIMPORT}
+      - SCRIPTS_DIR=/opt/dev/scripts
+      - K8S_DEPLOYMENT=false
+      - IPv6Enabled=false
+    volumes: 
+      - ./conf/ntsim_configuration.json:/opt/dev/scripts/configuration.json
+      - ./conf/ROADM-TEST.xml:/opt/dev/scripts/startup-load.xml
+  #    depends_on: 
+  #      - sdnr  
+    ports: 
+      - 50016:${SIMPORT}
+  xpdrtest:
+    image: ${NTSIM_ROADM_STANDALONE_IMAGE}
+    container_name: xpdrtest
+    environment: 
+      - NTS_IP=192.168.178.27
+      - EXTERNAL_NTS_IP=192.168.178.27
+      - NETCONF_BASE=${SIMPORT}
+      - SCRIPTS_DIR=/opt/dev/scripts
+      - K8S_DEPLOYMENT=false
+      - IPv6Enabled=false
+    volumes: 
+      - ./conf/ntsim_configuration.json:/opt/dev/scripts/configuration.json
+      - ./conf/XPDR-TEST.xml:/opt/dev/scripts/startup-load.xml
+  #    depends_on: 
+  #      - sdnr  
+    ports: 
+      - 50017:${SIMPORT}

@@ -1,20 +1,29 @@
 import xml.etree.ElementTree as ET
 import copy
 
-def create_info(roadm, ns,deg):
-    info=roadm.find('device:info', ns)
+def create_info(device, ns, device_name, deg, deviceType, node_num):
+    info=device.find('device:info', ns)
     node_id= info.find('device:node-id',ns)
-    print(node_id)
-    node_id.text='ROADM-TEST'
-    degree = info.find('device:max-degrees',ns)
-    degree.text=deg
-    srg=info.find('device:max-srgs',ns)
-    srg.text=deg
-    ipAddress = info.find('device:ipAddress', ns)
-    ipAddress.text='127.0.0.19'
-    current_ipAddress=info.find('device:current-ipAddress',ns)
-    current_ipAddress.text ='127.0.0.19'
-    return roadm
+    #print(node_id)
+    if deviceType =='roadm':
+        node_id.text='ROADM-' + device_name
+        degree = info.find('device:max-degrees',ns)
+        degree.text=deg
+        srg=info.find('device:max-srgs',ns)
+        srg.text=deg
+        ipAddress = info.find('device:ipAddress', ns)
+        ipAddress.text='127.0.0.' + str(node_num)
+        current_ipAddress=info.find('device:current-ipAddress',ns)
+        current_ipAddress.text ='127.0.0.'+ str(node_num)
+    else:
+        node_id.text='XPDR-' + device_name
+        ipAddress = info.find('device:ipAddress', ns)
+        ipAddress.text='1.2.3.' + str(node_num)
+        current_ipAddress=info.find('device:current-ipAddress',ns)
+        current_ipAddress.text ='1.2.3.'+ str(node_num)
+    clli= info.find('device:clli', ns)
+    clli.text='Node'+ device_name
+    return device
 
 
 def create_degree(sel, ns,deg):
@@ -23,12 +32,12 @@ def create_degree(sel, ns,deg):
         d = copy.deepcopy(sel)
         degree_no = d.find('device:degree-number', ns)
         degree_no.text = str(i)
-        print(degree_no.text)
+       # print(degree_no.text)
         circuit_packs = d.findall('.//device:circuit-pack-name', ns)
         for cp in circuit_packs:
             #  print(cp.text)
             cp.text = cp.text.replace('1/0', str(i) + '/0')
-            print(cp.text)
+            #print(cp.text)
         degree_list.append(d)
     return degree_list
 
@@ -84,7 +93,7 @@ def create_circuit_pack(cp_list,eth_cp,osc_cp, parent_cp, ns):
             for slot in cp_slots:
                 # print(slot.tag)
                 pcp_name = slot.find('device:provisioned-circuit-pack', ns)
-                print(pcp_name.text)
+                #print(pcp_name.text)
                 pcp_name.text = pcp_name.text[:0] + c[0] + pcp_name.text[1:]
             cp_ports = parent_cp_modify.findall('device:ports', ns)
             for ports in cp_ports:
@@ -93,8 +102,14 @@ def create_circuit_pack(cp_list,eth_cp,osc_cp, parent_cp, ns):
                 if (ports.find('device:label', ns)) is not None:
                     port_label = ports.find('device:label', ns)
                     port_label.text = port_label.text[:3] + c[0] + port_label.text[4:]
-                    print(port_label.text)
-                print(lcp_name.text)
+                    #print(port_label.text)
+                #print(lcp_name.text)
+
+                if (ports.find('device:interfaces', ns)) is not None:
+                    interfaces=ports.findall('device:interfaces', ns)
+                    for ifc in interfaces:
+                        ifc_name= ifc.find('device:interface-name', ns)
+                        ifc_name.text=ifc_name.text[:7] + c[0] +  ifc_name.text[8:]
 
             cp_list_body.append(parent_cp_modify)
             osc_cp_modify = copy.deepcopy(osc_cp)
@@ -132,6 +147,16 @@ def create_srg_cp(srg_list, srg_cp_body, ns):
             slcp_name.text=slcp_name.text[:3] + str(srg_list.index(n)+1) + slcp_name.text[4:]
         srg_cp_body_list.append(srg_cp_modify)
     return srg_cp_body_list
+def create_interface_copies(roadm, ns):
+    for g in roadm.findall('device:interface', ns):
+        if g.find('device:name', ns).text=='1GE-interface-1':
+            ge_interface=copy.deepcopy(g)
+        elif g.find('device:name', ns).text=='OTS-DEG2-TTP-TXRX':
+            ots_interface=copy.deepcopy(g)
+        elif g.find('device:name', ns).text=='OMS-DEG2-TTP-TXRX':
+            oms_interface=copy.deepcopy(g)
+    return ge_interface, ots_interface, oms_interface
+
 
 # Remove Circuit-packs that creates conflicts with newly created circuit-packs
 def del_circuit_packs(roadm, ns):
@@ -158,7 +183,135 @@ def edit_tags(filename):
     fin.write(data)
     #close the file
     fin.close()
-def main():
+def edit_tags_xpdr(filename):
+    fin = open(filename, "rt")
+    #read file contents to string
+    data = fin.read()
+    #replace all occurrences of the required string
+    data = data.replace('<supported-interface-capability>', '<supported-interface-capability xmlns:org-openroadm-port-types="http://org/openroadm/port/types">')
+    #close the input file
+    fin.close()
+    #open the input file in write mode
+    fin = open(filename, "wt")
+    #overrite the input file with the resulting data
+    fin.write(data)
+    #close the file
+    fin.close()
+
+def create_data_models(dev_name, deg_number, device_type, node_num):
+    #register_all_namespaces('/home/shabnam/TransportPCE/transportpce/integration/demo-standalone/conf/oper-ROADMA.xml')
+    ET.register_namespace('', 'http://org/openroadm/device')
+    ET.register_namespace('interfaces','http://org/openroadm/ethernet-interfaces')
+    ET.register_namespace('otinterfaces','http://org/openroadm/optical-transport-interfaces')
+    with open("/home/shabnam/TransportPCE/transportpce/integration/demo-standalone/conf/oper-ROADMA.xml", "r") as f:
+        xmltest=f.read()
+        f.close
+    roadm_root=ET.fromstring(xmltest)  
+    #deg_number=4
+    #print(roadm_root.tag)
+    ns ={'device':'http://org/openroadm/device'}
+    cp_name_list=[]
+    interface_list =[]
+    roadm_root=create_info(roadm_root, ns, dev_name, str(deg_number),device_type, node_num)
+    # for elem in roadm_root.findall('device:info',ns):
+    #     roadm_root.remove(elem)
+    # roadm_root.append(roadm_info)
+
+    sel=roadm_root.find('device:degree', ns)
+    degrees=create_degree(sel,ns,deg_number)
+
+    #print(degrees)
+    for elem in roadm_root.findall('device:degree',ns):
+        roadm_root.remove(elem)
+    for d in degrees:
+        roadm_root.append(d)
+        circuit_packs = d.findall('.//device:circuit-pack-name', ns)
+        for c in circuit_packs:
+            # print(c.text)
+            cp_name_list.append(c.text)
+    cp_name_list = list(dict.fromkeys(cp_name_list))
+   
+    #print(cp_name_list)
+
+    # Create a deep copy of the 4 circuit-packs namely parent, eth, osc and srg
+    roadm_root,parent_cp, eth_cp, osc_cp, srg_cp= cp_copies(roadm_root, ns)
+    cp_list=create_circuit_pack(cp_name_list,eth_cp,osc_cp, parent_cp, ns)
+    for elem in cp_list:
+        roadm_root.append(elem)
+    
+    
+    # Create the SRG bodies
+    srg=roadm_root.find('device:shared-risk-group', ns)
+    srgs, srg_cp_name_list=create_srgs(srg, ns, deg_number, cp_name_list)
+    for elem in roadm_root.findall('device:shared-risk-group',ns):
+        roadm_root.remove(elem)
+    for s in srgs:
+        roadm_root.append(s)
+    
+    # create srg cp and append then to root
+    srgs=roadm_root.find('device:shared-risk-group', ns)
+    # First append the AD-DEG ports to the SRG circuit-pack
+    # TODO: IF conditionn should be implemented later on
+    srg_ports=srg_cp.findall('device:ports', ns)
+    deg_port= create_srg_deg_ports(srg_ports,deg_number, ns)
+    for d in deg_port:
+        srg_cp.append(d)
+    srg_cp_body_list= create_srg_cp(srg_list=srg_cp_name_list, srg_cp_body=srg_cp, ns=ns)
+    for s in srg_cp_body_list:
+        roadm_root.append(s)
+    
+    # create the interface bodies and append
+    ge_interface, ots_interface, oms_interface=create_interface_copies(roadm_root, ns)
+    for i in range(1,5):
+        ge_interface_modify=copy.deepcopy(ge_interface)
+        g_name=ge_interface_modify.find('device:name', ns)
+        g_name.text=str(i) + g_name.text[1:-1] + str(i)
+        sg_cp=ge_interface_modify.find('device:supporting-circuit-pack-name', ns)
+        sg_cp.text=str(i) + sg_cp.text[1:]
+        interface_list.append(ge_interface_modify)
+        
+        ots_interface_modify= copy.deepcopy(ots_interface)
+        ots_name= ots_interface_modify.find('device:name', ns)
+        ots_name.text=ots_name.text[:7] + str(i) + ots_name.text[8:]
+        ots_scp=ots_interface_modify.find('device:supporting-circuit-pack-name', ns)
+        ots_scp.text= str(i) + ots_scp.text[1:]
+        interface_list.append(ots_interface_modify)
+
+        oms_interface_modify=copy.deepcopy(oms_interface)
+        oms_name=oms_interface_modify.find('device:name', ns)
+        oms_name.text=oms_name.text[:7] + str(i) + oms_name.text[8:]
+        oms_scp=oms_interface_modify.find('device:supporting-circuit-pack-name', ns)
+        oms_scp.text= str(i) + oms_scp.text[1:]
+        oms_sifc=oms_interface_modify.find('device:supporting-interface', ns)
+        oms_sifc.text=ots_name.text
+        interface_list.append(oms_interface_modify)
+
+    for i in roadm_root.findall('device:interface',ns):
+        roadm_root.remove(i)
+
+    for i in interface_list:
+        roadm_root.append(i)
+
+    tree1= ET.ElementTree(roadm_root)
+    tree1.write('/home/shabnam/TransportPCE/transportpce/integration/demo-standalone/conf-generated/ROADM-' + dev_name + '.xml',  encoding="utf-8", xml_declaration=True)
+    edit_tags("/home/shabnam/TransportPCE/transportpce/integration/demo-standalone/conf-generated/ROADM-"+ dev_name+".xml")
+    return "Roadm model for node {} has been created".format(dev_name)
+
+def create_xpdr_data_models(dev_name, device_type, node_num):
+    ET.register_namespace('', 'http://org/openroadm/device')
+    ns ={'device':'http://org/openroadm/device'}
+    with open("/home/shabnam/TransportPCE/transportpce/integration/demo-standalone/conf/oper-XPDRA.xml", 'r') as x:
+        xmlxpdr=x.read()
+        x.close()
+    xpdr_root=ET.fromstring(xmlxpdr)
+    xpdr_root=create_info(xpdr_root, ns, dev_name, None,device_type, node_num)
+    tree2=ET.ElementTree(xpdr_root)
+    tree2.write('/home/shabnam/TransportPCE/transportpce/integration/demo-standalone/conf-generated/XPDR-' + dev_name + '.xml',  encoding="utf-8", xml_declaration=True)
+    edit_tags_xpdr('/home/shabnam/TransportPCE/transportpce/integration/demo-standalone/conf-generated/XPDR-' + dev_name + '.xml')
+    return "Xponder model for node {} has been created".format(dev_name)
+
+
+""" def main():
     #register_all_namespaces('/home/shabnam/TransportPCE/transportpce/integration/demo-standalone/conf/oper-ROADMA.xml')
     ET.register_namespace('', 'http://org/openroadm/device')
     ET.register_namespace('interfaces','http://org/openroadm/ethernet-interfaces')
@@ -171,7 +324,8 @@ def main():
     #print(roadm_root.tag)
     ns ={'device':'http://org/openroadm/device'}
     cp_name_list=[]
-    roadm_root=create_info(roadm_root, ns, str(deg_number))
+    interface_list =[]
+    roadm_root=create_info(roadm_root, ns, 'ROADM-TEST', str(deg_number), 'roadm', 1)
     # for elem in roadm_root.findall('device:info',ns):
     #     roadm_root.remove(elem)
     # roadm_root.append(roadm_info)
@@ -218,10 +372,51 @@ def main():
     srg_cp_body_list= create_srg_cp(srg_list=srg_cp_name_list, srg_cp_body=srg_cp, ns=ns)
     for s in srg_cp_body_list:
         roadm_root.append(s)
-    tree1= ET.ElementTree(roadm_root)
-    tree1.write('/home/shabnam/TransportPCE/transportpce/integration/demo-standalone/ROADMs/ROADM-TEST.xml',  encoding="utf-8", xml_declaration=True)
-    edit_tags("/home/shabnam/TransportPCE/transportpce/integration/demo-standalone/ROADMs/ROADM-TEST.xml")
+    
+    # create the interface bodies and append
+    ge_interface, ots_interface, oms_interface=create_interface_copies(roadm_root, ns)
+    for i in range(1,5):
+        ge_interface_modify=copy.deepcopy(ge_interface)
+        g_name=ge_interface_modify.find('device:name', ns)
+        g_name.text=str(i) + g_name.text[1:-1] + str(i)
+        sg_cp=ge_interface_modify.find('device:supporting-circuit-pack-name', ns)
+        sg_cp.text=str(i) + sg_cp.text[1:]
+        interface_list.append(ge_interface_modify)
+        
+        ots_interface_modify= copy.deepcopy(ots_interface)
+        ots_name= ots_interface_modify.find('device:name', ns)
+        ots_name.text=ots_name.text[:7] + str(i) + ots_name.text[8:]
+        ots_scp=ots_interface_modify.find('device:supporting-circuit-pack-name', ns)
+        ots_scp.text= str(i) + ots_scp.text[1:]
+        interface_list.append(ots_interface_modify)
 
+        oms_interface_modify=copy.deepcopy(oms_interface)
+        oms_name=oms_interface_modify.find('device:name', ns)
+        oms_name.text=oms_name.text[:7] + str(i) + oms_name.text[8:]
+        oms_scp=oms_interface_modify.find('device:supporting-circuit-pack-name', ns)
+        oms_scp.text= str(i) + oms_scp.text[1:]
+        oms_sifc=oms_interface_modify.find('device:supporting-interface', ns)
+        oms_sifc.text=ots_name.text
+        interface_list.append(oms_interface_modify)
+
+    for i in roadm_root.findall('device:interface',ns):
+        roadm_root.remove(i)
+
+    for i in interface_list:
+        roadm_root.append(i)
+
+    tree1= ET.ElementTree(roadm_root)
+    tree1.write('/home/shabnam/TransportPCE/transportpce/integration/demo-standalone/conf-generated/ROADM-TEST.xml',  encoding="utf-8", xml_declaration=True)
+    edit_tags("/home/shabnam/TransportPCE/transportpce/integration/demo-standalone/conf-generated/ROADM-TEST.xml")
+    with open("/home/shabnam/TransportPCE/transportpce/integration/demo-standalone/conf/oper-XPDRA.xml", 'r') as x:
+        xmlxpdr=x.read()
+        x.close()
+    xpdr_root=ET.fromstring(xmlxpdr)
+    xpdr_root=create_info(xpdr_root, ns, 'XPDR-TEST', None,'xpdr', 1)
+    tree2=ET.ElementTree(xpdr_root)
+    tree2.write('/home/shabnam/TransportPCE/transportpce/integration/demo-standalone/conf-generated/XPDR-TEST.xml',  encoding="utf-8", xml_declaration=True)
+    edit_tags_xpdr('/home/shabnam/TransportPCE/transportpce/integration/demo-standalone/conf-generated/XPDR-TEST.xml')
 if __name__ == "__main__":
     main()
 
+ """
