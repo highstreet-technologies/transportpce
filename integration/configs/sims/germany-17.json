@@ -1,0 +1,554 @@
+[
+    {
+        "node-id": "ROADM-Berlin",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "roadmberlin"
+    },
+    {
+        "node-id": "ROADM-Bremen",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "roadmbremen"
+    },
+    {
+        "node-id": "ROADM-Dortmund",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "roadmdortmund"
+    },
+    {
+        "node-id": "ROADM-Duesseldorf",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "roadmduesseldorf"
+    },
+    {
+        "node-id": "ROADM-Essen",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "roadmessen"
+    },
+    {
+        "node-id": "ROADM-Frankfurt",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "roadmfrankfurt"
+    },
+    {
+        "node-id": "ROADM-Hamburg",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "roadmhamburg"
+    },
+    {
+        "node-id": "ROADM-Hannover",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "roadmhannover"
+    },
+    {
+        "node-id": "ROADM-Karlsruhe",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "roadmkarlsruhe"
+    },
+    {
+        "node-id": "ROADM-Koeln",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "roadmkoeln"
+    },
+    {
+        "node-id": "ROADM-Leipzig",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "roadmleipzig"
+    },
+    {
+        "node-id": "ROADM-Mannheim",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "roadmmannheim"
+    },
+    {
+        "node-id": "ROADM-Muenchen",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "roadmmuenchen"
+    },
+    {
+        "node-id": "ROADM-Norden",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "roadmnorden"
+    },
+    {
+        "node-id": "ROADM-Nuernberg",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "roadmnuernberg"
+    },
+    {
+        "node-id": "ROADM-Stuttgart",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "roadmstuttgart"
+    },
+    {
+        "node-id": "ROADM-Ulm",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "roadmulm"
+    },
+    {
+        "node-id": "XPDR-BerlHamb",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrberlhamb"
+    },
+    {
+        "node-id": "XPDR-BerlHann",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrberlhann"
+    },
+    {
+        "node-id": "XPDR-BerlLeip",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrberlleip"
+    },
+    {
+        "node-id": "XPDR-BremHamb",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrbremhamb"
+    },
+    {
+        "node-id": "XPDR-BremHann",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrbremhann"
+    },
+    {
+        "node-id": "XPDR-BremNord",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrbremnord"
+    },
+    {
+        "node-id": "XPDR-DortEsse",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrdortesse"
+    },
+    {
+        "node-id": "XPDR-DortHann",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrdorthann"
+    },
+    {
+        "node-id": "XPDR-DortKoel",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrdortkoel"
+    },
+    {
+        "node-id": "XPDR-DortNord",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrdortnord"
+    },
+    {
+        "node-id": "XPDR-DuesEsse",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrduesesse"
+    },
+    {
+        "node-id": "XPDR-DuesKoel",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrdueskoel"
+    },
+    {
+        "node-id": "XPDR-EsseDort",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdressedort"
+    },
+    {
+        "node-id": "XPDR-EsseDues",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdressedues"
+    },
+    {
+        "node-id": "XPDR-FranHann",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrfranhann"
+    },
+    {
+        "node-id": "XPDR-FranKoel",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrfrankoel"
+    },
+    {
+        "node-id": "XPDR-FranLeip",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrfranleip"
+    },
+    {
+        "node-id": "XPDR-FranMann",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrfranmann"
+    },
+    {
+        "node-id": "XPDR-FranNuer",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrfrannuer"
+    },
+    {
+        "node-id": "XPDR-HambBerl",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrhambberl"
+    },
+    {
+        "node-id": "XPDR-HambBrem",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrhambbrem"
+    },
+    {
+        "node-id": "XPDR-HambHann",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrhambhann"
+    },
+    {
+        "node-id": "XPDR-HannBerl",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrhannberl"
+    },
+    {
+        "node-id": "XPDR-HannBrem",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrhannbrem"
+    },
+    {
+        "node-id": "XPDR-HannDort",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrhanndort"
+    },
+    {
+        "node-id": "XPDR-HannFran",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrhannfran"
+    },
+    {
+        "node-id": "XPDR-HannHamb",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrhannhamb"
+    },
+    {
+        "node-id": "XPDR-HannLeip",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrhannleip"
+    },
+    {
+        "node-id": "XPDR-KarlMann",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrkarlmann"
+    },
+    {
+        "node-id": "XPDR-KarlStut",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrkarlstut"
+    },
+    {
+        "node-id": "XPDR-KoelDort",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrkoeldort"
+    },
+    {
+        "node-id": "XPDR-KoelDues",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrkoeldues"
+    },
+    {
+        "node-id": "XPDR-KoelFran",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrkoelfran"
+    },
+    {
+        "node-id": "XPDR-LeipBerl",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrleipberl"
+    },
+    {
+        "node-id": "XPDR-LeipFran",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrleipfran"
+    },
+    {
+        "node-id": "XPDR-LeipHann",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrleiphann"
+    },
+    {
+        "node-id": "XPDR-LeipNuer",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrleipnuer"
+    },
+    {
+        "node-id": "XPDR-MannFran",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrmannfran"
+    },
+    {
+        "node-id": "XPDR-MannKarl",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrmannkarl"
+    },
+    {
+        "node-id": "XPDR-MuenNuer",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrmuennuer"
+    },
+    {
+        "node-id": "XPDR-MuenUlm",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrmuenulm"
+    },
+    {
+        "node-id": "XPDR-NordBrem",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrnordbrem"
+    },
+    {
+        "node-id": "XPDR-NordDort",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrnorddort"
+    },
+    {
+        "node-id": "XPDR-NuerFran",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrnuerfran"
+    },
+    {
+        "node-id": "XPDR-NuerLeip",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrnuerleip"
+    },
+    {
+        "node-id": "XPDR-NuerMuen",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrnuermuen"
+    },
+    {
+        "node-id": "XPDR-NuerStut",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrnuerstut"
+    },
+    {
+        "node-id": "XPDR-StutKarl",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrstutkarl"
+    },
+    {
+        "node-id": "XPDR-StutNuer",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrstutnuer"
+    },
+    {
+        "node-id": "XPDR-StutUlm",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrstutulm"
+    },
+    {
+        "node-id": "XPDR-UlmMuen",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrulmmuen"
+    },
+    {
+        "node-id": "XPDR-UlmStut",
+        "host": "",
+        "port": 830,
+        "username": "netconf",
+        "password": "netconf",
+        "container": "xpdrulmstut"
+    }
+]

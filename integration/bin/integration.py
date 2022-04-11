@@ -14,6 +14,7 @@ from lib.odlclient import OdlClient
 from lib.trpceodlclient import TrpceOdlClient
 from tests.mountingtest import MountingTest
 from tests.end2endtest import End2EndTest
+from tests.end2endtest4bbnet import End2EndTestBBNet
 from lib.siminfo import SimulatorInfo
 
 BIN_FOLDER="../bin"
@@ -49,7 +50,12 @@ class Integration:
                     self.primarySdncClient = client
                 else:
                     self.odlSdnrClients.append(client)
-           
+        # implemented for the backbone network service creation
+        if os.path.exists(SIM_FOLDER+'/rdmConfiguration.json'):
+            with open(SIM_FOLDER+'/rdmConfiguration.json', 'r') as f:
+                self.rdmInternalConfig = json.load(f)
+            f.close()
+
     def resolveFile(self, filename):
         return os.path.dirname(__file__)+"/"+filename
 
@@ -257,8 +263,11 @@ class Integration:
                                 self.getTransportPCEContainer(), self.collectSimInfos())
             test.test2()
         elif test == "end2end":
-            test = End2EndTest(self.odlSdnrClients, self.primarySdncClient, self.odlTrpceClient,
-                self.getTransportPCEContainer(),self.collectSimInfos(),self.config)
+            # test = End2EndTest(self.odlSdnrClients, self.primarySdncClient, self.odlTrpceClient,
+            #     self.getTransportPCEContainer(),self.collectSimInfos(),self.config)
+            # test.test(args)
+            test = End2EndTestBBNet(self.odlSdnrClients, self.primarySdncClient, self.odlTrpceClient,
+                self.getTransportPCEContainer(),self.collectSimInfos(),self.config, self.rdmInternalConfig)
             test.test(args)
         elif test == "demo":
             test = End2EndTest(self.odlSdnrClients, self.odlTrpceClient,

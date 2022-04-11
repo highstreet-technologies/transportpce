@@ -4,12 +4,13 @@ import base64
 from .basetest import BaseTest
 
 
-class End2EndTest(BaseTest):
+class End2EndTestBBNet(BaseTest):
 
-    def __init__(self, sdncClients, primarySdncClient, trpceClient, trpceContainer, sims, config):
+    def __init__(self, sdncClients, primarySdncClient, trpceClient, trpceContainer, sims, config, rdmInternalConfig):
         BaseTest.__init__(self, sdncClients, primarySdncClient, trpceClient, sims, config)
-        self.WAITING = 30
+        self.WAITING = 10
         self.trpceContainer = trpceContainer
+        self.rdmInternalConfig = rdmInternalConfig
 
     def logError(self, message):
         print("ERROR: " + message)
@@ -32,7 +33,7 @@ class End2EndTest(BaseTest):
             # stop if requested
             if step == '--mount':
                 return True
-            time.sleep(self.WAITING)
+            time.sleep(300)
         else:
             print("skip mounting")
             step = args.pop(0) if len(args) > 0 else None
@@ -43,13 +44,13 @@ class End2EndTest(BaseTest):
         else:
             print("problem with deviceconnection")
             return False
-        success = self.checkAutocreatedNetworksAfterMount(2, 10)
+        success = self.checkAutocreatedNetworksAfterMount(2, self.WAITING)
         if success:
             print("autocreated networks are looking good")
         else:
             print("problem with autocreated networks")
             return False
-        time.sleep(self.WAITING)
+        #time.sleep(self.WAITING)
         success = self.createLinks()
         if success:
             print("creating links succeeded")
@@ -62,13 +63,6 @@ class End2EndTest(BaseTest):
             print("configure Roadms succeeded")
         else:
             print("problem configure Roadms")
-            return False
-        time.sleep(self.WAITING)
-        success = self.createRoadmLinks()
-        if success:
-            print("creating R2R links succeeded")
-        else:
-            print("problem creating R2R links")
             return False
         time.sleep(self.WAITING)
         success = self.createService1()
@@ -216,6 +210,23 @@ class End2EndTest(BaseTest):
 
     def checkAutocreatedNetworksAfterMount(self, retries, delayForRetries):
         success = False
+        xpdrs=[]
+        rdms=[]
+
+        for sim in self.sims:
+            if 'XPDR-' in sim.name:
+                xpdrs.append(sim.name)
+            else:
+                rdms.append(sim.name)
+        otnTopology=[i + '-XPDR1' for i in xpdrs]
+        print("total xpdrs {}".format(len(xpdrs)))
+        print(print("total xpdrs in otnTopology {}".format(len(xpdrs))))
+        openroadmNetwork=xpdrs+rdms
+        openroadmTopology=[]
+        for k in self.rdmInternalConfig.keys():
+            for i in self.rdmInternalConfig[k]:
+                openroadmTopology.append('ROADM-'+ k +'-DEG'+i )
+                openroadmTopology.append('ROADM-' + k + '-SRG' + i)
         while retries >= 0:
             # connect_xprdA_N1_to_roadmA_PP1
             networkIds = self.trpceClient.getIetfNetworkIds()
@@ -226,17 +237,11 @@ class End2EndTest(BaseTest):
                            self.assertIn('openroadm-network', networkIds))
             if success:
                 success = (self.assertNodesInIetfNetwork('otn-topology',
-                                                         ['XPDR-C1-XPDR1', 'XPDR-A1-XPDR1', 'XPDR-B1-XPDR1']) and
+                                                         otnTopology) and
                            self.assertNodesInIetfNetwork('openroadm-network',
-                                                         ['ROADM-A1', 'ROADM-C1', 'ROADM-TEST', 'XPDR-A1', 'XPDR-C1', 'XPDR-B1']) and
+                                                         openroadmNetwork) and
                            self.assertNodesInIetfNetwork('openroadm-topology',
-                                                         ['ROADM-A1-DEG1', 'ROADM-A1-DEG2', 'ROADM-A1-SRG1',
-                                                          'ROADM-A1-SRG3',
-                                                          'ROADM-C1-DEG1', 'ROADM-C1-DEG2', 'ROADM-C1-SRG1',
-                                                          'ROADM-TEST-DEG1', 'ROADM-TEST-DEG2','ROADM-TEST-DEG3',
-                                                          'ROADM-TEST-DEG4', 'ROADM-TEST-SRG1', 'ROADM-TEST-SRG2',
-                                                          'ROADM-TEST-SRG3', 'ROADM-TEST-SRG4',
-                                                          'XPDR-A1-XPDR1', 'XPDR-C1-XPDR1', 'XPDR-B1-XPDR1']))
+                                                         openroadmTopology))
                 if success:
                     break
             retries -= 1
@@ -265,28 +270,18 @@ class End2EndTest(BaseTest):
         success = False
         while retries >= 0:
             # connect_xprdA_N1_to_roadmA_PP1
-            response = self.trpceClient.linkXpdrToRoadm("XPDR-A1", "1", "1",
-                                                        "ROADM-A1", "1", "SRG1-PP1-TXRX")
-            if response.isSucceeded():
-                # connect_roadmA_PP1_to_xpdrA_N1
-                response = self.trpceClient.linkRoadmTpXpdr("XPDR-A1", "1", "1",
-                                                            "ROADM-A1", "1", "SRG1-PP1-TXRX")
-                if response.isSucceeded():
-                    # connect_xprdC_N1_to_roadmC_PP1
-                    response = self.trpceClient.linkXpdrToRoadm("XPDR-C1", "1", "1",
-                                                                "ROADM-C1", "1", "SRG1-PP1-TXRX")
+            for k in self.rdmInternalConfig.keys():
+                for i in self.rdmInternalConfig[k]:
+                    response = self.trpceClient.linkXpdrToRoadm("XPDR-" + k[:4] + self.rdmInternalConfig[k][i][:4], "1", "1",
+                                                                "ROADM-" + k, i, "SRG" + i + "-PP1-TXRX")
                     if response.isSucceeded():
-                        # connect_roadmC_PP1_to_xpdrC_N1
-                        response = self.trpceClient.linkRoadmTpXpdr("XPDR-C1", "1", "1",
-                                                                    "ROADM-C1", "1", "SRG1-PP1-TXRX")
+                        # connect_roadmA_PP1_to_xpdrA_N1
+                        response = self.trpceClient.linkRoadmTpXpdr("XPDR-" + k[:4] + self.rdmInternalConfig[k][i][:4], "1", "1",
+                                                                    "ROADM-" + k, i, "SRG" + i + "-PP1-TXRX")
                         if response.isSucceeded():
-                            # connect_xprdC_N1_to_roadmC_PP1
-                            response = self.trpceClient.linkXpdrToRoadm("XPDR-B1", "1", "1",
-                                                                        "ROADM-B1", "1", "SRG1-PP1-TXRX")
-                            if response.isSucceeded():
-                                # connect_roadmC_PP1_to_xpdrC_N1
-                                response = self.trpceClient.linkRoadmTpXpdr("XPDR-B1", "1", "1",
-                                                                            "ROADM-B1", "1", "SRG1-PP1-TXRX")
+                            continue
+
+
             retries -= 1
             success = response.isSucceeded()
             if success:
@@ -302,6 +297,7 @@ class End2EndTest(BaseTest):
 
     def createRoadmLinks(self, retries=2, delayForRetries=10):
         success = False
+
         while retries >= 0:
             # connect_xprdA_N1_to_roadmA_PP1
             response = self.trpceClient.linkRoadmToRoadm("ROADM-TEST", "1", "DEG1-TTP-TXRX",
@@ -311,29 +307,29 @@ class End2EndTest(BaseTest):
                 response = self.trpceClient.linkRoadmToRoadm("ROADM-A1", "2", "DEG2-TTP-TXRX",
                                                              "ROADM-TEST", "1", "DEG1-TTP-TXRX")
                 if response.isSucceeded():
-                # connect_roadmA_PP1_to_xpdrA_N1
-                    response = self.trpceClient.linkRoadmToRoadm("ROADM-TEST", "2", "DEG2-TTP-TXRX",
-                                                                "ROADM-C1", "1", "DEG1-TTP-TXRX")
-                    if response.isSucceeded():
                     # connect_roadmA_PP1_to_xpdrA_N1
+                    response = self.trpceClient.linkRoadmToRoadm("ROADM-TEST", "2", "DEG2-TTP-TXRX",
+                                                                 "ROADM-C1", "1", "DEG1-TTP-TXRX")
+                    if response.isSucceeded():
+                        # connect_roadmA_PP1_to_xpdrA_N1
                         response = self.trpceClient.linkRoadmToRoadm("ROADM-C1", "1", "DEG1-TTP-TXRX",
-                                                                    "ROADM-TEST", "2", "DEG2-TTP-TXRX")
+                                                                     "ROADM-TEST", "2", "DEG2-TTP-TXRX")
                         if response.isSucceeded():
                             # connect_xprdC_N1_to_roadmC_PP1
                             response = self.trpceClient.linkRoadmToRoadm("ROADM-A1", "1", "DEG1-TTP-TXRX",
-                                                                        "ROADM-B1", "1", "DEG1-TTP-TXRX")
+                                                                         "ROADM-B1", "1", "DEG1-TTP-TXRX")
                             if response.isSucceeded():
                                 # connect_roadmC_PP1_to_xpdrC_N1
                                 response = self.trpceClient.linkRoadmToRoadm("ROADM-B1", "1", "DEG1-TTP-TXRX",
-                                                                            "ROADM-A1", "1", "DEG1-TTP-TXRX")
+                                                                             "ROADM-A1", "1", "DEG1-TTP-TXRX")
                                 if response.isSucceeded():
                                     # connect_roadmC_PP1_to_xpdrC_N1
                                     response = self.trpceClient.linkRoadmToRoadm("ROADM-B1", "2", "DEG2-TTP-TXRX",
-                                                                                "ROADM-C1", "2", "DEG2-TTP-TXRX")
+                                                                                 "ROADM-C1", "2", "DEG2-TTP-TXRX")
                                     if response.isSucceeded():
                                         # connect_roadmC_PP1_to_xpdrC_N1
                                         response = self.trpceClient.linkRoadmToRoadm("ROADM-C1", "2", "DEG2-TTP-TXRX",
-                                                                                    "ROADM-B1", "2", "DEG2-TTP-TXRX")
+                                                                                     "ROADM-B1", "2", "DEG2-TTP-TXRX")
             retries -= 1
             success = response.isSucceeded()
             if success:
@@ -350,243 +346,120 @@ class End2EndTest(BaseTest):
     def configROADMS(self):
         # add_omsAttributes_ROADMA_ROADMC
         # Config ROADMA-ROADMC oms-attributes
-        data = {"span": {
-            "auto-spanloss": "true",
-            "spanloss-base": 11.4,
-            "spanloss-current": 12,
-            "engineered-spanloss": 12.2,
-            "link-concatenation": [{
-                "SRLG-Id": 0,
-                "fiber-type": "smf",
-                "SRLG-length": 100000,
-                "pmd": 0.5}]}}
-        response = self.trpceClient.addOmsAttributes(
-            "ROADM-A1-DEG2-DEG2-TTP-TXRXtoROADM-TEST-DEG1-DEG1-TTP-TXRX", data)
-        if not response.isSucceeded():
-            return False
-
-        # add_omsAttributes_ROADMC_ROADMA
-        # Config ROADMC-ROADMA oms-attributes
-        data = {"span": {
-            "auto-spanloss": "true",
-            "spanloss-base": 11.4,
-            "spanloss-current": 12,
-            "engineered-spanloss": 12.2,
-            "link-concatenation": [{
-                "SRLG-Id": 0,
-                "fiber-type": "smf",
-                "SRLG-length": 100000,
-                "pmd": 0.5}]}}
-        response = self.trpceClient.addOmsAttributes(
-            "ROADM-TEST-DEG1-DEG1-TTP-TXRXtoROADM-A1-DEG2-DEG2-TTP-TXRX", data)
-        if not response.isSucceeded():
-            return False
-        
-
-        # add_omsAttributes_ROADMC_ROADMA
-        # Config ROADMC-ROADMA oms-attributes
-        data = {"span": {
-            "auto-spanloss": "true",
-            "spanloss-base": 11.4,
-            "spanloss-current": 12,
-            "engineered-spanloss": 12.2,
-            "link-concatenation": [{
-                "SRLG-Id": 0,
-                "fiber-type": "smf",
-                "SRLG-length": 100000,
-                "pmd": 0.5}]}}
-        response = self.trpceClient.addOmsAttributes(
-            "ROADM-C1-DEG1-DEG1-TTP-TXRXtoROADM-TEST-DEG2-DEG2-TTP-TXRX", data)
-        if not response.isSucceeded():
-            return False
-
-        data = {"span": {
-            "auto-spanloss": "true",
-            "spanloss-base": 11.4,
-            "spanloss-current": 12,
-            "engineered-spanloss": 12.2,
-            "link-concatenation": [{
-                "SRLG-Id": 0,
-                "fiber-type": "smf",
-                "SRLG-length": 100000,
-                "pmd": 0.5}]}}
-        response = self.trpceClient.addOmsAttributes(
-            "ROADM-TEST-DEG2-DEG2-TTP-TXRXtoROADM-C1-DEG1-DEG1-TTP-TXRX", data)
-        if not response.isSucceeded():
-            return False
+        for k in self.rdmInternalConfig.keys():
+            for i in self.rdmInternalConfig[k]:
+                data = {"span": {
+                    "auto-spanloss": "true",
+                    "spanloss-base": 11.4,
+                    "spanloss-current": 12,
+                    "engineered-spanloss": 12.2,
+                    "link-concatenation": [{
+                        "SRLG-Id": 0,
+                        "fiber-type": "smf",
+                        "SRLG-length": 100000,
+                        "pmd": 0.5}]}}
+                response = self.trpceClient.addOmsAttributes(
+                    "ROADM-" + k  + "-DEG" + i + "-DEG" + i + "-TTP-TXRXtoROADM-" + self.rdmInternalConfig[k][
+                        i] + "-DEG" + list(self.rdmInternalConfig[self.rdmInternalConfig[k][i]].keys())[
+                        list(self.rdmInternalConfig[self.rdmInternalConfig[k][i]].values()).index(
+                            k)] + "-DEG" + list(self.rdmInternalConfig[self.rdmInternalConfig[k][i]].keys())[
+                        list(self.rdmInternalConfig[self.rdmInternalConfig[k][i]].values()).index(
+                            k)] + "-TTP-TXRX", data)
+                if not response.isSucceeded():
+                    return False
         return True
-
-
-
 
     def createService1(self):
         # create_eth_service1
+        #create_eth_service1
         data = {"input": {
-            "sdnc-request-header": {
-                "request-id": "e3028bae-a90f-4ddd-a83f-cf224eba0e58",
-                "rpc-action": "service-create",
-                "request-system-id": "appname",
-                "notification-url": "http://localhost:8585/NotificationServer/notify"
-            },
-            "service-name": "service1",
-            "common-id": "ASATT1234567",
-            "connection-type": "service",
-            "service-a-end": {
-                "service-rate": "100",
-                "node-id": "XPDR-A1",
-                "service-format": "Ethernet",
-                "clli": "SNJSCAMCJP8",
-                "tx-direction": {
-                    "port": {
-                        "port-device-name": "ROUTER_SNJSCAMCJP8_000000.00_00",
-                        "port-type": "router",
-                        "port-name": "Gigabit Ethernet_Tx.ge-5/0/0.0",
-                        "port-rack": "000000.00",
-                        "port-shelf": "00"
-                    },
-                    "lgx": {
-                        "lgx-device-name": "LGX Panel_SNJSCAMCJP8_000000.00_00",
-                        "lgx-port-name": "LGX Back.3",
-                        "lgx-port-rack": "000000.00",
-                        "lgx-port-shelf": "00"
-                    }
+                "sdnc-request-header": {
+                    "request-id": "e3028bae-a90f-4ddd-a83f-cf224eba0e58",
+                    "rpc-action": "service-create",
+                    "request-system-id": "appname",
+                    "notification-url": "http://localhost:8585/NotificationServer/notify"
                 },
-                "rx-direction": {
-                    "port": {
-                        "port-device-name": "ROUTER_SNJSCAMCJP8_000000.00_00",
-                        "port-type": "router",
-                        "port-name": "Gigabit Ethernet_Rx.ge-5/0/0.0",
-                        "port-rack": "000000.00",
-                        "port-shelf": "00"
-                    },
-                    "lgx": {
-                        "lgx-device-name": "LGX Panel_SNJSCAMCJP8_000000.00_00",
-                        "lgx-port-name": "LGX Back.4",
-                        "lgx-port-rack": "000000.00",
-                        "lgx-port-shelf": "00"
-                    }
-                },
-                "optic-type": "gray"
-            },
-            "service-z-end": {
-                "service-rate": "100",
-                "node-id": "XPDR-C1",
-                "service-format": "Ethernet",
-                "clli": "SNJSCAMCJT4",
-                "tx-direction": {
-                    "port": {
-                        "port-device-name": "ROUTER_SNJSCAMCJT4_000000.00_00",
-                        "port-type": "router",
-                        "port-name": "Gigabit Ethernet_Tx.ge-1/0/0.0",
-                        "port-rack": "000000.00",
-                        "port-shelf": "00"
-                    },
-                    "lgx": {
-                        "lgx-device-name": "LGX Panel_SNJSCAMCJT4_000000.00_00",
-                        "lgx-port-name": "LGX Back.29",
-                        "lgx-port-rack": "000000.00",
-                        "lgx-port-shelf": "00"
-                    }
-                },
-                "rx-direction": {
-                    "port": {
-                        "port-device-name": "ROUTER_SNJSCAMCJT4_000000.00_00",
-                        "port-type": "router",
-                        "port-name": "Gigabit Ethernet_Rx.ge-1/0/0.0",
-                        "port-rack": "000000.00",
-                        "port-shelf": "00"
-                    },
-                    "lgx": {
-                        "lgx-device-name": "LGX Panel_SNJSCAMCJT4_000000.00_00",
-                        "lgx-port-name": "LGX Back.30",
-                        "lgx-port-rack": "000000.00",
-                        "lgx-port-shelf": "00"
-                    }
-                },
-                "optic-type": "gray"
-            },
-            "path-description": {
-                "aToZ-direction": {
-                    "aToZ-wavelength-number": 1,
-                    "aToZ-min-frequency": 194.07,
-                    "aToZ-max-frequency": 194.12500,
-                    "modulation-format": "dp-qpsk",
-                    "aToZ": [
-                        {
-                            "id": "22",
-                            "resource": {
-                                "tp-id": "XPDR1-CLIENT1",
-                                "tp-node-id": "XPDR-C1-XPDR1"
-                            }
+                "service-name": "service1",
+                "common-id": "ASATT1234567",
+                "connection-type": "service",
+                "service-a-end": {
+                    "service-rate": "100",
+                    "node-id": "XPDR-EsseDort",
+                    "service-format": "Ethernet",
+                    "clli": "SNJSCAMCJP8",
+                    "tx-direction": {
+                        "port": {
+                            "port-device-name": "ROUTER_SNJSCAMCJP8_000000.00_00",
+                            "port-type": "router",
+                            "port-name": "Gigabit Ethernet_Tx.ge-5/0/0.0",
+                            "port-rack": "000000.00",
+                            "port-shelf": "00"
                         },
-                        {
-                            "id": "0",
-                            "resource": {
-                                "tp-id": "XPDR1-CLIENT1",
-                                "tp-node-id": "XPDR-A1-XPDR1"
-                            }
-                        },
-                        {
-                            "id": "20",
-                            "resource": {
-                                "tp-id": "XPDR1-NETWORK1",
-                                "tp-node-id": "XPDR-C1-XPDR1"
-                            }
-                        },
-                        {
-                            "id": "2",
-                            "resource": {
-                                "tp-id": "XPDR1-NETWORK1",
-                                "tp-node-id": "XPDR-A1-XPDR1"
-                            }
+                        "lgx": {
+                            "lgx-device-name": "LGX Panel_SNJSCAMCJP8_000000.00_00",
+                            "lgx-port-name": "LGX Back.3",
+                            "lgx-port-rack": "000000.00",
+                            "lgx-port-shelf": "00"
                         }
-
-                    ]
-                },
-                "zToA-direction": {
-                    "zToA-wavelength-number": 0,
-                    "zToA-min-frequency": 194.075,
-                    "zToA-max-frequency": 194.12500,
-                    "rate": 100,
-                    "modulation-format": "dp-qpsk",
-                    "zToA": [
-                        {
-                            "id": "0",
-                            "resource": {
-                                "tp-id": "XPDR1-CLIENT1",
-                                "tp-node-id": "XPDR-C1-XPDR1"
-                            }
+                    },
+                    "rx-direction": {
+                        "port": {
+                            "port-device-name": "ROUTER_SNJSCAMCJP8_000000.00_00",
+                            "port-type": "router",
+                            "port-name": "Gigabit Ethernet_Rx.ge-5/0/0.0",
+                            "port-rack": "000000.00",
+                            "port-shelf": "00"
                         },
-                        {
-                            "id": "22",
-                            "resource": {
-                                "tp-id": "XPDR1-CLIENT1",
-                                "tp-node-id": "XPDR-A1-XPDR1"
-                            }
-                        },
-                        {
-                            "id": "2",
-                            "resource": {
-                                "tp-id": "XPDR1-NETWORK1",
-                                "tp-node-id": "XPDR-C1-XPDR1"
-                            }
-                        },
-                        {
-                            "id": "20",
-                            "resource": {
-                                "tp-id": "XPDR1-NETWORK1",
-                                "tp-node-id": "XPDR-A1-XPDR1"
-                            }
+                        "lgx": {
+                            "lgx-device-name": "LGX Panel_SNJSCAMCJP8_000000.00_00",
+                            "lgx-port-name": "LGX Back.4",
+                            "lgx-port-rack": "000000.00",
+                            "lgx-port-shelf": "00"
                         }
-
-        ]
-        }
-        },
-
-            "due-date": "2016-11-28T00:00:01Z",
-            "operator-contact": "pw1234"
-        }
-        }
+                    },
+                    "optic-type": "gray"
+                },
+                "service-z-end": {
+                    "service-rate": "100",
+                    "node-id": "XPDR-BerlHann",
+                    "service-format": "Ethernet",
+                    "clli": "SNJSCAMCJT4",
+                    "tx-direction": {
+                        "port": {
+                            "port-device-name": "ROUTER_SNJSCAMCJT4_000000.00_00",
+                            "port-type": "router",
+                            "port-name": "Gigabit Ethernet_Tx.ge-1/0/0.0",
+                            "port-rack": "000000.00",
+                            "port-shelf": "00"
+                        },
+                        "lgx": {
+                            "lgx-device-name": "LGX Panel_SNJSCAMCJT4_000000.00_00",
+                            "lgx-port-name": "LGX Back.29",
+                            "lgx-port-rack": "000000.00",
+                            "lgx-port-shelf": "00"
+                        }
+                    },
+                    "rx-direction": {
+                        "port": {
+                            "port-device-name": "ROUTER_SNJSCAMCJT4_000000.00_00",
+                            "port-type": "router",
+                            "port-name": "Gigabit Ethernet_Rx.ge-1/0/0.0",
+                            "port-rack": "000000.00",
+                            "port-shelf": "00"
+                        },
+                        "lgx": {
+                            "lgx-device-name": "LGX Panel_SNJSCAMCJT4_000000.00_00",
+                            "lgx-port-name": "LGX Back.30",
+                            "lgx-port-rack": "000000.00",
+                            "lgx-port-shelf": "00"
+                        }
+                    },
+                    "optic-type": "gray"
+                },
+                "due-date": "2016-11-28T00:00:01Z",
+                "operator-contact": "pw1234"
+                }
+            }
         response = self.trpceClient.createService(data)
         if not response.isSucceeded():
             self.logError(str(response.code) + " | " + response.content)
@@ -635,26 +508,67 @@ class End2EndTest(BaseTest):
 
     def checkConnections(self):
         # check_xc1_ROADMA
+        # check_xc1_ROADMA
+        # jsonNamespace = 'org-openroadm-device:'
+        # if self.config.isRemoteEnabled():
+        #     response = self.getSdncClient(0, True).getNodeData("ROADM-Hamburg",
+        #                                                        "/org-openroadm-device:org-openroadm-device?fields=roadm-connections")
+        # else:
+        #     response = self.trpceClient.getNodeData("ROADM-Hamburg",
+        #                                             "/org-openroadm-device:org-openroadm-device?fields=roadm-connections")
+        # if not response.isSucceeded():
+        #     return False
+        # connectionId = None
+        # a = response.data['org-openroadm-device:org-openroadm-device']['roadm-connections']
+        # for c in a:
+        #     if c["connection-name"].startswith("SRG1-PP1-TXRX-DEG1-TTP-TXRX"):
+        #         connectionId = c["connection-name"]
+        # if self.config.isRemoteEnabled():
+        #     response = self.getSdncClient(0, True).getNodeData("ROADM-Hamburg",
+        #                                                        "/org-openroadm-device:org-openroadm-device/roadm-connections=" + self.urlencode(
+        #                                                            connectionId))
+        # else:
+        #     response = self.trpceClient.getNodeData("ROADM-Hamburg",
+        #                                             "/org-openroadm-device:org-openroadm-device/roadm-connections=" + self.urlencode(
+        #                                                 connectionId))
+        # if not response.isSucceeded():
+        #     return False
+        # # the following statement replaces self.assertDictContainsSubset deprecated in python 3.2
+        # success = self.assertDictEqual(
+        #     dict({
+        #         'connection-name': connectionId,
+        #         'opticalControlMode': 'gainLoss',
+        #         'target-output-power': -3.0
+        #     }, **response.data['org-openroadm-device:roadm-connections'][0]),
+        #     response.data['org-openroadm-device:roadm-connections'][0]
+        # )
+        # success &= self.testString(response.data[jsonNamespace + 'roadm-connections'][0]['source']['src-if'],
+        #                            r'^SRG.-PP1-TXRX-nmc.*')
+        # success &= self.testString(response.data[jsonNamespace + 'roadm-connections'][0]['destination']['dst-if'],
+        #                            r'^DEG.-TTP-TXRX-nmc.*')
+        #
+        # if not success:
+        #     return False
         jsonNamespace = 'org-openroadm-device:'
         if self.config.isRemoteEnabled():
-            response = self.getSdncClient(0, True).getNodeData("ROADM-A1",
+            response = self.getSdncClient(0, True).getNodeData("ROADM-Essen",
                                                                "/org-openroadm-device:org-openroadm-device?fields=roadm-connections")
         else:
-            response = self.trpceClient.getNodeData("ROADM-A1",
+            response = self.trpceClient.getNodeData("ROADM-Essen",
                                                     "/org-openroadm-device:org-openroadm-device?fields=roadm-connections")
         if not response.isSucceeded():
             return False
         connectionId = None
         a = response.data['org-openroadm-device:org-openroadm-device']['roadm-connections']
         for c in a:
-            if c["connection-name"].startswith("SRG1-PP1-TXRX-DEG2-TTP-TXRX"):
+            if c["connection-name"].startswith("SRG1-PP1-TXRX-DEG1-TTP-TXRX"):
                 connectionId = c["connection-name"]
         if self.config.isRemoteEnabled():
-            response = self.getSdncClient(0, True).getNodeData("ROADM-A1",
+            response = self.getSdncClient(0, True).getNodeData("ROADM-Essen",
                                                                "/org-openroadm-device:org-openroadm-device/roadm-connections=" + self.urlencode(
                                                                    connectionId))
         else:
-            response = self.trpceClient.getNodeData("ROADM-A1",
+            response = self.trpceClient.getNodeData("ROADM-Essen",
                                                     "/org-openroadm-device:org-openroadm-device/roadm-connections=" + self.urlencode(
                                                         connectionId))
         if not response.isSucceeded():
@@ -678,25 +592,25 @@ class End2EndTest(BaseTest):
 
         # check_xc1_ROADMC
         if self.config.isRemoteEnabled():
-            response = self.getSdncClient(0, True).getNodeData("ROADM-C1",
+            response = self.getSdncClient(0, True).getNodeData("ROADM-Berlin",
                                                                "/org-openroadm-device:org-openroadm-device?fields=roadm-connections")
         else:
-            response = self.trpceClient.getNodeData("ROADM-C1",
+            response = self.trpceClient.getNodeData("ROADM-Berlin",
                                                     "/org-openroadm-device:org-openroadm-device?fields=roadm-connections")
         if not response.isSucceeded():
             return False
         connectionId = None
         a = response.data[jsonNamespace + 'org-openroadm-device']['roadm-connections']
         for c in a:
-            if c["connection-name"].startswith("SRG1-PP1-TXRX-DEG1-TTP-TXRX"):
+            if c["connection-name"].startswith("SRG2-PP1-TXRX-DEG2-TTP-TXRX"):
                 connectionId = c["connection-name"]
 
         if self.config.isRemoteEnabled():
-            response = self.getSdncClient(0, True).getNodeData("ROADM-C1",
+            response = self.getSdncClient(0, True).getNodeData("ROADM-Berlin",
                                                                "/org-openroadm-device:org-openroadm-device/roadm-connections=" + self.urlencode(
                                                                    connectionId))
         else:
-            response = self.trpceClient.getNodeData("ROADM-C1",
+            response = self.trpceClient.getNodeData("ROADM-Berlin",
                                                     "/org-openroadm-device:org-openroadm-device/roadm-connections=" + self.urlencode(
                                                         connectionId))
 
@@ -724,7 +638,7 @@ class End2EndTest(BaseTest):
 
     def checkTopology(self):
         # check_topo_XPDRA
-        response = self.trpceClient.getOpenroadmTopology("node/XPDR-A1-XPDR1")
+        response = self.trpceClient.getOpenroadmTopology("node/XPDR-BerlHann-XPDR1")
         if not response.isSucceeded():
             self.logError(str(response.code) + " | " + response.content)
             return False
@@ -742,11 +656,11 @@ class End2EndTest(BaseTest):
                 success &= self.assertNotIn(
                     'org-openroadm-network-topology:xpdr-network-attributes', dict.keys(ele))
             if not success:
-                self.logError("problem with tp elem in XPDR-A1-XPDR1: " + json.dumps(ele))
+                self.logError("problem with tp elem in XPDR-BerlHann-XPDR1: " + json.dumps(ele))
                 return False
         time.sleep(1)
         # check_topo_ROADMA_SRG1
-        response = self.trpceClient.getOpenroadmTopology("node/ROADM-A1-SRG1")
+        response = self.trpceClient.getOpenroadmTopology("node/ROADM-Berlin-SRG2")
         if not response.isSucceeded():
             self.logError(str(response.code) + " | " + response.content)
             return False
@@ -759,19 +673,19 @@ class End2EndTest(BaseTest):
         liste_tp = response.data['node'][0]['ietf-network-topology:termination-point']
         for ele in liste_tp:
             success = True
-            if ele['tp-id'] == 'SRG1-PP1-TXRX':
+            if ele['tp-id'] == 'SRG2-PP1-TXRX':
                 freq_map = base64.b64decode(
                     ele['org-openroadm-network-topology:pp-attributes']['avail-freq-maps'][0]['freq-map'])
                 freq_map_array = [int(x) for x in freq_map]
                 success &= self.assertEqual(freq_map_array[95], 0, "Index 1 should not be available")
-            if ele['tp-id'] == 'SRG1-PP2-TXRX':
+            if ele['tp-id'] == 'SRG2-PP2-TXRX':
                 success &= self.assertNotIn('avail-freq-maps', dict.keys(ele))
             if not success:
                 return False
 
         time.sleep(1)
         # check_topo_ROADMA_DEG1
-        response = self.trpceClient.getOpenroadmTopology("node/ROADM-A1-DEG2")
+        response = self.trpceClient.getOpenroadmTopology("node/ROADM-Berlin-DEG2")
         if not response.isSucceeded():
             self.logError(str(response.code) + " | " + response.content)
             return False
