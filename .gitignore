@@ -45,5 +45,6 @@ integration/demo-adva*
 integration/remote logs
 integration/configs/sims/demo*
 integration/configs/controllers/demo*
+integration/**/conf-generated/*
 .env.*
 issues/
