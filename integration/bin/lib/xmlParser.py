@@ -1,6 +1,6 @@
 import xml.etree.ElementTree as ET
 import copy
-
+import os
 
 class OpenRoadmXmlParser:
 
@@ -11,7 +11,8 @@ class OpenRoadmXmlParser:
         self.outputPath='{}/{}'.format(self.basePath,'integration/demo-standalone/conf-generated') if outputPath is None else outputPath.rstrip('/')
         self.ns = {'device': 'http://org/openroadm/device',
               'lldp': 'http://org/openroadm/lldp'}
-
+        if not os.path.isdir(outputPath):
+            os.makedirs(outputPath)
 
 
     def create_info(self, device, ns:dict, device_name:str, deg:str, deviceType:str, node_num:int):
