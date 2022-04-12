@@ -1,0 +1,35 @@
+---
+- hosts: "{{target}}"
+  name: deploy network function
+  gather_facts: false
+  tasks:
+    - name: "prepare vars"
+      set_fact:
+        filename: "{{file | basename }}"
+        nodeId: "{{(file | basename | splitext)[0]}}"
+    - name: "prepare vars2"
+      set_fact:
+        remoteFolder: "{{remote_workspace}}/{{nodeId}}"
+    - name: get the file contents
+      debug:
+        msg: "{{nodeId}}: {{file}}"
+    - name: Ensures multi_deployment dir exists
+      file: path={{remoteFolder}} state=directory
+    - name: copy xml file
+      copy:
+        src: "{{file}}"
+        dest: "{{remoteFolder}}"
+    - name: copy ntsim config file
+      copy:
+        src: "ntsim.conf.json"
+        dest: "{{remoteFolder}}"
+    - name: create container {{nodeId}}
+      community.docker.docker_container:
+        name: "{{nodeId}}"
+        image: "{{image}}"
+        volumes:
+          - "./{{remoteFolder}}/{{filename}}:/opt/dev/scripts/startup-load.xml"
+          - "./{{remoteFolder}}/ntsim.conf.json:/opt/dev/scripts/configuration.json"
+        ports:
+          - "{{simport}}:830"
+        

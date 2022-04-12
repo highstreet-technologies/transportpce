@@ -1,0 +1,3 @@
+image: hightec/ntsim_openroadm_2.2.1_standalone:0.6.5
+configs_folder: ../demo-standalone/conf-generated/
+remote_workspace: "opticon"

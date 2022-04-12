@@ -1,0 +1,13 @@
+---
+- hosts: "{{target}}"
+  name: deploy network function
+  tasks:
+    - name: "prepare vars"
+      set_fact:
+        nodeId: "{{(file | basename | splitext)[0]}}"
+    - name: "prepare vars2"
+      set_fact:
+        remoteFolder: "{{remote_workspace}}/{{nodeId}}"
+    - name: destroy container {{nodeId}}
+      command: "docker rm -f {{nodeId}}"
+        
