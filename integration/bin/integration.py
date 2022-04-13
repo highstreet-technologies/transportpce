@@ -32,9 +32,9 @@ class Integration:
             url+=config['suffix']
         return url
 
-    def __init__(self, prefix, envFiles=[], profile="default"):
+    def __init__(self, prefix, envFiles=[], profile="default",ignoreReadyState=False):
         self.prefix = prefix
-        self.config = IntegrationConfig(envFiles)
+        self.config = IntegrationConfig(envFiles,ignoreReadyState)
         self.dockerExec = Docker()
         self.profile = profile
         cconfig = self.loadControllerConfig()
@@ -252,7 +252,7 @@ class Integration:
             time.sleep(1)
         return False
         
-    def executeTest(self, args):
+    def executeTest(self, args, ignoreReadyState=False):
         test = args.pop(0)
         if test == "1":
             test = MountingTest(self.odlSdnrClients, self.odlTrpceClient,
@@ -266,9 +266,10 @@ class Integration:
             test = End2EndTest(self.odlSdnrClients, self.primarySdncClient, self.odlTrpceClient,
                 self.getTransportPCEContainer(),self.collectSimInfos(),self.config)
             test.test(args)
-            # test = End2EndTestBBNet(self.odlSdnrClients, self.primarySdncClient, self.odlTrpceClient,
-            #     self.getTransportPCEContainer(),self.collectSimInfos(),self.config, self.rdmInternalConfig)
-            # test.test(args)
+        elif test == 'end2endbb':
+            test = End2EndTestBBNet(self.odlSdnrClients, self.primarySdncClient, self.odlTrpceClient,
+                self.getTransportPCEContainer(),self.collectSimInfos(),self.config, self.rdmInternalConfig)
+            test.test(args)
         elif test == "demo":
             test = End2EndTest(self.odlSdnrClients, self.odlTrpceClient,
                 self.getTransportPCEContainer(),self.collectSimInfos(),self.config)
@@ -303,7 +304,7 @@ if __name__ == "__main__":
     if len(sys.argv) < 1:
         print_help()
         exit(1)
-
+    ignoreReadyState=False
     execDirAbs = os.getcwd()
     sys.argv.pop(0)
 
@@ -321,6 +322,9 @@ if __name__ == "__main__":
             envFilename = sys.argv.pop(x)
             print("overwriting env file: "+envFilename)
             envFilenames.append(envFilename)          
+        elif arg =="--ignore-ready":
+            ignoreReadyState=True
+            sys.argv.pop(x)
         else:
             x+=1
 
@@ -339,7 +343,7 @@ if __name__ == "__main__":
         envFilename = execDirAbs+"/.env"
         if os.path.isfile(envFilename):
             envFilenames.append(envFilename)
-    integration = Integration(prefix, envFilenames, profile)
+    integration = Integration(prefix, envFilenames, profile, ignoreReadyState)
     #print("args="+str(sys.argv))
     if cmd == "info":
         integration.info()

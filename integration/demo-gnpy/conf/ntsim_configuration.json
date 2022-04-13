@@ -1,0 +1,79 @@
+{
+    "container-rules": {
+        "excluded-modules": [],
+        "excluded-features": []
+    },
+
+    "supervisor-rules": {
+        "netopeer": {
+            "path": "/usr/local/bin/netopeer2-server",
+            "args": ["-d", "-v2"],
+            "autorestart": true,
+            "stdout": "log/netopeer-stdout.log",
+            "stderr": "log/netopeer-stderr.log"
+        },
+    
+        "ntsim-network-function": {
+            "path": "/opt/dev/ntsim-ng/ntsim-ng",
+            "args": ["-w/opt/dev/ntsim-ng", "-f"],
+            "nomanual": true
+        }
+    },
+
+    "datastore-random-generation-rules" : {
+        "excluded-modules": [
+            "sysrepo",
+            "sysrepo-monitoring",
+            "ietf-yang-library",
+            "ietf-netconf-acm",
+            "ietf-netconf-monitoring",
+            "nc-notifications",
+            "ietf-keystore",
+            "ietf-truststore",
+            "ietf-system",
+            "ietf-netconf-server",
+            "org-openroadm-syslog",
+            "nts-network-function"
+        ],
+        
+        "default-list-instances": 1,
+        "custom-list-instances" : []
+    },
+
+    "datastore-populate-rules": {
+        "random-generation-enabled": false,
+
+        "pre-generated-operational-data": ["/opt/dev/deploy/data/org-openroadm-device-operational.xml"],
+        "pre-generated-running-data": ["/opt/dev/deploy/data/org-openroadm-device-running.xml"]
+    },
+
+    "fault-rules" : {
+        "yang-notif-template" : "<alarm-notification xmlns=\"http://org/openroadm/alarm\"><id>$$uint32_counter$$</id><raiseTime>%%date-time%%</raiseTime><severity>%%fault-severity%%</severity><additional-detail>%%details%%</additional-detail><resource><resource><circuit-pack-name>%%affected-object%%</circuit-pack-name></resource><resourceType><type>device</type></resourceType></resource><probableCause><cause>%%condition%%</cause><direction>bidirectional</direction><location>notApplicable</location></probableCause></alarm-notification>",
+        "choosing-method" : "linear",
+        "faults" : [
+            {
+                "condition" : "lossOfSignal",
+                "object"    : "Slot-0-Port-A",
+                "severity"  : "MAJOR",
+                "date-time" : "$$time$$",
+                "specific-problem" : "Signal is lost",
+
+                "fault-severity" : "major",
+                "affected-object" : "%%object%%",
+                "details" : "Signal is lost"
+            },
+
+            {
+                "condition" : "lossOfSignal",
+                "object"    : "Slot-0-Port-A",
+                "severity"  : "NORMAL",
+                "date-time" : "$$time$$",
+                "specific-problem" : "Signal is lost",
+
+                "fault-severity" : "clear",
+                "affected-object" : "%%object%%",
+                "details" : "Signal is lost"
+            }
+        ]
+    }
+}
