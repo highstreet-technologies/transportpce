@@ -263,12 +263,12 @@ class Integration:
                                 self.getTransportPCEContainer(), self.collectSimInfos())
             test.test2()
         elif test == "end2end":
-            # test = End2EndTest(self.odlSdnrClients, self.primarySdncClient, self.odlTrpceClient,
-            #     self.getTransportPCEContainer(),self.collectSimInfos(),self.config)
-            # test.test(args)
-            test = End2EndTestBBNet(self.odlSdnrClients, self.primarySdncClient, self.odlTrpceClient,
-                self.getTransportPCEContainer(),self.collectSimInfos(),self.config, self.rdmInternalConfig)
+            test = End2EndTest(self.odlSdnrClients, self.primarySdncClient, self.odlTrpceClient,
+                self.getTransportPCEContainer(),self.collectSimInfos(),self.config)
             test.test(args)
+            # test = End2EndTestBBNet(self.odlSdnrClients, self.primarySdncClient, self.odlTrpceClient,
+            #     self.getTransportPCEContainer(),self.collectSimInfos(),self.config, self.rdmInternalConfig)
+            # test.test(args)
         elif test == "demo":
             test = End2EndTest(self.odlSdnrClients, self.odlTrpceClient,
                 self.getTransportPCEContainer(),self.collectSimInfos(),self.config)
