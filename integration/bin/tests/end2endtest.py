@@ -43,7 +43,7 @@ class End2EndTest(BaseTest):
         else:
             print("problem with deviceconnection")
             return False
-        success = self.checkAutocreatedNetworksAfterMount(2, 10)
+        success = self.checkAutocreatedNetworksAfterMount(10, 10)
         if success:
             print("autocreated networks are looking good")
         else:

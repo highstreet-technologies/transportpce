@@ -17,6 +17,9 @@ class BaseTest:
         return self.sdncClients[idx % len(self.sdncClients)]
 
     def waitForReadyState(self, timeout=60):
+        if self.config.doIgnoreReadyState():
+            print("ignoring ready state by config")
+            return True
         while timeout>0:
             if self.config.isRemoteEnabled():
                 ready = self.trpceClient.isReady()

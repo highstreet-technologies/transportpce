@@ -4,9 +4,10 @@ import os.path
 
 
 class IntegrationConfig:
-    def __init__(self, envFiles):
+    def __init__(self, envFiles, ignoreReadyState=False):
 
         self.envs = {}
+        self.ignoreReadyState = ignoreReadyState
         if len(envFiles) > 0:
             for envFile in envFiles:
                 self.source(envFile)
@@ -35,3 +36,6 @@ class IntegrationConfig:
 
     def isRemoteEnabled(self):
         return self.getEnv("REMOTE_ODL_ENABLED") == "true"
+    
+    def doIgnoreReadyState(self):
+        return self.ignoreReadyState
