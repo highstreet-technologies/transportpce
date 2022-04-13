@@ -11,10 +11,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
-
-import org.opendaylight.controller.md.sal.binding.api.DataBroker;
-import org.opendaylight.controller.md.sal.binding.api.ReadOnlyTransaction;
-import org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType;
+import org.opendaylight.mdsal.binding.api.DataBroker;
+import org.opendaylight.mdsal.binding.api.ReadTransaction;
+import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.alarmsuppression.rev171102.ServiceNodelist;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.alarmsuppression.rev171102.service.nodelist.Nodelist;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.alarmsuppression.rev171102.service.nodelist.nodelist.Nodes;
@@ -59,48 +58,41 @@ public class AlarmNotificationListener221 implements OrgOpenroadmAlarmListener {
         List<Nodes> allNodeList = new ArrayList<>();
         InstanceIdentifier<ServiceNodelist> serviceNodeListIID = InstanceIdentifier.create(ServiceNodelist.class);
         try {
-            ReadOnlyTransaction rtx = dataBroker.newReadOnlyTransaction();
-            com.google.common.base.Optional<ServiceNodelist> serviceListObject =
+            ReadTransaction rtx = dataBroker.newReadOnlyTransaction();
+            Optional<ServiceNodelist> serviceListObject =
                     rtx.read(LogicalDatastoreType.OPERATIONAL, serviceNodeListIID).get();
             if (serviceListObject.isPresent()) {
-                for (Nodelist nodelist : serviceListObject.get().getNodelist()) {
-                    allNodeList.addAll(nodelist.getNodes());
+                for (Nodelist nodelist : serviceListObject.get().nonnullNodelist().values()) {
+                    allNodeList.addAll(nodelist.nonnullNodes().values());
                 }
             }
         } catch (InterruptedException | ExecutionException ex) {
-            LOG.warn("Exception thrown while reading Logical Connection Point value from {} {}", ex);
+            LOG.warn("Exception thrown while reading Logical Connection Point value", ex);
         }
-        StringBuilder sb = new StringBuilder(notification.getResource().getDevice().getNodeId().getValue())
-            .append(PIPE);
-        sb.append(buildCause(notification.getProbableCause()));
-        sb.append(notification.getId() != null ? notification.getId() : "").append(PIPE)
-                .append(notification.getRaiseTime() != null ? notification.getRaiseTime().toString() : "").append(PIPE)
-                .append(notification.getSeverity() != null ? notification.getSeverity().getName() : "").append(PIPE)
-                .append(notification.getCircuitId() != null ? notification.getCircuitId() : "").append(PIPE);
+        String message = String.join(PIPE,notification.getResource().getDevice().getNodeId().getValue(),
+                buildCause(notification.getProbableCause()),notification.getId() != null ? notification.getId() : "",
+                notification.getRaiseTime() != null ? notification.getRaiseTime().toString() : "",
+                notification.getSeverity() != null ? notification.getSeverity().getName() : "",
+                notification.getCircuitId() != null ? notification.getCircuitId() : "", buildType(notification));
 
-        sb.append(buildType(notification));
-
-        String message = sb.toString();
         Nodes build = new NodesBuilder().setNodeId(notification.getResource().getDevice().getNodeId().getValue())
             .build();
         if (allNodeList.contains(build)) {
-            LOG.info(message);
+            LOG.info("onAlarmNotification: {}", message);
         } else {
-            LOG.warn(message);
+            LOG.warn("onAlarmNotification: {}", message);
         }
     }
 
     private String buildCause(ProbableCause probableCause) {
-        StringBuilder sb = new StringBuilder();
         if (probableCause == null) {
             return "||||";
         }
-        sb.append((probableCause.getCause() != null) ? probableCause.getCause().getName() : "").append(PIPE)
-                .append((probableCause.getDirection() != null) ? probableCause.getDirection().getName() : "")
-                .append(PIPE).append((probableCause.getExtension() != null) ? probableCause.getExtension() : "")
-                .append(PIPE).append((probableCause.getLocation() != null) ? probableCause.getLocation().getName() : "")
-                .append(PIPE);
-        return sb.toString();
+        return String.join(PIPE,
+                (probableCause.getCause() != null) ? probableCause.getCause().getName() : "",
+                (probableCause.getDirection() != null) ? probableCause.getDirection().getName() : "",
+                (probableCause.getExtension() != null) ? probableCause.getExtension() : "",
+                (probableCause.getLocation() != null) ? probableCause.getLocation().getName() : "");
     }
 
     @SuppressWarnings("unchecked")
@@ -108,13 +100,14 @@ public class AlarmNotificationListener221 implements OrgOpenroadmAlarmListener {
             Resource resource) {
         if (resource == null) {
             LOG.error("Resource is null.");
-        } else if (!resourceClass.isInstance(resource)) {
+            return Optional.empty();
+        }
+        if (!resourceClass.isInstance(resource)) {
             LOG.error("Resource implement different type than expected. Expected {}, actual {}.",
                     resourceClass.getSimpleName(), resource.getClass().getSimpleName());
-        } else {
-            return Optional.of((T) resource);
+            return Optional.empty();
         }
-        return Optional.empty();
+        return Optional.of((T) resource);
     }
 
     private static String buildType(AlarmNotification notification) {
@@ -208,11 +201,7 @@ public class AlarmNotificationListener221 implements OrgOpenroadmAlarmListener {
             default:
                 LOG.warn("Unknown resource type {}", wantedResourceType);
         }
-        StringBuilder sb = new StringBuilder(circuitPack);
-        sb.append(PIPE).append(connection).append(PIPE).append(degree).append(PIPE).append(iface);
-        sb.append(PIPE).append(internalLink).append(PIPE).append(physicalLink).append(PIPE).append(service);
-        sb.append(PIPE).append(shelf).append(PIPE).append(sharedRiskGroup).append(PIPE).append(port);
-        sb.append(PIPE).append(portCircuitPack);
-        return sb.toString();
+        return String.join(PIPE, circuitPack, connection, degree, iface, internalLink, physicalLink,
+                service, shelf, sharedRiskGroup, port, portCircuitPack);
     }
 }

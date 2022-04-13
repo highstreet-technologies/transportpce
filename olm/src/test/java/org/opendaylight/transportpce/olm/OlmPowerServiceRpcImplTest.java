@@ -9,33 +9,38 @@
 package org.opendaylight.transportpce.olm;
 
 import com.google.common.util.concurrent.ListenableFuture;
-import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.opendaylight.controller.md.sal.binding.api.MountPoint;
-import org.opendaylight.controller.md.sal.binding.api.MountPointService;
+import org.opendaylight.mdsal.binding.api.MountPoint;
+import org.opendaylight.mdsal.binding.api.MountPointService;
 import org.opendaylight.transportpce.common.StringConstants;
 import org.opendaylight.transportpce.common.crossconnect.CrossConnect;
 import org.opendaylight.transportpce.common.crossconnect.CrossConnectImpl;
 import org.opendaylight.transportpce.common.crossconnect.CrossConnectImpl121;
 import org.opendaylight.transportpce.common.crossconnect.CrossConnectImpl221;
+import org.opendaylight.transportpce.common.crossconnect.CrossConnectImpl710;
 import org.opendaylight.transportpce.common.device.DeviceTransactionManager;
 import org.opendaylight.transportpce.common.device.DeviceTransactionManagerImpl;
 import org.opendaylight.transportpce.common.mapping.MappingUtils;
+import org.opendaylight.transportpce.common.mapping.MappingUtilsImpl;
 import org.opendaylight.transportpce.common.mapping.PortMapping;
 import org.opendaylight.transportpce.common.mapping.PortMappingImpl;
 import org.opendaylight.transportpce.common.mapping.PortMappingVersion121;
 import org.opendaylight.transportpce.common.mapping.PortMappingVersion221;
+import org.opendaylight.transportpce.common.mapping.PortMappingVersion710;
 import org.opendaylight.transportpce.common.openroadminterfaces.OpenRoadmInterfaces;
 import org.opendaylight.transportpce.common.openroadminterfaces.OpenRoadmInterfacesImpl;
 import org.opendaylight.transportpce.common.openroadminterfaces.OpenRoadmInterfacesImpl121;
 import org.opendaylight.transportpce.common.openroadminterfaces.OpenRoadmInterfacesImpl221;
+import org.opendaylight.transportpce.common.openroadminterfaces.OpenRoadmInterfacesImpl710;
 import org.opendaylight.transportpce.olm.power.PowerMgmt;
 import org.opendaylight.transportpce.olm.power.PowerMgmtImpl;
 import org.opendaylight.transportpce.olm.service.OlmPowerService;
@@ -44,15 +49,15 @@ import org.opendaylight.transportpce.olm.stub.MountPointServiceStub;
 import org.opendaylight.transportpce.olm.stub.MountPointStub;
 import org.opendaylight.transportpce.olm.util.OlmPowerServiceRpcImplUtil;
 import org.opendaylight.transportpce.test.AbstractTest;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev170418.GetPmInput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev170418.GetPmOutput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev170418.GetPmOutputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev170418.ServicePowerSetupInput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev170418.ServicePowerSetupOutput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev170418.ServicePowerSetupOutputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev170418.ServicePowerTurndownInput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev170418.ServicePowerTurndownOutput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev170418.ServicePowerTurndownOutputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev210618.GetPmInput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev210618.GetPmOutput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev210618.GetPmOutputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev210618.ServicePowerSetupInput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev210618.ServicePowerSetupOutput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev210618.ServicePowerSetupOutputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev210618.ServicePowerTurndownInput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev210618.ServicePowerTurndownOutput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev210618.ServicePowerTurndownOutputBuilder;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.pm.rev161014.CurrentPmlist;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.pm.rev161014.CurrentPmlistBuilder;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.pm.rev161014.current.pm.LayerRateBuilder;
@@ -61,6 +66,7 @@ import org.opendaylight.yang.gen.v1.http.org.openroadm.pm.rev161014.current.pm.M
 import org.opendaylight.yang.gen.v1.http.org.openroadm.pm.rev161014.current.pm.measurements.MeasurementBuilder;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.pm.rev161014.currentpmlist.CurrentPm;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.pm.rev161014.currentpmlist.CurrentPmBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.pm.rev161014.currentpmlist.CurrentPmKey;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.pm.types.rev161014.PmDataType;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.pm.types.rev161014.PmGranularity;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.pm.types.rev161014.PmNamesEnum;
@@ -71,6 +77,7 @@ import org.opendaylight.yang.gen.v1.http.org.openroadm.resource.rev161014.resour
 import org.opendaylight.yang.gen.v1.http.org.openroadm.resource.types.rev161014.ResourceTypeEnum;
 import org.opendaylight.yangtools.yang.common.RpcResult;
 import org.opendaylight.yangtools.yang.common.RpcResultBuilder;
+import org.opendaylight.yangtools.yang.common.Uint64;
 
 public class OlmPowerServiceRpcImplTest extends AbstractTest {
 
@@ -85,39 +92,46 @@ public class OlmPowerServiceRpcImplTest extends AbstractTest {
     private OlmPowerServiceRpcImpl olmPowerServiceRpc;
     private CrossConnectImpl121 crossConnectImpl121;
     private CrossConnectImpl221 crossConnectImpl22;
+    private CrossConnectImpl710 crossConnectImpl710;
     private MappingUtils mappingUtils;
     private OpenRoadmInterfacesImpl121 openRoadmInterfacesImpl121;
     private OpenRoadmInterfacesImpl221 openRoadmInterfacesImpl22;
+    private OpenRoadmInterfacesImpl710 openRoadmInterfacesImpl710;
+    private PortMappingVersion710 portMappingVersion710;
     private PortMappingVersion221 portMappingVersion22;
     private PortMappingVersion121 portMappingVersion121;
 
     @Before
     public void setUp() {
-        this.mountPoint = new MountPointStub(this.getDataBroker());
+        this.mountPoint = new MountPointStub(getDataBroker());
         this.mountPointService = new MountPointServiceStub(mountPoint);
         this.deviceTransactionManager = new DeviceTransactionManagerImpl(mountPointService, 3000);
-        this.mappingUtils = Mockito.spy(MappingUtils.class);
+        this.mappingUtils = Mockito.spy(new MappingUtilsImpl(getDataBroker()));
         Mockito.doReturn(StringConstants.OPENROADM_DEVICE_VERSION_1_2_1).when(mappingUtils)
                 .getOpenRoadmVersion(Mockito.anyString());
         this.deviceTransactionManager = new DeviceTransactionManagerImpl(mountPointService, 3000);
         this.crossConnectImpl121 = new CrossConnectImpl121(deviceTransactionManager);
         this.crossConnectImpl22 = new CrossConnectImpl221(deviceTransactionManager);
+        this.crossConnectImpl710 = new CrossConnectImpl710(deviceTransactionManager);
         this.crossConnect = new CrossConnectImpl(deviceTransactionManager, this.mappingUtils, this.crossConnectImpl121,
-                this.crossConnectImpl22);
+                this.crossConnectImpl22, this.crossConnectImpl710);
+        this.portMappingVersion710 = new PortMappingVersion710(getDataBroker(), deviceTransactionManager);
+        this.portMappingVersion22 = new PortMappingVersion221(getDataBroker(), deviceTransactionManager);
+        this.portMappingVersion121 = new PortMappingVersion121(getDataBroker(), deviceTransactionManager);
+        this.portMapping = new PortMappingImpl(getDataBroker(), this.portMappingVersion710,
+            this.portMappingVersion22, this.portMappingVersion121);
         this.openRoadmInterfacesImpl121 = new OpenRoadmInterfacesImpl121(deviceTransactionManager);
-        this.openRoadmInterfacesImpl22 = new OpenRoadmInterfacesImpl221(deviceTransactionManager);
+        this.openRoadmInterfacesImpl22 = new OpenRoadmInterfacesImpl221(deviceTransactionManager, this.portMapping,
+            this.portMappingVersion22);
+        this.openRoadmInterfacesImpl710 = new OpenRoadmInterfacesImpl710(deviceTransactionManager, this.portMapping,
+            this.portMappingVersion710);
         this.openRoadmInterfaces = new OpenRoadmInterfacesImpl((this.deviceTransactionManager),
-                this.mappingUtils,this.openRoadmInterfacesImpl121,this.openRoadmInterfacesImpl22);
-        this.portMappingVersion22 =
-                new PortMappingVersion221(getDataBroker(), deviceTransactionManager, this.openRoadmInterfaces);
-        this.portMappingVersion121 =
-                new PortMappingVersion121(getDataBroker(), deviceTransactionManager, this.openRoadmInterfaces);
-        this.portMapping = new PortMappingImpl(getDataBroker(), this.portMappingVersion22, this.mappingUtils,
-                this.portMappingVersion121);
+                this.mappingUtils,this.openRoadmInterfacesImpl121,this.openRoadmInterfacesImpl22,
+            this.openRoadmInterfacesImpl710);
         this.portMapping = Mockito.spy(this.portMapping);
-        this.powerMgmt = new PowerMgmtImpl(this.getDataBroker(), this.openRoadmInterfaces, this.crossConnect,
+        this.powerMgmt = new PowerMgmtImpl(getDataBroker(), this.openRoadmInterfaces, this.crossConnect,
             this.deviceTransactionManager);
-        this.olmPowerService = new OlmPowerServiceImpl(this.getDataBroker(), this.powerMgmt,
+        this.olmPowerService = new OlmPowerServiceImpl(getDataBroker(), this.powerMgmt,
             this.deviceTransactionManager, this.portMapping,mappingUtils,openRoadmInterfaces);
         this.olmPowerServiceRpc = new OlmPowerServiceRpcImpl(this.olmPowerService);
         //TODO
@@ -146,7 +160,7 @@ public class OlmPowerServiceRpcImplTest extends AbstractTest {
                 .setPmParameterName(new PmParameterNameBuilder()
                 .setExtension("123")
                 .setType(PmNamesEnum.DefectSeconds).build())
-                .setPmParameterValue(new PmDataType(BigInteger.valueOf(1234))).build())
+                .setPmParameterValue(new PmDataType(Uint64.valueOf(1234))).build())
             .build();
         List<Measurements> measurementsList = new ArrayList<Measurements>();
         measurementsList.add(measurements);
@@ -171,18 +185,18 @@ public class OlmPowerServiceRpcImplTest extends AbstractTest {
             .setRetrievalTime(new org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.yang.types.rev130715
                 .DateAndTime("2018-11-01T12:00:31.456449+06:00")).build();
 
-        List<CurrentPm> currentPmList = new ArrayList<>();
-        currentPmList.add(currentPm);
+        Map<CurrentPmKey, CurrentPm> currentPmList = new HashMap<>();
+        currentPmList.put(currentPm.key(),currentPm);
 
         Optional<CurrentPmlist> currentPmlistOptional = Optional.of(new CurrentPmlistBuilder()
             .setCurrentPm(currentPmList).build());
 
-        org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev170418.get.pm.output.Measurements
-            measurements1 = new org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev170418.get.pm
+        org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev210618.get.pm.output.Measurements
+            measurements1 = new org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev210618.get.pm
                 .output.MeasurementsBuilder().setPmparameterName("name").setPmparameterValue("1234").build();
 
 
-        List<org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev170418.get.pm.output
+        List<org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev210618.get.pm.output
             .Measurements> measurementsList1 = new ArrayList<>();
         measurementsList1.add(measurements1);
 

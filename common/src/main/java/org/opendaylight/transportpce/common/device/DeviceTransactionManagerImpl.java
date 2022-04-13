@@ -13,7 +13,6 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
-
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -24,11 +23,10 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
-import org.opendaylight.controller.md.sal.binding.api.DataBroker;
-import org.opendaylight.controller.md.sal.binding.api.MountPoint;
-import org.opendaylight.controller.md.sal.binding.api.MountPointService;
-import org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType;
+import org.opendaylight.mdsal.binding.api.DataBroker;
+import org.opendaylight.mdsal.binding.api.MountPoint;
+import org.opendaylight.mdsal.binding.api.MountPointService;
+import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
 import org.opendaylight.transportpce.common.InstanceIdentifiers;
 import org.opendaylight.yang.gen.v1.urn.tbd.params.xml.ns.yang.network.topology.rev131021.NodeId;
 import org.opendaylight.yang.gen.v1.urn.tbd.params.xml.ns.yang.network.topology.rev131021.network.topology.topology.Node;
@@ -106,9 +104,9 @@ public class DeviceTransactionManagerImpl implements DeviceTransactionManager {
                         LOG.debug("Timeout to submit transaction run out! Transaction was {} submitted or canceled.",
                                 deviceTx.wasSubmittedOrCancelled().get() ? "" : "not");
                         if (!deviceTx.wasSubmittedOrCancelled().get()) {
-                            LOG.error(String.format("Transaction for node %s was not submitted or canceled after %s"
-                                            + " milliseconds! Cancelling transaction!", deviceId,
-                                    timeoutToSubmit));
+                            LOG.error(
+                                "Transaction for node {} not submitted/canceled after {} ms. Cancelling transaction.",
+                                deviceId, timeoutToSubmit);
                             deviceTx.cancel();
                         }
                     }
@@ -133,7 +131,7 @@ public class DeviceTransactionManagerImpl implements DeviceTransactionManager {
     private Optional<DataBroker> getDeviceDataBroker(String deviceId) {
         Optional<MountPoint> netconfNode = getDeviceMountPoint(deviceId);
         if (netconfNode.isPresent()) {
-            return netconfNode.get().getService(DataBroker.class).toJavaUtil();
+            return netconfNode.get().getService(DataBroker.class);
         } else {
             LOG.error("Device mount point not found for : {}", deviceId);
             return Optional.empty();
@@ -144,7 +142,7 @@ public class DeviceTransactionManagerImpl implements DeviceTransactionManager {
     public Optional<MountPoint> getDeviceMountPoint(String deviceId) {
         InstanceIdentifier<Node> netconfNodeIID = InstanceIdentifiers.NETCONF_TOPOLOGY_II.child(Node.class,
                 new NodeKey(new NodeId(deviceId)));
-        return mountPointService.getMountPoint(netconfNodeIID).toJavaUtil();
+        return mountPointService.getMountPoint(netconfNodeIID);
     }
 
     @Override
@@ -160,11 +158,11 @@ public class DeviceTransactionManagerImpl implements DeviceTransactionManager {
         if (deviceTxOpt.isPresent()) {
             DeviceTransaction deviceTx = deviceTxOpt.get();
             try {
-                return deviceTx.read(logicalDatastoreType, path).get(timeout, timeUnit).toJavaUtil();
+                return deviceTx.read(logicalDatastoreType, path).get(timeout, timeUnit);
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
                 LOG.error("Exception thrown while reading data from device {}! IID: {}", deviceId, path, e);
             } finally {
-                deviceTx.submit(GET_DATA_SUBMIT_TIMEOUT, GET_DATA_SUBMIT_TIME_UNIT);
+                deviceTx.commit(GET_DATA_SUBMIT_TIMEOUT, GET_DATA_SUBMIT_TIME_UNIT);
             }
         } else {
             LOG.error("Could not obtain transaction for device {}!", deviceId);

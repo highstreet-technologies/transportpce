@@ -7,15 +7,36 @@
  */
 package org.opendaylight.transportpce.common.mapping;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
-import org.opendaylight.controller.md.sal.binding.api.DataBroker;
-import org.opendaylight.controller.md.sal.binding.api.ReadOnlyTransaction;
-import org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType;
+import org.opendaylight.mdsal.binding.api.DataBroker;
+import org.opendaylight.mdsal.binding.api.ReadTransaction;
+import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
 import org.opendaylight.transportpce.common.StringConstants;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev170228.Network;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev170228.network.Nodes;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev170228.network.NodesKey;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.Network;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.mc.capabilities.McCapabilities;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.network.Nodes;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.network.NodesKey;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.network.nodes.NodeInfo;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev201211.If100GE;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev201211.If100GEODU4;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev201211.If10GE;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev201211.If10GEODU2;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev201211.If10GEODU2e;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev201211.If1GE;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev201211.If1GEODU0;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev201211.If400GE;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev201211.IfOCH;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev201211.IfOCHOTU2EODU2E;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev201211.IfOCHOTU2ODU2;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev201211.IfOCHOTU4ODU4;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev201211.IfOTUCnODUCn;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev201211.IfOtsiOtsigroup;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev201211.SupportedIfCapability;
 import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +46,25 @@ public class MappingUtilsImpl implements MappingUtils {
     private static final Logger LOG = LoggerFactory.getLogger(MappingUtilsImpl.class);
 
     private final DataBroker dataBroker;
+
+    private static Map<String, Class<? extends SupportedIfCapability>> capTypeClassMap = new HashMap<>() {
+        {
+            put("IfOtsiOtsigroup", IfOtsiOtsigroup.class);
+            put("IfOTUCnODUCn", IfOTUCnODUCn.class);
+            put("IfOCHOTU4ODU4", IfOCHOTU4ODU4.class);
+            put("IfOCH", IfOCH.class);
+            put("If100GEODU4", If100GEODU4.class);
+            put("If10GEODU2e", If10GEODU2e.class);
+            put("If10GEODU2", If10GEODU2.class);
+            put("If1GEODU0", If1GEODU0.class);
+            put("If400GE", If400GE.class);
+            put("If100GE", If100GE.class);
+            put("If10GE", If10GE.class);
+            put("If1GE", If1GE.class);
+            put("IfOCHOTU2EODU2E", IfOCHOTU2EODU2E.class);
+            put("IfOCHOTU2ODU2", IfOCHOTU2ODU2.class);
+        }
+    };
 
     public MappingUtilsImpl(DataBroker dataBroker) {
 
@@ -36,14 +76,16 @@ public class MappingUtilsImpl implements MappingUtils {
         /*
          * Getting physical mapping corresponding to logical connection point
          */
-        InstanceIdentifier<Nodes> portMappingIID = InstanceIdentifier.builder(Network.class).child(Nodes.class,
-                new NodesKey(nodeId)).build();
-        try (ReadOnlyTransaction readTx = dataBroker.newReadOnlyTransaction()) {
-            Optional<Nodes> mapObject =
-                    readTx.read(LogicalDatastoreType.CONFIGURATION, portMappingIID).get().toJavaUtil();
-            if (mapObject.isPresent()) {
-                Nodes mapping = mapObject.get();
-                switch (mapping.getOpenroadmVersion()) {
+        InstanceIdentifier<NodeInfo> nodeInfoIID = InstanceIdentifier.builder(Network.class).child(Nodes.class,
+                new NodesKey(nodeId)).child(NodeInfo.class).build();
+        try (ReadTransaction readTx = dataBroker.newReadOnlyTransaction()) {
+            Optional<NodeInfo> nodeInfoObj =
+                    readTx.read(LogicalDatastoreType.CONFIGURATION, nodeInfoIID).get();
+            if (nodeInfoObj.isPresent()) {
+                NodeInfo nodInfo = nodeInfoObj.get();
+                switch (nodInfo.getOpenroadmVersion()) {
+                    case _71:
+                        return StringConstants.OPENROADM_DEVICE_VERSION_7_1;
                     case _221:
                         return StringConstants.OPENROADM_DEVICE_VERSION_2_2_1;
                     case _121:
@@ -58,5 +100,41 @@ public class MappingUtilsImpl implements MappingUtils {
             LOG.error("Unable to read mapping for nodeId {}",nodeId, ex);
         }
         return null;
+    }
+
+    /*
+    * (non-Javadoc)
+    *
+    * @see org.opendaylight.transportpce.common.mapping.MappingUtils#getMcCapabilitiesForNode(java.lang.String)
+    */
+    @Override
+    public List<McCapabilities> getMcCapabilitiesForNode(String nodeId) {
+        List<McCapabilities> mcCapabilities = new ArrayList<>();
+        InstanceIdentifier<Nodes> nodePortMappingIID = InstanceIdentifier.builder(Network.class)
+                .child(Nodes.class, new NodesKey(nodeId)).build();
+        try (ReadTransaction readTx = this.dataBroker.newReadOnlyTransaction()) {
+            Optional<Nodes> nodePortMapObject = readTx.read(LogicalDatastoreType.CONFIGURATION, nodePortMappingIID)
+                    .get();
+            if (nodePortMapObject.isPresent()) {
+                LOG.info("Found node {}", nodeId);
+                Nodes node = nodePortMapObject.get();
+                mcCapabilities.addAll(node.nonnullMcCapabilities().values());
+            }
+        } catch (ExecutionException e) {
+            LOG.error("Something went wrong while getting node {}", nodeId, e);
+        } catch (InterruptedException e) {
+            LOG.error("Request interrupted for node {} interrupted", nodeId, e);
+            Thread.currentThread().interrupt();
+        }
+        LOG.info("Capabilitities for node {}: {}", nodeId, mcCapabilities);
+        return mcCapabilities;
+    }
+
+    public static Class<? extends SupportedIfCapability> convertSupIfCapa(String ifCapType) {
+        if (!capTypeClassMap.containsKey(ifCapType)) {
+            LOG.error("supported-if-capability {} not supported", ifCapType);
+            return null;
+        }
+        return capTypeClassMap.get(ifCapType);
     }
 }

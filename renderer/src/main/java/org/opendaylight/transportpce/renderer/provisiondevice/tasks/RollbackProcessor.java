@@ -9,7 +9,6 @@ package org.opendaylight.transportpce.renderer.provisiondevice.tasks;
 
 import java.util.Deque;
 import java.util.LinkedList;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +41,7 @@ public class RollbackProcessor {
      * Check if any previously added task requires rollback.
      * Rollback is necessary if just single task requires rollback.
      * @return
-     *   true if any of added tasks requires rollback. false if none of added tasks requires rollback.
+     *     true if any of added tasks requires rollback. false if none of added tasks requires rollback.
      */
     public boolean isRollbackNecessary() {
         for (RollbackTask task: this.tasks) {
@@ -58,7 +57,7 @@ public class RollbackProcessor {
      * It does not matter if any of the tasks requires rollback.
      * All previously added tasks will be rolled back and removed from this processor.
      * @return
-     *   number of tasks rolled back
+     *     number of tasks rolled back
      */
     @SuppressWarnings("checkstyle:IllegalCatch")
     public int rollbackAll() {
@@ -81,7 +80,7 @@ public class RollbackProcessor {
      * Rollback all tasks in case any task has failed.
      * If rollback is necessary, all previously added tasks will be rolled back and removed from this processor.
      * @return
-     *   number of tasks rolled back
+     *     number of tasks rolled back
      */
     public int rollbackAllIfNecessary() {
         if (!isRollbackNecessary()) {

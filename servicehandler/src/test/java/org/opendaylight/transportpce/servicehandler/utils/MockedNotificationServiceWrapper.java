@@ -12,12 +12,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 
-import org.opendaylight.controller.md.sal.binding.api.NotificationPublishService;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.renderer.rev171017.ServiceRpcResultSp;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.renderer.rev171017.ServiceRpcResultSpBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.renderer.rev171017.service.rpc.result.sp.PathTopologyBuilder;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev171016.RpcStatusEx;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev171016.ServicePathNotificationTypes;
+import org.opendaylight.mdsal.binding.api.NotificationPublishService;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.renderer.rev210915.RendererRpcResultSp;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.renderer.rev210915.RendererRpcResultSpBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.renderer.rev210915.renderer.rpc.result.sp.PathTopologyBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.RpcStatusEx;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.ServicePathNotificationTypes;
 import org.opendaylight.yangtools.yang.binding.Notification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,12 +25,10 @@ import org.slf4j.LoggerFactory;
 public final class MockedNotificationServiceWrapper {
 
     private static final Logger LOG = LoggerFactory.getLogger(MockedNotificationServiceWrapper.class);
-    private final Notification publishedNotification;
     private final NotificationPublishService notificationPublishService;
     private Boolean rendererFailed = false;
 
     public MockedNotificationServiceWrapper(NotificationPublishService notificationPublishService) {
-        this.publishedNotification = null;
         this.notificationPublishService = notificationPublishService;
     }
 
@@ -42,7 +40,7 @@ public final class MockedNotificationServiceWrapper {
             assertTrue(Notification.class.isAssignableFrom(notif.getClass()));
             if (this.rendererFailed) {
                 LOG.info("putting failed renderer notification");
-                ServiceRpcResultSp serviceRpcResultSp = new ServiceRpcResultSpBuilder()
+                RendererRpcResultSp serviceRpcResultSp = new RendererRpcResultSpBuilder()
                         .setNotificationType(ServicePathNotificationTypes.ServiceImplementationRequest)
                         .setServiceName("service 1").setStatus(RpcStatusEx.Failed).setStatusMessage("Renderer Failed")
                         .setPathTopology(new PathTopologyBuilder().build()).build();

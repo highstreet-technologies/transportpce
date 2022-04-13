@@ -13,11 +13,11 @@ import org.opendaylight.transportpce.servicehandler.ServiceEndpointType;
 import org.opendaylight.transportpce.servicehandler.ServiceInput;
 import org.opendaylight.transportpce.servicehandler.validation.checks.CheckCoherencyHardSoft;
 import org.opendaylight.transportpce.servicehandler.validation.checks.ComplianceCheckResult;
-import org.opendaylight.transportpce.servicehandler.validation.checks.ServicehandlerCompliancyCheck;
+import org.opendaylight.transportpce.servicehandler.validation.checks.ServicehandlerComplianceCheck;
 import org.opendaylight.transportpce.servicehandler.validation.checks.ServicehandlerTxRxCheck;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev161014.ConnectionType;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev161014.RpcActions;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev161014.sdnc.request.header.SdncRequestHeader;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.ConnectionType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.RpcActions;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.sdnc.request.header.SdncRequestHeader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,12 +30,12 @@ public final class ServiceCreateValidation {
          * -create RPC, service header and sdnc
          * -request header compliancy are verified.
          */
-        LOG.debug("checking Service Compliancy ...");
+        LOG.debug("checking Service Compliance ...");
         try {
             String serviceNmame = input.getServiceName();
             SdncRequestHeader sdncRequestHeader = input.getSdncRequestHeader();
             ConnectionType conType = input.getConnectionType();
-            ComplianceCheckResult serviceHandlerCheckResult = ServicehandlerCompliancyCheck.check(
+            ComplianceCheckResult serviceHandlerCheckResult = ServicehandlerComplianceCheck.check(
                     serviceNmame, sdncRequestHeader, conType, rpcActions, true, true);
             if (serviceHandlerCheckResult.hasPassed()) {
                 LOG.debug("Service request compliant !");
@@ -85,7 +85,7 @@ public final class ServiceCreateValidation {
             }
         } catch (NullPointerException e) {
             LOG.error("one of input parameter is null ",e);
-            OperationResult.failed("one of input parameter is null.");
+            return OperationResult.failed("one of input parameter is null.");
         }
         return OperationResult.ok("Validation successful.");
     }

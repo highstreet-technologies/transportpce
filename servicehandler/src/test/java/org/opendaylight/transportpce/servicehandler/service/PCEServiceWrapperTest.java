@@ -9,10 +9,9 @@ package org.opendaylight.transportpce.servicehandler.service;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
 
 import com.google.common.util.concurrent.ListenableFuture;
-
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -20,24 +19,24 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.opendaylight.controller.md.sal.binding.api.NotificationPublishService;
+import org.opendaylight.mdsal.binding.api.NotificationPublishService;
 import org.opendaylight.transportpce.common.ResponseCodes;
 import org.opendaylight.transportpce.pce.service.PathComputationService;
 import org.opendaylight.transportpce.servicehandler.utils.ServiceDataUtils;
 import org.opendaylight.transportpce.test.AbstractTest;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev190624.CancelResourceReserveInput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev190624.CancelResourceReserveOutput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev190624.CancelResourceReserveOutputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev190624.PathComputationRequestInput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev190624.PathComputationRequestOutput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev190624.PathComputationRequestOutputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev161014.ServiceNotificationTypes;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev161014.configuration.response.common.ConfigurationResponseCommon;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev161014.configuration.response.common.ConfigurationResponseCommonBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev161014.ServiceCreateInput;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev161014.ServiceCreateInputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev161014.TempServiceCreateInput;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev161014.TempServiceCreateInputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.CancelResourceReserveInput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.CancelResourceReserveOutput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.CancelResourceReserveOutputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.PathComputationRequestInput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.PathComputationRequestOutput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.PathComputationRequestOutputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.ServiceNotificationTypes;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.configuration.response.common.ConfigurationResponseCommon;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.configuration.response.common.ConfigurationResponseCommonBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.ServiceCreateInput;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.ServiceCreateInputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.TempServiceCreateInput;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.TempServiceCreateInputBuilder;
 
 public class PCEServiceWrapperTest extends AbstractTest {
 
@@ -48,9 +47,11 @@ public class PCEServiceWrapperTest extends AbstractTest {
     @InjectMocks
     private PCEServiceWrapper pceServiceWrapperMock;
 
+    private AutoCloseable closeable;
+
     @Before
-    public void init() throws NoSuchMethodException {
-        MockitoAnnotations.initMocks(this);
+    public void openMocks() throws NoSuchMethodException {
+        closeable = MockitoAnnotations.openMocks(this);
     }
 
     @Test
@@ -62,7 +63,7 @@ public class PCEServiceWrapperTest extends AbstractTest {
                 pceResponse.getConfigurationResponseCommon().getAckFinalIndicator());
         Assert.assertEquals(ResponseCodes.RESPONSE_FAILED,
                 pceResponse.getConfigurationResponseCommon().getResponseCode());
-        verifyZeroInteractions(this.pathComputationServiceMock);
+        Mockito.verifyNoInteractions(this.pathComputationServiceMock);
     }
 
     @Test
@@ -74,7 +75,7 @@ public class PCEServiceWrapperTest extends AbstractTest {
                 pceResponse.getConfigurationResponseCommon().getAckFinalIndicator());
         Assert.assertEquals(ResponseCodes.RESPONSE_FAILED,
                 pceResponse.getConfigurationResponseCommon().getResponseCode());
-        verifyZeroInteractions(this.pathComputationServiceMock);
+        Mockito.verifyNoInteractions(this.pathComputationServiceMock);
     }
 
     @Test
@@ -86,7 +87,7 @@ public class PCEServiceWrapperTest extends AbstractTest {
                 pceResponse.getConfigurationResponseCommon().getAckFinalIndicator());
         Assert.assertEquals(ResponseCodes.RESPONSE_FAILED,
                 pceResponse.getConfigurationResponseCommon().getResponseCode());
-        verifyZeroInteractions(this.pathComputationServiceMock);
+        Mockito.verifyNoInteractions(this.pathComputationServiceMock);
     }
 
 
@@ -98,7 +99,7 @@ public class PCEServiceWrapperTest extends AbstractTest {
                 pceResponse.getConfigurationResponseCommon().getAckFinalIndicator());
         Assert.assertEquals(ResponseCodes.RESPONSE_FAILED,
                 pceResponse.getConfigurationResponseCommon().getResponseCode());
-        verifyZeroInteractions(this.pathComputationServiceMock);
+        Mockito.verifyNoInteractions(this.pathComputationServiceMock);
     }
 
     @Test
@@ -161,5 +162,9 @@ public class PCEServiceWrapperTest extends AbstractTest {
         Assert.assertEquals("PCE calculation in progress",
                 pceResponse.getConfigurationResponseCommon().getResponseMessage());
         verify(this.pathComputationServiceMock).pathComputationRequest((any(PathComputationRequestInput.class)));
+    }
+
+    @After public void releaseMocks() throws Exception {
+        closeable.close();
     }
 }

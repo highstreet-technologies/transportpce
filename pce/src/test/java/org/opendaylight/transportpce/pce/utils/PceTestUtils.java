@@ -7,29 +7,39 @@
  */
 package org.opendaylight.transportpce.pce.utils;
 
+import com.google.gson.stream.JsonReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
+import org.eclipse.jdt.annotation.NonNull;
+import org.eclipse.jdt.annotation.Nullable;
 import org.junit.Assert;
-import org.opendaylight.controller.md.sal.binding.api.DataBroker;
-import org.opendaylight.controller.md.sal.binding.api.WriteTransaction;
-import org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType;
-import org.opendaylight.transportpce.common.DataStoreContext;
+import org.opendaylight.mdsal.binding.api.DataBroker;
+import org.opendaylight.mdsal.binding.api.WriteTransaction;
+import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
 import org.opendaylight.transportpce.common.NetworkUtils;
-import org.opendaylight.transportpce.common.converter.XMLDataObjectConverter;
-import org.opendaylight.transportpce.common.converter.api.DataObjectConverter;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev190624.PathComputationRequestOutput;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev171017.path.description.atoz.direction.AToZ;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev171017.pce.resource.resource.resource.Node;
+import org.opendaylight.transportpce.test.DataStoreContext;
+import org.opendaylight.transportpce.test.converter.DataObjectConverter;
+import org.opendaylight.transportpce.test.converter.XMLDataObjectConverter;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.PathComputationRequestOutput;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.path.description.atoz.direction.AToZ;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.path.description.atoz.direction.AToZKey;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.pce.resource.resource.resource.Node;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.NetworkId;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.Networks;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.networks.Network;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.networks.NetworkKey;
 import org.opendaylight.yangtools.yang.binding.DataObject;
 import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
-import org.opendaylight.yangtools.yang.data.api.YangInstanceIdentifier;
+import org.opendaylight.yangtools.yang.common.QName;
 import org.opendaylight.yangtools.yang.data.api.schema.ContainerNode;
 import org.opendaylight.yangtools.yang.data.api.schema.DataContainerChild;
 import org.opendaylight.yangtools.yang.data.api.schema.MapEntryNode;
@@ -48,20 +58,69 @@ public final class PceTestUtils {
     public static void writeTopologyIntoDataStore(DataBroker dataBroker,
                                                   DataStoreContext dataStoreContext, String topologyDataPath)
             throws ExecutionException, InterruptedException {
+
         DataObjectConverter dataObjectConverter = XMLDataObjectConverter.createWithDataStoreUtil(dataStoreContext);
         InputStream resourceAsStream = PceTestUtils.class.getClassLoader().getResourceAsStream(topologyDataPath);
-        Optional<NormalizedNode<? extends YangInstanceIdentifier.PathArgument, ?>> normalizedNode
+        Optional<NormalizedNode> normalizedNode
                 = dataObjectConverter.transformIntoNormalizedNode(resourceAsStream);
-        DataContainerChild<? extends YangInstanceIdentifier.PathArgument, ?> next
-                = ((ContainerNode) normalizedNode.get()).getValue().iterator().next();
-        MapEntryNode mapNode = ((MapNode) next).getValue().iterator().next();
+        DataContainerChild next
+                = ((ContainerNode) normalizedNode.get()).body().iterator().next();
+        MapEntryNode mapNode = ((MapNode) next).body().iterator().next();
         Optional<DataObject> dataObject = dataObjectConverter.getDataObject(mapNode, Network.QNAME);
         InstanceIdentifier<Network> nwInstanceIdentifier = InstanceIdentifier.builder(Networks.class)
-            .child(Network.class, new NetworkKey(new NetworkId(NetworkUtils.OVERLAY_NETWORK_ID)))
-            .build();
+                .child(Network.class, new NetworkKey(new NetworkId(NetworkUtils.OVERLAY_NETWORK_ID)))
+                .build();
         WriteTransaction dataWriteTransaction = dataBroker.newWriteOnlyTransaction();
         dataWriteTransaction.put(LogicalDatastoreType.CONFIGURATION, nwInstanceIdentifier, (Network) dataObject.get());
-        dataWriteTransaction.submit().get();
+        dataWriteTransaction.commit().get();
+    }
+
+    public static void writeNetworkInDataStore(DataBroker dataBroker) {
+
+        try (
+                // load openroadm-network
+                Reader gnpyNetwork = new FileReader("src/test/resources/gnpy/gnpy_network.json",
+                        StandardCharsets.UTF_8);
+                // load openroadm-topology
+                Reader gnpyTopo = new FileReader("src/test/resources/gnpy/gnpy_topology.json",
+                        StandardCharsets.UTF_8);
+                JsonReader networkReader = new JsonReader(gnpyNetwork);
+                JsonReader topoReader = new JsonReader(gnpyTopo);
+        ) {
+
+            Networks networks = (Networks) JsonUtil.getInstance().getDataObjectFromJson(networkReader,
+                    QName.create("urn:ietf:params:xml:ns:yang:ietf-network", "2018-02-26", "networks"));
+            @NonNull
+            List<Network> networkMap = new ArrayList<>(networks.nonnullNetwork().values());
+            saveOpenRoadmNetwork(networkMap.get(0), NetworkUtils.UNDERLAY_NETWORK_ID, dataBroker);
+            networks = (Networks) JsonUtil.getInstance().getDataObjectFromJson(topoReader,
+                    QName.create("urn:ietf:params:xml:ns:yang:ietf-network", "2018-02-26", "networks"));
+            saveOpenRoadmNetwork(networkMap.get(0), NetworkUtils.UNDERLAY_NETWORK_ID, dataBroker);
+        } catch (IOException | ExecutionException | InterruptedException e) {
+            LOG.error("Cannot init test ", e);
+            Assert.fail("Cannot init test ");
+        }
+    }
+
+    private static void saveOpenRoadmNetwork(Network network, String networkId, DataBroker dataBroker)
+            throws InterruptedException, ExecutionException {
+        InstanceIdentifier<Network> nwInstanceIdentifier = InstanceIdentifier.builder(Networks.class)
+                .child(Network.class, new NetworkKey(new NetworkId(networkId))).build();
+        WriteTransaction dataWriteTransaction = dataBroker.newWriteOnlyTransaction();
+        dataWriteTransaction.put(LogicalDatastoreType.CONFIGURATION, nwInstanceIdentifier, network);
+        dataWriteTransaction.commit().get();
+    }
+
+    public static void writeNetworkIntoDataStore(DataBroker dataBroker,
+                                                 DataStoreContext dataStoreContext, Network network)
+            throws ExecutionException, InterruptedException {
+
+        InstanceIdentifier<Network> nwInstanceIdentifier = InstanceIdentifier.builder(Networks.class)
+                .child(Network.class, new NetworkKey(new NetworkId(NetworkUtils.OVERLAY_NETWORK_ID)))
+                .build();
+        WriteTransaction dataWriteTransaction = dataBroker.newWriteOnlyTransaction();
+        dataWriteTransaction.put(LogicalDatastoreType.CONFIGURATION, nwInstanceIdentifier, network);
+        dataWriteTransaction.commit().get();
     }
 
     public static void checkConfigurationResponse(PathComputationRequestOutput output,
@@ -91,46 +150,47 @@ public final class PceTestUtils {
         Assert.assertEquals(atozSize, ztoaSize);
 
         Long actualAToZWavel = output.getResponseParameters().getPathDescription().getAToZDirection()
-            .getAToZWavelengthNumber();
+                .getAToZWavelengthNumber().toJava();
         Long expectedAToZWavel = expectedOutput.getResponseParameters().getPathDescription().getAToZDirection()
-            .getAToZWavelengthNumber();
+                .getAToZWavelengthNumber().toJava();
         Assert.assertEquals(actualAToZWavel, expectedAToZWavel);
 
         Long actualZtoAWavel = output.getResponseParameters().getPathDescription().getZToADirection()
-            .getZToAWavelengthNumber();
+                .getZToAWavelengthNumber().toJava();
         Long expectedZtoAWavel = expectedOutput.getResponseParameters().getPathDescription().getZToADirection()
-            .getZToAWavelengthNumber();
+                .getZToAWavelengthNumber().toJava();
         Assert.assertEquals(actualZtoAWavel, expectedZtoAWavel);
 
-        Long actualAToZRate = output.getResponseParameters().getPathDescription().getAToZDirection().getRate();
+        Long actualAToZRate = output.getResponseParameters().getPathDescription().getAToZDirection().getRate().toJava();
         Long expectedAToZRate = expectedOutput.getResponseParameters().getPathDescription().getAToZDirection()
-            .getRate();
+                .getRate().toJava();
         Assert.assertEquals(expectedAToZRate, actualAToZRate);
 
-        Long actualZToARate = output.getResponseParameters().getPathDescription().getZToADirection().getRate();
+        Long actualZToARate = output.getResponseParameters().getPathDescription().getZToADirection().getRate().toJava();
         Long expectedZToARate = expectedOutput.getResponseParameters().getPathDescription().getZToADirection()
-            .getRate();
+                .getRate().toJava();
         Assert.assertEquals(actualZToARate, expectedZToARate);
     }
 
     private static List<String> getNodesFromPath(PathComputationRequestOutput output) {
-        List<AToZ> atozList = output.getResponseParameters().getPathDescription().getAToZDirection().getAToZ();
-        return atozList.stream()
-            .filter(aToZ -> {
-                if ((aToZ.getResource() == null) || (aToZ.getResource().getResource() == null)) {
-                    LOG.debug("Diversity constraint: Resource of AToZ node {} is null! Skipping this node!",
-                            aToZ.getId());
-                    return false;
-                }
-                return aToZ.getResource().getResource() instanceof Node;
-            }).map(aToZ -> {
-                Node node = (Node) aToZ.getResource().getResource();
-                if (node.getNodeId() == null) {
-                    LOG.warn("Node in AToZ node {} contains null! Skipping this node!", aToZ.getId());
-                    return null;
-                }
-                return node.getNodeId().toString();
-            }).collect(Collectors.toList());
+        @Nullable Map<AToZKey, AToZ> atozList = output.getResponseParameters()
+                .getPathDescription().getAToZDirection().getAToZ();
+        return atozList.values().stream()
+                .filter(aToZ -> {
+                    if ((aToZ.getResource() == null) || (aToZ.getResource().getResource() == null)) {
+                        LOG.debug("Diversity constraint: Resource of AToZ node {} is null! Skipping this node!",
+                                aToZ.getId());
+                        return false;
+                    }
+                    return aToZ.getResource().getResource() instanceof Node;
+                }).map(aToZ -> {
+                    Node node = (Node) aToZ.getResource().getResource();
+                    if (node.getNodeId() == null) {
+                        LOG.warn("Node in AToZ node {} contains null! Skipping this node!", aToZ.getId());
+                        return null;
+                    }
+                    return node.getNodeId().toString();
+                }).collect(Collectors.toList());
     }
 
     public static boolean comparePath(PathComputationRequestOutput output1, PathComputationRequestOutput output2) {

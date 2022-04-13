@@ -7,6 +7,7 @@
  */
 package org.opendaylight.transportpce.pce;
 
+import java.io.Serializable;
 import java.util.Comparator;
 
 /**
@@ -15,7 +16,11 @@ import java.util.Comparator;
  * @author Martial Coulibaly ( martial.coulibaly@gfi.com ) on behalf of Orange
  *
  */
-public class SortPortsByName implements Comparator<String> {
+@SuppressWarnings("serial")
+@edu.umd.cs.findbugs.annotations.SuppressFBWarnings(
+    value = "SE_NO_SERIALVERSIONID",
+    justification = "https://github.com/rzwitserloot/lombok/wiki/WHY-NOT:-serialVersionUID")
+public class SortPortsByName implements Comparator<String>, Serializable {
 
     @Override
     public int compare(String port1, String port2) {

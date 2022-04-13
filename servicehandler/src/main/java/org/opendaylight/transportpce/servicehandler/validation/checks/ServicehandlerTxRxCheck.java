@@ -9,14 +9,8 @@
 package org.opendaylight.transportpce.servicehandler.validation.checks;
 
 import org.opendaylight.transportpce.servicehandler.ServiceEndpointType;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev161014.ServiceEndpoint;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev161014.ServiceFormat;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev161014.service.endpoint.RxDirection;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev161014.service.endpoint.TxDirection;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev161014.service.lgx.Lgx;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev161014.service.port.Port;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.ServiceEndpoint;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.format.rev191129.ServiceFormat;
 
 /**
  * Class for checking missing info on Tx/Rx for A/Z end.
@@ -24,7 +18,48 @@ import org.slf4j.LoggerFactory;
  */
 public final class ServicehandlerTxRxCheck {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ServicehandlerTxRxCheck.class);
+    // This is class is public so that these messages can be accessed from Junit (avoid duplications).
+    public static final class LogMessages {
+
+        private static final String SERVICE = "Service ";
+        public static final String TXRXDIR_NOT_SET;
+        public static final String TXDIR_PORT_NOT_SET;
+        public static final String TXDIR_LGX_NOT_SET;
+        public static final String RXDIR_PORT_NOT_SET;
+        public static final String RXDIR_LGX_NOT_SET;
+
+        // Static blocks are generated once and spare memory.
+        static {
+            TXRXDIR_NOT_SET = "Service TxDirection or RxDirection is not correctly set";
+            TXDIR_PORT_NOT_SET = "Service TxDirection Port is not correctly set";
+            TXDIR_LGX_NOT_SET = "Service TxDirection Lgx is not correctly set";
+            RXDIR_PORT_NOT_SET = "Service RxDirection Port is not correctly set";
+            RXDIR_LGX_NOT_SET = "Service RxDirection Lgx is not correctly set";
+        }
+
+        public static String endpointTypeNotSet(ServiceEndpointType endpointType) {
+            return SERVICE + endpointType + " is not set";
+        }
+
+        public static String rateNull(ServiceEndpointType endpointType) {
+            return "Something wrong when accessing " + SERVICE + endpointType + " rate, format or clli";
+        }
+
+        public static String rateNotSet(ServiceEndpointType endpointType) {
+            return SERVICE + endpointType + " rate is not set";
+        }
+
+        public static String formatNotSet(ServiceEndpointType endpointType) {
+            return SERVICE + endpointType + " format is not set";
+        }
+
+        public static String clliNotSet(ServiceEndpointType endpointType) {
+            return SERVICE + endpointType + " clli is not set";
+        }
+
+        private LogMessages() {
+        }
+    }
 
     /**
      * Check if a String is not null and not equal to ''.
@@ -34,140 +69,41 @@ public final class ServicehandlerTxRxCheck {
      * @return true if String ok false if not
      */
     public static boolean checkString(String value) {
-        return ((value != null) && (value.compareTo("") != 0));
+        return (value != null && !value.isEmpty());
     }
 
     /**
-     * check if Port info is compliant.
-     *
-     * @param port
-     *            port info
-     * @return true if String ok false if not
-     */
-    public static boolean checkPort(Port port) {
-        boolean result = false;
-        if (port != null) {
-            String portDeviceName = port.getPortDeviceName();
-            String portType = port.getPortType();
-            String portName = port.getPortName();
-            String portRack = port.getPortRack();
-            String portShelf = port.getPortShelf();
-
-            if (checkString(portDeviceName) && checkString(portType) && checkString(portName) && checkString(portRack)
-                    && checkString(portShelf)) {
-                result = true;
-            }
-        }
-        return result;
-    }
-
-    /**
-     * Check if lgx info is compliant.
-     *
-     * @param lgx
-     *            lgx info
-     * @return true if String ok false if not
-     */
-    public static boolean checkLgx(Lgx lgx) {
-        boolean result = false;
-        if (lgx != null) {
-            String lgxDeviceName = lgx.getLgxDeviceName();
-            String lgxPortName = lgx.getLgxPortName();
-            String lgxPortRack = lgx.getLgxPortRack();
-            String lgxPortShelf = lgx.getLgxPortShelf();
-            if (checkString(lgxDeviceName) && checkString(lgxPortName) && checkString(lgxPortRack)
-                    && checkString(lgxPortShelf)) {
-                result = true;
-            }
-        }
-        return result;
-    }
-
-    /**
-     * Check if Tx/Rx Direction complaincy info.
-     *
-     * @param txDirection
-     *            TxDirection
-     * @param rxDirection
-     *            RxDirection
-     *
-     * @return <code>true</code> if check is ok <code>false</code> else
-     */
-    public static ComplianceCheckResult checkTxOrRxInfo(TxDirection txDirection, RxDirection rxDirection) {
-        boolean result = true;
-        String message = "";
-        if (txDirection != null) {
-            if (!checkPort(txDirection.getPort())) {
-                result = false;
-                message = "Service TxDirection Port is not correctly set";
-            } else if (!checkLgx(txDirection.getLgx())) {
-                result = false;
-                message = "Service TxDirection Lgx is not correctly set";
-            } else if (rxDirection != null) {
-                if (!checkPort(rxDirection.getPort())) {
-                    result = false;
-                    message = "Service RxDirection Port is not correctly set";
-                } else if (!checkLgx(rxDirection.getLgx())) {
-                    result = false;
-                    message = "Service RxDirection Lgx is not correctly set";
-                }
-            } else {
-                result = false;
-                message = "Service RxDirection is not correctly set";
-            }
-        } else {
-            result = false;
-            message = "Service TxDirection is not correctly set";
-        }
-        return new ComplianceCheckResult(result, message);
-    }
-
-    /**
-     * Check Compliancy of Service TxRx info.
+     * Check Compliance of Service TxRx info.
      * @param serviceEnd Service Endpoint
      * @param endpointType Endpoint type
      *
      * @return true if String ok false if not
      */
     public static ComplianceCheckResult check(ServiceEndpoint serviceEnd, ServiceEndpointType endpointType) {
-        boolean result = true;
-        String message = "";
-        if (serviceEnd != null) {
-            try {
-                Long serviceRate = serviceEnd.getServiceRate();
-                ServiceFormat serviceformat = serviceEnd.getServiceFormat();
-                String clli = serviceEnd.getClli();
-                if ((serviceRate == null) || (serviceRate <= 0)) {
-                    result = false;
-                    message = "Service " + endpointType + " rate is not set";
-                    LOG.debug(message);
-                } else if (serviceformat == null) {
-                    result = false;
-                    message = "Service " + endpointType + " format is not set";
-                    LOG.debug(message);
-                } else if (!checkString(clli)) {
-                    result = false;
-                    message = "Service" + endpointType + " clli format is not set";
-                    LOG.debug(message);
-                } else {
-                    ComplianceCheckResult complianceCheckResult
-                            = checkTxOrRxInfo(serviceEnd.getTxDirection(), serviceEnd.getRxDirection());
-                    if (!complianceCheckResult.hasPassed()) {
-                        result = false;
-                        message = complianceCheckResult.getMessage();
-                    }
-                }
-            } catch (NullPointerException e) {
-                message = "Service " + endpointType + " rate, format or clli is not set";
-                LOG.error(message, e);
-                return new ComplianceCheckResult(false, message);
-            }
-        } else {
-            result = false;
-            message = endpointType + " is not set";
-            LOG.debug(message);
+        if (serviceEnd == null) {
+            return new ComplianceCheckResult(false, LogMessages.endpointTypeNotSet(endpointType));
         }
-        return new ComplianceCheckResult(result, message);
+
+        if (serviceEnd.getServiceRate() == null) {
+            String message = "Something wrong when accessing Service " + endpointType + " rate, format or clli";
+            return new ComplianceCheckResult(false, message);
+        }
+        Long serviceRate = serviceEnd.getServiceRate().toJava();
+        ServiceFormat serviceformat = serviceEnd.getServiceFormat();
+        String clli = serviceEnd.getClli();
+        if (serviceRate <= 0) {
+            return new ComplianceCheckResult(false, LogMessages.rateNotSet(endpointType));
+        }
+        if (serviceformat == null) {
+            return new ComplianceCheckResult(false, LogMessages.formatNotSet(endpointType));
+        }
+        if (!checkString(clli)) {
+            return new ComplianceCheckResult(false, LogMessages.clliNotSet(endpointType));
+        }
+        if (serviceEnd.getTxDirection() == null || serviceEnd.getRxDirection() == null) {
+            return new ComplianceCheckResult(false, LogMessages.TXRXDIR_NOT_SET);
+        }
+        return new ComplianceCheckResult(true, "");
     }
 
     private ServicehandlerTxRxCheck() {

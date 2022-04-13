@@ -7,16 +7,14 @@
  */
 package org.opendaylight.transportpce.networkmodel;
 
-import com.google.common.base.Optional;
 import com.google.common.util.concurrent.ListenableFuture;
-
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
-import org.opendaylight.controller.md.sal.binding.api.DataBroker;
-import org.opendaylight.controller.md.sal.binding.api.ReadOnlyTransaction;
-import org.opendaylight.controller.md.sal.binding.api.WriteTransaction;
-import org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType;
+import org.opendaylight.mdsal.binding.api.DataBroker;
+import org.opendaylight.mdsal.binding.api.ReadTransaction;
+import org.opendaylight.mdsal.binding.api.WriteTransaction;
+import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
 import org.opendaylight.transportpce.common.NetworkUtils;
-import org.opendaylight.transportpce.networkmodel.util.OpenRoadmFactory;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev170818.DeleteLinkInput;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev170818.DeleteLinkOutput;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev170818.DeleteLinkOutputBuilder;
@@ -48,11 +46,9 @@ public class NetworkUtilsImpl implements TransportpceNetworkutilsService {
 
     private static final Logger LOG = LoggerFactory.getLogger(NetworkUtilsImpl.class);
     private final DataBroker dataBroker;
-    private final OpenRoadmFactory openRoadmFactory;
 
-    public NetworkUtilsImpl(DataBroker dataBroker, OpenRoadmFactory openRoadmFactory) {
+    public NetworkUtilsImpl(DataBroker dataBroker) {
         this.dataBroker = dataBroker;
-        this.openRoadmFactory = openRoadmFactory;
     }
 
     @Override
@@ -67,7 +63,7 @@ public class NetworkUtilsImpl implements TransportpceNetworkutilsService {
 
         //Check if link exists
         try {
-            ReadOnlyTransaction readOnlyTransaction = dataBroker.newReadOnlyTransaction();
+            ReadTransaction readOnlyTransaction = dataBroker.newReadOnlyTransaction();
             Optional<Link> linkOptional = readOnlyTransaction.read(LogicalDatastoreType.CONFIGURATION, linkIID.build())
                 .get();
             if (!linkOptional.isPresent()) {
@@ -88,7 +84,7 @@ public class NetworkUtilsImpl implements TransportpceNetworkutilsService {
         WriteTransaction writeTransaction = dataBroker.newWriteOnlyTransaction();
         writeTransaction.delete(LogicalDatastoreType.CONFIGURATION, linkIID.build());
         try {
-            writeTransaction.submit().get();
+            writeTransaction.commit().get();
             LOG.info("Link with linkId: {} deleted from {} layer.",
                 input.getLinkId(), NetworkUtils.OVERLAY_NETWORK_ID);
             return RpcResultBuilder
@@ -102,8 +98,7 @@ public class NetworkUtilsImpl implements TransportpceNetworkutilsService {
 
     @Override
     public ListenableFuture<RpcResult<InitRoadmNodesOutput>> initRoadmNodes(InitRoadmNodesInput input) {
-        boolean createRdmLinks = OrdLink.createRdm2RdmLinks(input,
-            this.openRoadmFactory,this.dataBroker);
+        boolean createRdmLinks = OrdLink.createRdm2RdmLinks(input, this.dataBroker);
         if (createRdmLinks) {
             return RpcResultBuilder
                 .success(new InitRoadmNodesOutputBuilder().setResult(
@@ -118,26 +113,27 @@ public class NetworkUtilsImpl implements TransportpceNetworkutilsService {
     public ListenableFuture<RpcResult<InitXpdrRdmLinksOutput>> initXpdrRdmLinks(InitXpdrRdmLinksInput input) {
         // Assigns user provided input in init-network-view RPC to nodeId
         LOG.info("Xpdr to Roadm links rpc called");
-        boolean createXpdrRdmLinks = Rdm2XpdrLink.createXpdrRdmLinks(input.getLinksInput(),
-            this.openRoadmFactory,this.dataBroker);
+        boolean createXpdrRdmLinks = Rdm2XpdrLink.createXpdrRdmLinks(input.getLinksInput(), this.dataBroker);
         if (createXpdrRdmLinks) {
             return RpcResultBuilder
                 .success(new InitXpdrRdmLinksOutputBuilder().setResult("Xponder Roadm Link created successfully"))
                 .buildFuture();
         } else {
+            LOG.error("init-xpdr-rdm-links rpc failed due to a bad input parameter");
             return RpcResultBuilder.<InitXpdrRdmLinksOutput>failed().buildFuture();
         }
     }
 
     @Override
     public ListenableFuture<RpcResult<InitRdmXpdrLinksOutput>> initRdmXpdrLinks(InitRdmXpdrLinksInput input) {
-        boolean createRdmXpdrLinks = Rdm2XpdrLink.createRdmXpdrLinks(input.getLinksInput(),
-            this.openRoadmFactory,this.dataBroker);
+        LOG.info("Roadm to Xpdr links rpc called");
+        boolean createRdmXpdrLinks = Rdm2XpdrLink.createRdmXpdrLinks(input.getLinksInput(), this.dataBroker);
         if (createRdmXpdrLinks) {
             return RpcResultBuilder
                 .success(new InitRdmXpdrLinksOutputBuilder().setResult("Roadm Xponder links created successfully"))
                 .buildFuture();
         } else {
+            LOG.error("init-rdm-xpdr-links rpc failed due to a bad input parameter");
             return RpcResultBuilder.<InitRdmXpdrLinksOutput>failed().buildFuture();
         }
     }

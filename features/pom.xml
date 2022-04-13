@@ -12,22 +12,22 @@ and is available at http://www.eclipse.org/legal/epl-v10.html INTERNAL
   <parent>
     <groupId>org.opendaylight.odlparent</groupId>
     <artifactId>odlparent-lite</artifactId>
-    <version>4.0.11</version>
+    <version>9.0.13</version>
     <relativePath/>
   </parent>
 
   <groupId>org.opendaylight.transportpce</groupId>
   <artifactId>features-aggregator</artifactId>
-  <version>0.4.0-SNAPSHOT</version>
+  <version>5.0.0-SNAPSHOT</version>
   <name>${project.artifactId}</name>
   <packaging>pom</packaging>
 
   <modules>
-    <module>features-transportpce</module>
-    <module>odl-transportpce-api</module>
-    <module>odl-transportpce-ordmodels</module>
-    <!--module>odl-transportpce-stubmodels</module-->
     <module>odl-transportpce</module>
+    <module>odl-transportpce-tapi</module>
+    <module>odl-transportpce-inventory</module>
+    <module>odl-transportpce-nbinotifications</module>
+    <module>odl-transportpce-dmaap-client</module>
+    <module>odl-transportpce-swagger</module>
   </modules>
-
 </project>

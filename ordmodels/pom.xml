@@ -12,13 +12,13 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
   <parent>
     <groupId>org.opendaylight.mdsal</groupId>
     <artifactId>binding-parent</artifactId>
-    <version>3.0.9</version>
+    <version>8.0.11</version>
     <relativePath/>
   </parent>
 
   <groupId>org.opendaylight.transportpce</groupId>
   <artifactId>transportpce-ordmodels</artifactId>
-  <version>0.4.0-SNAPSHOT</version>
+  <version>5.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <modules>
@@ -52,11 +52,10 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
           <excludePackageNames>*</excludePackageNames>
         </configuration>
       </plugin>
-<!-- skipping test since this is a util project / folder -->
+      <!-- skipping test since this is a util project / folder -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-        <version>2.18.1</version>
         <configuration>
           <skipTests>true</skipTests>
         </configuration>
@@ -76,71 +75,4 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
       </plugin>
     </plugins>
   </reporting>
-
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-        <groupId>org.opendaylight.netconf</groupId>
-        <artifactId>netconf-artifacts</artifactId>
-        <version>1.6.2-SNAPSHOT</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.opendaylight.mdsal.model</groupId>
-        <artifactId>mdsal-model-artifacts</artifactId>
-        <version>0.13.2</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
-
-  <dependencies>
-    <dependency>
-      <groupId>org.opendaylight.netconf</groupId>
-      <artifactId>ietf-netconf</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.opendaylight.mdsal.binding.model.ietf</groupId>
-      <artifactId>rfc6991-ietf-inet-types</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.opendaylight.mdsal.binding.model.ietf</groupId>
-      <artifactId>rfc6991-ietf-yang-types</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.opendaylight.mdsal.model</groupId>
-      <artifactId>iana-afn-safi</artifactId>
-      <version>2013.07.04.15.6</version>
-      <type>pom</type>
-    </dependency>
-    <dependency>
-      <groupId>org.opendaylight.mdsal.model</groupId>
-      <artifactId>ietf-access-control-list</artifactId>
-    </dependency>
-    <!--dependency>
-      <groupId>org.opendaylight.mdsal.model</groupId>
-      <artifactId>iana-if-type-2014-05-08</artifactId>
-      <version>2014.05.08.13.2-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>org.opendaylight.mdsal.model</groupId>
-      <artifactId>ietf-interfaces</artifactId>
-      <version>2014.05.08.13.2-SNAPSHOT</version>
-    </dependency-->
-    <dependency>
-      <groupId>org.opendaylight.mdsal.binding.model.iana</groupId>
-      <artifactId>iana-if-type</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.opendaylight.mdsal.binding.model.ietf</groupId>
-      <artifactId>rfc7223</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.opendaylight.mdsal.model</groupId>
-      <artifactId>ietf-packet-fields</artifactId>
-    </dependency>
-  </dependencies>
-
 </project>

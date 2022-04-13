@@ -1,13 +1,9 @@
-module transportpce-servicepath {
+module transportpce-service-path {
   namespace "http://org/transportpce/B-C-interface/servicepath";
-  prefix transportpce-servicepath;
+  prefix transportpce-service-path;
 
-  import ietf-yang-types {
-    prefix yang;
-  }
   import transportpce-common-service-path-types {
     prefix transportpce-common-service-path-types;
-    revision-date 2017-10-16;
   }
 
   organization
@@ -45,13 +41,13 @@ module transportpce-servicepath {
       ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
       POSSIBILITY OF SUCH DAMAGE";
 
-  revision 2017-04-26 {
-      description
-        "Version 1.5";
-  }
   revision 2017-10-17 {
     description
       "Version 1.6";
+  }
+  revision 2017-04-26 {
+    description
+      "Version 1.5";
   }
 
   container service-path-list {
@@ -62,5 +58,4 @@ module transportpce-servicepath {
       uses transportpce-common-service-path-types:service-path;
     }
   }
-
 }

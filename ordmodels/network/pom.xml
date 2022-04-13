@@ -12,36 +12,29 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
   <parent>
     <groupId>org.opendaylight.mdsal</groupId>
     <artifactId>binding-parent</artifactId>
-    <version>3.0.9</version>
+    <version>8.0.11</version>
     <relativePath/>
   </parent>
 
   <groupId>org.opendaylight.transportpce.ordmodels</groupId>
   <artifactId>transportpce-ordmodels-network</artifactId>
-  <version>0.4.0-SNAPSHOT</version>
+  <version>5.0.0-SNAPSHOT</version>
   <packaging>bundle</packaging>
 
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-        <groupId>org.opendaylight.mdsal.model</groupId>
-        <artifactId>mdsal-model-artifacts</artifactId>
-        <version>0.13.2</version>
-        <scope>import</scope>
-        <type>pom</type>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
-
   <dependencies>
-    <!-- ord model dependencies -->
     <dependency>
       <groupId>org.opendaylight.transportpce.ordmodels</groupId>
       <artifactId>transportpce-ordmodels-common</artifactId>
       <version>${project.version}</version>
     </dependency>
-
-    <!-- other model dependencies -->
+    <dependency>
+      <groupId>org.opendaylight.yangtools</groupId>
+      <artifactId>concepts</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.opendaylight.yangtools</groupId>
+      <artifactId>yang-common</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.opendaylight.mdsal.binding.model.ietf</groupId>
       <artifactId>rfc6991-ietf-inet-types</artifactId>
@@ -50,24 +43,17 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
       <groupId>org.opendaylight.mdsal.binding.model.ietf</groupId>
       <artifactId>rfc6991-ietf-yang-types</artifactId>
     </dependency>
-
-    <!-- to upgrade topology to 4.1 -->
-    <dependency>
-      <groupId>org.opendaylight.mdsal.binding.model.ietf</groupId>
-      <artifactId>rfc8345</artifactId>
-      <version>1.2.6</version>
-    </dependency>
-    <!--dependency>
-      <groupId>org.opendaylight.mdsal.binding.model.ietf</groupId>
-      <artifactId>rfc8345-ietf-network</artifactId>
-    </dependency>
     <dependency>
       <groupId>org.opendaylight.mdsal.binding.model.ietf</groupId>
       <artifactId>rfc8345-ietf-network-topology</artifactId>
     </dependency>
     <dependency>
       <groupId>org.opendaylight.mdsal.binding.model.ietf</groupId>
-      <artifactId>rfc8345-ietf-network-topology-state</artifactId>
-    </dependency-->
+      <artifactId>rfc8345-ietf-network</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+    </dependency>
   </dependencies>
 </project>

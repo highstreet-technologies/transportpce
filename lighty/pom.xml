@@ -1,148 +1,155 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  Copyright (c) 2018 Pantheon Technologies s.r.o. All Rights Reserved.
+<!-- Copyright (c) 2018 Pantheon Technologies s.r.o. All Rights Reserved.
+    This program and the accompanying materials are made available under the
+    terms of the Eclipse Public License v1.0 which accompanies this distribution,
+    and is available at https://www.eclipse.org/legal/epl-v10.html -->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
 
-  This program and the accompanying materials are made available under the
-  terms of the Eclipse Public License v1.0 which accompanies this distribution,
-  and is available at https://www.eclipse.org/legal/epl-v10.html
--->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>io.lighty.core</groupId>
+    <artifactId>lighty-app-parent</artifactId>
+    <version>15.1.1-SNAPSHOT</version>
+    <relativePath/>
+  </parent>
 
-    <parent>
-        <groupId>io.lighty.core</groupId>
-        <artifactId>lighty-app-parent</artifactId>
-        <version>10.0.1-SNAPSHOT</version>
-        <relativePath/>
-    </parent>
+  <groupId>io.lighty.controllers</groupId>
+  <artifactId>tpce</artifactId>
+  <version>5.0.0-SNAPSHOT</version>
+  <packaging>jar</packaging>
 
-    <groupId>io.lighty.examples.controllers</groupId>
-    <artifactId>lighty-transportpce</artifactId>
-    <version>10.0.1-SNAPSHOT</version>
-    <packaging>jar</packaging>
+  <properties>
+    <application.main.class>io.lighty.controllers.tpce.Main</application.main.class>
+    <application.attach.zip>true</application.attach.zip>
+    <maven.deploy.skip>true</maven.deploy.skip>
+    <transportpce.version>5.0.0-SNAPSHOT</transportpce.version>
+  </properties>
 
-    <properties>
-        <application.main.class>io.lighty.controllers.tpce.Main</application.main.class>
-        <application.attach.zip>true</application.attach.zip>
-        <maven.deploy.skip>true</maven.deploy.skip>
-    </properties>
+  <dependencies>
+    <!-- for parsing command line arguments -->
+    <dependency>
+      <groupId>commons-cli</groupId>
+      <artifactId>commons-cli</artifactId>
+      <version>1.4</version>
+    </dependency>
+    <!-- TPCE Models - BEGIN -->
+    <dependency>
+      <groupId>org.opendaylight.transportpce</groupId>
+      <artifactId>transportpce-api</artifactId>
+      <version>${transportpce.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.opendaylight.transportpce</groupId>
+      <artifactId>transportpce-networkmodel</artifactId>
+      <version>${transportpce.version}</version>
+    </dependency>
+    <!-- TPCE Models - END -->
+    <!-- TPCE bundles - BEGIN -->
+    <dependency>
+      <groupId>org.opendaylight.transportpce</groupId>
+      <artifactId>transportpce-pce</artifactId>
+      <version>${transportpce.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.opendaylight.transportpce</groupId>
+      <artifactId>transportpce-olm</artifactId>
+      <version>${transportpce.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.opendaylight.transportpce</groupId>
+      <artifactId>transportpce-servicehandler</artifactId>
+      <version>${transportpce.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.opendaylight.transportpce</groupId>
+      <artifactId>transportpce-tapi</artifactId>
+      <version>${transportpce.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.opendaylight.transportpce</groupId>
+      <artifactId>transportpce-nbinotifications</artifactId>
+      <version>${transportpce.version}</version>
+    </dependency>
+    <!-- TPCE bundles - END -->
+    <dependency>
+      <groupId>io.lighty.modules</groupId>
+      <artifactId>lighty-netconf-sb</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.lighty.modules</groupId>
+      <artifactId>lighty-restconf-nb-community</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>net.jcip</groupId>
+      <artifactId>jcip-annotations</artifactId>
+      <version>1.0</version>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>com.github.spotbugs</groupId>
+      <artifactId>spotbugs-annotations</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-client</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
 
-    <dependencies>
-
-        <!-- TPCE Models - BEGIN -->
-        <dependency>
-            <groupId>org.opendaylight.transportpce</groupId>
-            <artifactId>transportpce-api</artifactId>
-            <version>0.4.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>org.opendaylight.transportpce.ordmodels</groupId>
-            <artifactId>transportpce-ordmodels-common</artifactId>
-            <version>0.4.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>org.opendaylight.transportpce.ordmodels</groupId>
-            <artifactId>transportpce-ordmodels-device</artifactId>
-            <version>0.4.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>org.opendaylight.transportpce.ordmodels</groupId>
-            <artifactId>transportpce-ordmodels-network</artifactId>
-            <version>0.4.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>org.opendaylight.transportpce.ordmodels</groupId>
-            <artifactId>transportpce-ordmodels-service</artifactId>
-            <version>0.4.0-SNAPSHOT</version>
-        </dependency>
-        <!-- TPCE Models -   END -->
-
-        <!-- TPCE bundles - BEGIN -->
-        <dependency>
-            <groupId>org.opendaylight.transportpce</groupId>
-            <artifactId>transportpce-pce</artifactId>
-            <version>0.4.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>org.opendaylight.transportpce</groupId>
-            <artifactId>transportpce-olm</artifactId>
-            <version>0.4.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>org.opendaylight.transportpce</groupId>
-            <artifactId>transportpce-servicehandler</artifactId>
-            <version>0.4.0-SNAPSHOT</version>
-        </dependency>
-        <!-- TPCE bundles -   END -->
-
-        <dependency>
-            <groupId> org.opendaylight.mdsal</groupId>
-            <artifactId>yang-binding</artifactId>
-            <version>1.0.8</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.lighty.modules</groupId>
-            <artifactId>lighty-netconf-sb</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.lighty.modules</groupId>
-            <artifactId>lighty-restconf-nb-community</artifactId>
-            <exclusions>
-                <!-- FIXME: why is this exclusion needed? can we move it somewhere else? -->
-                <exclusion>
-                    <groupId>javax.ws.rs</groupId>
-                    <artifactId>javax.ws.rs-api</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>io.lighty.resources</groupId>
-            <artifactId>singlenode-configuration</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.lighty.resources</groupId>
-            <artifactId>log4j-properties</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-server</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-webapp</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-servlets</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.glassfish.jersey.core</groupId>
-            <artifactId>jersey-server</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.glassfish.jersey.containers</groupId>
-            <artifactId>jersey-container-jetty-http</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.glassfish.jersey.inject</groupId>
-            <artifactId>jersey-hk2</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>javax.ws.rs</groupId>
-            <artifactId>javax.ws.rs-api</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-client</artifactId>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
+  <build>
+    <finalName>tpce</finalName>
+    <plugins>
+      <plugin>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifest>
+              <addClasspath>true</addClasspath>
+              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+              <addDefaultSpecificationEntries>True</addDefaultSpecificationEntries>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <configuration>
+          <configLocation>odl_checks.xml</configLocation>
+          <suppressionsLocation>checkstyle-suppressions.xml</suppressionsLocation>
+          <!-- <sourceDirectories> are needed so that checkstyle
+            ignores the generated sources directory -->
+          <sourceDirectories>
+            <directory>${project.build.sourceDirectory}</directory>
+          </sourceDirectories>
+          <includeResources>true</includeResources>
+          <includeTestSourceDirectory>true</includeTestSourceDirectory>
+          <includeTestResources>true</includeTestResources>
+          <includes>**\/*.java</includes>
+          <excludes>
+            **/protobuff/messages/**,
+            **/thrift/gen/*.java,
+            **/module-info.java
+          </excludes>
+          <consoleOutput>true</consoleOutput>
+        </configuration>
+        <executions>
+          <execution>
+            <id>validate</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 </project>

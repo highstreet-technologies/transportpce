@@ -8,42 +8,44 @@
 package org.opendaylight.transportpce.pce;
 
 import com.google.common.collect.ImmutableList;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.opendaylight.transportpce.common.ResponseCodes;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev171017.path.description.AToZDirectionBuilder;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev171017.path.description.ZToADirectionBuilder;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev171017.path.description.atoz.direction.AToZ;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev171017.path.description.atoz.direction.AToZBuilder;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev171017.path.description.atoz.direction.AToZKey;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev171017.path.description.ztoa.direction.ZToA;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev171017.path.description.ztoa.direction.ZToABuilder;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev171017.path.description.ztoa.direction.ZToAKey;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev171017.pce.resource.Resource;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev171017.pce.resource.ResourceBuilder;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev171017.pce.resource.resource.resource.LinkBuilder;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev171017.pce.resource.resource.resource.NodeBuilder;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev171017.pce.resource.resource.resource.TerminationPoint;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev171017.pce.resource.resource.resource.TerminationPointBuilder;
+import org.opendaylight.transportpce.common.StringConstants;
+import org.opendaylight.transportpce.common.fixedflex.GridConstant;
+import org.opendaylight.transportpce.pce.networkanalyzer.PceLink;
+import org.opendaylight.transportpce.pce.networkanalyzer.PceResult;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.optical.channel.types.rev211210.FrequencyTHz;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.state.types.rev191129.State;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.types.rev181019.ModulationFormat;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.common.types.rev181130.OpucnTribSlotDef;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.path.description.AToZDirectionBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.path.description.ZToADirectionBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.path.description.atoz.direction.AToZ;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.path.description.atoz.direction.AToZBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.path.description.atoz.direction.AToZKey;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.path.description.ztoa.direction.ZToA;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.path.description.ztoa.direction.ZToABuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.path.description.ztoa.direction.ZToAKey;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.pce.resource.Resource;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.pce.resource.ResourceBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.pce.resource.resource.resource.LinkBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.pce.resource.resource.resource.NodeBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.pce.resource.resource.resource.TerminationPoint;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.pce.resource.resource.resource.TerminationPointBuilder;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.LinkId;
+import org.opendaylight.yangtools.yang.common.Uint32;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class PcePathDescription {
     /* Logging. */
-    private static final Logger LOG = LoggerFactory.getLogger(PceCalculation.class);
+    private static final Logger LOG = LoggerFactory.getLogger(PcePathDescription.class);
 
     private List<PceLink> pathAtoZ = null;
     private PceResult rc;
-
-    public PceResult getReturnStructure() {
-        return this.rc;
-    }
-
     private Map<LinkId, PceLink> allPceLinks = null;
-
-    private List<PceLink> pathZtoA = null;
 
     public PcePathDescription(List<PceLink> pathAtoZ, Map<LinkId, PceLink> allPceLinks, PceResult rc) {
         super();
@@ -53,38 +55,130 @@ public class PcePathDescription {
     }
 
     public PceResult buildDescriptions() {
-        LOG.info("In buildDescriptions: AtoZ {}", this.pathAtoZ.toString());
-        List<AToZ> atozList = new ArrayList<AToZ>();
-        if (this.pathAtoZ == null) {
-            this.rc.setRC(ResponseCodes.RESPONSE_FAILED);
+        LOG.info("In buildDescriptions: AtoZ =  {}", pathAtoZ);
+        Map<AToZKey,AToZ> atozMap = new HashMap<>();
+        if (pathAtoZ == null) {
+            rc.setRC(ResponseCodes.RESPONSE_FAILED);
             LOG.error("In buildDescriptions: there is empty AtoZ path");
-            return this.rc;
+            return rc;
         }
 
-        buildAtoZ(atozList, this.pathAtoZ);
+        buildAtoZ(atozMap, pathAtoZ);
+        rc.setAtoZDirection(buildAtoZDirection(atozMap).build());
+        List<PceLink> pathZtoA = ImmutableList.copyOf(pathAtoZ).reverse();
+        LOG.info("In buildDescriptions: ZtoA {}", pathZtoA);
 
-        this.rc.setAtoZDirection(new AToZDirectionBuilder().setRate(this.rc.getRate())
-                .setAToZWavelengthNumber(this.rc.getResultWavelength()).setAToZ(atozList).build());
-
-        this.pathZtoA = ImmutableList.copyOf(this.pathAtoZ).reverse();
-        LOG.info("In buildDescriptions: ZtoA {}", this.pathZtoA.toString());
-
-        List<ZToA> ztoaList = new ArrayList<ZToA>();
-        if (this.pathZtoA == null) {
-            this.rc.setRC(ResponseCodes.RESPONSE_FAILED);
+        Map<ZToAKey,ZToA> ztoaMap = new HashMap<>();
+        if (pathZtoA == null) {
+            rc.setRC(ResponseCodes.RESPONSE_FAILED);
             LOG.error("In buildDescriptions: there is empty ZtoA path");
-            return this.rc;
+            return rc;
         }
-        buildZtoA(ztoaList, this.pathZtoA);
+        buildZtoA(ztoaMap, pathZtoA);
+        rc.setZtoADirection(buildZtoADirection(ztoaMap).build());
 
-        this.rc.setZtoADirection(new ZToADirectionBuilder().setRate(this.rc.getRate())
-                .setZToAWavelengthNumber(this.rc.getResultWavelength()).setZToA(ztoaList).build());
-
-        return this.rc;
+        return rc;
     }
 
-    private void buildAtoZ(List<AToZ> etoeList, List<PceLink> path) {
+    /**
+     * Create a builder for AtoZDirection object.
+     * @param atozMap Map of AToZ object
+     * @return a builder for AtoZDirection object
+     */
+    private AToZDirectionBuilder buildAtoZDirection(Map<AToZKey, AToZ> atozMap) {
+        AToZDirectionBuilder atoZDirectionBldr = new AToZDirectionBuilder()
+            .setRate(Uint32.valueOf(rc.getRate()))
+            .setModulationFormat(GridConstant.RATE_MODULATION_FORMAT_MAP
+                    .getOrDefault(Uint32.valueOf(rc.getRate()), ModulationFormat.DpQpsk).getName())
+            .setAToZ(atozMap);
+        switch (rc.getServiceType()) {
+            case StringConstants.SERVICE_TYPE_400GE:
+            case StringConstants.SERVICE_TYPE_OTUC2:
+            case StringConstants.SERVICE_TYPE_OTUC3:
+            case StringConstants.SERVICE_TYPE_OTUC4:
+            case StringConstants.SERVICE_TYPE_100GE_T:
+            case StringConstants.SERVICE_TYPE_OTU4:
+                atoZDirectionBldr.setAToZMaxFrequency(new FrequencyTHz(rc.getMaxFreq()));
+                atoZDirectionBldr.setAToZMinFrequency(new FrequencyTHz(rc.getMinFreq()));
+                atoZDirectionBldr.setAToZWavelengthNumber(Uint32.valueOf(rc.getResultWavelength()));
+                break;
+            case StringConstants.SERVICE_TYPE_100GE_M:
+            case StringConstants.SERVICE_TYPE_100GE_S:
+            case StringConstants.SERVICE_TYPE_10GE:
+            case StringConstants.SERVICE_TYPE_1GE:
+            case StringConstants.SERVICE_TYPE_ODU4:
+            case StringConstants.SERVICE_TYPE_ODUC2:
+            case StringConstants.SERVICE_TYPE_ODUC3:
+            case StringConstants.SERVICE_TYPE_ODUC4:
+                if (rc.getResultTribPortTribSlot() != null && rc.getResultTribPortTribSlot().get(0) != null
+                    && rc.getResultTribPortTribSlot().get(1) != null) {
+                    atoZDirectionBldr.setAToZWavelengthNumber(Uint32.valueOf(0))
+                            .setMinTribSlot(rc.getResultTribPortTribSlot().get(0))
+                            .setMaxTribSlot(rc.getResultTribPortTribSlot().get(1));
+                } else {
+                    LOG.warn("Trib port and trib slot number should be present");
+                    atoZDirectionBldr.setMinTribSlot(new OpucnTribSlotDef("0.0"))
+                        .setMaxTribSlot(new OpucnTribSlotDef("0.0"));
+                }
+                break;
+            default:
+                LOG.warn("unknown service type : unable to set Min/Max frequencies or trib-port/trib-slot");
+                break;
+        }
+        return atoZDirectionBldr;
+    }
 
+    /**
+     * Create a builder for ZtoADirection object.
+     * @param ztoaMap Map of ZToA object
+     * @return a builder for ZtoADirection object
+     */
+    private ZToADirectionBuilder buildZtoADirection(Map<ZToAKey, ZToA> ztoaMap) {
+        ZToADirectionBuilder ztoADirectionBldr = new ZToADirectionBuilder().setRate(Uint32.valueOf(rc.getRate()))
+                .setModulationFormat(GridConstant.RATE_MODULATION_FORMAT_MAP
+                        .getOrDefault(Uint32.valueOf(rc.getRate()), ModulationFormat.DpQpsk).getName())
+                .setZToA(ztoaMap);
+        switch (rc.getServiceType()) {
+            case StringConstants.SERVICE_TYPE_400GE:
+            case StringConstants.SERVICE_TYPE_OTUC2:
+            case StringConstants.SERVICE_TYPE_OTUC3:
+            case StringConstants.SERVICE_TYPE_OTUC4:
+            case StringConstants.SERVICE_TYPE_100GE_T:
+            case StringConstants.SERVICE_TYPE_OTU4:
+                ztoADirectionBldr.setZToAMaxFrequency(new FrequencyTHz(rc.getMaxFreq()));
+                ztoADirectionBldr.setZToAMinFrequency(new FrequencyTHz(rc.getMinFreq()));
+                ztoADirectionBldr.setZToAWavelengthNumber(Uint32.valueOf(rc.getResultWavelength()));
+                break;
+            case StringConstants.SERVICE_TYPE_100GE_M:
+            case StringConstants.SERVICE_TYPE_100GE_S:
+            case StringConstants.SERVICE_TYPE_10GE:
+            case StringConstants.SERVICE_TYPE_1GE:
+            case StringConstants.SERVICE_TYPE_ODU4:
+            case StringConstants.SERVICE_TYPE_ODUC2:
+            case StringConstants.SERVICE_TYPE_ODUC3:
+            case StringConstants.SERVICE_TYPE_ODUC4:
+                if (rc.getResultTribPortTribSlot() != null && rc.getResultTribPortTribSlot().get(0) != null
+                    && rc.getResultTribPortTribSlot().get(1) != null) {
+                    ztoADirectionBldr.setZToAWavelengthNumber(Uint32.valueOf(0))
+                            .setMinTribSlot(rc.getResultTribPortTribSlot().get(0))
+                            .setMaxTribSlot(rc.getResultTribPortTribSlot().get(1));
+                } else {
+                    LOG.warn("Trib port and trib slot number should be present");
+                    ztoADirectionBldr.setMinTribSlot(new OpucnTribSlotDef("0.0"))
+                        .setMaxTribSlot(new OpucnTribSlotDef("0.0"));
+                }
+                break;
+            default:
+                LOG.warn("unknown service type : unable to set Min/Max frequencies");
+                break;
+        }
+        return ztoADirectionBldr;
+    }
+
+    @SuppressWarnings("java:S138")
+    //sonar issue This method has 77 lines, which is greater than the 75 lines authorized. Split it into smaller
+    //ignore as it's not relevant to split it from functional point
+    private void buildAtoZ(Map<AToZKey, AToZ> atozMap, List<PceLink> path) {
         Integer index = 0;
         PceLink lastLink = null;
         AToZ lastResource = null;
@@ -97,85 +191,82 @@ public class PcePathDescription {
                 .build();
 
         AToZKey clientKey = new AToZKey(index.toString());
-        Resource clientResource = new ResourceBuilder().setResource(stp).build();
+        Resource clientResource = new ResourceBuilder().setResource(stp).setState(State.InService).build();
         AToZ firstResource = new AToZBuilder().setId(tpName).withKey(clientKey).setResource(clientResource).build();
-        etoeList.add(firstResource);
-
-        index++;
-
+        atozMap.put(firstResource.key(),firstResource);
+        index += 1;
         for (PceLink pcelink : path) {
-
             String srcName = pcelink.getSourceId().getValue();
-
             // Nodes
-            org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev171017.pce
+            org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.pce
                 .resource.resource.resource.Node sourceNode = new NodeBuilder()
                 .setNodeId(srcName)
                 .build();
 
             // Source Resource
             AToZKey sourceKey = new AToZKey(index.toString());
-            Resource nodeResource1 = new ResourceBuilder().setResource(sourceNode).build();
+            Resource nodeResource1 = new ResourceBuilder().setResource(sourceNode).setState(State.InService).build();
             AToZ srcResource = new AToZBuilder().setId(srcName).withKey(sourceKey).setResource(nodeResource1).build();
-            index++;
-            etoeList.add(srcResource);
+            index += 1;
+            atozMap.put(srcResource.key(),srcResource);
 
             // source TP
-            tpName = pcelink.getSourceTP().toString();
+            tpName = pcelink.getSourceTP().getValue();
             stp = new TerminationPointBuilder()
                     .setTpNodeId(srcName).setTpId(tpName)
                     .build();
 
             // Resource
             AToZKey srcTPKey = new AToZKey(index.toString());
-            // tpName);
-            Resource tpResource1 = new ResourceBuilder().setResource(stp).build();
+            Resource tpResource1 = new ResourceBuilder().setResource(stp).setState(State.InService).build();
             AToZ stpResource = new AToZBuilder().setId(tpName).withKey(srcTPKey).setResource(tpResource1).build();
-            index++;
-            etoeList.add(stpResource);
+            index += 1;
+            atozMap.put(stpResource.key(),stpResource);
 
             String linkName = pcelink.getLinkId().getValue();
             // Link
-            org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev171017.pce
+            org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.pce
                 .resource.resource.resource.Link atozLink = new LinkBuilder()
                 .setLinkId(linkName)
                 .build();
 
             // Link Resource
             AToZKey linkKey = new AToZKey(index.toString());
-            Resource nodeResource2 = new ResourceBuilder().setResource(atozLink).build();
+            Resource nodeResource2 = new ResourceBuilder().setResource(atozLink).setState(pcelink.getState()).build();
             AToZ linkResource = new AToZBuilder().setId(linkName).withKey(linkKey).setResource(nodeResource2).build();
-            index++;
-            etoeList.add(linkResource);
+            index += 1;
+            atozMap.put(linkResource.key(),linkResource);
 
             String destName = pcelink.getDestId().getValue();
             // target TP
-            tpName = pcelink.getDestTP().toString();
+            tpName = pcelink.getDestTP().getValue();
             TerminationPoint dtp = new TerminationPointBuilder()
-                    .setTpNodeId(destName).setTpId(tpName)
-                    .build();
+                .setTpNodeId(destName).setTpId(tpName)
+                .build();
 
             // Resource
             AToZKey destTPKey = new AToZKey(index.toString());
-            Resource tpResource2 = new ResourceBuilder().setResource(dtp).build();
+            Resource tpResource2 = new ResourceBuilder().setResource(dtp).setState(State.InService).build();
             AToZ ttpResource = new AToZBuilder().setId(tpName).withKey(destTPKey).setResource(tpResource2).build();
-            index++;
-            etoeList.add(ttpResource);
+            index += 1;
+            atozMap.put(ttpResource.key(),ttpResource);
 
-            org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev171017.pce
+            org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.pce
                 .resource.resource.resource.Node targetNode = new NodeBuilder()
                 .setNodeId(destName)
                 .build();
 
             // Target Resource
             AToZKey targetKey = new AToZKey(index.toString());
-            Resource nodeResource3 = new ResourceBuilder().setResource(targetNode).build();
+            Resource nodeResource3 = new ResourceBuilder().setResource(targetNode).setState(State.InService).build();
             lastResource = new AToZBuilder().setId(destName).withKey(targetKey).setResource(nodeResource3).build();
 
             lastLink = pcelink;
         }
 
-        etoeList.add(lastResource);
+        if (lastResource != null) {
+            atozMap.put(lastResource.key(),lastResource);
+        }
 
         // build Z side Client TP
         tpName = lastLink.getClient();
@@ -184,16 +275,15 @@ public class PcePathDescription {
                 .setTpNodeId(xname).setTpId(tpName)
                 .build();
 
-
-        index++;
+        index += 1;
         clientKey = new AToZKey(index.toString());
-        clientResource = new ResourceBuilder().setResource(stp).build();
+        clientResource = new ResourceBuilder().setResource(stp).setState(State.InService).build();
         lastResource = new AToZBuilder().setId(tpName).withKey(clientKey).setResource(clientResource).build();
-        etoeList.add(lastResource);
+        atozMap.put(lastResource.key(),lastResource);
 
     }
 
-    private void buildZtoA(List<ZToA> etoelist, List<PceLink> path) {
+    private void buildZtoA(Map<ZToAKey, ZToA> ztoaList, List<PceLink> path) {
         Integer index = 0;
         PceLink lastLink = null;
         ZToA lastResource = null;
@@ -207,83 +297,85 @@ public class PcePathDescription {
                 .build();
 
         ZToAKey clientKey = new ZToAKey(index.toString());
-        Resource clientResource = new ResourceBuilder().setResource(stp).build();
+        Resource clientResource = new ResourceBuilder().setResource(stp).setState(State.InService).build();
         ZToA firstResource = new ZToABuilder().setId(tpName).withKey(clientKey).setResource(clientResource).build();
-        etoelist.add(firstResource);
-        index++;
+        ztoaList.put(firstResource.key(),firstResource);
+        index += 1;
 
         for (PceLink pcelinkAtoZ : path) {
 
             pcelink = this.allPceLinks.get(pcelinkAtoZ.getOppositeLink());
-            LOG.debug("link to oppsite: {} to {}", pcelinkAtoZ.toString(), pcelink.toString());
+            LOG.debug("link to oppsite: {} to {}", pcelinkAtoZ, pcelink);
 
             String srcName = pcelink.getSourceId().getValue();
 
 
             // Nodes
-            org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev171017.pce
+            org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.pce
                 .resource.resource.resource.Node sourceNode = new NodeBuilder()
                 .setNodeId(srcName).build();
 
 
             // Source Resource
             ZToAKey sourceKey = new ZToAKey(index.toString());
-            Resource nodeResource1 = new ResourceBuilder().setResource(sourceNode).build();
+            Resource nodeResource1 = new ResourceBuilder().setResource(sourceNode).setState(State.InService).build();
             ZToA srcResource = new ZToABuilder().setId(srcName).withKey(sourceKey).setResource(nodeResource1).build();
-            index++;
-            etoelist.add(srcResource);
+            index += 1;
+            ztoaList.put(srcResource.key(),srcResource);
 
             // source TP
-            tpName = pcelink.getSourceTP().toString();
+            tpName = pcelink.getSourceTP().getValue();
             stp = new TerminationPointBuilder()
                     .setTpNodeId(srcName).setTpId(tpName)
                     .build();
 
             // Resource
             ZToAKey srcTPKey = new ZToAKey(index.toString());
-            Resource tpResource1 = new ResourceBuilder().setResource(stp).build();
+            Resource tpResource1 = new ResourceBuilder().setResource(stp).setState(State.InService).build();
             ZToA stpResource = new ZToABuilder().setId(tpName).withKey(srcTPKey).setResource(tpResource1).build();
-            index++;
-            etoelist.add(stpResource);
+            index += 1;
+            ztoaList.put(stpResource.key(),stpResource);
 
             String linkName = pcelink.getLinkId().getValue();
             // Link
-            org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev171017.pce
+            org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.pce
                 .resource.resource.resource.Link ztoaLink = new LinkBuilder()
                 .setLinkId(linkName).build();
 
             // Link Resource
             ZToAKey linkKey = new ZToAKey(index.toString());
-            Resource nodeResource2 = new ResourceBuilder().setResource(ztoaLink).build();
+            Resource nodeResource2 = new ResourceBuilder().setResource(ztoaLink).setState(State.InService).build();
             ZToA linkResource = new ZToABuilder().setId(linkName).withKey(linkKey).setResource(nodeResource2).build();
-            index++;
-            etoelist.add(linkResource);
+            index += 1;
+            ztoaList.put(linkResource.key(),linkResource);
 
             String destName = pcelink.getDestId().getValue();
             // target TP
-            tpName = pcelink.getDestTP().toString();
+            tpName = pcelink.getDestTP().getValue();
             TerminationPoint ttp = new TerminationPointBuilder()
                     .setTpNodeId(destName).setTpId(tpName).build();
 
             // Resource
             ZToAKey destTPKey = new ZToAKey(index.toString());
-            Resource tpResource2 = new ResourceBuilder().setResource(ttp).build();
+            Resource tpResource2 = new ResourceBuilder().setResource(ttp).setState(State.InService).build();
             ZToA ttpResource = new ZToABuilder().setId(tpName).withKey(destTPKey).setResource(tpResource2).build();
-            index++;
-            etoelist.add(ttpResource);
+            index += 1;
+            ztoaList.put(ttpResource.key(),ttpResource);
 
 
-            org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev171017.pce
+            org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.pce
                 .resource.resource.resource.Node targetNode = new NodeBuilder()
                 .setNodeId(destName).build();
             // Target Resource
             ZToAKey targetKey = new ZToAKey(index.toString());
-            Resource nodeResource3 = new ResourceBuilder().setResource(targetNode).build();
+            Resource nodeResource3 = new ResourceBuilder().setResource(targetNode).setState(State.InService).build();
             lastResource = new ZToABuilder().setId(destName).withKey(targetKey).setResource(nodeResource3).build();
 
             lastLink = pcelink;
         }
-        etoelist.add(lastResource);
+        if (lastResource != null) {
+            ztoaList.put(lastResource.key(),lastResource);
+        }
 
         // build Z side Client TP
         tpName = lastLink.getClient();
@@ -291,13 +383,14 @@ public class PcePathDescription {
         stp = new TerminationPointBuilder()
                 .setTpNodeId(xname).setTpId(tpName).build();
 
-
-        index++;
+        index += 1;
         clientKey = new ZToAKey(index.toString());
-        clientResource = new ResourceBuilder().setResource(stp).build();
+        clientResource = new ResourceBuilder().setResource(stp).setState(State.InService).build();
         lastResource = new ZToABuilder().setId(tpName).withKey(clientKey).setResource(clientResource).build();
-        etoelist.add(lastResource);
-
+        ztoaList.put(lastResource.key(),lastResource);
     }
 
+    public PceResult getReturnStructure() {
+        return rc;
+    }
 }

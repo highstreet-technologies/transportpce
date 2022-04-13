@@ -7,14 +7,15 @@
  */
 package org.opendaylight.transportpce.renderer.provisiondevice.tasks;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import org.opendaylight.transportpce.renderer.ServicePathInputData;
 import org.opendaylight.transportpce.renderer.provisiondevice.DeviceRendererService;
 import org.opendaylight.transportpce.renderer.provisiondevice.DeviceRenderingResult;
 import org.opendaylight.transportpce.renderer.provisiondevice.servicepath.ServicePathDirection;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.renderer.device.rev170228.ServicePathOutput;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.common.types.rev170907.olm.renderer.input.Nodes;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.device.renderer.rev211004.ServicePathOutput;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.common.types.rev210930.optical.renderer.nodes.Nodes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,15 +36,31 @@ public class DeviceRenderingTask implements Callable<DeviceRenderingResult> {
 
     @Override
     public DeviceRenderingResult call() throws Exception {
-        ServicePathOutput output = this.deviceRenderer.setupServicePath(this.servicePathInputData.getServicePathInput(),
-                this.direction);
-        if (! output.isSuccess()) {
-            LOG.warn("Device rendering not successfully finished.");
+        ServicePathOutput output;
+        String operation;
+        List<Nodes> olmList = null;
+        switch (this.servicePathInputData.getServicePathInput().getOperation()) {
+            case Create:
+                operation = "setup";
+                output = this.deviceRenderer.setupServicePath(this.servicePathInputData.getServicePathInput(),
+                    this.direction);
+                olmList = this.servicePathInputData.getNodeLists().getOlmNodeList();
+                break;
+            case Delete:
+                operation = "delete";
+                output = this.deviceRenderer.deleteServicePath(this.servicePathInputData.getServicePathInput());
+                break;
+            default:
+                return DeviceRenderingResult.failed("Device rendering failed - unknown operation");
+        }
+        if (!output.getSuccess()) {
+            LOG.error("Device rendering {} service path failed.", operation);
             return DeviceRenderingResult.failed("Operation Failed");
         }
-        List<Nodes> olmList = this.servicePathInputData.getNodeLists().getOlmList();
-        LOG.info("Device rendering finished successfully.");
-        return DeviceRenderingResult.ok(olmList, output.getNodeInterface());
+        LOG.info("Device rendering {} service path finished successfully.", operation);
+        return DeviceRenderingResult.ok(olmList, new ArrayList<>(output.nonnullNodeInterface().values()),
+            new ArrayList<>(output.nonnullLinkTp()));
+
     }
 
 }

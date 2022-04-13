@@ -13,40 +13,81 @@ Author: Martial Coulibaly <martial.coulibaly@gfi.com> on behalf of Orange
   xmlns:odl="http://opendaylight.org/xmlns/blueprint/v1.0.0"
   odl:use-default-for-reference-types="true">
 
-    <reference id="rpcRegistry"
-          interface="org.opendaylight.controller.sal.binding.api.RpcProviderRegistry"/>
+    <reference id="rpcService"
+          interface="org.opendaylight.mdsal.binding.api.RpcProviderService"/>
 
     <reference id="dataBroker"
-          interface="org.opendaylight.controller.md.sal.binding.api.DataBroker"
-          odl:type="default" />
+          interface="org.opendaylight.mdsal.binding.api.DataBroker"/>
 
     <reference id="notificationService"
-          interface="org.opendaylight.controller.md.sal.binding.api.NotificationService"
-          odl:type="default" />
+          interface="org.opendaylight.mdsal.binding.api.NotificationService"/>
 
     <reference id="notificationPublishService"
-          interface="org.opendaylight.controller.md.sal.binding.api.NotificationPublishService"
-          odl:type="default" />
+          interface="org.opendaylight.mdsal.binding.api.NotificationPublishService"/>
 
     <reference id="pathComputationService"
           interface="org.opendaylight.transportpce.pce.service.PathComputationService"/>
 
     <reference id="rendererServiceOperations"
              interface="org.opendaylight.transportpce.renderer.provisiondevice.RendererServiceOperations" />
+    <reference id="networkModelService" interface="org.opendaylight.transportpce.networkmodel.service.NetworkModelService"/>
 
-    <reference id="networkModelWavelengthService"
-           interface="org.opendaylight.transportpce.renderer.NetworkModelWavelengthService" />
+    <bean id="serviceDatastoreOperation" class="org.opendaylight.transportpce.servicehandler.service.ServiceDataStoreOperationsImpl">
+        <argument ref="dataBroker"/>
+      </bean>
+
+    <bean id="pceListener" class="org.opendaylight.transportpce.servicehandler.listeners.PceListenerImpl">
+        <argument ref="rendererServiceOperations" />
+        <argument ref="pathComputationService" />
+        <argument ref="notificationPublishService" />
+        <argument ref="serviceDatastoreOperation" />
+    </bean>
+
+    <bean id="serviceListener" class="org.opendaylight.transportpce.servicehandler.listeners.ServiceListener">
+        <argument ref="dataBroker" />
+        <argument ref="notificationPublishService" />
+    </bean>
+
+    <bean id="rendererListener" class="org.opendaylight.transportpce.servicehandler.listeners.RendererListenerImpl">
+        <argument ref="pathComputationService" />
+        <argument ref="notificationPublishService" />
+        <argument ref="networkModelService" />
+    </bean>
+
+    <bean id="networkModelListener" class="org.opendaylight.transportpce.servicehandler.listeners.NetworkModelListenerImpl">
+        <argument ref="notificationPublishService" />
+        <argument ref="serviceDatastoreOperation" />
+    </bean>
+
+    <bean id="serviceHandlerImpl" class="org.opendaylight.transportpce.servicehandler.impl.ServicehandlerImpl">
+        <argument ref="dataBroker"/>
+        <argument ref="pathComputationService" />
+        <argument ref="notificationPublishService" />
+        <argument ref="rendererServiceOperations" />
+        <argument ref="pceListener" />
+        <argument ref="rendererListener" />
+        <argument ref="networkModelListener" />
+        <argument ref="serviceDatastoreOperation" />
+    </bean>
 
     <bean id="provider"
           class="org.opendaylight.transportpce.servicehandler.impl.ServicehandlerProvider"
           init-method="init" destroy-method="close">
-        <argument ref="rpcRegistry" />
+        <argument ref="rpcService" />
         <argument ref="dataBroker" />
         <argument ref="notificationService" />
-        <argument ref="notificationPublishService" />
-        <argument ref="pathComputationService" />
-        <argument ref="rendererServiceOperations" />
-        <argument ref="networkModelWavelengthService" />
+        <argument ref="serviceDatastoreOperation" />
+        <argument ref="pceListener" />
+        <argument ref="serviceListener" />
+        <argument ref="rendererListener" />
+        <argument ref="networkModelListener" />
+        <argument ref="serviceHandlerImpl" />
     </bean>
+
+    <service ref="serviceHandlerImpl"
+        interface="org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.OrgOpenroadmServiceService"/>
+
+    <service ref="serviceDatastoreOperation"
+             interface="org.opendaylight.transportpce.servicehandler.service.ServiceDataStoreOperations"/>
 
 </blueprint>

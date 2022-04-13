@@ -22,8 +22,21 @@ classes
 ordmodels/src/main/java
 tests/config.xml
 tests/models
-
+<<<<<<< HEAD
+*.log
+*.log.*
+__pycache__
+*.egg-info
+.eggs
+*.pyc
+*.swp
+nosetests.xml
+api/src/main/java
+api/src/main/java/org/opendaylight/yang/gen/v1/gnpy/path/rev190502/TeTpIdBuilder.java
+api/src/main/java/org/opendaylight/yang/gen/v1/gnpy/path/rev190502/AccumulatedMetricTypeBuilder.java
 # Sphinx documentation
 .tox/
 docs/_build/
-
+honeynode-simulator/
+pce/data
+pce/some-output

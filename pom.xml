@@ -5,19 +5,20 @@ This program and the accompanying materials are made available under the
 terms of the Eclipse Public License v1.0 which accompanies this distribution,
 and is available at http://www.eclipse.org/legal/epl-v10.html INTERNAL
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
     <groupId>org.opendaylight.odlparent</groupId>
     <artifactId>odlparent</artifactId>
-    <version>4.0.11</version>
+    <version>9.0.13</version>
     <relativePath/>
   </parent>
 
   <groupId>org.opendaylight.transportpce</groupId>
   <artifactId>transportpce-aggregator</artifactId>
-  <version>0.4.0-SNAPSHOT</version>
+  <version>5.0.0-SNAPSHOT</version>
   <name>transportpce</name>
   <packaging>pom</packaging>
 
@@ -25,37 +26,28 @@ and is available at http://www.eclipse.org/legal/epl-v10.html INTERNAL
     <connection>scm:git:ssh://git.opendaylight.org:29418/transportpce.git</connection>
     <developerConnection>scm:git:ssh://git.opendaylight.org:29418/transportpce.git</developerConnection>
     <tag>HEAD</tag>
-    <url>https://wiki.opendaylight.org/view/transportpce:Main</url>
+    <url>https://wiki.opendaylight.org/display/ODL/TransportPCE</url>
   </scm>
 
   <modules>
-    <module>artifacts</module>
     <module>ordmodels</module>
+    <module>tapimodels</module>
     <module>api</module>
     <module>common</module>
+    <module>test-common</module>
     <module>renderer</module>
     <module>networkmodel</module>
+    <module>inventory</module>
     <module>olm</module>
-    <!--module>tests</module-->
     <module>pce</module>
     <module>servicehandler</module>
+    <module>tapi</module>
+    <module>nbinotifications</module>
+    <module>dmaap-client</module>
     <module>features</module>
     <module>karaf</module>
-    <module>test-common</module>
   </modules>
 
-  <!-- DO NOT install or deploy the repo root pom as it's only needed to initiate a build -->
-  <!--
-      Jenkins-releng tests reports more than 600 lines of javadoc warnings on ordmodels
-      and api folders generated-sources for unclear reasons.
-      This behavior was impossible to reproduce locally.
-      The javadoc plugin build section below removes most of those useless warnings.
-      ordmodels/pom.xml and api/pom.xml have been modified similarly with a build and
-      a reporting sections to remove the rest of the warnings.
-      Note that javadoc plugins maven implementation still suffers from several bugs.
-      Tests shows that many configurations options are not correctly supported.
-      (proxy, sourceFilesExclude, etc...).
-  -->
   <build>
     <plugins>
       <plugin>
@@ -82,4 +74,7 @@ and is available at http://www.eclipse.org/legal/epl-v10.html INTERNAL
       </plugin>
     </plugins>
   </build>
+
 </project>
+
+

@@ -8,66 +8,72 @@
 
 package org.opendaylight.transportpce.renderer.utils;
 
-import java.util.ArrayList;
-import java.util.List;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev161014.ServiceFormat;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev161014.service.port.PortBuilder;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev171017.path.description.AToZDirection;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev171017.path.description.AToZDirectionBuilder;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev171017.path.description.ZToADirection;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev171017.path.description.ZToADirectionBuilder;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev171017.path.description.atoz.direction.AToZ;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev171017.path.description.atoz.direction.AToZBuilder;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev171017.path.description.atoz.direction.AToZKey;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev171017.path.description.ztoa.direction.ZToA;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev171017.path.description.ztoa.direction.ZToABuilder;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev171017.path.description.ztoa.direction.ZToAKey;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev171017.pce.resource.ResourceBuilder;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev171017.pce.resource.resource.resource.TerminationPoint;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev171017.pce.resource.resource.resource.TerminationPointBuilder;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev171016.service.endpoint.sp.RxDirectionBuilder;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev171016.service.endpoint.sp.TxDirectionBuilder;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev171016.service.path.PathDescription;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev171016.service.path.PathDescriptionBuilder;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev171016.service.path.ServiceAEndBuilder;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev171016.service.path.ServiceZEndBuilder;
+import java.util.HashMap;
+import java.util.Map;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.optical.channel.types.rev211210.FrequencyTHz;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.service.port.PortBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.state.types.rev191129.State;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.format.rev191129.ServiceFormat;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.path.description.AToZDirection;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.path.description.AToZDirectionBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.path.description.ZToADirection;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.path.description.ZToADirectionBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.path.description.atoz.direction.AToZ;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.path.description.atoz.direction.AToZBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.path.description.atoz.direction.AToZKey;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.path.description.ztoa.direction.ZToA;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.path.description.ztoa.direction.ZToABuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.path.description.ztoa.direction.ZToAKey;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.pce.resource.ResourceBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.pce.resource.resource.resource.TerminationPoint;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.pce.resource.resource.resource.TerminationPointBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.service.endpoint.sp.RxDirectionBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.service.endpoint.sp.TxDirectionBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.service.path.PathDescription;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.service.path.PathDescriptionBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.service.path.ServiceAEndBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.service.path.ServiceZEndBuilder;
+import org.opendaylight.yangtools.yang.common.Uint32;
 
 public final class ServiceDeleteDataUtils {
 
     private ServiceDeleteDataUtils() {
-
     }
 
     public static PathDescription createTransactionPathDescription(String tpId) {
-        List<AToZ> atoZList = new ArrayList<AToZ>();
+        Map<AToZKey,AToZ> atoZMap = new HashMap<>();
         TerminationPointBuilder terminationPointBuilder = new TerminationPointBuilder();
         TerminationPoint terminationPoint = terminationPointBuilder.setTpNodeId("node2" + tpId)
                         .setTpId(tpId).build();
         TerminationPoint terminationPoint2 = terminationPointBuilder.setTpNodeId("node1" + tpId)
                         .setTpId(tpId).build();
         AToZ atoZ = new AToZBuilder().setId("1").withKey(new AToZKey("1")).setResource(new ResourceBuilder()
-                .setResource(terminationPoint).build()).build();
+                .setResource(terminationPoint).setState(State.InService).build()).build();
         AToZ atoZ2 = new AToZBuilder().setId("2").withKey(new AToZKey("2")).setResource(new ResourceBuilder()
-                .setResource(terminationPoint2).build()).build();
-        atoZList.add(atoZ);
-        atoZList.add(atoZ2);
+                .setResource(terminationPoint2).setState(State.InService).build()).build();
+        atoZMap.put(atoZ.key(),atoZ);
+        atoZMap.put(atoZ2.key(),atoZ2);
         AToZDirection atozDirection = new AToZDirectionBuilder()
-                .setRate(20L)
-                .setAToZWavelengthNumber(20L)
-                .setAToZ(atoZList)
+                .setRate(Uint32.valueOf(20))
+                .setAToZWavelengthNumber(Uint32.valueOf(20))
+                .setAToZMinFrequency(FrequencyTHz.getDefaultInstance("196.125"))
+                .setAToZMaxFrequency(FrequencyTHz.getDefaultInstance("196.075"))
+                .setAToZ(atoZMap)
                 .setModulationFormat("OC")
                 .build();
-        List<ZToA> ztoAList = new ArrayList<ZToA>();
+        Map<ZToAKey,ZToA> ztoAMap = new HashMap<>();
         ZToA ztoA = new ZToABuilder().setId("1").withKey(new ZToAKey("1")).setResource(new ResourceBuilder()
-                .setResource(terminationPoint).build()).build();
+                .setResource(terminationPoint).setState(State.InService).build()).build();
         ZToA ztoA2 = new ZToABuilder().setId("2").withKey(new ZToAKey("2")).setResource(new ResourceBuilder()
-                .setResource(terminationPoint).build()).build();
-        ztoAList.add(ztoA);
-        ztoAList.add(ztoA2);
+                .setResource(terminationPoint).setState(State.InService).build()).build();
+        ztoAMap.put(ztoA.key(),ztoA);
+        ztoAMap.put(ztoA2.key(),ztoA2);
         ZToADirection ztoaDirection = new ZToADirectionBuilder()
-                .setRate(20L)
-                .setZToAWavelengthNumber(20L)
-                .setZToA(ztoAList)
+                .setRate(Uint32.valueOf(20))
+                .setZToAWavelengthNumber(Uint32.valueOf(20))
+                .setZToAMinFrequency(FrequencyTHz.getDefaultInstance("196.125"))
+                .setZToAMaxFrequency(FrequencyTHz.getDefaultInstance("196.075"))
+                .setZToA(ztoAMap)
                 .setModulationFormat("OC")
                 .build();
         PathDescriptionBuilder pathDescriptionBuilder = new PathDescriptionBuilder();
@@ -78,7 +84,8 @@ public final class ServiceDeleteDataUtils {
 
     public static ServiceAEndBuilder getServiceAEndBuild() {
         return new ServiceAEndBuilder()
-            .setClli("clli").setServiceFormat(ServiceFormat.OC).setServiceRate((long) 1).setNodeId("XPONDER-1-2")
+            .setClli("clli").setServiceFormat(ServiceFormat.OC)
+            .setServiceRate(Uint32.valueOf(1)).setNodeId("XPONDER-1-2")
             .setTxDirection(
                 new TxDirectionBuilder()
                     .setPort(new PortBuilder().setPortDeviceName("device name").setPortName("port name")
@@ -95,7 +102,8 @@ public final class ServiceDeleteDataUtils {
 
     public static ServiceZEndBuilder getServiceZEndBuild() {
         return new ServiceZEndBuilder()
-            .setClli("clli").setServiceFormat(ServiceFormat.OC).setServiceRate((long) 1).setNodeId("XPONDER-2-3")
+            .setClli("clli").setServiceFormat(ServiceFormat.OC)
+            .setServiceRate(Uint32.valueOf(1)).setNodeId("XPONDER-2-3")
             .setTxDirection(
                 new TxDirectionBuilder()
                     .setPort(new PortBuilder().setPortDeviceName("device name").setPortName("port name")

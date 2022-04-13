@@ -8,20 +8,25 @@
 
 package org.opendaylight.transportpce.servicehandler.impl;
 
-import org.opendaylight.controller.md.sal.binding.api.DataBroker;
-import org.opendaylight.controller.md.sal.binding.api.NotificationPublishService;
-import org.opendaylight.controller.md.sal.binding.api.NotificationService;
-import org.opendaylight.controller.sal.binding.api.BindingAwareBroker.RpcRegistration;
-import org.opendaylight.controller.sal.binding.api.RpcProviderRegistry;
-import org.opendaylight.transportpce.pce.service.PathComputationService;
-import org.opendaylight.transportpce.renderer.NetworkModelWavelengthService;
-import org.opendaylight.transportpce.renderer.provisiondevice.RendererServiceOperations;
+import org.opendaylight.mdsal.binding.api.DataBroker;
+import org.opendaylight.mdsal.binding.api.DataTreeIdentifier;
+import org.opendaylight.mdsal.binding.api.NotificationService;
+import org.opendaylight.mdsal.binding.api.RpcProviderService;
+import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
+import org.opendaylight.transportpce.servicehandler.listeners.NetworkModelListenerImpl;
 import org.opendaylight.transportpce.servicehandler.listeners.PceListenerImpl;
 import org.opendaylight.transportpce.servicehandler.listeners.RendererListenerImpl;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev190624.TransportpcePceListener;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.renderer.rev171017.TransportpceRendererListener;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev161014.OrgOpenroadmServiceService;
+import org.opendaylight.transportpce.servicehandler.listeners.ServiceListener;
+import org.opendaylight.transportpce.servicehandler.service.ServiceDataStoreOperations;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkmodel.rev201116.TransportpceNetworkmodelListener;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.TransportpcePceListener;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.renderer.rev210915.TransportpceRendererListener;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.OrgOpenroadmServiceService;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.ServiceList;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.service.list.Services;
 import org.opendaylight.yangtools.concepts.ListenerRegistration;
+import org.opendaylight.yangtools.concepts.ObjectRegistration;
+import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,30 +39,38 @@ import org.slf4j.LoggerFactory;
 public class ServicehandlerProvider {
 
     private static final Logger LOG = LoggerFactory.getLogger(ServicehandlerProvider.class);
+    private static final InstanceIdentifier<Services> SERVICE = InstanceIdentifier.builder(ServiceList.class)
+            .child(Services.class).build();
 
     private final DataBroker dataBroker;
-    private final RpcProviderRegistry rpcRegistry;
+    private final RpcProviderService rpcService;
     private final NotificationService notificationService;
-    private final NetworkModelWavelengthService networkModelWavelengthService;
-    private final NotificationPublishService notificationPublishService;
     private ListenerRegistration<TransportpcePceListener> pcelistenerRegistration;
+    private ListenerRegistration<ServiceListener> serviceDataTreeChangeListenerRegistration;
     private ListenerRegistration<TransportpceRendererListener> rendererlistenerRegistration;
-    private RpcRegistration<OrgOpenroadmServiceService> rpcRegistration;
-    private PathComputationService pathComputationService;
-    private RendererServiceOperations rendererServiceOperations;
+    private ListenerRegistration<TransportpceNetworkmodelListener> networkmodellistenerRegistration;
+    private ObjectRegistration<OrgOpenroadmServiceService> rpcRegistration;
+    private ServiceDataStoreOperations serviceDataStoreOperations;
+    private PceListenerImpl pceListenerImpl;
+    private ServiceListener serviceListener;
+    private RendererListenerImpl rendererListenerImpl;
+    private NetworkModelListenerImpl networkModelListenerImpl;
+    private ServicehandlerImpl servicehandler;
 
-    public ServicehandlerProvider(final DataBroker dataBroker, RpcProviderRegistry rpcProviderRegistry,
-            NotificationService notificationService, PathComputationService pathComputationService,
-            RendererServiceOperations rendererServiceOperations,
-            NetworkModelWavelengthService networkModelWavelengthService,
-            NotificationPublishService notificationPublishService) {
+    public ServicehandlerProvider(final DataBroker dataBroker, RpcProviderService rpcProviderService,
+            NotificationService notificationService, ServiceDataStoreOperations serviceDataStoreOperations,
+            PceListenerImpl pceListenerImpl, ServiceListener serviceListener, RendererListenerImpl rendererListenerImpl,
+            NetworkModelListenerImpl networkModelListenerImpl, ServicehandlerImpl servicehandler) {
         this.dataBroker = dataBroker;
-        this.rpcRegistry = rpcProviderRegistry;
+        this.rpcService = rpcProviderService;
         this.notificationService = notificationService;
-        this.pathComputationService = pathComputationService;
-        this.rendererServiceOperations = rendererServiceOperations;
-        this.networkModelWavelengthService = networkModelWavelengthService;
-        this.notificationPublishService = notificationPublishService;
+        this.serviceDataStoreOperations = serviceDataStoreOperations;
+        this.serviceDataStoreOperations.initialize();
+        this.pceListenerImpl = pceListenerImpl;
+        this.serviceListener = serviceListener;
+        this.rendererListenerImpl = rendererListenerImpl;
+        this.networkModelListenerImpl = networkModelListenerImpl;
+        this.servicehandler = servicehandler;
     }
 
     /**
@@ -65,16 +78,12 @@ public class ServicehandlerProvider {
      */
     public void init() {
         LOG.info("ServicehandlerProvider Session Initiated");
-        final PceListenerImpl pceListenerImpl = new PceListenerImpl(rendererServiceOperations,
-                pathComputationService, notificationPublishService, null);
-        final RendererListenerImpl rendererListenerImpl =
-                new RendererListenerImpl(pathComputationService, notificationPublishService);
         pcelistenerRegistration = notificationService.registerNotificationListener(pceListenerImpl);
+        serviceDataTreeChangeListenerRegistration = dataBroker.registerDataTreeChangeListener(
+                DataTreeIdentifier.create(LogicalDatastoreType.OPERATIONAL, SERVICE), serviceListener);
         rendererlistenerRegistration = notificationService.registerNotificationListener(rendererListenerImpl);
-        final ServicehandlerImpl servicehandler = new ServicehandlerImpl(dataBroker, pathComputationService,
-                rendererServiceOperations, notificationPublishService, pceListenerImpl, rendererListenerImpl,
-                networkModelWavelengthService);
-        rpcRegistration = rpcRegistry.addRpcImplementation(OrgOpenroadmServiceService.class, servicehandler);
+        networkmodellistenerRegistration = notificationService.registerNotificationListener(networkModelListenerImpl);
+        rpcRegistration = rpcService.registerRpcImplementation(OrgOpenroadmServiceService.class, servicehandler);
     }
 
     /**
@@ -83,7 +92,9 @@ public class ServicehandlerProvider {
     public void close() {
         LOG.info("ServicehandlerProvider Closed");
         pcelistenerRegistration.close();
+        serviceDataTreeChangeListenerRegistration.close();
         rendererlistenerRegistration.close();
+        networkmodellistenerRegistration.close();
         rpcRegistration.close();
     }
 

@@ -23,9 +23,10 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
-import org.opendaylight.controller.md.sal.binding.api.DataBroker;
-import org.opendaylight.controller.md.sal.binding.api.ReadOnlyTransaction;
-import org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType;
+import org.eclipse.jdt.annotation.Nullable;
+import org.opendaylight.mdsal.binding.api.DataBroker;
+import org.opendaylight.mdsal.binding.api.ReadTransaction;
+import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
 import org.opendaylight.transportpce.common.InstanceIdentifiers;
 import org.opendaylight.transportpce.common.NetworkUtils;
 import org.opendaylight.transportpce.common.ResponseCodes;
@@ -40,41 +41,42 @@ import org.opendaylight.transportpce.olm.power.PowerMgmt;
 import org.opendaylight.transportpce.olm.util.OlmUtils;
 import org.opendaylight.transportpce.olm.util.OtsPmHolder;
 import org.opendaylight.transportpce.olm.util.RoadmLinks;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev170418.CalculateSpanlossBaseInput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev170418.CalculateSpanlossBaseOutput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev170418.CalculateSpanlossBaseOutputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev170418.CalculateSpanlossCurrentInput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev170418.CalculateSpanlossCurrentOutput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev170418.CalculateSpanlossCurrentOutputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev170418.GetPmInput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev170418.GetPmInputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev170418.GetPmOutput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev170418.GetPmOutputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev170418.ServicePowerResetInput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev170418.ServicePowerResetOutput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev170418.ServicePowerSetupInput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev170418.ServicePowerSetupOutput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev170418.ServicePowerSetupOutputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev170418.ServicePowerTurndownInput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev170418.ServicePowerTurndownOutput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev170418.ServicePowerTurndownOutputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev170418.calculate.spanloss.base.output.Spans;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev170418.calculate.spanloss.base.output.SpansBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev170418.get.pm.output.Measurements;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev170228.network.nodes.Mapping;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev210618.CalculateSpanlossBaseInput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev210618.CalculateSpanlossBaseOutput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev210618.CalculateSpanlossBaseOutputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev210618.CalculateSpanlossCurrentInput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev210618.CalculateSpanlossCurrentOutput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev210618.CalculateSpanlossCurrentOutputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev210618.GetPmInput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev210618.GetPmInputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev210618.GetPmOutput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev210618.GetPmOutputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev210618.ServicePowerResetInput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev210618.ServicePowerResetOutput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev210618.ServicePowerSetupInput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev210618.ServicePowerSetupOutput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev210618.ServicePowerSetupOutputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev210618.ServicePowerTurndownInput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev210618.ServicePowerTurndownOutput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev210618.ServicePowerTurndownOutputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev210618.calculate.spanloss.base.output.Spans;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev210618.calculate.spanloss.base.output.SpansBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev210618.get.pm.output.Measurements;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.OpenroadmNodeVersion;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.mapping.Mapping;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev211210.Link1;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.types.rev161014.RatioDB;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev170206.interfaces.grp.Interface;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev170206.interfaces.grp.InterfaceBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev181130.Link1;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev181130.OpenroadmLinkType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev211210.OpenroadmLinkType;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.optical.transport.interfaces.rev161014.Interface1;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.optical.transport.interfaces.rev161014.Interface1Builder;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.optical.transport.interfaces.rev161014.ots.container.Ots;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.optical.transport.interfaces.rev161014.ots.container.OtsBuilder;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.pm.types.rev161014.PmGranularity;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.resource.types.rev161014.ResourceTypeEnum;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.common.types.rev170907.PmNamesEnum;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.common.types.rev170907.olm.get.pm.input.ResourceIdentifierBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.common.types.rev210930.PmNamesEnum;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.common.types.rev210930.olm.get.pm.input.ResourceIdentifierBuilder;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.NetworkId;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.Networks;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.NodeId;
@@ -123,20 +125,24 @@ public class OlmPowerServiceImpl implements OlmPowerService {
 
     @Override
     public GetPmOutput getPm(GetPmInput pmInput) {
-        org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping
-            .rev170228.network.Nodes.OpenroadmVersion openroadmVersion;
-        if (mappingUtils.getOpenRoadmVersion(pmInput.getNodeId())
-            .equals(StringConstants.OPENROADM_DEVICE_VERSION_1_2_1)) {
-            LOG.info("Device version is 1.2.1");
-            openroadmVersion = org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping
-                .rev170228.network.Nodes.OpenroadmVersion._121;
-        } else {
-            openroadmVersion = org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping
-                .rev170228.network.Nodes.OpenroadmVersion._221;
-            LOG.info("Device version is 2.2.1");
+        OpenroadmNodeVersion openroadmVersion;
+        GetPmOutputBuilder pmOutputBuilder = new GetPmOutputBuilder();
+        switch (mappingUtils.getOpenRoadmVersion(pmInput.getNodeId())) {
+            case StringConstants.OPENROADM_DEVICE_VERSION_1_2_1:
+                openroadmVersion = OpenroadmNodeVersion._121;
+                break;
+            case StringConstants.OPENROADM_DEVICE_VERSION_2_2_1:
+                openroadmVersion = OpenroadmNodeVersion._221;
+                break;
+            case StringConstants.OPENROADM_DEVICE_VERSION_7_1:
+                openroadmVersion = OpenroadmNodeVersion._71;
+                break;
+            default:
+                LOG.error("Unknown device version");
+                return pmOutputBuilder.build();
         }
         LOG.info("Now calling get pm data");
-        GetPmOutputBuilder pmOutputBuilder = OlmUtils.pmFetch(pmInput, deviceTransactionManager,
+        pmOutputBuilder = OlmUtils.pmFetch(pmInput, deviceTransactionManager,
             openroadmVersion);
         return pmOutputBuilder.build();
     }
@@ -181,9 +187,9 @@ public class OlmPowerServiceImpl implements OlmPowerService {
                 if (inputLink != null) {
                     RoadmLinks roadmLink = new RoadmLinks();
                     roadmLink.setSrcNodeId(inputLink.getSource().getSourceNode().getValue());
-                    roadmLink.setSrcTpId(inputLink.getSource().getSourceTp().toString());
+                    roadmLink.setSrcTpId(inputLink.getSource().getSourceTp().getValue());
                     roadmLink.setDestNodeId(inputLink.getDestination().getDestNode().getValue());
-                    roadmLink.setDestTpid(inputLink.getDestination().getDestTp().toString());
+                    roadmLink.setDestTpid(inputLink.getDestination().getDestTp().getValue());
                     roadmLink.setLinkId(inputLink.getLinkId());
                     roadmLinks.add(roadmLink);
                     spanLossResult = getLinkSpanloss(roadmLinks);
@@ -208,9 +214,9 @@ public class OlmPowerServiceImpl implements OlmPowerService {
                         // Only calculate spanloss for Roadm-to-Roadm links
                         RoadmLinks roadmLink = new RoadmLinks();
                         roadmLink.setSrcNodeId(link.getSource().getSourceNode().getValue());
-                        roadmLink.setSrcTpId(link.getSource().getSourceTp().toString());
+                        roadmLink.setSrcTpId(link.getSource().getSourceTp().getValue());
                         roadmLink.setDestNodeId(link.getDestination().getDestNode().getValue());
-                        roadmLink.setDestTpid(link.getDestination().getDestTp().toString());
+                        roadmLink.setDestTpid(link.getDestination().getDestTp().getValue());
                         roadmLink.setLinkId(link.getLinkId());
                         roadmLinks.add(roadmLink);
                     }
@@ -265,9 +271,9 @@ public class OlmPowerServiceImpl implements OlmPowerService {
                 // Only calculate spanloss for Roadm-to-Roadm links
                 RoadmLinks roadmLink = new RoadmLinks();
                 roadmLink.setSrcNodeId(link.getSource().getSourceNode().getValue());
-                roadmLink.setSrcTpId(link.getSource().getSourceTp().toString());
+                roadmLink.setSrcTpId(link.getSource().getSourceTp().getValue());
                 roadmLink.setDestNodeId(link.getDestination().getDestNode().getValue());
-                roadmLink.setDestTpid(link.getDestination().getDestTp().toString());
+                roadmLink.setDestTpid(link.getDestination().getDestTp().getValue());
                 roadmLinks.add(roadmLink);
             }
         }
@@ -303,10 +309,10 @@ public class OlmPowerServiceImpl implements OlmPowerService {
                 .augmentation(Network1.class)
                 .build();
         Optional<Network1> networkOptional;
-        try (ReadOnlyTransaction rtx = this.dataBroker.newReadOnlyTransaction()) {
+        try (ReadTransaction rtx = this.dataBroker.newReadOnlyTransaction()) {
             //TODO change to constant from Timeouts class when it will be merged.
             networkOptional = rtx.read(LogicalDatastoreType.CONFIGURATION, networkIID).get(Timeouts.DATASTORE_READ,
-                TimeUnit.MILLISECONDS).toJavaUtil();
+                TimeUnit.MILLISECONDS);
 
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             LOG.warn("Read of {} topology failed", NetworkUtils.OVERLAY_NETWORK_ID);
@@ -320,12 +326,12 @@ public class OlmPowerServiceImpl implements OlmPowerService {
             return Collections.emptyList();
         }
 
-        List<Link> networkLinks = networkOptional.get().getLink();
+        @Nullable Map<LinkKey, Link> networkLinks = networkOptional.get().getLink();
         if ((networkLinks == null) || networkLinks.isEmpty()) {
             LOG.warn("Links are not present in {} topology.", NetworkUtils.OVERLAY_NETWORK_ID);
             return Collections.emptyList();
         }
-        return networkLinks;
+        return new ArrayList<>(networkLinks.values());
     }
 
     /**
@@ -356,13 +362,13 @@ public class OlmPowerServiceImpl implements OlmPowerService {
             .build();
         GetPmOutput otsPmOutput = getPm(getPmInput);
 
-        if (otsPmOutput == null) {
+        if (otsPmOutput == null || otsPmOutput.getMeasurements() == null) {
             LOG.info("OTS PM not found for NodeId: {} TP Id:{} PMName:{}", realNodeId, tpID, pmName);
             return null;
         }
         try {
             for (Measurements measurement : otsPmOutput.getMeasurements()) {
-                if (pmName.equals(measurement.getPmparameterName())) {
+                if (pmName.equalsIgnoreCase(measurement.getPmparameterName())) {
                     return new OtsPmHolder(pmName, Double.parseDouble(measurement.getPmparameterValue()),
                         mapping.getSupportingOts());
                 }
@@ -420,7 +426,7 @@ public class OlmPowerServiceImpl implements OlmPowerService {
                     } else {
                         otsBuilder.setSpanLossTransmit(spanLossTx).setSpanLossReceive(new RatioDB(spanLoss));
                     }
-                    interfaceBuilder.addAugmentation(Interface1.class, intf1Builder.setOts(otsBuilder.build()).build());
+                    interfaceBuilder.addAugmentation(intf1Builder.setOts(otsBuilder.build()).build());
                     openRoadmInterfaces.postInterface(realNodeId,interfaceBuilder);
                     LOG.info("Spanloss Value update completed successfully");
                     return true;
@@ -479,9 +485,7 @@ public class OlmPowerServiceImpl implements OlmPowerService {
                             new org.opendaylight.yang.gen.v1.http.org.openroadm.common.types.rev181019.RatioDB(spanLoss)
                         );
                     }
-                    interfaceBuilder.addAugmentation(org.opendaylight.yang.gen.v1.http
-                        .org.openroadm.optical.transport.interfaces.rev181019.Interface1.class,
-                        intf1Builder.setOts(otsBuilder.build()).build());
+                    interfaceBuilder.addAugmentation(intf1Builder.setOts(otsBuilder.build()).build());
                     openRoadmInterfaces.postInterface(realNodeId,interfaceBuilder);
                     LOG.info("Spanloss Value update completed successfully");
                     return true;
@@ -492,7 +496,7 @@ public class OlmPowerServiceImpl implements OlmPowerService {
             }
         } catch (OpenRoadmInterfaceException e) {
             // TODO Auto-generated catch block
-            LOG.error("OpenRoadmInterfaceException occured {}",e);
+            LOG.error("OpenRoadmInterfaceException occured: ",e);
         } /**catch (InterruptedException e) {
          // TODO Auto-generated catch block
          } catch (ExecutionException e) {
@@ -515,28 +519,45 @@ public class OlmPowerServiceImpl implements OlmPowerService {
      * @return map with list of spans with their spanloss value
      */
     private Map<LinkId, BigDecimal> getLinkSpanloss(List<RoadmLinks> roadmLinks) {
-        Map<LinkId, BigDecimal> map = new HashMap<LinkId, BigDecimal>();
+        Map<LinkId, BigDecimal> map = new HashMap<>();
         LOG.info("Executing GetLinkSpanLoss");
-        BigDecimal spanLoss = new BigDecimal(0);
+        BigDecimal spanLoss;
         for (RoadmLinks link : roadmLinks) {
-            String sourceNodeId = link.getSrcNodeId().toString();
+            String sourceNodeId = link.getSrcNodeId();
             String sourceTpId = link.getSrcTpId();
-            String destNodeId = link.getDestNodeId().toString();
+            String destNodeId = link.getDestNodeId();
             String destTpId = link.getDestTpid();
-            OtsPmHolder srcOtsPmHoler = getPmMeasurements(sourceNodeId, sourceTpId, "OpticalPowerOutput");
-            OtsPmHolder destOtsPmHoler = getPmMeasurements(destNodeId, destTpId, "OpticalPowerInput");
-            spanLoss = new BigDecimal(srcOtsPmHoler.getOtsParameterVal() - destOtsPmHoler.getOtsParameterVal())
-                .setScale(0, RoundingMode.HALF_UP);
+            OtsPmHolder srcOtsPmHolder = getPmMeasurements(sourceNodeId, sourceTpId, "OpticalPowerOutput");
+            if (srcOtsPmHolder == null) {
+                srcOtsPmHolder = getPmMeasurements(sourceNodeId, sourceTpId, "OpticalPowerOutputOSC");
+                if (srcOtsPmHolder == null) {
+                    LOG.warn("OTS configuration issue at {} - {}", sourceNodeId, sourceTpId);
+                    continue;
+                }
+            }
+            OtsPmHolder destOtsPmHolder = getPmMeasurements(destNodeId, destTpId, "OpticalPowerInput");
+            if (destOtsPmHolder == null) {
+                destOtsPmHolder = getPmMeasurements(destNodeId, destTpId, "OpticalPowerInputOSC");
+                if (destOtsPmHolder == null) {
+                    LOG.warn("OTS configuration issue at {} - {}", destNodeId, destTpId);
+                    continue;
+                }
+            }
+            spanLoss = BigDecimal.valueOf(srcOtsPmHolder.getOtsParameterVal() - destOtsPmHolder.getOtsParameterVal())
+                .setScale(1, RoundingMode.HALF_UP);
             LOG.info("Spanloss Calculated as :{}={}-{}",
-                spanLoss, srcOtsPmHoler.getOtsParameterVal(), destOtsPmHoler.getOtsParameterVal());
+                spanLoss, srcOtsPmHolder.getOtsParameterVal(), destOtsPmHolder.getOtsParameterVal());
             if (spanLoss.doubleValue() > 28) {
                 LOG.warn("Span Loss is out of range of OpenROADM specifications");
             }
-            if (!setSpanLoss(sourceNodeId, srcOtsPmHoler.getOtsInterfaceName(), spanLoss, "TX")) {
+            if (spanLoss.intValue() <= 0) {
+                spanLoss = BigDecimal.valueOf(0);
+            }
+            if (!setSpanLoss(sourceNodeId, srcOtsPmHolder.getOtsInterfaceName(), spanLoss, "TX")) {
                 LOG.info("Setting spanLoss failed for {}", sourceNodeId);
                 return null;
             }
-            if (!setSpanLoss(destNodeId, destOtsPmHoler.getOtsInterfaceName(), spanLoss, "RX")) {
+            if (!setSpanLoss(destNodeId, destOtsPmHolder.getOtsInterfaceName(), spanLoss, "RX")) {
                 LOG.info("Setting spanLoss failed for {}", destNodeId);
                 return null;
             }
@@ -548,11 +569,11 @@ public class OlmPowerServiceImpl implements OlmPowerService {
     private String getRealNodeId(String mappedNodeId) {
         KeyedInstanceIdentifier<Node, NodeKey> mappedNodeII =
             InstanceIdentifiers.OVERLAY_NETWORK_II.child(Node.class, new NodeKey(new NodeId(mappedNodeId)));
-        com.google.common.base.Optional<Node> realNode;
-        try (ReadOnlyTransaction readOnlyTransaction = this.dataBroker.newReadOnlyTransaction()) {
+        Optional<Node> realNode;
+        try (ReadTransaction readOnlyTransaction = this.dataBroker.newReadOnlyTransaction()) {
             realNode = readOnlyTransaction.read(LogicalDatastoreType.CONFIGURATION, mappedNodeII).get();
         } catch (InterruptedException | ExecutionException e) {
-            LOG.error(e.getMessage(), e);
+            LOG.error("Error on getRealNodeId {} :", mappedNodeId, e);
             throw new IllegalStateException(e);
         }
         if (!realNode.isPresent() || (realNode.get().getSupportingNode() == null)) {
@@ -560,7 +581,7 @@ public class OlmPowerServiceImpl implements OlmPowerService {
             throw new IllegalArgumentException(
                 String.format("Could not find node %s, or supporting node is not present", mappedNodeId));
         }
-        List<SupportingNode> collect = realNode.get().getSupportingNode().stream()
+        List<SupportingNode> collect = realNode.get().nonnullSupportingNode().values().stream()
             .filter(node -> (node.getNetworkRef() != null)
                 && NetworkUtils.UNDERLAY_NETWORK_ID.equals(node.getNetworkRef().getValue())
                 && (node.getNodeRef() != null) && !Strings.isNullOrEmpty(node.getNodeRef().getValue()))
@@ -581,10 +602,10 @@ public class OlmPowerServiceImpl implements OlmPowerService {
             .augmentation(Network1.class).child(Link.class, new LinkKey(linkId))
             .build();
         Optional<Link> linkOptional;
-        try (ReadOnlyTransaction rtx = dataBroker.newReadOnlyTransaction()) {
+        try (ReadTransaction rtx = dataBroker.newReadOnlyTransaction()) {
             //TODO change to constant from Timeouts class when it will be merged.
             linkOptional = rtx.read(LogicalDatastoreType.CONFIGURATION, linkIID).get(Timeouts.DATASTORE_READ,
-                TimeUnit.MILLISECONDS).toJavaUtil();
+                TimeUnit.MILLISECONDS);
             return linkOptional.get();
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             LOG.warn("Read of {} topology failed", NetworkUtils.OVERLAY_NETWORK_ID);

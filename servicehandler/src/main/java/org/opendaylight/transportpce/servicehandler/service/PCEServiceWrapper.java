@@ -12,43 +12,44 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
-
 import java.util.concurrent.Executors;
-
-import org.opendaylight.controller.md.sal.binding.api.NotificationPublishService;
+import org.opendaylight.mdsal.binding.api.NotificationPublishService;
 import org.opendaylight.transportpce.common.ResponseCodes;
 import org.opendaylight.transportpce.pce.service.PathComputationService;
-import org.opendaylight.transportpce.servicehandler.MappingConstraints;
 import org.opendaylight.transportpce.servicehandler.ModelMappingUtils;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev190624.CancelResourceReserveInput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev190624.CancelResourceReserveInputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev190624.CancelResourceReserveOutput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev190624.CancelResourceReserveOutputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev190624.PathComputationRequestInput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev190624.PathComputationRequestInputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev190624.PathComputationRequestOutput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev190624.PathComputationRequestOutputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.servicehandler.rev170930.ServiceRpcResultSh;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.servicehandler.rev170930.ServiceRpcResultShBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev161014.ServiceEndpoint;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev161014.ServiceNotificationTypes;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev161014.configuration.response.common.ConfigurationResponseCommon;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev161014.configuration.response.common.ConfigurationResponseCommonBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev161014.sdnc.request.header.SdncRequestHeader;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev161014.ServiceCreateInput;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev161014.ServiceFeasibilityCheckInput;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev161014.TempServiceCreateInput;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.routing.constraints.rev171017.RoutingConstraintsSp.PceMetric;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.routing.constraints.rev171017.routing.constraints.sp.HardConstraints;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.routing.constraints.rev171017.routing.constraints.sp.SoftConstraints;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev170426.RpcStatusEx;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev171016.response.parameters.sp.ResponseParameters;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev171016.response.parameters.sp.ResponseParametersBuilder;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev171016.service.handler.header.ServiceHandlerHeaderBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.CancelResourceReserveInput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.CancelResourceReserveInputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.CancelResourceReserveOutput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.CancelResourceReserveOutputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.PathComputationRequestInput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.PathComputationRequestInputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.PathComputationRequestOutput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.PathComputationRequestOutputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.servicehandler.rev201125.ServiceRpcResultSh;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.servicehandler.rev201125.ServiceRpcResultShBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.ServiceEndpoint;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.ServiceNotificationTypes;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.configuration.response.common.ConfigurationResponseCommon;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.configuration.response.common.ConfigurationResponseCommonBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.sdnc.request.header.SdncRequestHeader;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.routing.constraints.HardConstraints;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.routing.constraints.SoftConstraints;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.ServiceCreateInput;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.ServiceFeasibilityCheckInput;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.TempServiceCreateInput;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.PceMetric;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.RpcStatusEx;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.response.parameters.sp.ResponseParameters;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.response.parameters.sp.ResponseParametersBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.service.handler.header.ServiceHandlerHeaderBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class PCEServiceWrapper {
+
+    private static final String NOTIFICATION_OFFER_REJECTED_MSG = "notification offer rejected : ";
+
+    private static final String PERFORMING_PCE_MSG = "performing PCE ...";
 
     private static final Logger LOG = LoggerFactory.getLogger(PCEServiceWrapper.class);
 
@@ -65,7 +66,7 @@ public class PCEServiceWrapper {
     }
 
     public PathComputationRequestOutput performPCE(ServiceCreateInput serviceCreateInput, boolean reserveResource) {
-        LOG.info("performing PCE ...");
+        LOG.info(PERFORMING_PCE_MSG);
         if (validateParams(serviceCreateInput.getServiceName(), serviceCreateInput.getSdncRequestHeader())) {
             return performPCE(serviceCreateInput.getHardConstraints(), serviceCreateInput.getSoftConstraints(),
                     serviceCreateInput.getServiceName(), serviceCreateInput.getSdncRequestHeader(),
@@ -78,7 +79,7 @@ public class PCEServiceWrapper {
 
     public PathComputationRequestOutput performPCE(TempServiceCreateInput tempServiceCreateInput,
             boolean reserveResource) {
-        LOG.info("performing PCE ...");
+        LOG.info(PERFORMING_PCE_MSG);
         if (validateParams(tempServiceCreateInput.getCommonId(), tempServiceCreateInput.getSdncRequestHeader())) {
             return performPCE(tempServiceCreateInput.getHardConstraints(), tempServiceCreateInput.getSoftConstraints(),
                     tempServiceCreateInput.getCommonId(), tempServiceCreateInput.getSdncRequestHeader(),
@@ -91,26 +92,22 @@ public class PCEServiceWrapper {
 
     public PathComputationRequestOutput performPCE(ServiceFeasibilityCheckInput serviceFeasibilityCheckInput,
             boolean reserveResource) {
-        LOG.info("performing PCE ...");
+        LOG.info(PERFORMING_PCE_MSG);
         if (validateParams(serviceFeasibilityCheckInput.getCommonId(),
                 serviceFeasibilityCheckInput.getSdncRequestHeader())) {
             return performPCE(serviceFeasibilityCheckInput.getHardConstraints(),
                     serviceFeasibilityCheckInput.getSoftConstraints(), serviceFeasibilityCheckInput.getCommonId(),
                     serviceFeasibilityCheckInput.getSdncRequestHeader(), serviceFeasibilityCheckInput.getServiceAEnd(),
                     serviceFeasibilityCheckInput.getServiceZEnd(),
-                    ServiceNotificationTypes.ServiceFeasibilityCheckResult, reserveResource);
+                    ServiceNotificationTypes.ServiceCreateResult, reserveResource);
         } else {
             return returnPCEFailed();
         }
     }
 
-    private PathComputationRequestOutput performPCE(org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constrains
-            .rev161014.routing.constraints.HardConstraints hardConstraints, org.opendaylight.yang.gen.v1.http.org
-            .openroadm.routing.constrains.rev161014.routing.constraints.SoftConstraints softConstraints,
+    private PathComputationRequestOutput performPCE(HardConstraints hardConstraints, SoftConstraints softConstraints,
             String serviceName, SdncRequestHeader sdncRequestHeader, ServiceEndpoint serviceAEnd,
             ServiceEndpoint serviceZEnd, ServiceNotificationTypes notifType, boolean reserveResource) {
-        MappingConstraints mappingConstraints = new MappingConstraints(hardConstraints, softConstraints);
-        mappingConstraints.serviceToServicePathConstarints();
         LOG.info("Calling path computation.");
         notification = new ServiceRpcResultShBuilder().setNotificationType(notifType).setServiceName(serviceName)
                 .setStatus(RpcStatusEx.Pending)
@@ -118,58 +115,12 @@ public class PCEServiceWrapper {
         try {
             notificationPublishService.putNotification(notification);
         } catch (InterruptedException e) {
-            LOG.info("notification offer rejected : " + e);
+            LOG.info(NOTIFICATION_OFFER_REJECTED_MSG, e);
         }
-        FutureCallback<PathComputationRequestOutput> pceCallback = new FutureCallback<PathComputationRequestOutput>() {
-            String message = "";
-            ServiceRpcResultSh notification = null;
-
-            @Override
-            public void onSuccess(PathComputationRequestOutput response) {
-                if (response != null) {
-                    /**
-                     * If PCE reply is received before timer expiration with a positive result, a
-                     * service is created with admin and operational status 'down'.
-                     */
-                    message = "PCE replied to PCR Request !";
-                    LOG.info("PCE replied to PCR Request : {}", response);
-                    notification = new ServiceRpcResultShBuilder().setNotificationType(notifType)
-                            .setServiceName(serviceName)
-                            .setStatus(RpcStatusEx.Successful).setStatusMessage(message).build();
-                    try {
-                        notificationPublishService.putNotification(notification);
-                    } catch (InterruptedException e) {
-                        LOG.info("notification offer rejected : " + e);
-                    }
-                } else {
-                    message = "PCE failed ";
-                    notification = new ServiceRpcResultShBuilder().setNotificationType(notifType).setServiceName("")
-                            .setStatus(RpcStatusEx.Failed).setStatusMessage(message).build();
-                    try {
-                        notificationPublishService.putNotification(notification);
-                    } catch (InterruptedException e) {
-                        LOG.info("notification offer rejected : " + e);
-                    }
-                }
-            }
-
-            @Override
-            public void onFailure(Throwable arg0) {
-                LOG.error("Path not calculated..");
-                notification = new ServiceRpcResultShBuilder().setNotificationType(notifType)
-                        .setServiceName(serviceName)
-                        .setStatus(RpcStatusEx.Failed).setStatusMessage("PCR Request failed  : " + arg0.getMessage())
-                        .build();
-                try {
-                    notificationPublishService.putNotification(notification);
-                } catch (InterruptedException e) {
-                    LOG.info("notification offer rejected : " + e);
-                }
-            }
-        };
+        FutureCallback<PathComputationRequestOutput> pceCallback =
+                new PathComputationRequestOutputCallback(notifType, serviceName);
         PathComputationRequestInput pathComputationRequestInput = createPceRequestInput(serviceName, sdncRequestHeader,
-                mappingConstraints.getServicePathHardConstraints(), mappingConstraints.getServicePathSoftConstraints(),
-                reserveResource, serviceAEnd, serviceZEnd);
+                hardConstraints, softConstraints, reserveResource, serviceAEnd, serviceZEnd);
         ListenableFuture<PathComputationRequestOutput> pce = this.pathComputationService
                 .pathComputationRequest(pathComputationRequestInput);
         Futures.addCallback(pce, pceCallback, executor);
@@ -203,7 +154,7 @@ public class PCEServiceWrapper {
             .setServiceHandlerHeader(serviceHandlerHeader.build())
             .setHardConstraints(hardConstraints)
             .setSoftConstraints(softConstraints)
-            .setPceMetric(PceMetric.TEMetric)
+            .setPceRoutingMetric(PceMetric.TEMetric)
             .setServiceAEnd(ModelMappingUtils.createServiceAEnd(serviceAEnd))
             .setServiceZEnd(ModelMappingUtils.createServiceZEnd(serviceZEnd))
             .build();
@@ -235,55 +186,10 @@ public class PCEServiceWrapper {
         try {
             notificationPublishService.putNotification(notification);
         } catch (InterruptedException e) {
-            LOG.info("notification offer rejected : " + e);
+            LOG.info(NOTIFICATION_OFFER_REJECTED_MSG, e);
         }
-        FutureCallback<CancelResourceReserveOutput> pceCallback = new FutureCallback<CancelResourceReserveOutput>() {
-
-            String message = "";
-            ServiceRpcResultSh notification = null;
-
-            @Override
-            public void onSuccess(CancelResourceReserveOutput response) {
-                if (response != null) {
-                    /**
-                     * If PCE reply is received before timer expiration with a positive result, a
-                     * service is created with admin and operational status 'down'.
-                     */
-                    message = "PCE replied to CRR Request !";
-                    LOG.info("PCE replied to CRR Request : {}", response);
-                    notification =
-                            new ServiceRpcResultShBuilder().setNotificationType(notifType).setServiceName(serviceName)
-                                    .setStatus(RpcStatusEx.Successful).setStatusMessage(message).build();
-                    try {
-                        notificationPublishService.putNotification(notification);
-                    } catch (InterruptedException e) {
-                        LOG.info("notification offer rejected : " + e);
-                    }
-                } else {
-                    message = "PCE failed ";
-                    notification = new ServiceRpcResultShBuilder().setNotificationType(notifType).setServiceName("")
-                            .setStatus(RpcStatusEx.Failed).setStatusMessage(message).build();
-                    try {
-                        notificationPublishService.putNotification(notification);
-                    } catch (InterruptedException e) {
-                        LOG.info("notification offer rejected : " + e);
-                    }
-                }
-            }
-
-            @Override
-            public void onFailure(Throwable arg0) {
-                LOG.error("Cancel resource failed !");
-                notification = new ServiceRpcResultShBuilder().setNotificationType(notifType)
-                        .setServiceName(serviceName).setStatus(RpcStatusEx.Failed)
-                        .setStatusMessage("CRR Request failed  : " + arg0.getMessage()).build();
-                try {
-                    notificationPublishService.putNotification(notification);
-                } catch (InterruptedException e) {
-                    LOG.info("notification offer rejected : " + e);
-                }
-            }
-        };
+        FutureCallback<CancelResourceReserveOutput> pceCallback =
+                new CancelResourceReserveOutputFutureCallback(notifType, serviceName);
         CancelResourceReserveInput cancelResourceReserveInput = mappingCancelResourceReserve(serviceName, null);
         ConfigurationResponseCommonBuilder configurationResponseCommon = new ConfigurationResponseCommonBuilder();
         if (cancelResourceReserveInput != null) {
@@ -329,5 +235,115 @@ public class PCEServiceWrapper {
 
     private static boolean checkString(String value) {
         return ((value != null) && (value.compareTo("") != 0));
+    }
+
+    private final class CancelResourceReserveOutputFutureCallback
+            implements FutureCallback<CancelResourceReserveOutput> {
+        private final ServiceNotificationTypes notifType;
+        private final String serviceName;
+        String message = "";
+        ServiceRpcResultSh notification = null;
+
+        private CancelResourceReserveOutputFutureCallback(ServiceNotificationTypes notifType, String serviceName) {
+            this.notifType = notifType;
+            this.serviceName = serviceName;
+        }
+
+        @Override
+        public void onSuccess(CancelResourceReserveOutput response) {
+            if (response != null) {
+                /**
+                 * If PCE reply is received before timer expiration with a positive result, a
+                 * service is created with admin and operational status 'down'.
+                 */
+                message = "PCE replied to CRR Request !";
+                LOG.info("PCE replied to CRR Request : {}", response);
+                notification =
+                        new ServiceRpcResultShBuilder().setNotificationType(notifType).setServiceName(serviceName)
+                                .setStatus(RpcStatusEx.Successful).setStatusMessage(message).build();
+                try {
+                    notificationPublishService.putNotification(notification);
+                } catch (InterruptedException e) {
+                    LOG.info(NOTIFICATION_OFFER_REJECTED_MSG, e);
+                }
+            } else {
+                message = "PCE failed ";
+                notification = new ServiceRpcResultShBuilder().setNotificationType(notifType).setServiceName("")
+                        .setStatus(RpcStatusEx.Failed).setStatusMessage(message).build();
+                try {
+                    notificationPublishService.putNotification(notification);
+                } catch (InterruptedException e) {
+                    LOG.info(NOTIFICATION_OFFER_REJECTED_MSG, e);
+                }
+            }
+        }
+
+        @Override
+        public void onFailure(Throwable arg0) {
+            LOG.error("Cancel resource failed !");
+            notification = new ServiceRpcResultShBuilder().setNotificationType(notifType)
+                    .setServiceName(serviceName).setStatus(RpcStatusEx.Failed)
+                    .setStatusMessage("CRR Request failed  : " + arg0.getMessage()).build();
+            try {
+                notificationPublishService.putNotification(notification);
+            } catch (InterruptedException e) {
+                LOG.info(NOTIFICATION_OFFER_REJECTED_MSG, e);
+            }
+        }
+    }
+
+    private final class PathComputationRequestOutputCallback implements FutureCallback<PathComputationRequestOutput> {
+        private final ServiceNotificationTypes notifType;
+        private final String serviceName;
+        String message = "";
+        ServiceRpcResultSh notification = null;
+
+        private PathComputationRequestOutputCallback(ServiceNotificationTypes notifType, String serviceName) {
+            this.notifType = notifType;
+            this.serviceName = serviceName;
+        }
+
+        @Override
+        public void onSuccess(PathComputationRequestOutput response) {
+            if (response != null) {
+                /**
+                 * If PCE reply is received before timer expiration with a positive result, a
+                 * service is created with admin and operational status 'down'.
+                 */
+                message = "PCE replied to PCR Request !";
+                LOG.info("PCE replied to PCR Request : {}", response);
+                notification = new ServiceRpcResultShBuilder().setNotificationType(notifType)
+                        .setServiceName(serviceName)
+                        .setStatus(RpcStatusEx.Successful).setStatusMessage(message).build();
+                try {
+                    notificationPublishService.putNotification(notification);
+                } catch (InterruptedException e) {
+                    LOG.info(NOTIFICATION_OFFER_REJECTED_MSG, e);
+                }
+            } else {
+                message = "PCE failed ";
+                notification = new ServiceRpcResultShBuilder().setNotificationType(notifType).setServiceName("")
+                        .setStatus(RpcStatusEx.Failed).setStatusMessage(message).build();
+                try {
+                    notificationPublishService.putNotification(notification);
+                } catch (InterruptedException e) {
+                    LOG.info(NOTIFICATION_OFFER_REJECTED_MSG, e);
+                }
+            }
+        }
+
+        @Override
+        public void onFailure(Throwable arg0) {
+            LOG.error("Path not calculated..");
+            notification = new ServiceRpcResultShBuilder().setNotificationType(notifType)
+                    .setServiceName(serviceName)
+                    .setStatus(RpcStatusEx.Failed).setStatusMessage("PCR Request failed  : " + arg0.getMessage())
+                    .build();
+            try {
+                notificationPublishService.putNotification(notification);
+            } catch (InterruptedException e) {
+                LOG.info(NOTIFICATION_OFFER_REJECTED_MSG, e);
+            }
+        }
     }
 }

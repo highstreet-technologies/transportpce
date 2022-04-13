@@ -7,6 +7,8 @@
  */
 package org.opendaylight.transportpce.test;
 
+import static java.util.Objects.requireNonNull;
+
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -17,17 +19,13 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import javax.annotation.Nonnull;
-import org.opendaylight.controller.md.sal.binding.api.DataBroker;
-import org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType;
-import org.opendaylight.controller.md.sal.dom.api.DOMDataBroker;
-import org.opendaylight.controller.md.sal.dom.api.DOMDataWriteTransaction;
-import org.opendaylight.transportpce.common.DataStoreContext;
-import org.opendaylight.transportpce.common.DataStoreContextImpl;
-import org.opendaylight.transportpce.common.converter.XMLDataObjectConverter;
-import org.opendaylight.transportpce.common.converter.api.DataObjectConverter;
+import org.opendaylight.mdsal.binding.api.DataBroker;
+import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
+import org.opendaylight.mdsal.dom.api.DOMDataBroker;
+import org.opendaylight.mdsal.dom.api.DOMDataTreeWriteTransaction;
+import org.opendaylight.transportpce.test.converter.XMLDataObjectConverter;
 import org.opendaylight.yangtools.yang.common.QName;
 import org.opendaylight.yangtools.yang.data.api.YangInstanceIdentifier;
-import org.opendaylight.yangtools.yang.data.api.YangInstanceIdentifier.PathArgument;
 import org.opendaylight.yangtools.yang.data.api.schema.NormalizedNode;
 import org.opendaylight.yangtools.yang.data.api.schema.NormalizedNodes;
 import org.slf4j.Logger;
@@ -71,7 +69,7 @@ public final class DeviceWrapper {
      *
      * @return the domDataBroker
      */
-    public DOMDataBroker getDomDataBroker() {
+    public DOMDataBroker getDeviceDomDataBroker() {
         return domDataBroker;
     }
 
@@ -95,8 +93,8 @@ public final class DeviceWrapper {
      */
     public static DeviceWrapper createDeviceWrapper(@Nonnull String key, @Nonnull InputStream initialDataXmlInputStream,
             @Nonnull QName intialDataQName) {
-        Preconditions.checkNotNull(initialDataXmlInputStream, "Input stream cannot be null");
-        Preconditions.checkNotNull(intialDataQName, "QName cannot be null");
+        requireNonNull(initialDataXmlInputStream, "Input stream cannot be null");
+        requireNonNull(intialDataQName, "QName cannot be null");
         return createDeviceWrapper(key, Lists.newArrayList(
                 new AbstractMap.SimpleEntry<QName, InputStream>(intialDataQName, initialDataXmlInputStream)));
     }
@@ -117,16 +115,16 @@ public final class DeviceWrapper {
         Preconditions.checkArgument(initialData != null && !initialData.isEmpty(),
                 "Initial data cannot be null or empty");
         DataStoreContext dsContext = new DataStoreContextImpl();
-        DataObjectConverter xmlConverter = XMLDataObjectConverter.createWithDataStoreUtil(dsContext);
+        XMLDataObjectConverter xmlConverter = XMLDataObjectConverter.createWithDataStoreUtil(dsContext);
         for (Entry<QName, InputStream> entryData : initialData) {
             insertDataIntoDS(xmlConverter, entryData.getValue(), entryData.getKey(), dsContext.getDOMDataBroker());
         }
         return new DeviceWrapper(key, dsContext.getDataBroker(), dsContext.getDOMDataBroker());
     }
 
-    private static void insertDataIntoDS(DataObjectConverter xmlConverter, InputStream xmlDataInputStream,
+    private static void insertDataIntoDS(XMLDataObjectConverter xmlConverter, InputStream xmlDataInputStream,
             QName dataQName, DOMDataBroker domDataBroker) {
-        Optional<NormalizedNode<? extends PathArgument, ?>> initialDataNormalizedNodes =
+        Optional<NormalizedNode> initialDataNormalizedNodes =
                 xmlConverter.transformIntoNormalizedNode(xmlDataInputStream);
         Preconditions.checkArgument(initialDataNormalizedNodes.isPresent(),
                 "Initial data could not be converted to normalized nodes");
@@ -134,16 +132,16 @@ public final class DeviceWrapper {
 
         YangInstanceIdentifier initialDataIi = YangInstanceIdentifier.of(dataQName);
         LOG.debug("Searching for {} inside {}", initialDataIi, initialDataNormalizedNodes.get());
-        Optional<NormalizedNode<?, ?>> dataNormalizedNodes =
+        Optional<NormalizedNode> dataNormalizedNodes =
                 NormalizedNodes.findNode(initialDataNormalizedNodes.get(), initialDataIi);
         Preconditions.checkArgument(dataNormalizedNodes.isPresent());
         LOG.info("Initial data was successfully stored into ds");
-        DOMDataWriteTransaction writeOnlyTransaction = domDataBroker.newWriteOnlyTransaction();
+        DOMDataTreeWriteTransaction writeOnlyTransaction = domDataBroker.newWriteOnlyTransaction();
         writeOnlyTransaction.put(LogicalDatastoreType.OPERATIONAL, initialDataIi, dataNormalizedNodes.get());
         try {
-            writeOnlyTransaction.submit().get();
+            writeOnlyTransaction.commit().get();
         } catch (InterruptedException | ExecutionException e) {
-            LOG.error("This should be not reached {}", e.getMessage(), e);
+            LOG.error("This should be not reached ", e);
             throw new IllegalStateException(e);
         }
     }

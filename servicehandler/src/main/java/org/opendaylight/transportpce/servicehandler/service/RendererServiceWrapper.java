@@ -12,25 +12,24 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
-
 import java.util.concurrent.Executors;
-
-import org.opendaylight.controller.md.sal.binding.api.NotificationPublishService;
+import org.opendaylight.mdsal.binding.api.NotificationPublishService;
 import org.opendaylight.transportpce.common.ResponseCodes;
 import org.opendaylight.transportpce.renderer.provisiondevice.RendererServiceOperations;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.renderer.rev171017.ServiceDeleteInput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.renderer.rev171017.ServiceDeleteInputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.renderer.rev171017.ServiceDeleteOutput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.renderer.rev171017.ServiceDeleteOutputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.servicehandler.rev170930.ServiceRpcResultSh;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.servicehandler.rev170930.ServiceRpcResultShBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev161014.ServiceNotificationTypes;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev161014.configuration.response.common.ConfigurationResponseCommon;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev161014.configuration.response.common.ConfigurationResponseCommonBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev161014.TempServiceDeleteInput;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev170426.RpcStatusEx;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev171016.service.handler.header.ServiceHandlerHeader;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev171016.service.handler.header.ServiceHandlerHeaderBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.renderer.rev210915.ServiceDeleteInput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.renderer.rev210915.ServiceDeleteInputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.renderer.rev210915.ServiceDeleteOutput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.renderer.rev210915.ServiceDeleteOutputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.servicehandler.rev201125.ServiceRpcResultSh;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.servicehandler.rev201125.ServiceRpcResultShBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.ServiceNotificationTypes;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.configuration.response.common.ConfigurationResponseCommon;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.configuration.response.common.ConfigurationResponseCommonBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.TempServiceDeleteInput;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.service.list.Services;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.RpcStatusEx;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.service.handler.header.ServiceHandlerHeader;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.service.handler.header.ServiceHandlerHeaderBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,15 +58,15 @@ public class RendererServiceWrapper {
         try {
             notificationPublishService.putNotification(notif);
         } catch (InterruptedException e) {
-            LOG.info("notification offer rejected : " + e);
+            LOG.info("notification offer rejected : ", e);
         }
     }
 
     public ServiceDeleteOutput performRenderer(ServiceDeleteInput serviceDeleteInput,
-            ServiceNotificationTypes notifType) {
+            ServiceNotificationTypes notifType, Services service) {
         if (validateParams(serviceDeleteInput.getServiceName(), serviceDeleteInput.getServiceHandlerHeader(), false)) {
             return performRenderer(serviceDeleteInput.getServiceName(), serviceDeleteInput.getServiceHandlerHeader(),
-                    ServiceNotificationTypes.ServiceDeleteResult);
+                    ServiceNotificationTypes.ServiceDeleteResult, service);
         } else {
             return returnRendererFailed();
         }
@@ -79,57 +78,23 @@ public class RendererServiceWrapper {
         if (validateParams(commonId, null, true)) {
             ServiceHandlerHeader serviceHandler = new ServiceHandlerHeaderBuilder().setRequestId(commonId).build();
             return performRenderer(tempServiceDeleteInput.getCommonId(), serviceHandler,
-                    ServiceNotificationTypes.ServiceDeleteResult);
+                    ServiceNotificationTypes.ServiceDeleteResult, null);
         } else {
             return returnRendererFailed();
         }
     }
 
     private ServiceDeleteOutput performRenderer(String serviceName, ServiceHandlerHeader serviceHandlerHeader,
-            ServiceNotificationTypes notifType) {
+            ServiceNotificationTypes notifType, Services service) {
         notification = new ServiceRpcResultShBuilder().setNotificationType(notifType).setServiceName(serviceName)
                 .setStatus(RpcStatusEx.Pending)
                 .setStatusMessage("Service compliant, submitting temp service delete Request ...").build();
         sendNotifications(notification);
-        FutureCallback<ServiceDeleteOutput> rendererCallback = new FutureCallback<ServiceDeleteOutput>() {
-
-            String message = "";
-            ServiceRpcResultSh notification = null;
-
-            @Override
-            public void onSuccess(ServiceDeleteOutput response) {
-                if (response != null) {
-                    /**
-                     * If PCE reply is received before timer expiration with a positive result, a
-                     * service is created with admin and operational status 'down'.
-                     */
-                    message = "Renderer replied to service delete Request !";
-                    LOG.info("Renderer replied to service delete Request : {}", response);
-                    notification =
-                            new ServiceRpcResultShBuilder().setNotificationType(notifType).setServiceName(serviceName)
-                                    .setStatus(RpcStatusEx.Successful).setStatusMessage(message).build();
-                    sendNotifications(notification);
-                } else {
-                    message = "Renderer service delete failed ";
-                    notification = new ServiceRpcResultShBuilder().setNotificationType(notifType).setServiceName("")
-                            .setStatus(RpcStatusEx.Failed).setStatusMessage(message).build();
-                    sendNotifications(notification);
-                }
-            }
-
-            @Override
-            public void onFailure(Throwable arg0) {
-                LOG.error("Renderer service delete failed !");
-                notification = new ServiceRpcResultShBuilder().setNotificationType(notifType)
-                        .setServiceName(serviceName)
-                        .setStatus(RpcStatusEx.Failed)
-                        .setStatusMessage("Renderer service delete request failed  : " + arg0.getMessage()).build();
-                sendNotifications(notification);
-            }
-        };
+        FutureCallback<ServiceDeleteOutput> rendererCallback =
+                new ServiceDeleteOutputFutureCallback(notifType, serviceName);
         ServiceDeleteInput serviceDeleteInput = createRendererRequestInput(serviceName, serviceHandlerHeader);
         ListenableFuture<ServiceDeleteOutput> renderer =
-                this.rendererServiceOperations.serviceDelete(serviceDeleteInput);
+                this.rendererServiceOperations.serviceDelete(serviceDeleteInput, service);
         Futures.addCallback(renderer, rendererCallback, executor);
         ConfigurationResponseCommon value =
                 new ConfigurationResponseCommonBuilder().setAckFinalIndicator(ResponseCodes.FINAL_ACK_NO)
@@ -167,6 +132,48 @@ public class RendererServiceWrapper {
 
     private static boolean checkString(String value) {
         return ((value != null) && (value.compareTo("") != 0));
+    }
+
+    private final class ServiceDeleteOutputFutureCallback implements FutureCallback<ServiceDeleteOutput> {
+        private final ServiceNotificationTypes notifType;
+        private final String serviceName;
+        String message = "";
+        ServiceRpcResultSh notification = null;
+
+        private ServiceDeleteOutputFutureCallback(ServiceNotificationTypes notifType, String serviceName) {
+            this.notifType = notifType;
+            this.serviceName = serviceName;
+        }
+
+        @Override
+        public void onSuccess(ServiceDeleteOutput response) {
+            if (response != null) {
+                /**
+                 * If PCE reply is received before timer expiration with a positive result, a
+                 * service is created with admin and operational status 'down'.
+                 */
+                message = "Renderer replied to service delete Request !";
+                LOG.info("Renderer replied to service delete Request : {}", response);
+                notification = new ServiceRpcResultShBuilder().setNotificationType(notifType)
+                        .setServiceName(serviceName).setStatus(RpcStatusEx.Successful).setStatusMessage(message)
+                        .build();
+                sendNotifications(notification);
+            } else {
+                message = "Renderer service delete failed ";
+                notification = new ServiceRpcResultShBuilder().setNotificationType(notifType).setServiceName("")
+                        .setStatus(RpcStatusEx.Failed).setStatusMessage(message).build();
+                sendNotifications(notification);
+            }
+        }
+
+        @Override
+        public void onFailure(Throwable arg0) {
+            LOG.error("Renderer service delete failed !");
+            notification = new ServiceRpcResultShBuilder().setNotificationType(notifType).setServiceName(serviceName)
+                    .setStatus(RpcStatusEx.Failed)
+                    .setStatusMessage("Renderer service delete request failed  : " + arg0.getMessage()).build();
+            sendNotifications(notification);
+        }
     }
 }
 

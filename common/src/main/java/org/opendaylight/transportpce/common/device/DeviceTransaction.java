@@ -8,22 +8,20 @@
 
 package org.opendaylight.transportpce.common.device;
 
-import com.google.common.base.Optional;
-import com.google.common.util.concurrent.CheckedFuture;
+import com.google.common.util.concurrent.FluentFuture;
 import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import javax.annotation.Nullable;
-
-import org.opendaylight.controller.md.sal.binding.api.ReadWriteTransaction;
-import org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType;
-import org.opendaylight.controller.md.sal.common.api.data.ReadFailedException;
+import org.eclipse.jdt.annotation.NonNull;
+import org.opendaylight.mdsal.binding.api.ReadWriteTransaction;
+import org.opendaylight.mdsal.common.api.CommitInfo;
+import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
+import org.opendaylight.yangtools.util.concurrent.FluentFutures;
 import org.opendaylight.yangtools.yang.binding.DataObject;
 import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
 import org.slf4j.Logger;
@@ -55,7 +53,7 @@ public class DeviceTransaction {
         LOG.debug("Device transaction created. Lock: {}", deviceLock);
     }
 
-    public <T extends DataObject> CheckedFuture<Optional<T>, ReadFailedException> read(LogicalDatastoreType store,
+    public <T extends DataObject> ListenableFuture<Optional<T>> read(LogicalDatastoreType store,
             InstanceIdentifier<T> path) {
         return rwTx.read(store, path);
     }
@@ -64,19 +62,10 @@ public class DeviceTransaction {
         rwTx.put(store, path, data);
     }
 
-    public <T extends DataObject> void put(LogicalDatastoreType store, InstanceIdentifier<T> path, T data,
-            boolean createMissingParents) {
-        rwTx.put(store, path, data, createMissingParents);
-    }
-
     public <T extends DataObject> void merge(LogicalDatastoreType store, InstanceIdentifier<T> path, T data) {
         rwTx.merge(store, path, data);
     }
 
-    public <T extends DataObject> void merge(LogicalDatastoreType store, InstanceIdentifier<T> path, T data,
-            boolean createMissingParents) {
-        rwTx.merge(store, path, data, createMissingParents);
-    }
 
     public void delete(LogicalDatastoreType store, InstanceIdentifier<?> path) {
         rwTx.delete(store, path);
@@ -99,36 +88,36 @@ public class DeviceTransaction {
     }
 
     /**
-     * Submits data changed in transaction to device with defined timeout to submit. If time from timeout runs out then
-     * submit will be interrupted and device will be unlocked.
+     * Submits data changed in transaction to device with defined timeout to commit. If time from timeout runs out then
+     * the commit will be interrupted and the device will be unlocked.
      *
      * @param timeout a timeout
      * @param timeUnit a time unit
-     * @return ListenableFuture which indicates when is submit completed.
+     * @return FluentFuture which indicates when the commit is completed.
      */
-    public ListenableFuture<Void> submit(long timeout, TimeUnit timeUnit) {
+    public FluentFuture<? extends @NonNull CommitInfo> commit(long timeout, TimeUnit timeUnit) {
         if (wasSubmittedOrCancelled.get()) {
             String msg = "Transaction was already submitted or canceled!";
             LOG.error(msg);
-            return Futures.immediateFailedFuture(new IllegalStateException(msg));
+            return FluentFutures.immediateFailedFluentFuture(new IllegalStateException(msg));
         }
 
-        LOG.debug("Transaction submitted. Lock: {}", deviceLock);
+        LOG.debug("Transaction committed. Lock: {}", deviceLock);
         wasSubmittedOrCancelled.set(true);
-        ListenableFuture<Void> future =
-                Futures.withTimeout(rwTx.submit(), timeout, timeUnit, scheduledExecutorService);
+        FluentFuture<? extends @NonNull CommitInfo> future =
+                rwTx.commit().withTimeout(timeout, timeUnit, scheduledExecutorService);
 
-        Futures.addCallback(future, new FutureCallback<Void>() {
+        future.addCallback(new FutureCallback<CommitInfo>() {
             @Override
-            public void onSuccess(@Nullable Void result) {
-                LOG.debug("Transaction with lock {} successfully submitted.", deviceLock);
+            public void onSuccess(CommitInfo result) {
+                LOG.debug("Transaction with lock {} successfully committed: {}", deviceLock, result);
                 afterClose();
             }
 
             @Override
             public void onFailure(Throwable throwable) {
-                LOG.error("Device transaction submit failed or submit took longer than {} {}!"
-                        + " Unlocking device.", timeout, timeUnit, throwable);
+                LOG.error("Device transaction commit failed or submit took longer than {} {}! Unlocking device.",
+                    timeout, timeUnit, throwable);
                 afterClose();
             }
         }, scheduledExecutorService);

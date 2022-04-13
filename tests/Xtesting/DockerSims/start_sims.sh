@@ -1,11 +1,28 @@
 #!/bin/sh
 
-echo `sudo docker run -d -p 17830:830  honeynode_oper-roadma:2.1`>>sims.pid
-echo `sudo docker run -d -p 17840:830  honeynode_oper-roadma-full:2.1`>>sims.pid
-echo `sudo docker run -d -p 17831:830  honeynode_oper-xpdra:2.1`>>sims.pid
-echo `sudo docker run -d -p 17833:830  honeynode_oper-roadmc:2.1`>>sims.pid
-echo `sudo docker run -d -p 17843:830  honeynode_oper-roadmc-full:2.1`>>sims.pid
-echo `sudo docker run -d -p 17834:830  honeynode_oper-xpdrc:2.1`>>sims.pid
+. $(dirname $0)/dockercmd_profile.sh
 
-echo -n "#!/bin/sh\n\nsudo docker container kill "`cat sims.pid`" \n" >kill_sims.sh
-chmod +x kill_sims.sh
+DOCKER_OPTIONS="-e USER=${RESTCONF_USER} -e PASSWORD=${RESTCONF_PASSWORD} -dit ${DOCKER_IMAGE}"
+
+for image in $IMAGE_LIST;do
+    suffix_port=`echo -n $image| cut -d: -f1`
+    image_name=`echo -n $image| cut -d: -f2`
+    device_file=`echo -n $image| cut -d: -f3`
+    if [ "${DEVICE_VERSION}" = "all" ]
+        then deviceversion=`echo -n $device_file| cut -d'/' -f1`
+    else
+        deviceversion=${DEVICE_VERSION}
+    fi
+    if [ ! "$(${DOCKER_CMD} ps -q -f name=${image_name})" ];then
+       if [  "$(${DOCKER_CMD} ps -aq -f status=exited -f name=${image_name})" ];then
+          ${DOCKER_CMD} rm ${image_name}
+       fi
+    elif [  "$(${DOCKER_CMD} ps -q -f status=running -f name=${image_name})" ];then
+          ${DOCKER_CMD} stop ${image_name}
+    fi
+    echo ${image_name}
+    ${DOCKER_CMD} run --rm -p 178$suffix_port:1830 -p 81$suffix_port:8130 --name ${image_name} -e DEVICE_VERSION=${deviceversion} -e DEVICE_FILE=${device_file} ${DOCKER_OPTIONS}
+done
+
+exit
+

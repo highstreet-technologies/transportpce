@@ -8,15 +8,13 @@
 package org.opendaylight.transportpce.pce.impl;
 
 import com.google.common.util.concurrent.ListenableFuture;
-
 import java.util.concurrent.ExecutionException;
-
 import org.opendaylight.transportpce.pce.service.PathComputationService;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev190624.CancelResourceReserveInput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev190624.CancelResourceReserveOutput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev190624.PathComputationRequestInput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev190624.PathComputationRequestOutput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev190624.TransportpcePceService;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.CancelResourceReserveInput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.CancelResourceReserveOutput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.PathComputationRequestInput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.PathComputationRequestOutput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.TransportpcePceService;
 import org.opendaylight.yangtools.yang.common.RpcResult;
 import org.opendaylight.yangtools.yang.common.RpcResultBuilder;
 import org.slf4j.Logger;
@@ -56,7 +54,7 @@ public class PceServiceRPCImpl implements TransportpcePceService {
         try {
             output = this.pathComputationService.pathComputationRequest(input).get();
         } catch (InterruptedException | ExecutionException e) {
-            LOG.error("RPC cancelResourceReserve failed !", e);
+            LOG.error("RPC path computation request failed !", e);
         }
         return RpcResultBuilder.success(output).buildFuture();
     }

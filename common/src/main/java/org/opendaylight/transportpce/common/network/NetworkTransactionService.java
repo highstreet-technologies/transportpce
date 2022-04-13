@@ -8,13 +8,13 @@
 
 package org.opendaylight.transportpce.common.network;
 
-import com.google.common.base.Optional;
-
-import com.google.common.util.concurrent.CheckedFuture;
+import com.google.common.util.concurrent.FluentFuture;
 import com.google.common.util.concurrent.ListenableFuture;
-
-import org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType;
-import org.opendaylight.controller.md.sal.common.api.data.ReadFailedException;
+import java.util.Optional;
+import org.eclipse.jdt.annotation.NonNull;
+import org.opendaylight.mdsal.binding.api.DataBroker;
+import org.opendaylight.mdsal.common.api.CommitInfo;
+import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
 import org.opendaylight.yangtools.yang.binding.DataObject;
 import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
 
@@ -22,23 +22,22 @@ import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
 
 public interface NetworkTransactionService {
 
-    <T extends DataObject> CheckedFuture<Optional<T>, ReadFailedException> read(LogicalDatastoreType store,
+    <T extends DataObject> ListenableFuture<Optional<T>> read(LogicalDatastoreType store,
                                                                                 InstanceIdentifier<T> path);
 
     void delete(LogicalDatastoreType store, InstanceIdentifier<?> path);
-
-    <T extends DataObject> void put(LogicalDatastoreType store, InstanceIdentifier<T> path, T data,
-                                    boolean createMissingParents);
-
 
     <T extends DataObject> void put(LogicalDatastoreType store, InstanceIdentifier<T> path,T data);
 
     <T extends DataObject> void merge(LogicalDatastoreType store, InstanceIdentifier<T> path, T data);
 
-    <T extends DataObject> void merge(LogicalDatastoreType store, InstanceIdentifier<T> path, T data,
-                                      boolean createMissingParents);
-
-    ListenableFuture<Void> submit();
+    FluentFuture<? extends @NonNull CommitInfo> commit();
 
     void close();
+
+    /**
+     * the Databroker related to NetworkTransactionService.
+     * @return the Databroker related to NetworkTransactionService.
+     */
+    DataBroker getDataBroker();
 }

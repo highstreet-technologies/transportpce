@@ -8,15 +8,16 @@
 
 package org.opendaylight.transportpce.olm.power;
 
-import com.google.common.util.concurrent.ListenableFuture;
-
+import com.google.common.util.concurrent.FluentFuture;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType;
+import org.eclipse.jdt.annotation.NonNull;
+import org.opendaylight.mdsal.common.api.CommitInfo;
+import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
 import org.opendaylight.transportpce.common.Timeouts;
 import org.opendaylight.transportpce.common.crossconnect.CrossConnect;
 import org.opendaylight.transportpce.common.device.DeviceTransaction;
@@ -158,9 +159,7 @@ public final class PowerMgmtVersion121 {
                 org.opendaylight.yang.gen.v1.http.org.openroadm.optical.channel.interfaces.rev161014
                         .Interface1.class).getOch());
         ochBuilder.setTransmitPower(new PowerDBm(txPower));
-        ochInterfaceBuilder.addAugmentation(
-                org.opendaylight.yang.gen.v1.http.org.openroadm.optical.channel.interfaces.rev161014
-                        .Interface1.class, new Interface1Builder().setOch(ochBuilder.build()).build());
+        ochInterfaceBuilder.addAugmentation(new Interface1Builder().setOch(ochBuilder.build()).build());
         Future<Optional<DeviceTransaction>> deviceTxFuture = deviceTransactionManager.getDeviceTransaction(nodeId);
         DeviceTransaction deviceTx;
         try {
@@ -179,15 +178,15 @@ public final class PowerMgmtVersion121 {
         }
         InstanceIdentifier<Interface> interfacesIID = InstanceIdentifier.create(OrgOpenroadmDevice.class)
                 .child(Interface.class, new InterfaceKey(interfaceName));
-        deviceTx.put(LogicalDatastoreType.CONFIGURATION, interfacesIID, ochInterfaceBuilder.build());
-        ListenableFuture<Void> submit = deviceTx.submit(Timeouts.DEVICE_WRITE_TIMEOUT,
-                Timeouts.DEVICE_WRITE_TIMEOUT_UNIT);
+        deviceTx.merge(LogicalDatastoreType.CONFIGURATION, interfacesIID, ochInterfaceBuilder.build());
+        FluentFuture<? extends @NonNull CommitInfo> commit =
+            deviceTx.commit(Timeouts.DEVICE_WRITE_TIMEOUT, Timeouts.DEVICE_WRITE_TIMEOUT_UNIT);
         try {
-            submit.get();
-            LOG.info("Transponder Power update is submitted");
+            commit.get();
+            LOG.info("Transponder Power update is committed");
             return true;
         } catch (InterruptedException | ExecutionException e) {
-            LOG.error("Setting transponder power failed {}", e);
+            LOG.error("Setting transponder power failed: ", e);
             return false;
         }
 
@@ -216,7 +215,8 @@ public final class PowerMgmtVersion121 {
     public static boolean setPowerLevel(String deviceId, OpticalControlMode mode, BigDecimal powerValue,
             String connectionNumber, CrossConnect crossConnect,
             DeviceTransactionManager deviceTransactionManager) {
-        Optional<RoadmConnections> rdmConnOpt = crossConnect.getCrossConnect(deviceId, connectionNumber);
+        @SuppressWarnings("unchecked") Optional<RoadmConnections> rdmConnOpt =
+            (Optional<RoadmConnections>) crossConnect.getCrossConnect(deviceId, connectionNumber);
         if (rdmConnOpt.isPresent()) {
             RoadmConnectionsBuilder rdmConnBldr = new RoadmConnectionsBuilder(rdmConnOpt.get());
             rdmConnBldr.setOpticalControlMode(mode);
@@ -242,11 +242,11 @@ public final class PowerMgmtVersion121 {
             // post the cross connect on the device
             InstanceIdentifier<RoadmConnections> roadmConnIID = InstanceIdentifier.create(OrgOpenroadmDevice.class)
                     .child(RoadmConnections.class, new RoadmConnectionsKey(connectionNumber));
-            deviceTx.put(LogicalDatastoreType.CONFIGURATION, roadmConnIID, newRdmConn);
-            ListenableFuture<Void> submit = deviceTx.submit(Timeouts.DEVICE_WRITE_TIMEOUT,
-                    Timeouts.DEVICE_WRITE_TIMEOUT_UNIT);
+            deviceTx.merge(LogicalDatastoreType.CONFIGURATION, roadmConnIID, newRdmConn);
+            FluentFuture<? extends @NonNull CommitInfo> commit =
+                deviceTx.commit(Timeouts.DEVICE_WRITE_TIMEOUT, Timeouts.DEVICE_WRITE_TIMEOUT_UNIT);
             try {
-                submit.get();
+                commit.get();
                 LOG.info("Roadm connection power level successfully set ");
                 return true;
             } catch (InterruptedException | ExecutionException ex) {
