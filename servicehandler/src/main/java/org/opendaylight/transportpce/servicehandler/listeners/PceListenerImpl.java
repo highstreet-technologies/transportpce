@@ -16,15 +16,17 @@ import org.opendaylight.transportpce.servicehandler.ModelMappingUtils;
 import org.opendaylight.transportpce.servicehandler.ServiceInput;
 import org.opendaylight.transportpce.servicehandler.service.PCEServiceWrapper;
 import org.opendaylight.transportpce.servicehandler.service.ServiceDataStoreOperations;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.PathComputationRequestOutput;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.PathComputationRequestOutputBuilder;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.ServicePathRpcResult;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.TransportpcePceListener;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.service.path.rpc.result.PathDescription;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.service.path.rpc.result.PathDescriptionBuilder;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.renderer.rev210915.ServiceImplementationRequestInput;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.state.types.rev191129.State;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.service.list.Services;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.state.types.rev181130.State;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev190531.service.list.Services;
 import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.RpcStatusEx;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.response.parameters.sp.ResponseParameters;
 import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.response.parameters.sp.ResponseParametersBuilder;
 import org.opendaylight.yang.gen.v1.nbi.notifications.rev210813.PublishNotificationProcessService;
 import org.opendaylight.yang.gen.v1.nbi.notifications.rev210813.PublishNotificationProcessServiceBuilder;
@@ -48,10 +50,8 @@ public class PceListenerImpl implements TransportpcePceListener {
     private Boolean serviceFeasiblity;
     private NotificationPublishService notificationPublishService;
 
-    public PceListenerImpl(
-            RendererServiceOperations rendererServiceOperations,
-            PathComputationService pathComputationService,
-            NotificationPublishService notificationPublishService,
+    public PceListenerImpl(RendererServiceOperations rendererServiceOperations,
+            PathComputationService pathComputationService, NotificationPublishService notificationPublishService,
             ServiceDataStoreOperations serviceDataStoreOperations) {
         this.rendererServiceOperations = rendererServiceOperations;
         this.pceServiceWrapper = new PCEServiceWrapper(pathComputationService, notificationPublishService);
@@ -98,8 +98,7 @@ public class PceListenerImpl implements TransportpcePceListener {
             LOG.error("'PathDescription' parameter is null ");
             return;
         }
-        PathDescription pathDescription =
-            new PathDescriptionBuilder()
+        PathDescription pathDescription = new PathDescriptionBuilder()
                 .setAToZDirection(servicePathRpcResult.getPathDescription().getAToZDirection())
                 .setZToADirection(servicePathRpcResult.getPathDescription().getZToADirection())
                 .build();
@@ -124,26 +123,20 @@ public class PceListenerImpl implements TransportpcePceListener {
                 LOG.error("Service not created in datastore !");
             }
         }
-        if (!this.serviceDataStoreOperations
-                .createServicePath(
-                    input,
-                    //pceResponse
-                    new PathComputationRequestOutputBuilder()
-                        .setResponseParameters(
-                            new ResponseParametersBuilder()
-                                .setPathDescription(
-                                    new org.opendaylight.yang.gen.v1
-                                            .http.org.transportpce.b.c._interface.service.types.rev220118
-                                                .response.parameters.sp.response.parameters
-                                                    .PathDescriptionBuilder(pathDescription)
-                                        .build())
-                                .build())
-                        .build())
-                .isSuccess()) {
+        ResponseParameters responseParameters = new ResponseParametersBuilder()
+                .setPathDescription(new org.opendaylight.yang.gen.v1.http
+                        .org.transportpce.b.c._interface.service.types.rev220118
+                        .response.parameters.sp.response.parameters.PathDescriptionBuilder(pathDescription).build())
+                .build();
+        PathComputationRequestOutput pceResponse = new PathComputationRequestOutputBuilder()
+                .setResponseParameters(responseParameters).build();
+        OperationResult operationServicePathSaveResult = this.serviceDataStoreOperations
+                .createServicePath(input, pceResponse);
+        if (!operationServicePathSaveResult.isSuccess()) {
             LOG.error("Service Path not created in datastore !");
         }
-        ServiceImplementationRequestInput serviceImplementationRequest =
-            ModelMappingUtils.createServiceImplementationRequest(input, pathDescription);
+        ServiceImplementationRequestInput serviceImplementationRequest = ModelMappingUtils
+                .createServiceImplementationRequest(input, pathDescription);
         LOG.info("Sending serviceImplementation request : {}", serviceImplementationRequest);
         this.rendererServiceOperations.serviceImplementation(serviceImplementationRequest);
     }
@@ -157,7 +150,6 @@ public class PceListenerImpl implements TransportpcePceListener {
         PublishNotificationProcessService nbiNotification = getPublishNotificationProcessService(notification);
         PublishNotificationProcessServiceBuilder publishNotificationProcessServiceBuilder =
                 new PublishNotificationProcessServiceBuilder(nbiNotification);
-        //TODO is it worth to instantiate the 2 variables above if status is 'Pending' or 'Successful' ?
         switch (servicePathRpcResult.getStatus()) {
             case Failed:
                 LOG.error("PCE path computation failed !");
@@ -186,20 +178,19 @@ public class PceListenerImpl implements TransportpcePceListener {
     }
 
     private PublishNotificationProcessService getPublishNotificationProcessService(ServicePathRpcResult notification) {
-        if (input == null) {
-            return new PublishNotificationProcessServiceBuilder()
-                .setServiceName(notification.getServiceName())
-                .setPublisherName(PUBLISHER)
-                .build();
+        PublishNotificationProcessServiceBuilder nbiNotificationBuilder =
+                new PublishNotificationProcessServiceBuilder();
+        if (input != null) {
+            nbiNotificationBuilder.setServiceName(input.getServiceName())
+                    .setServiceAEnd(new ServiceAEndBuilder(input.getServiceAEnd()).build())
+                    .setServiceZEnd(new ServiceZEndBuilder(input.getServiceZEnd()).build())
+                    .setCommonId(input.getCommonId())
+                    .setConnectionType(input.getConnectionType());
+        } else {
+            nbiNotificationBuilder.setServiceName(notification.getServiceName());
         }
-        return new PublishNotificationProcessServiceBuilder()
-            .setServiceName(input.getServiceName())
-            .setServiceAEnd(new ServiceAEndBuilder(input.getServiceAEnd()).build())
-            .setServiceZEnd(new ServiceZEndBuilder(input.getServiceZEnd()).build())
-            .setCommonId(input.getCommonId())
-            .setConnectionType(input.getConnectionType())
-            .setPublisherName(PUBLISHER)
-            .build();
+        nbiNotificationBuilder.setPublisherName(PUBLISHER);
+        return nbiNotificationBuilder.build();
     }
 
     /**
@@ -215,8 +206,7 @@ public class PceListenerImpl implements TransportpcePceListener {
             return;
         }
         Services service = serviceDataStoreOperations.getService(input.getServiceName()).get();
-        PublishNotificationProcessServiceBuilder nbiNotificationBuilder =
-            new PublishNotificationProcessServiceBuilder()
+        PublishNotificationProcessServiceBuilder nbiNotificationBuilder = new PublishNotificationProcessServiceBuilder()
                 .setServiceName(service.getServiceName())
                 .setServiceAEnd(new ServiceAEndBuilder(service.getServiceAEnd()).build())
                 .setServiceZEnd(new ServiceZEndBuilder(service.getServiceZEnd()).build())
@@ -225,8 +215,7 @@ public class PceListenerImpl implements TransportpcePceListener {
                 .setPublisherName(PUBLISHER);
         if (servicePathRpcResult.getStatus() == RpcStatusEx.Failed) {
             LOG.info("PCE cancel resource failed !");
-            sendNbiNotification(
-                nbiNotificationBuilder
+            sendNbiNotification(nbiNotificationBuilder
                     .setResponseFailed("PCE cancel resource failed !")
                     .setMessage("ServiceDelete request failed ...")
                     .setOperationalState(service.getOperationalState())
@@ -248,16 +237,14 @@ public class PceListenerImpl implements TransportpcePceListener {
             deleteServiceOperationResult = this.serviceDataStoreOperations.deleteService(input.getServiceName());
         }
         if (deleteServiceOperationResult.isSuccess()) {
-            sendNbiNotification(
-                nbiNotificationBuilder
+            sendNbiNotification(nbiNotificationBuilder
                     .setResponseFailed("")
                     .setMessage("Service deleted !")
                     .setOperationalState(State.Degraded)
                     .build());
         } else {
             LOG.warn("{}Service was not removed from datastore !", serviceType);
-            sendNbiNotification(
-                nbiNotificationBuilder
+            sendNbiNotification(nbiNotificationBuilder
                     .setResponseFailed(serviceType + "Service was not removed from datastore !")
                     .setMessage("ServiceDelete request failed ...")
                     .setOperationalState(service.getOperationalState())

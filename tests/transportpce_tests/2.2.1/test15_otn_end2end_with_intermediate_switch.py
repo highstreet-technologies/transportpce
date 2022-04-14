@@ -45,7 +45,13 @@ class TransportPCEtesting(unittest.TestCase):
             "service-format": "OTU",
             "otu-service-rate": "org-openroadm-otn-common-types:OTU4",
             "clli": "NodeSA",
-            "tx-direction": [{
+            "subrate-eth-sla": {
+                    "subrate-eth-sla": {
+                        "committed-info-rate": "100000",
+                        "committed-burst-size": "64"
+                    }
+            },
+            "tx-direction": {
                 "port": {
                     "port-device-name": "SPDR-SA1-XPDR1",
                     "port-type": "fixed",
@@ -58,10 +64,9 @@ class TransportPCEtesting(unittest.TestCase):
                     "lgx-port-name": "Some lgx-port-name",
                     "lgx-port-rack": "000000.00",
                     "lgx-port-shelf": "00"
-                },
-                "index": 0
-            }],
-            "rx-direction": [{
+                }
+            },
+            "rx-direction": {
                 "port": {
                     "port-device-name": "SPDR-SA1-XPDR1",
                     "port-type": "fixed",
@@ -74,9 +79,8 @@ class TransportPCEtesting(unittest.TestCase):
                     "lgx-port-name": "Some lgx-port-name",
                     "lgx-port-rack": "000000.00",
                     "lgx-port-shelf": "00"
-                },
-                "index": 0
-            }],
+                }
+            },
             "optic-type": "gray"
         },
         "service-z-end": {
@@ -85,7 +89,13 @@ class TransportPCEtesting(unittest.TestCase):
             "service-format": "OTU",
             "otu-service-rate": "org-openroadm-otn-common-types:OTU4",
             "clli": "NodeSB",
-            "tx-direction": [{
+            "subrate-eth-sla": {
+                    "subrate-eth-sla": {
+                        "committed-info-rate": "100000",
+                        "committed-burst-size": "64"
+                    }
+            },
+            "tx-direction": {
                 "port": {
                     "port-device-name": "SPDR-SB1-XPDR2",
                     "port-type": "fixed",
@@ -98,10 +108,9 @@ class TransportPCEtesting(unittest.TestCase):
                     "lgx-port-name": "Some lgx-port-name",
                     "lgx-port-rack": "000000.00",
                     "lgx-port-shelf": "00"
-                },
-                "index": 0
-            }],
-            "rx-direction": [{
+                }
+            },
+            "rx-direction": {
                 "port": {
                     "port-device-name": "SPDR-SB1-XPDR2",
                     "port-type": "fixed",
@@ -114,9 +123,8 @@ class TransportPCEtesting(unittest.TestCase):
                     "lgx-port-name": "Some lgx-port-name",
                     "lgx-port-rack": "000000.00",
                     "lgx-port-shelf": "00"
-                },
-                "index": 0
-            }],
+                }
+            },
             "optic-type": "gray"
         },
         "due-date": "2018-06-15T00:00:01Z",
@@ -440,16 +448,16 @@ class TransportPCEtesting(unittest.TestCase):
         self.cr_serv_sample_data["input"]["service-name"] = "service-OCH-OTU4-BC"
         self.cr_serv_sample_data["input"]["service-a-end"]["node-id"] = "SPDR-SB1"
         self.cr_serv_sample_data["input"]["service-a-end"]["clli"] = "NodeSB"
-        self.cr_serv_sample_data["input"]["service-a-end"]["tx-direction"][0]["port"]["port-device-name"] = "SPDR-SB1-XPDR2"
-        self.cr_serv_sample_data["input"]["service-a-end"]["tx-direction"][0]["port"]["port-name"] = "XPDR2-NETWORK2"
-        self.cr_serv_sample_data["input"]["service-a-end"]["rx-direction"][0]["port"]["port-device-name"] = "SPDR-SB1-XPDR2"
-        self.cr_serv_sample_data["input"]["service-a-end"]["rx-direction"][0]["port"]["port-name"] = "XPDR2-NETWORK2"
+        self.cr_serv_sample_data["input"]["service-a-end"]["tx-direction"]["port"]["port-device-name"] = "SPDR-SB1-XPDR2"
+        self.cr_serv_sample_data["input"]["service-a-end"]["tx-direction"]["port"]["port-name"] = "XPDR2-NETWORK2"
+        self.cr_serv_sample_data["input"]["service-a-end"]["rx-direction"]["port"]["port-device-name"] = "SPDR-SB1-XPDR2"
+        self.cr_serv_sample_data["input"]["service-a-end"]["rx-direction"]["port"]["port-name"] = "XPDR2-NETWORK2"
         self.cr_serv_sample_data["input"]["service-z-end"]["node-id"] = "SPDR-SC1"
         self.cr_serv_sample_data["input"]["service-z-end"]["clli"] = "NodeSC"
-        self.cr_serv_sample_data["input"]["service-z-end"]["tx-direction"][0]["port"]["port-device-name"] = "SPDR-SC1-XPDR1"
-        self.cr_serv_sample_data["input"]["service-z-end"]["tx-direction"][0]["port"]["port-name"] = "XPDR1-NETWORK1"
-        self.cr_serv_sample_data["input"]["service-z-end"]["rx-direction"][0]["port"]["port-device-name"] = "SPDR-SC1-XPDR1"
-        self.cr_serv_sample_data["input"]["service-z-end"]["rx-direction"][0]["port"]["port-name"] = "XPDR1-NETWORK1"
+        self.cr_serv_sample_data["input"]["service-z-end"]["tx-direction"]["port"]["port-device-name"] = "SPDR-SC1-XPDR1"
+        self.cr_serv_sample_data["input"]["service-z-end"]["tx-direction"]["port"]["port-name"] = "XPDR1-NETWORK1"
+        self.cr_serv_sample_data["input"]["service-z-end"]["rx-direction"]["port"]["port-device-name"] = "SPDR-SC1-XPDR1"
+        self.cr_serv_sample_data["input"]["service-z-end"]["rx-direction"]["port"]["port-name"] = "XPDR1-NETWORK1"
 
         response = test_utils.service_create_request(self.cr_serv_sample_data)
         self.assertEqual(response.status_code, requests.codes.ok)
@@ -505,19 +513,19 @@ class TransportPCEtesting(unittest.TestCase):
         self.cr_serv_sample_data["input"]["service-a-end"]["service-format"] = "ODU"
         del self.cr_serv_sample_data["input"]["service-a-end"]["otu-service-rate"]
         self.cr_serv_sample_data["input"]["service-a-end"]["odu-service-rate"] = "org-openroadm-otn-common-types:ODU4"
-        self.cr_serv_sample_data["input"]["service-a-end"]["tx-direction"][0]["port"]["port-device-name"] = "SPDR-SA1-XPDR1"
-        self.cr_serv_sample_data["input"]["service-a-end"]["tx-direction"][0]["port"]["port-name"] = "XPDR1-NETWORK1"
-        self.cr_serv_sample_data["input"]["service-a-end"]["rx-direction"][0]["port"]["port-device-name"] = "SPDR-SA1-XPDR1"
-        self.cr_serv_sample_data["input"]["service-a-end"]["rx-direction"][0]["port"]["port-name"] = "XPDR1-NETWORK1"
+        self.cr_serv_sample_data["input"]["service-a-end"]["tx-direction"]["port"]["port-device-name"] = "SPDR-SA1-XPDR1"
+        self.cr_serv_sample_data["input"]["service-a-end"]["tx-direction"]["port"]["port-name"] = "XPDR1-NETWORK1"
+        self.cr_serv_sample_data["input"]["service-a-end"]["rx-direction"]["port"]["port-device-name"] = "SPDR-SA1-XPDR1"
+        self.cr_serv_sample_data["input"]["service-a-end"]["rx-direction"]["port"]["port-name"] = "XPDR1-NETWORK1"
         self.cr_serv_sample_data["input"]["service-z-end"]["node-id"] = "SPDR-SC1"
         self.cr_serv_sample_data["input"]["service-z-end"]["clli"] = "NodeSC"
         self.cr_serv_sample_data["input"]["service-z-end"]["service-format"] = "ODU"
         del self.cr_serv_sample_data["input"]["service-z-end"]["otu-service-rate"]
         self.cr_serv_sample_data["input"]["service-z-end"]["odu-service-rate"] = "org-openroadm-otn-common-types:ODU4"
-        self.cr_serv_sample_data["input"]["service-z-end"]["tx-direction"][0]["port"]["port-device-name"] = "SPDR-SC1-XPDR1"
-        self.cr_serv_sample_data["input"]["service-z-end"]["tx-direction"][0]["port"]["port-name"] = "XPDR1-NETWORK1"
-        self.cr_serv_sample_data["input"]["service-z-end"]["rx-direction"][0]["port"]["port-device-name"] = "SPDR-SC1-XPDR1"
-        self.cr_serv_sample_data["input"]["service-z-end"]["rx-direction"][0]["port"]["port-name"] = "XPDR1-NETWORK1"
+        self.cr_serv_sample_data["input"]["service-z-end"]["tx-direction"]["port"]["port-device-name"] = "SPDR-SC1-XPDR1"
+        self.cr_serv_sample_data["input"]["service-z-end"]["tx-direction"]["port"]["port-name"] = "XPDR1-NETWORK1"
+        self.cr_serv_sample_data["input"]["service-z-end"]["rx-direction"]["port"]["port-device-name"] = "SPDR-SC1-XPDR1"
+        self.cr_serv_sample_data["input"]["service-z-end"]["rx-direction"]["port"]["port-name"] = "XPDR1-NETWORK1"
 
         response = test_utils.service_create_request(self.cr_serv_sample_data)
         self.assertEqual(response.status_code, requests.codes.ok)
@@ -726,13 +734,13 @@ class TransportPCEtesting(unittest.TestCase):
         self.cr_serv_sample_data["input"]["service-a-end"]["service-rate"] = "10"
         self.cr_serv_sample_data["input"]["service-a-end"]["service-format"] = "Ethernet"
         del self.cr_serv_sample_data["input"]["service-a-end"]["odu-service-rate"]
-        self.cr_serv_sample_data["input"]["service-a-end"]["tx-direction"][0]["port"]["port-name"] = "XPDR1-CLIENT1"
-        self.cr_serv_sample_data["input"]["service-a-end"]["rx-direction"][0]["port"]["port-name"] = "XPDR1-CLIENT1"
+        self.cr_serv_sample_data["input"]["service-a-end"]["tx-direction"]["port"]["port-name"] = "XPDR1-CLIENT1"
+        self.cr_serv_sample_data["input"]["service-a-end"]["rx-direction"]["port"]["port-name"] = "XPDR1-CLIENT1"
         self.cr_serv_sample_data["input"]["service-z-end"]["service-rate"] = "10"
         self.cr_serv_sample_data["input"]["service-z-end"]["service-format"] = "Ethernet"
         del self.cr_serv_sample_data["input"]["service-z-end"]["odu-service-rate"]
-        self.cr_serv_sample_data["input"]["service-z-end"]["tx-direction"][0]["port"]["port-name"] = "XPDR1-CLIENT1"
-        self.cr_serv_sample_data["input"]["service-z-end"]["rx-direction"][0]["port"]["port-name"] = "XPDR1-CLIENT1"
+        self.cr_serv_sample_data["input"]["service-z-end"]["tx-direction"]["port"]["port-name"] = "XPDR1-CLIENT1"
+        self.cr_serv_sample_data["input"]["service-z-end"]["rx-direction"]["port"]["port-name"] = "XPDR1-CLIENT1"
         response = test_utils.service_create_request(self.cr_serv_sample_data)
         self.assertEqual(response.status_code, requests.codes.ok)
         res = response.json()
@@ -1124,19 +1132,19 @@ class TransportPCEtesting(unittest.TestCase):
         self.cr_serv_sample_data["input"]["service-a-end"]["service-rate"] = "100"
         self.cr_serv_sample_data["input"]["service-a-end"]["service-format"] = "ODU"
         self.cr_serv_sample_data["input"]["service-a-end"]["odu-service-rate"] = "org-openroadm-otn-common-types:ODU4"
-        self.cr_serv_sample_data["input"]["service-a-end"]["tx-direction"][0]["port"]["port-device-name"] = "SPDR-SA1-XPDR1"
-        self.cr_serv_sample_data["input"]["service-a-end"]["tx-direction"][0]["port"]["port-name"] = "XPDR1-NETWORK1"
-        self.cr_serv_sample_data["input"]["service-a-end"]["rx-direction"][0]["port"]["port-device-name"] = "SPDR-SA1-XPDR1"
-        self.cr_serv_sample_data["input"]["service-a-end"]["rx-direction"][0]["port"]["port-name"] = "XPDR1-NETWORK1"
+        self.cr_serv_sample_data["input"]["service-a-end"]["tx-direction"]["port"]["port-device-name"] = "SPDR-SA1-XPDR1"
+        self.cr_serv_sample_data["input"]["service-a-end"]["tx-direction"]["port"]["port-name"] = "XPDR1-NETWORK1"
+        self.cr_serv_sample_data["input"]["service-a-end"]["rx-direction"]["port"]["port-device-name"] = "SPDR-SA1-XPDR1"
+        self.cr_serv_sample_data["input"]["service-a-end"]["rx-direction"]["port"]["port-name"] = "XPDR1-NETWORK1"
         self.cr_serv_sample_data["input"]["service-z-end"]["node-id"] = "SPDR-SB1"
         self.cr_serv_sample_data["input"]["service-z-end"]["clli"] = "NodeSB"
         self.cr_serv_sample_data["input"]["service-a-end"]["service-rate"] = "100"
         self.cr_serv_sample_data["input"]["service-z-end"]["service-format"] = "ODU"
         self.cr_serv_sample_data["input"]["service-z-end"]["odu-service-rate"] = "org-openroadm-otn-common-types:ODU4"
-        self.cr_serv_sample_data["input"]["service-z-end"]["tx-direction"][0]["port"]["port-device-name"] = "SPDR-SB1-XPDR2"
-        self.cr_serv_sample_data["input"]["service-z-end"]["tx-direction"][0]["port"]["port-name"] = "XPDR2-NETWORK1"
-        self.cr_serv_sample_data["input"]["service-z-end"]["rx-direction"][0]["port"]["port-device-name"] = "SPDR-SB1-XPDR2"
-        self.cr_serv_sample_data["input"]["service-z-end"]["rx-direction"][0]["port"]["port-name"] = "XPDR2-NETWORK1"
+        self.cr_serv_sample_data["input"]["service-z-end"]["tx-direction"]["port"]["port-device-name"] = "SPDR-SB1-XPDR2"
+        self.cr_serv_sample_data["input"]["service-z-end"]["tx-direction"]["port"]["port-name"] = "XPDR2-NETWORK1"
+        self.cr_serv_sample_data["input"]["service-z-end"]["rx-direction"]["port"]["port-device-name"] = "SPDR-SB1-XPDR2"
+        self.cr_serv_sample_data["input"]["service-z-end"]["rx-direction"]["port"]["port-name"] = "XPDR2-NETWORK1"
 
         response = test_utils.service_create_request(self.cr_serv_sample_data)
         self.assertEqual(response.status_code, requests.codes.ok)
@@ -1236,16 +1244,16 @@ class TransportPCEtesting(unittest.TestCase):
     def test_072_create_ODU4_service_BC(self):
         # pylint: disable=line-too-long
         self.cr_serv_sample_data["input"]["service-name"] = "service-ODU4-BC"
-        self.cr_serv_sample_data["input"]["service-a-end"]["tx-direction"][0]["port"]["port-device-name"] = "SPDR-SB1-XPDR2"
-        self.cr_serv_sample_data["input"]["service-a-end"]["tx-direction"][0]["port"]["port-name"] = "XPDR2-NETWORK2"
-        self.cr_serv_sample_data["input"]["service-a-end"]["rx-direction"][0]["port"]["port-device-name"] = "SPDR-SB1-XPDR2"
-        self.cr_serv_sample_data["input"]["service-a-end"]["rx-direction"][0]["port"]["port-name"] = "XPDR2-NETWORK2"
+        self.cr_serv_sample_data["input"]["service-a-end"]["tx-direction"]["port"]["port-device-name"] = "SPDR-SB1-XPDR2"
+        self.cr_serv_sample_data["input"]["service-a-end"]["tx-direction"]["port"]["port-name"] = "XPDR2-NETWORK2"
+        self.cr_serv_sample_data["input"]["service-a-end"]["rx-direction"]["port"]["port-device-name"] = "SPDR-SB1-XPDR2"
+        self.cr_serv_sample_data["input"]["service-a-end"]["rx-direction"]["port"]["port-name"] = "XPDR2-NETWORK2"
         self.cr_serv_sample_data["input"]["service-z-end"]["node-id"] = "SPDR-SC1"
         self.cr_serv_sample_data["input"]["service-z-end"]["clli"] = "NodeSC"
-        self.cr_serv_sample_data["input"]["service-z-end"]["tx-direction"][0]["port"]["port-device-name"] = "SPDR-SC1-XPDR1"
-        self.cr_serv_sample_data["input"]["service-z-end"]["tx-direction"][0]["port"]["port-name"] = "XPDR1-NETWORK1"
-        self.cr_serv_sample_data["input"]["service-z-end"]["rx-direction"][0]["port"]["port-device-name"] = "SPDR-SC1-XPDR1"
-        self.cr_serv_sample_data["input"]["service-z-end"]["rx-direction"][0]["port"]["port-name"] = "XPDR1-NETWORK1"
+        self.cr_serv_sample_data["input"]["service-z-end"]["tx-direction"]["port"]["port-device-name"] = "SPDR-SC1-XPDR1"
+        self.cr_serv_sample_data["input"]["service-z-end"]["tx-direction"]["port"]["port-name"] = "XPDR1-NETWORK1"
+        self.cr_serv_sample_data["input"]["service-z-end"]["rx-direction"]["port"]["port-device-name"] = "SPDR-SC1-XPDR1"
+        self.cr_serv_sample_data["input"]["service-z-end"]["rx-direction"]["port"]["port-name"] = "XPDR1-NETWORK1"
 
         response = test_utils.service_create_request(self.cr_serv_sample_data)
         self.assertEqual(response.status_code, requests.codes.ok)
@@ -1350,15 +1358,15 @@ class TransportPCEtesting(unittest.TestCase):
         self.cr_serv_sample_data["input"]["service-a-end"]["service-rate"] = "10"
         self.cr_serv_sample_data["input"]["service-a-end"]["service-format"] = "Ethernet"
         del self.cr_serv_sample_data["input"]["service-a-end"]["odu-service-rate"]
-        self.cr_serv_sample_data["input"]["service-a-end"]["tx-direction"][0]["port"]["port-device-name"] = "SPDR-SA1-XPDR1"
-        self.cr_serv_sample_data["input"]["service-a-end"]["tx-direction"][0]["port"]["port-name"] = "XPDR1-CLIENT1"
-        self.cr_serv_sample_data["input"]["service-a-end"]["rx-direction"][0]["port"]["port-device-name"] = "SPDR-SA1-XPDR1"
-        self.cr_serv_sample_data["input"]["service-a-end"]["rx-direction"][0]["port"]["port-name"] = "XPDR1-CLIENT1"
+        self.cr_serv_sample_data["input"]["service-a-end"]["tx-direction"]["port"]["port-device-name"] = "SPDR-SA1-XPDR1"
+        self.cr_serv_sample_data["input"]["service-a-end"]["tx-direction"]["port"]["port-name"] = "XPDR1-CLIENT1"
+        self.cr_serv_sample_data["input"]["service-a-end"]["rx-direction"]["port"]["port-device-name"] = "SPDR-SA1-XPDR1"
+        self.cr_serv_sample_data["input"]["service-a-end"]["rx-direction"]["port"]["port-name"] = "XPDR1-CLIENT1"
         self.cr_serv_sample_data["input"]["service-z-end"]["service-rate"] = "10"
         self.cr_serv_sample_data["input"]["service-z-end"]["service-format"] = "Ethernet"
         del self.cr_serv_sample_data["input"]["service-z-end"]["odu-service-rate"]
-        self.cr_serv_sample_data["input"]["service-z-end"]["tx-direction"][0]["port"]["port-name"] = "XPDR1-CLIENT1"
-        self.cr_serv_sample_data["input"]["service-z-end"]["rx-direction"][0]["port"]["port-name"] = "XPDR1-CLIENT1"
+        self.cr_serv_sample_data["input"]["service-z-end"]["tx-direction"]["port"]["port-name"] = "XPDR1-CLIENT1"
+        self.cr_serv_sample_data["input"]["service-z-end"]["rx-direction"]["port"]["port-name"] = "XPDR1-CLIENT1"
         response = test_utils.service_create_request(self.cr_serv_sample_data)
         self.assertEqual(response.status_code, requests.codes.ok)
         res = response.json()

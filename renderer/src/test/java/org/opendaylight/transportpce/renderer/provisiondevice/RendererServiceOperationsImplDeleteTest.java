@@ -10,7 +10,6 @@ package org.opendaylight.transportpce.renderer.provisiondevice;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import java.util.Collections;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import org.junit.Assert;
@@ -39,16 +38,15 @@ import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev21
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev210618.TransportpceOlmService;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.renderer.rev210915.ServiceDeleteInputBuilder;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.renderer.rev210915.ServiceDeleteOutput;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.node.types.rev210528.NodeIdType;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.ConnectionType;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.service.ServiceAEnd;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.service.ServiceAEndBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.service.endpoint.TxDirectionBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.service.endpoint.TxDirectionKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.service.port.PortBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.format.rev191129.ServiceFormat;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.service.list.Services;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.service.list.ServicesBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.node.types.rev181130.NodeIdType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev190531.ConnectionType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev190531.service.ServiceAEnd;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev190531.service.ServiceAEndBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev190531.service.endpoint.TxDirectionBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev190531.service.port.PortBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.format.rev190531.ServiceFormat;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev190531.service.list.Services;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev190531.service.list.ServicesBuilder;
 import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.service.handler.header.ServiceHandlerHeaderBuilder;
 import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.servicepath.rev171017.ServicePathList;
 import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.servicepath.rev171017.service.path.list.ServicePaths;
@@ -57,7 +55,6 @@ import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service
 import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
 import org.opendaylight.yangtools.yang.common.RpcResultBuilder;
 import org.opendaylight.yangtools.yang.common.Uint32;
-import org.opendaylight.yangtools.yang.common.Uint8;
 
 public class RendererServiceOperationsImplDeleteTest extends AbstractTest {
 
@@ -97,9 +94,8 @@ public class RendererServiceOperationsImplDeleteTest extends AbstractTest {
         ServiceAEnd serviceAEnd = new ServiceAEndBuilder()
             .setServiceFormat(ServiceFormat.Ethernet)
             .setServiceRate(Uint32.valueOf("100"))
-            .setTxDirection(Map.of(new TxDirectionKey(Uint8.ZERO),
-                    new TxDirectionBuilder().setIndex(Uint8.ZERO).setPort(new PortBuilder().setPortName("port-name")
-                        .build()).build()))
+            .setTxDirection(new TxDirectionBuilder().setPort(new PortBuilder().setPortName("port-name").build())
+                .build())
             .setNodeId(new NodeIdType("optical-node1"))
             .build();
         Services service = new ServicesBuilder()
@@ -126,9 +122,8 @@ public class RendererServiceOperationsImplDeleteTest extends AbstractTest {
             .setServiceAEnd(new ServiceAEndBuilder()
                 .setServiceFormat(ServiceFormat.Ethernet)
                 .setServiceRate(Uint32.valueOf(100))
-                .setTxDirection(Map.of(new TxDirectionKey(Uint8.ZERO),
-                    new TxDirectionBuilder().setIndex(Uint8.ZERO).setPort(new PortBuilder().setPortName("port-name")
-                        .build()).build()))
+                .setTxDirection(new TxDirectionBuilder().setPort(new PortBuilder().setPortName("port-name").build())
+                    .build())
                 .setNodeId(new NodeIdType("optical-node1"))
                 .build())
             .build();
@@ -159,9 +154,8 @@ public class RendererServiceOperationsImplDeleteTest extends AbstractTest {
         ServiceAEnd serviceAEnd = new ServiceAEndBuilder()
             .setServiceFormat(ServiceFormat.Ethernet)
             .setServiceRate(Uint32.valueOf("100"))
-            .setTxDirection(Map.of(new TxDirectionKey(Uint8.ZERO),
-                new TxDirectionBuilder().setIndex(Uint8.ZERO).setPort(new PortBuilder().setPortName("port-name")
-                    .build()).build()))
+            .setTxDirection(new TxDirectionBuilder().setPort(new PortBuilder().setPortName("port-name").build())
+                .build())
             .setNodeId(new NodeIdType("optical-node1"))
             .build();
         Services service = new ServicesBuilder()
@@ -200,9 +194,8 @@ public class RendererServiceOperationsImplDeleteTest extends AbstractTest {
         ServiceAEnd serviceAEnd = new ServiceAEndBuilder()
             .setServiceFormat(ServiceFormat.Ethernet)
             .setServiceRate(Uint32.valueOf("100"))
-            .setTxDirection(Map.of(new TxDirectionKey(Uint8.ZERO),
-                new TxDirectionBuilder().setIndex(Uint8.ZERO).setPort(new PortBuilder().setPortName("port-name")
-                    .build()).build()))
+            .setTxDirection(new TxDirectionBuilder().setPort(new PortBuilder().setPortName("port-name").build())
+                .build())
             .setNodeId(new NodeIdType("optical-node1"))
             .build();
         Services service = new ServicesBuilder()

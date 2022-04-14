@@ -24,31 +24,31 @@ import org.opendaylight.transportpce.common.network.NetworkTransactionService;
 import org.opendaylight.transportpce.tapi.R2RTapiLinkDiscovery;
 import org.opendaylight.transportpce.tapi.TapiStringConstants;
 import org.opendaylight.transportpce.tapi.utils.TapiLink;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.mapping.Mapping;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.network.Nodes;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220114.mapping.Mapping;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220114.network.Nodes;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.state.types.rev191129.State;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.types.rev181019.NodeTypes;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.types.rev191129.XpdrNodeTypes;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.equipment.states.types.rev191129.AdminStates;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.types.rev201211.xpdr.odu.switching.pools.OduSwitchingPools;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.types.rev201211.xpdr.odu.switching.pools.OduSwitchingPoolsBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.types.rev201211.xpdr.odu.switching.pools.odu.switching.pools.NonBlockingList;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.types.rev201211.xpdr.odu.switching.pools.odu.switching.pools.NonBlockingListBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.types.rev201211.xpdr.odu.switching.pools.odu.switching.pools.NonBlockingListKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev211210.OpenroadmNodeType;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev211210.xpdr.tp.supported.interfaces.SupportedInterfaceCapability;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev211210.xpdr.tp.supported.interfaces.SupportedInterfaceCapabilityBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev211210.xpdr.tp.supported.interfaces.SupportedInterfaceCapabilityKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev201211.If100GE;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev201211.If100GEODU4;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev201211.If10GE;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev201211.If10GEODU2;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev201211.If10GEODU2e;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev201211.If1GE;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev201211.If1GEODU0;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev201211.IfOCH;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev201211.IfOCHOTU4ODU4;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev201211.SupportedIfCapability;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.types.rev200327.xpdr.odu.switching.pools.OduSwitchingPools;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.types.rev200327.xpdr.odu.switching.pools.OduSwitchingPoolsBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.types.rev200327.xpdr.odu.switching.pools.odu.switching.pools.NonBlockingList;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.types.rev200327.xpdr.odu.switching.pools.odu.switching.pools.NonBlockingListBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.types.rev200327.xpdr.odu.switching.pools.odu.switching.pools.NonBlockingListKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev200529.OpenroadmNodeType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev200529.xpdr.tp.supported.interfaces.SupportedInterfaceCapability;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev200529.xpdr.tp.supported.interfaces.SupportedInterfaceCapabilityBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev200529.xpdr.tp.supported.interfaces.SupportedInterfaceCapabilityKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev200327.If100GE;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev200327.If100GEODU4;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev200327.If10GE;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev200327.If10GEODU2;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev200327.If10GEODU2e;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev200327.If1GE;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev200327.If1GEODU0;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev200327.IfOCH;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev200327.IfOCHOTU4ODU4;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev200327.SupportedIfCapability;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.switching.pool.types.rev191129.SwitchingPoolTypes;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.NodeId;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.TpId;
@@ -504,11 +504,10 @@ public class TapiNetworkModelServiceImpl implements TapiNetworkModelService {
                     xpdrNetMaps.get(i).getLogicalConnectionPoint()))
                 .build();
 
-            ArrayList<Class<? extends SupportedIfCapability>> newSupIfCapList = convertSupIfCapaList(xpdrNetMaps, i);
-
             OwnedNodeEdgePoint onep = createNep(nepUuid1, xpdrNetMaps.get(i).getLogicalConnectionPoint(),
                 Map.of(onedName.key(), onedName), LayerProtocolName.PHOTONICMEDIA, LayerProtocolName.PHOTONICMEDIA,
-                true, String.join("+", nodeId, TapiStringConstants.I_OTSI), newSupIfCapList,
+                true, String.join("+", nodeId, TapiStringConstants.I_OTSI),
+                xpdrNetMaps.get(i).getSupportedInterfaceCapability(),
                 transformOperState(xpdrNetMaps.get(i).getPortOperState()),
                 transformAdminState(xpdrNetMaps.get(i).getPortAdminState()));
             onepl.put(onep.key(), onep);
@@ -524,11 +523,10 @@ public class TapiNetworkModelServiceImpl implements TapiNetworkModelService {
                     xpdrNetMaps.get(i).getLogicalConnectionPoint()))
                 .build();
 
-            ArrayList<Class<? extends SupportedIfCapability>> newSupIfCapList = convertSupIfCapaList(xpdrNetMaps, i);
-
             OwnedNodeEdgePoint onep = createNep(nepUuid2, xpdrNetMaps.get(i).getLogicalConnectionPoint(),
                 Map.of(onedName.key(), onedName), LayerProtocolName.PHOTONICMEDIA, LayerProtocolName.PHOTONICMEDIA,
-                false, String.join("+", nodeId, TapiStringConstants.E_OTSI), newSupIfCapList,
+                false, String.join("+", nodeId, TapiStringConstants.E_OTSI),
+                xpdrNetMaps.get(i).getSupportedInterfaceCapability(),
                 transformOperState(xpdrNetMaps.get(i).getPortOperState()),
                 transformAdminState(xpdrNetMaps.get(i).getPortAdminState()));
             onepl.put(onep.key(), onep);
@@ -544,11 +542,10 @@ public class TapiNetworkModelServiceImpl implements TapiNetworkModelService {
                     xpdrNetMaps.get(i).getLogicalConnectionPoint()))
                 .build();
 
-            ArrayList<Class<? extends SupportedIfCapability>> newSupIfCapList = convertSupIfCapaList(xpdrNetMaps, i);
-
             OwnedNodeEdgePoint onep = createNep(nepUuid3, xpdrNetMaps.get(i).getLogicalConnectionPoint(),
                 Map.of(onedName.key(), onedName), LayerProtocolName.PHOTONICMEDIA, LayerProtocolName.PHOTONICMEDIA,
-                false, String.join("+", nodeId, TapiStringConstants.PHTNC_MEDIA), newSupIfCapList,
+                false, String.join("+", nodeId, TapiStringConstants.PHTNC_MEDIA),
+                xpdrNetMaps.get(i).getSupportedInterfaceCapability(),
                 transformOperState(xpdrNetMaps.get(i).getPortOperState()),
                 transformAdminState(xpdrNetMaps.get(i).getPortAdminState()));
             onepl.put(onep.key(), onep);
@@ -576,11 +573,10 @@ public class TapiNetworkModelServiceImpl implements TapiNetworkModelService {
                 name = nameBldr.setValueName("NodeEdgePoint_C").build();
             }
 
-            ArrayList<Class<? extends SupportedIfCapability>> newSupIfCapList = convertSupIfCapaList(xpdrClMaps, i);
-
             OwnedNodeEdgePoint onep = createNep(nepUuid, xpdrClMaps.get(i).getLogicalConnectionPoint(),
                 Map.of(name.key(), name), LayerProtocolName.DSR, LayerProtocolName.DSR, true,
-                String.join("+", nodeId, TapiStringConstants.DSR), newSupIfCapList,
+                String.join("+", nodeId, TapiStringConstants.DSR),
+                xpdrClMaps.get(i).getSupportedInterfaceCapability(),
                 transformOperState(xpdrClMaps.get(i).getPortOperState()),
                 transformAdminState(xpdrClMaps.get(i).getPortAdminState()));
             onepl.put(onep.key(), onep);
@@ -598,12 +594,11 @@ public class TapiNetworkModelServiceImpl implements TapiNetworkModelService {
                     xpdrNetMaps.get(i).getLogicalConnectionPoint()))
                 .build();
 
-            ArrayList<Class<? extends SupportedIfCapability>> newSupIfCapList = convertSupIfCapaList(xpdrNetMaps, i);
-
             OwnedNodeEdgePoint onep = createNep(nepUuid, xpdrNetMaps.get(i).getLogicalConnectionPoint(),
                 Map.of(onedName.key(), onedName),
                 LayerProtocolName.ODU, LayerProtocolName.DSR, true,
-                String.join("+", nodeId, TapiStringConstants.I_ODU), newSupIfCapList,
+                String.join("+", nodeId, TapiStringConstants.I_ODU),
+                xpdrNetMaps.get(i).getSupportedInterfaceCapability(),
                 transformOperState(xpdrNetMaps.get(i).getPortOperState()),
                 transformAdminState(xpdrNetMaps.get(i).getPortAdminState()));
             onepl.put(onep.key(), onep);
@@ -621,12 +616,11 @@ public class TapiNetworkModelServiceImpl implements TapiNetworkModelService {
                     xpdrClMaps.get(i).getLogicalConnectionPoint()))
                 .build();
 
-            ArrayList<Class<? extends SupportedIfCapability>> newSupIfCapList = convertSupIfCapaList(xpdrClMaps, i);
-
             OwnedNodeEdgePoint onep = createNep(nepUuid, xpdrClMaps.get(i).getLogicalConnectionPoint(),
                 Map.of(onedName.key(), onedName),
                 LayerProtocolName.ODU, LayerProtocolName.DSR, false,
-                String.join("+", nodeId, TapiStringConstants.E_ODU), newSupIfCapList,
+                String.join("+", nodeId, TapiStringConstants.E_ODU),
+                xpdrClMaps.get(i).getSupportedInterfaceCapability(),
                 transformOperState(xpdrClMaps.get(i).getPortOperState()),
                 transformAdminState(xpdrClMaps.get(i).getPortAdminState()));
             onepl.put(onep.key(), onep);
@@ -1399,12 +1393,4 @@ public class TapiNetworkModelServiceImpl implements TapiNetworkModelService {
         }
     }
 
-    private ArrayList<Class<? extends SupportedIfCapability>> convertSupIfCapaList(List<Mapping> xpdrNetMaps,
-            int index) {
-        ArrayList<Class<? extends SupportedIfCapability>> newSupIfCapList = new ArrayList<Class<? extends
-            SupportedIfCapability>>();
-        xpdrNetMaps.get(index).getSupportedInterfaceCapability()
-            .forEach(a -> newSupIfCapList.add(xpdrNetMaps.get(index).getSupportedInterfaceCapability().get(0)));
-        return newSupIfCapList;
-    }
 }

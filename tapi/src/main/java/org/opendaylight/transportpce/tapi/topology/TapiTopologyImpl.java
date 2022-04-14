@@ -31,15 +31,15 @@ import org.opendaylight.transportpce.common.NetworkUtils;
 import org.opendaylight.transportpce.tapi.TapiStringConstants;
 import org.opendaylight.transportpce.tapi.utils.TapiContext;
 import org.opendaylight.transportpce.tapi.utils.TapiLink;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.mapping.Mapping;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.mapping.MappingKey;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.network.Nodes;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.network.NodesKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev211210.Link1;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev211210.TerminationPoint1;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev211210.OpenroadmLinkType;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev211210.OpenroadmNodeType;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev211210.OpenroadmTpType;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220114.mapping.Mapping;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220114.mapping.MappingKey;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220114.network.Nodes;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220114.network.NodesKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev200529.Link1;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev200529.TerminationPoint1;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev200529.OpenroadmLinkType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev200529.OpenroadmNodeType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev200529.OpenroadmTpType;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.NodeId;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.networks.Network;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.networks.network.Node;
@@ -286,7 +286,7 @@ public class TapiTopologyImpl implements TapiTopologyService, TapiCommonService 
             tapiLinkList.putAll(tapiFactory.getTapiLinks());
         }
         if (openroadmTopo.nonnullNode().values().stream().filter(nt ->
-                nt.augmentation(org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev211210.Node1.class)
+                nt.augmentation(org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev200529.Node1.class)
                     .getNodeType().equals(OpenroadmNodeType.SRG)).count() > 0) {
             tapiFactory.convertRoadmInfrastructure();
             tapiNodeList.putAll(tapiFactory.getTapiNodes());
@@ -408,7 +408,7 @@ public class TapiTopologyImpl implements TapiTopologyService, TapiCommonService 
         }
         @NonNull
         KeyedInstanceIdentifier<Mapping, MappingKey> pmIID = InstanceIdentifier.create(
-            org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.Network.class)
+            org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220114.Network.class)
             .child(Nodes.class, new NodesKey(nodeIdPortMap)).child(Mapping.class, new MappingKey(networkLcp));
         @NonNull
         FluentFuture<Optional<Mapping>> mappingOpt = dataBroker.newReadOnlyTransaction().read(

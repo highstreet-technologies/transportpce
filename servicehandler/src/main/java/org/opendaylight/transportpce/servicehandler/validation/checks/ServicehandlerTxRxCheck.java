@@ -9,8 +9,8 @@
 package org.opendaylight.transportpce.servicehandler.validation.checks;
 
 import org.opendaylight.transportpce.servicehandler.ServiceEndpointType;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.ServiceEndpoint;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.format.rev191129.ServiceFormat;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev190531.ServiceEndpoint;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.format.rev190531.ServiceFormat;
 
 /**
  * Class for checking missing info on Tx/Rx for A/Z end.
@@ -22,15 +22,17 @@ public final class ServicehandlerTxRxCheck {
     public static final class LogMessages {
 
         private static final String SERVICE = "Service ";
-        public static final String TXRXDIR_NOT_SET;
+        public static final String TXDIR_NOT_SET;
         public static final String TXDIR_PORT_NOT_SET;
         public static final String TXDIR_LGX_NOT_SET;
+        public static final String RXDIR_NOT_SET;
         public static final String RXDIR_PORT_NOT_SET;
         public static final String RXDIR_LGX_NOT_SET;
 
         // Static blocks are generated once and spare memory.
         static {
-            TXRXDIR_NOT_SET = "Service TxDirection or RxDirection is not correctly set";
+            TXDIR_NOT_SET = "Service TxDirection is not correctly set";
+            RXDIR_NOT_SET = "Service RxDirection is not correctly set";
             TXDIR_PORT_NOT_SET = "Service TxDirection Port is not correctly set";
             TXDIR_LGX_NOT_SET = "Service TxDirection Lgx is not correctly set";
             RXDIR_PORT_NOT_SET = "Service RxDirection Port is not correctly set";
@@ -72,6 +74,7 @@ public final class ServicehandlerTxRxCheck {
         return (value != null && !value.isEmpty());
     }
 
+
     /**
      * Check Compliance of Service TxRx info.
      * @param serviceEnd Service Endpoint
@@ -100,9 +103,7 @@ public final class ServicehandlerTxRxCheck {
         if (!checkString(clli)) {
             return new ComplianceCheckResult(false, LogMessages.clliNotSet(endpointType));
         }
-        if (serviceEnd.getTxDirection() == null || serviceEnd.getRxDirection() == null) {
-            return new ComplianceCheckResult(false, LogMessages.TXRXDIR_NOT_SET);
-        }
+
         return new ComplianceCheckResult(true, "");
     }
 

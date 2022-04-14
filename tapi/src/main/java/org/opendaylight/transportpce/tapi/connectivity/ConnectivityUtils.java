@@ -25,35 +25,32 @@ import org.opendaylight.transportpce.tapi.TapiStringConstants;
 import org.opendaylight.transportpce.tapi.utils.GenericServiceEndpoint;
 import org.opendaylight.transportpce.tapi.utils.ServiceEndpointType;
 import org.opendaylight.transportpce.tapi.utils.TapiContext;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.Network;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.mapping.Mapping;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.mapping.MappingKey;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.network.Nodes;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.network.NodesKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.equipment.types.rev191129.OpticTypes;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.node.types.rev210528.NodeIdType;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.ConnectionType;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.RpcActions;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.Service;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.ethernet.subrate.attributes.grp.EthernetAttributesBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.sdnc.request.header.SdncRequestHeaderBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.service.endpoint.RxDirectionBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.service.endpoint.RxDirectionKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.service.endpoint.TxDirectionBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.service.endpoint.TxDirectionKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.service.lgx.LgxBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.service.port.PortBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.subrate.eth.sla.SubrateEthSlaBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev211210.OpenroadmNodeType;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.common.types.rev210924.ODU4;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.common.types.rev210924.OTU4;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.format.rev191129.ServiceFormat;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.ServiceCreateInput;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.ServiceCreateInputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.service.create.input.ServiceAEnd;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.service.create.input.ServiceAEndBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.service.create.input.ServiceZEnd;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.service.create.input.ServiceZEndBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220114.Network;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220114.mapping.Mapping;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220114.mapping.MappingKey;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220114.network.Nodes;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220114.network.NodesKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.equipment.types.rev181130.OpticTypes;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.node.types.rev181130.NodeIdType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev190531.ConnectionType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev190531.RpcActions;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev190531.Service;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev190531.sdnc.request.header.SdncRequestHeaderBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev190531.service.endpoint.RxDirectionBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev190531.service.endpoint.SubrateEthSlaBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev190531.service.endpoint.TxDirectionBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev190531.service.lgx.LgxBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev190531.service.port.PortBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev200529.OpenroadmNodeType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.common.types.rev181130.ODU4;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.common.types.rev181130.OTU4;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.format.rev190531.ServiceFormat;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev190531.ServiceCreateInput;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev190531.ServiceCreateInputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev190531.service.create.input.ServiceAEnd;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev190531.service.create.input.ServiceAEndBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev190531.service.create.input.ServiceZEnd;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev190531.service.create.input.ServiceZEndBuilder;
 import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.PathDescription;
 import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.path.description.atoz.direction.AToZ;
 import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.path.description.atoz.direction.AToZKey;
@@ -112,7 +109,6 @@ import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
 import org.opendaylight.yangtools.yang.common.Uint16;
 import org.opendaylight.yangtools.yang.common.Uint32;
 import org.opendaylight.yangtools.yang.common.Uint64;
-import org.opendaylight.yangtools.yang.common.Uint8;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -171,7 +167,7 @@ public final class ConnectivityUtils {
             .setOpticType(OpticTypes.Gray)
             .setServiceFormat(ServiceFormat.Ethernet)
             .setServiceRate(Uint32.valueOf(100))
-            .setTxDirection(Map.of(new TxDirectionKey(Uint8.ZERO), new TxDirectionBuilder()
+            .setTxDirection(new TxDirectionBuilder()
                 .setPort(new PortBuilder()
                     .setPortDeviceName(txPortDeviceName)
                     .setPortName(txPortName)
@@ -185,8 +181,8 @@ public final class ConnectivityUtils {
                     .setLgxPortRack(TapiStringConstants.PORT_RACK_VALUE)
                     .setLgxPortShelf("00")
                     .build())
-                .build()))
-            .setRxDirection(Map.of(new RxDirectionKey(Uint8.ZERO), new RxDirectionBuilder()
+                .build())
+            .setRxDirection(new RxDirectionBuilder()
                 .setPort(new PortBuilder()
                     .setPortDeviceName(rxPortDeviceName)
                     .setPortName(rxPortName)
@@ -200,7 +196,7 @@ public final class ConnectivityUtils {
                     .setLgxPortRack(TapiStringConstants.PORT_RACK_VALUE)
                     .setLgxPortShelf("00")
                     .build())
-                .build()))
+                .build())
             .build();
     }
 
@@ -210,7 +206,7 @@ public final class ConnectivityUtils {
             .setOpticType(OpticTypes.Gray)
             .setServiceFormat(ServiceFormat.Ethernet)
             .setServiceRate(Uint32.valueOf(100))
-            .setTxDirection(Map.of(new TxDirectionKey(Uint8.ZERO), new TxDirectionBuilder()
+            .setTxDirection(new TxDirectionBuilder()
                 .setPort(new PortBuilder()
                     .setPortDeviceName(txPortDeviceName)
                     .setPortName(txPortName)
@@ -224,8 +220,8 @@ public final class ConnectivityUtils {
                     .setLgxPortRack(TapiStringConstants.PORT_RACK_VALUE)
                     .setLgxPortShelf("00")
                     .build())
-                .build()))
-            .setRxDirection(Map.of(new RxDirectionKey(Uint8.ZERO), new RxDirectionBuilder()
+                .build())
+            .setRxDirection(new RxDirectionBuilder()
                 .setPort(new PortBuilder()
                     .setPortDeviceName(rxPortDeviceName)
                     .setPortName(rxPortName)
@@ -239,7 +235,7 @@ public final class ConnectivityUtils {
                     .setLgxPortRack(TapiStringConstants.PORT_RACK_VALUE)
                     .setLgxPortShelf("00")
                     .build())
-                .build()))
+                .build())
             .build();
     }
 
@@ -279,11 +275,11 @@ public final class ConnectivityUtils {
         ServicePaths servicePaths = optServicePaths.get();
         PathDescription pathDescription = servicePaths.getPathDescription();
         LOG.info("Path description of service = {}", pathDescription);
-        org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.service.ServiceAEnd serviceAEnd
+        org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev190531.service.ServiceAEnd serviceAEnd
             = service.getServiceAEnd();
         // Endpoint creation
         EndPoint endPoint1 = mapServiceAEndPoint(serviceAEnd, pathDescription);
-        org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.service.ServiceZEnd serviceZEnd
+        org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev190531.service.ServiceZEnd serviceZEnd
             = service.getServiceZEnd();
         EndPoint endPoint2 = mapServiceZEndPoint(serviceZEnd, pathDescription);
         Map<EndPointKey, EndPoint> endPointMap = new HashMap<>();
@@ -347,9 +343,9 @@ public final class ConnectivityUtils {
     }
 
     private Map<ConnectionKey, Connection> createConnectionsFromService(
-            org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.service.ServiceAEnd
+            org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev190531.service.ServiceAEnd
                 serviceAEnd,
-            org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.service.ServiceZEnd
+            org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev190531.service.ServiceZEnd
                 serviceZEnd,
         PathDescription pathDescription) {
         Map<ConnectionKey, Connection> connectionServMap = new HashMap<>();
@@ -1016,7 +1012,7 @@ public final class ConnectivityUtils {
     }
 
     private EndPoint mapServiceZEndPoint(
-            org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.service.ServiceZEnd
+            org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev190531.service.ServiceZEnd
                 serviceZEnd, PathDescription pathDescription) {
         EndPointBuilder endPointBuilder = new EndPointBuilder();
         // 1. Service Format: ODU, OTU, ETH
@@ -1043,10 +1039,8 @@ public final class ConnectivityUtils {
         }
         org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev181210.local._class.Name name =
             new org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev181210.local._class.NameBuilder()
-                .setValueName("OpenROADM info")
-                .setValue(String.join("-", serviceZEnd.getClli(),
-                    serviceZEnd.getTxDirection().values().stream().findFirst().get().getPort().getPortDeviceName(),
-                    serviceZEnd.getTxDirection().values().stream().findFirst().get().getPort().getPortName()))
+                .setValueName("OpenROADM node id")
+                .setValue(serviceZEnd.getTxDirection().getPort().getPortDeviceName())
                 .build();
         return endPointBuilder
             .setServiceInterfacePoint(new ServiceInterfacePointBuilder()
@@ -1067,13 +1061,12 @@ public final class ConnectivityUtils {
                 .build())
             .setProtectionRole(ProtectionRole.WORK)
             .setRole(PortRole.SYMMETRIC)
-            .setLocalId(serviceZEnd.getTxDirection().values().stream().findFirst().get()
-                .getPort().getPortDeviceName())
+            .setLocalId(serviceZEnd.getTxDirection().getPort().getPortDeviceName())
             .build();
     }
 
     private EndPoint mapServiceAEndPoint(
-            org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.service.ServiceAEnd
+            org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev190531.service.ServiceAEnd
                 serviceAEnd, PathDescription pathDescription) {
         EndPointBuilder endPointBuilder = new EndPointBuilder();
         // 1. Service Format: ODU, OTU, ETH
@@ -1100,10 +1093,8 @@ public final class ConnectivityUtils {
         }
         org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev181210.local._class.Name name =
             new org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev181210.local._class.NameBuilder()
-                .setValueName("OpenROADM info")
-                .setValue(String.join("-", serviceAEnd.getClli(),
-                    serviceAEnd.getTxDirection().values().stream().findFirst().get().getPort().getPortDeviceName(),
-                    serviceAEnd.getTxDirection().values().stream().findFirst().get().getPort().getPortName()))
+                .setValueName("OpenROADM node id")
+                .setValue(serviceAEnd.getTxDirection().getPort().getPortDeviceName())
                 .build();
         return endPointBuilder
             .setServiceInterfacePoint(new ServiceInterfacePointBuilder()
@@ -1124,7 +1115,7 @@ public final class ConnectivityUtils {
                 .build())
             .setProtectionRole(ProtectionRole.WORK)
             .setRole(PortRole.SYMMETRIC)
-            .setLocalId(serviceAEnd.getTxDirection().values().stream().findFirst().get().getPort().getPortDeviceName())
+            .setLocalId(serviceAEnd.getTxDirection().getPort().getPortDeviceName())
             .build();
     }
 
@@ -1446,12 +1437,7 @@ public final class ConnectivityUtils {
             .setOpticType(OpticTypes.Gray)
             .setServiceFormat(serviceFormat)
             .setServiceRate(Uint32.valueOf(capacity))
-            .setEthernetAttributes(new EthernetAttributesBuilder().setSubrateEthSla(new SubrateEthSlaBuilder()
-                    .setCommittedBurstSize(Uint16.valueOf(64))
-                    .setCommittedInfoRate(Uint32.valueOf(100000))
-                    .build())
-                .build())
-            .setTxDirection(Map.of(new TxDirectionKey(Uint8.ZERO), new TxDirectionBuilder()
+            .setTxDirection(new TxDirectionBuilder()
                 .setPort(new PortBuilder()
                     .setPortDeviceName(txPortDeviceName)
                     .setPortName(txPortName)
@@ -1465,9 +1451,8 @@ public final class ConnectivityUtils {
                     .setLgxPortRack(TapiStringConstants.PORT_RACK_VALUE)
                     .setLgxPortShelf("00")
                     .build())
-                .setIndex(Uint8.ZERO)
-                .build()))
-            .setRxDirection(Map.of(new RxDirectionKey(Uint8.ZERO), new RxDirectionBuilder()
+                .build())
+            .setRxDirection(new RxDirectionBuilder()
                 .setPort(new PortBuilder()
                     .setPortDeviceName(rxPortDeviceName)
                     .setPortName(rxPortName)
@@ -1481,8 +1466,7 @@ public final class ConnectivityUtils {
                     .setLgxPortRack(TapiStringConstants.PORT_RACK_VALUE)
                     .setLgxPortShelf("00")
                     .build())
-                .setIndex(Uint8.ZERO)
-                .build()));
+                .build());
         if (serviceFormat.equals(ServiceFormat.ODU)) {
             serviceZEndBuilder.setOduServiceRate(ODU4.class);
         }
@@ -1491,11 +1475,12 @@ public final class ConnectivityUtils {
         }
         if (!serviceLayer.equals(LayerProtocolName.ETH)) {
             serviceZEndBuilder
-                .setEthernetAttributes(new EthernetAttributesBuilder().setSubrateEthSla(new SubrateEthSlaBuilder()
-                    .setCommittedBurstSize(Uint16.valueOf(64))
-                    .setCommittedInfoRate(Uint32.valueOf(100000))
-                    .build())
-                .build());
+                .setSubrateEthSla(new SubrateEthSlaBuilder().setSubrateEthSla(new org.opendaylight.yang.gen.v1.http
+                    .org.openroadm.common.service.types.rev190531.subrate.eth.sla.SubrateEthSlaBuilder()
+                        .setCommittedBurstSize(Uint16.valueOf(64))
+                        .setCommittedInfoRate(Uint32.valueOf(100000))
+                        .build())
+                    .build());
         }
         return serviceZEndBuilder.build();
     }
@@ -1551,14 +1536,7 @@ public final class ConnectivityUtils {
             .setOpticType(OpticTypes.Gray)
             .setServiceFormat(serviceFormat)
             .setServiceRate(Uint32.valueOf(capacity))
-            .setEthernetAttributes(new EthernetAttributesBuilder().setSubrateEthSla(
-                        new org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.subrate.eth
-                            .sla.SubrateEthSlaBuilder()
-                    .setCommittedBurstSize(Uint16.valueOf(64))
-                    .setCommittedInfoRate(Uint32.valueOf(100000))
-                    .build())
-                .build())
-            .setTxDirection(Map.of(new TxDirectionKey(Uint8.ZERO), new TxDirectionBuilder()
+            .setTxDirection(new TxDirectionBuilder()
                 .setPort(new PortBuilder()
                     .setPortDeviceName(txPortDeviceName)
                     .setPortName(txPortName)
@@ -1572,9 +1550,8 @@ public final class ConnectivityUtils {
                     .setLgxPortRack(TapiStringConstants.PORT_RACK_VALUE)
                     .setLgxPortShelf("00")
                     .build())
-                .setIndex(Uint8.ZERO)
-                .build()))
-            .setRxDirection(Map.of(new RxDirectionKey(Uint8.ZERO), new RxDirectionBuilder()
+                .build())
+            .setRxDirection(new RxDirectionBuilder()
                 .setPort(new PortBuilder()
                     .setPortDeviceName(rxPortDeviceName)
                     .setPortName(rxPortName)
@@ -1588,8 +1565,7 @@ public final class ConnectivityUtils {
                     .setLgxPortRack(TapiStringConstants.PORT_RACK_VALUE)
                     .setLgxPortShelf("00")
                     .build())
-                .setIndex(Uint8.ZERO)
-                .build()));
+                .build());
         if (serviceFormat.equals(ServiceFormat.ODU)) {
             serviceAEndBuilder.setOduServiceRate(ODU4.class);
         }
@@ -1598,11 +1574,12 @@ public final class ConnectivityUtils {
         }
         if (!serviceLayer.equals(LayerProtocolName.ETH)) {
             serviceAEndBuilder
-                .setEthernetAttributes(new EthernetAttributesBuilder().setSubrateEthSla(new SubrateEthSlaBuilder()
-                    .setCommittedBurstSize(Uint16.valueOf(64))
-                    .setCommittedInfoRate(Uint32.valueOf(100000))
-                    .build())
-                .build());
+                .setSubrateEthSla(new SubrateEthSlaBuilder().setSubrateEthSla(new org.opendaylight.yang.gen.v1.http
+                    .org.openroadm.common.service.types.rev190531.subrate.eth.sla.SubrateEthSlaBuilder()
+                        .setCommittedBurstSize(Uint16.valueOf(64))
+                        .setCommittedInfoRate(Uint32.valueOf(100000))
+                        .build())
+                    .build());
         }
         return serviceAEndBuilder.build();
     }
