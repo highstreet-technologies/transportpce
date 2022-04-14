@@ -1,4 +1,5 @@
 import json
+
 from .odlclient import OdlClient
 
 URI_CONFIG_ORDM_TOPO = "/restconf/config/ietf-network:networks/network/openroadm-topology/"
@@ -140,4 +141,3 @@ class TrpceOdlClient(OdlClient):
         else:
             print('unable to read ietf network nodes for '+networkId+'. response code '+str(response.code))
         return list
-    

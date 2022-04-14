@@ -1,7 +1,8 @@
-import urllib3
-import certifi
-import json
 import base64
+import json
+
+import urllib3
+
 urllib3.disable_warnings()
 class OdlResponse:
 

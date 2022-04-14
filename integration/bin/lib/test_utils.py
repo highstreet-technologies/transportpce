@@ -9,15 +9,14 @@
 ##############################################################################
 import json
 import os
-import sys
 import re
 import signal
 import subprocess
+import sys
 import time
 
 import psutil
 import requests
-
 import simulators
 
 SIMS = simulators.SIMS

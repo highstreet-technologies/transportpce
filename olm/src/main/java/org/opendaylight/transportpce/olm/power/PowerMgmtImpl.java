@@ -40,6 +40,10 @@ public class PowerMgmtImpl implements PowerMgmt {
     private final OpenRoadmInterfaces openRoadmInterfaces;
     private final CrossConnect crossConnect;
     private final DeviceTransactionManager deviceTransactionManager;
+    private long timer1 = 120000;
+    // openroadm spec value is 120000, functest value is 3000
+    private long timer2 = 20000;
+    // openroadm spec value is 20000, functest value is 2000
 
     public PowerMgmtImpl(DataBroker db, OpenRoadmInterfaces openRoadmInterfaces,
                          CrossConnect crossConnect, DeviceTransactionManager deviceTransactionManager) {
@@ -47,6 +51,26 @@ public class PowerMgmtImpl implements PowerMgmt {
         this.openRoadmInterfaces = openRoadmInterfaces;
         this.crossConnect = crossConnect;
         this.deviceTransactionManager = deviceTransactionManager;
+    }
+
+    public PowerMgmtImpl(DataBroker db, OpenRoadmInterfaces openRoadmInterfaces, CrossConnect crossConnect,
+            DeviceTransactionManager deviceTransactionManager, String timer1, String timer2) {
+        this.db = db;
+        this.openRoadmInterfaces = openRoadmInterfaces;
+        this.crossConnect = crossConnect;
+        this.deviceTransactionManager = deviceTransactionManager;
+        try {
+            this.timer1 = Long.parseLong(timer1);
+        } catch (NumberFormatException e) {
+            this.timer1 = 120000;
+            LOG.warn("Failed to retrieve Olm timer1 value from configuration - using default value {}", this.timer1, e);
+        }
+        try {
+            this.timer2 = Long.parseLong(timer2);
+        } catch (NumberFormatException e) {
+            this.timer2 = 20000;
+            LOG.warn("Failed to retrieve Olm timer2 value from configuration - using default value {}", this.timer2, e);
+        }
     }
 
     /**
@@ -61,6 +85,7 @@ public class PowerMgmtImpl implements PowerMgmt {
      */
     //TODO Need to Case Optical Power mode/NodeType in case of 2.2 devices
     //@SuppressFBwarnings("DM_CONVERT_CASE")
+    @Override
     public Boolean setPower(ServicePowerSetupInput input) {
         LOG.info("Olm-setPower initiated for input {}", input);
         int lowerSpectralSlotNumber = input.getLowerSpectralSlotNumber().intValue();
@@ -142,7 +167,7 @@ public class PowerMgmtImpl implements PowerMgmt {
                                     LOG.info("Transponder OCH connection: {} power updated ", interfaceName);
                                     try {
                                         LOG.info("Now going in sleep mode");
-                                        Thread.sleep(OlmUtils.OLM_TIMER_1);
+                                        Thread.sleep(timer1);
                                     } catch (InterruptedException e) {
                                         LOG.info("Transponder warmup failed for OCH connection: {}", interfaceName, e);
                                     }
@@ -157,7 +182,7 @@ public class PowerMgmtImpl implements PowerMgmt {
                                     openroadmVersion)) {
                                     LOG.info("Transponder OCH connection: {} power updated ", interfaceName);
                                     try {
-                                        Thread.sleep(OlmUtils.OLM_TIMER_1);
+                                        Thread.sleep(timer1);
                                     } catch (InterruptedException e) {
                                         // TODO Auto-generated catch block
                                         LOG.info("Transponder warmup failed for OCH connection: {}", interfaceName, e);
@@ -173,7 +198,7 @@ public class PowerMgmtImpl implements PowerMgmt {
                             if (callSetTransponderPower(nodeId, interfaceName, new BigDecimal(-5),openroadmVersion)) {
                                 LOG.info("Transponder OCH connection: {} power updated ", interfaceName);
                                 try {
-                                    Thread.sleep(OlmUtils.OLM_TIMER_1);
+                                    Thread.sleep(timer1);
                                 } catch (InterruptedException e) {
                                     // TODO Auto-generated catch block
                                     LOG.info("Transponder warmup failed for OCH connection: {}", interfaceName, e);
@@ -291,7 +316,7 @@ public class PowerMgmtImpl implements PowerMgmt {
                                 //The value recommended by the white paper is 20 seconds and not 60.
                                 //TODO - commented code because one vendor is not supporting
                                 //GainLoss with target-output-power
-                                Thread.sleep(OlmUtils.OLM_TIMER_1);
+                                Thread.sleep(timer1);
                                 crossConnect.setPowerLevel(nodeId, OpticalControlMode.GainLoss.getName(), powerValue,
                                         connectionNumber);
                             } else {
@@ -336,6 +361,7 @@ public class PowerMgmtImpl implements PowerMgmt {
      *
      * @return true/false based on status of operation
      */
+    @Override
     public Boolean powerTurnDown(ServicePowerTurndownInput input) {
         LOG.info("Olm-powerTurnDown initiated for input {}", input);
         /*Starting with last element into the list Z -> A for
@@ -360,7 +386,7 @@ public class PowerMgmtImpl implements PowerMgmt {
                         LOG.warn("Power down failed for Roadm-connection: {}", connectionNumber);
                         return false;
                     }
-                    Thread.sleep(OlmUtils.OLM_TIMER_2);
+                    Thread.sleep(timer2);
                     if (! crossConnect.setPowerLevel(nodeId, OpticalControlMode.Off.getName(), null,
                         connectionNumber)) {
                         LOG.warn("Setting power-control mode off failed for Roadm-connection: {}", connectionNumber);

@@ -14,17 +14,19 @@ services:
       - TRANSPORTPCE_SIMULATOR_MODE=false
     ports: 
       - '18181:8181'
+    volumes:
+      - ./conf/org.opendaylight.transportpce.cfg:/opt/opendaylight/etc/org.opendaylight.transportpce.cfg
 #    depends_on: 
 #      - sdnr
-  transportpce-gui:
-    image: odl/transportpce-gui
-    environment: 
-      - IETF_NETWORK_BASEURL=http://transportpce:8181
-      - TRANSPORTPCE_BASEURL=http://transportpce:8181
-    ports:
-      - '18082:8082'
-    depends_on: 
-      - transportpce
+#  transportpce-gui:
+#    image: odl/transportpce-gui
+#    environment:
+#      - IETF_NETWORK_BASEURL=http://transportpce:8181
+#      - TRANSPORTPCE_BASEURL=http://transportpce:8181
+#    ports:
+#      - '18082:8082'
+#    depends_on:
+#      - transportpce
 #  sdncweb:
 #    image: nexus3.onap.org:10001/onap/sdnc-web-image:latest
 #    image: 10.20.6.10:30000/hightec/sdnc-web-image:2.0.0-SNAPSHOT-20200731T064656Z
