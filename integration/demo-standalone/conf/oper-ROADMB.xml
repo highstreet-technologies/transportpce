@@ -403,7 +403,7 @@
       <curr-duplex>FULL</curr-duplex>
     </ethernet>
   </interface>
-  <!--<protocols>
+  <protocols>
     <lldp xmlns="http://org/openroadm/lldp">
       <global-config>
         <adminStatus>enable</adminStatus>
@@ -441,7 +441,7 @@
         <adminStatus>txandrx</adminStatus>
       </port-config>
     </lldp>
-  </protocols>-->
+  </protocols>
 
   <degree>
     <degree-number>1</degree-number>
