@@ -1,4 +1,4 @@
-# TransportPCE with ONAP
+# OPTICON: TransportPCE with ONAP
 
 ## Prerequisites
 

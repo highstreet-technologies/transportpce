@@ -10,9 +10,7 @@ Just config the params in the ```.env``` file.
 ```
 REMOTE_ODL_ENABLED=true
 ```
-### Create the device models for Germany-17 backbone network
-Execute script integration/bin/createNTSdevices.py. Device models w.r.t ROADMs and XPDRS should be created inside the folder _integration/demo-standalone/conf-generated_. There should be also a docker-compose file created as integration/demo-standalone/docker-compose-germany17.yml.
-In case the original docker-compose file contains the simple topology used for transportPCE testing, rename it to something else and rename docker-compose-germany17.yml to docker-compose.yml
+
 ## How to start
 
 ```
@@ -50,4 +48,28 @@ for remote enabled=true
 if it fails and you need logs
 ```
 ../bin/integration.py getlogs
+```
+
+
+### End2End for Germany-17 backbone network
+
+ * autogenereate the data models for the roadms and xpdrs
+```
+../bin/createNTSdevices.py \
+  --nodes topology-info/Nodes_Germany_17.json \
+  --links topology-info/Links_Germany_17.json \
+  --profile profiles/sims/germany-17.json \
+  --output-folder demo-standalone/conf-generated
+
+```
+ * edit the sim-deployment/hosts.ini
+
+ * deploy simulators with the models
+```
+python3 sim-deployment deploy demo-standalone/conf-generated
+```
+
+ * run end2end test with crteated profile
+```
+../bin/integration.py test end2endbb --profile germany-17
 ```

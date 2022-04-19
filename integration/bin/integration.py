@@ -16,10 +16,8 @@ from tests.mountingtest import MountingTest
 from tests.end2endtest import End2EndTest
 from tests.end2endtest4bbnet import End2EndTestBBNet
 from lib.siminfo import SimulatorInfo
+from constants import *
 
-BIN_FOLDER="../bin"
-SIM_FOLDER="../configs/sims"
-CONTROLLER_FOLDER="../configs/controllers"
 class Integration:
 
     def getUrl(self,config):
@@ -51,18 +49,18 @@ class Integration:
                 else:
                     self.odlSdnrClients.append(client)
         # implemented for the backbone network service creation
-        if os.path.exists(SIM_FOLDER+'/rdmConfiguration.json'):
-            with open(SIM_FOLDER+'/rdmConfiguration.json', 'r') as f:
+        if os.path.exists(PROFILES_SIM_FOLDER+'/rdmConfiguration.json'):
+            with open(PROFILES_SIM_FOLDER+'/rdmConfiguration.json', 'r') as f:
                 self.rdmInternalConfig = json.load(f)
             f.close()
 
-    def resolveFile(self, filename):
-        return os.path.dirname(__file__)+"/"+filename
+    # def resolveFile(self, filename):
+    #     return os.path.dirname(__file__)+"/"+filename
 
     def loadControllerConfig(self):
         data=None
         regex = r"\$\{([^}]+)\}"
-        with open(self.resolveFile(CONTROLLER_FOLDER+'/'+self.profile+'.json'),'r') as fp:
+        with open(PROFILES_CONTROLLER_FOLDER+'/'+self.profile+'.json','r') as fp:
             content=fp.read()
             matches = re.finditer(regex, content, re.MULTILINE)
             for matchNum, match in enumerate(matches, start=1):
@@ -133,9 +131,9 @@ class Integration:
             print(info.name.ljust(20)+status)
 
     def collectSimInfos(self):
-        mode = self.profile
+        profile = self.profile
         sims = []
-        with open(self.resolveFile(SIM_FOLDER+"/"+mode+".json"), "r") as file:
+        with open(PROFILES_SIM_FOLDER+"/"+profile+".json", "r") as file:
             tmp=json.load(file)
             for sim in tmp:
                 host=sim['host']
