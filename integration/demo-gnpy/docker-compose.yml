@@ -1,7 +1,8 @@
 version: '3'
 services:
     transportpce:
-        image: odl/vanilla-transportpce
+        # hint: this is the distribution of the stable/phosphorus branch
+        image: odl/transportpce:4.2.0-STAGING-latest
         container_name: transportpce
         environment:
             - REMOTE_SDNRURL=${REMOTE_SDNR_URL}
