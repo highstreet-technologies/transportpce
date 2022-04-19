@@ -15,41 +15,7 @@ services:
       - '18181:8181'
     volumes:
       - ./conf/org.opendaylight.transportpce.cfg:/opt/opendaylight/etc/org.opendaylight.transportpce.cfg
-#    depends_on: 
-#      - sdnr
-#  transportpce-gui:
-#    image: odl/transportpce-gui
-#    environment:
-#      - IETF_NETWORK_BASEURL=http://transportpce:8181
-#      - TRANSPORTPCE_BASEURL=http://transportpce:8181
-#    ports:
-#      - '18082:8082'
-#    depends_on:
-#      - transportpce
-#  sdncweb:
-#    image: nexus3.onap.org:10001/onap/sdnc-web-image:latest
-#    image: 10.20.6.10:30000/hightec/sdnc-web-image:2.0.0-SNAPSHOT-20200731T064656Z
-#    environment: 
-#      - SDNRHOST=sdnr
-#    depends_on: 
-#      - sdnr
-#  sdnr:
-#    image: nexus3.onap.org:10001/onap/sdnc-image:2.0.1-STAGING-20200914T034621Z
-#    image: hightec/sdnr-image-sodium:1.0.0-SNAPSHOT-20200720T171600Z
-#    environment: 
-#      - SDNRONLY=true
-#      - SDNRINIT=true
-#      - SDNRDM=true
-#      - SDNRWT=true
-#      - SDNRDBURL=http://sdnrdb:9200
-#      - SDNRWT_BOOTFEATURES=odl-netconf-callhome-ssh,sdnr-wt-feature-aggregator
-#    entrypoint: /opt/onap/sdnc/bin/startODL.oom.sh
-#    depends_on: 
-#      - sdnrdb
-#  sdnrdb:
-#    image: docker.elastic.co/elasticsearch/elasticsearch:7.1.1
-#    environment: 
-#      - discovery.type=single-node
+
   roadma:
     image: ${NTSIM_ROADM_STANDALONE_IMAGE}
     container_name: roadma
@@ -63,10 +29,9 @@ services:
     volumes: 
       - ./conf/ntsim_configuration.json:/opt/dev/scripts/configuration.json
       - ./conf/oper-ROADMA.xml:/opt/dev/scripts/startup-load.xml
-#    depends_on: 
-#      - sdnr
     ports: 
       - 50010:${SIMPORT}
+
   roadmb:
     image: ${NTSIM_ROADM_STANDALONE_IMAGE}
     container_name: roadmb
@@ -80,10 +45,9 @@ services:
     volumes: 
       - ./conf/ntsim_configuration.json:/opt/dev/scripts/configuration.json
       - ./conf/oper-ROADMB.xml:/opt/dev/scripts/startup-load.xml
-#    depends_on: 
-#      - sdnr
     ports: 
       - 50011:${SIMPORT}
+
   roadmc:
     image: ${NTSIM_ROADM_STANDALONE_IMAGE}
     container_name: roadmc
@@ -97,8 +61,6 @@ services:
     volumes: 
       - ./conf/ntsim_configuration.json:/opt/dev/scripts/configuration.json
       - ./conf/oper-ROADMC.xml:/opt/dev/scripts/startup-load.xml
-#    depends_on: 
-#      - sdnr  
     ports: 
       - 50012:${SIMPORT}
 
@@ -114,9 +76,7 @@ services:
       - IPv6Enabled=false
     volumes: 
       - ./conf/ntsim_configuration.json:/opt/dev/scripts/configuration.json
-      - ./conf/oper-XPDRA.xml:/opt/dev/scripts/startup-load.xml
-#    depends_on: 
-#      - sdnr   
+      - ./conf/oper-XPDRA.xml:/opt/dev/scripts/startup-load.xml  
     ports: 
       - 50013:${SIMPORT}
 
@@ -132,10 +92,6 @@ services:
       - IPv6Enabled=false
     volumes: 
       - ./conf/ntsim_configuration.json:/opt/dev/scripts/configuration.json
-      - ./conf/oper-XPDRC.xml:/opt/dev/scripts/startup-load.xml
-#    depends_on: 
-#      - sdnr
-                                          
+      - ./conf/oper-XPDRC.xml:/opt/dev/scripts/startup-load.xml                                          
     ports: 
       - 50014:${SIMPORT}
->>>>>>> 72321e2a... Timers for OLM PowerMgmt changed from static to configurable
