@@ -38,29 +38,5 @@
         "username":"netconf",
         "password":"netconf",
         "container":"xpdrc"
-    },
-       {
-        "node-id": "XPDR-B1",
-        "host": "",
-        "port": 830,
-        "username":"netconf",
-        "password":"netconf",
-        "container":"xpdrb"
-    },
-    {
-        "node-id": "ROADM-TEST",
-        "host": "",
-        "port": 830,
-        "username":"netconf",
-        "password":"netconf",
-        "container":"roadmtest"
-    },
-    {
-        "node-id": "XPDR-TEST",
-        "host": "",
-        "port": 830,
-        "username":"netconf",
-        "password":"netconf",
-        "container":"xpdrtest"
     }
 ]
