@@ -108,6 +108,11 @@ class TrpceOdlClient(OdlClient):
         response = self.requestRest(uri,'GET',self.defaultJsonHeaders,None)
         return response
 
+    def getServiceDetailed(self, serviceName):
+        uri = "/rests/data/transportpce-service-path:service-path-list/service-paths={}".format(serviceName)
+        response = self.requestRest(uri,'GET',self.defaultJsonHeaders,None)
+        return response
+
     def getOpenroadmTopology(self, suffix):
         return self.requestRest(URI_CONFIG_ORDM_TOPO+suffix,'GET',self.defaultJsonHeaders)
         

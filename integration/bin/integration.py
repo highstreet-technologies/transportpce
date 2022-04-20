@@ -17,6 +17,7 @@ from tests.end2endtest import End2EndTest
 from tests.end2endtest4bbnet import End2EndTestBBNet
 from lib.siminfo import SimulatorInfo
 from constants import *
+from typing import List
 
 class Integration:
 
@@ -155,6 +156,27 @@ class Integration:
 
         return SimulatorInfo("transportPCE", c.getIpAddress(),2830, "admin", "admin")
 
+    def getTransportPCEService(self, args:List):
+        response = self.odlTrpceClient.getServiceDetailed(args.pop(0))
+        if response.isSucceeded():
+            data = response.data['transportpce-service-path:service-paths'][0]
+            atoz = data['path-description']['aToZ-direction']
+            atozItems = atoz['aToZ']
+            atozItems.sort(key=lambda x: int(x['id']), reverse=False)
+            for item in atozItems:
+                if not 'node-id' in item['resource']:
+                    continue
+                print(item)
+            ztoa = data['path-description']['zToA-direction']
+            ztoAItems = ztoa['zToA']
+            ztoAItems.sort(key=lambda x: int(x['id']), reverse=False)
+            for item in ztoAItems:
+                if not 'node-id' in item['resource']:
+                    continue
+                print(item)
+            
+        else:
+            print('response-code: {}\n{}'.format(response.code,response.content))
 
     def openBrowser(self, url):
         subprocess.Popen("/usr/bin/xdg-open "+url+" >/dev/null 2>&1 &", shell=True)
@@ -370,7 +392,9 @@ if __name__ == "__main__":
         integration.openSdncWebBrowser()
     elif cmd == "webtrpce":
         integration.openTrpceGuiWebBrowser()
-    elif cmd == "apidocs":
+    elif cmd == "getservice":
+        integration.getTransportPCEService(sys.argv)
+    elif cmd == "apidocs" or cmd == "apidoc":
         if len(sys.argv) > 0:
             integration.openApidocsBrowser(sys.argv)
         else:
