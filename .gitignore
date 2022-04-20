@@ -48,3 +48,4 @@ integration/configs/controllers/demo*
 integration/**/conf-generated/*
 .env.*
 issues/
+integration/**/docker-compose-generated.yml

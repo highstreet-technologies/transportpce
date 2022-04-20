@@ -53,20 +53,27 @@ if it fails and you need logs
 
 ### End2End for Germany-17 backbone network
 
+ * additonal prerequisites:
+    * ansible
+
  * autogenereate the data models for the roadms and xpdrs
 ```
 ../bin/createNTSdevices.py \
-  --nodes topology-info/Nodes_Germany_17.json \
-  --links topology-info/Links_Germany_17.json \
-  --profile profiles/sims/germany-17.json \
+  --nodes ../topology-info/Nodes_Germany_17.json \
+  --links ../topology-info/Links_Germany_17.json \
+  --output-profile germany-17 \
   --output-folder demo-standalone/conf-generated
 
 ```
  * edit the sim-deployment/hosts.ini
 
+ * check that your remote hosts are accessable with ansible
+```
+ansible -i sim-deployment/hosts.ini -m ping all
+```
  * deploy simulators with the models
 ```
-python3 sim-deployment deploy demo-standalone/conf-generated
+python3 sim-deployment deploy --src demo-standalone/conf-generated --profile germany-17
 ```
 
  * run end2end test with crteated profile
