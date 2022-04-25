@@ -44,10 +44,12 @@ def runDestroy(targetHost: str, xmlFilename: str, sdnrBaseUrl: str,
     ])
 
 
-def printHelp():
+def printHelp(message=None):
+    if message is not None:
+        print(message)
     print("deploy or destroy roadm sim containers for transportpce network")
     print("usage:")
-    print("  python3 deploy-sims.py [{}] [folder-with-generated-xml-files]".
+    print("  python3 deploy-sims.py --src [folder-with-generated-xml-files] --profile [name-of-the-profile] [{}] ".
           format('|'.join(COMMANDS)))
 
 
@@ -114,17 +116,30 @@ def updateProfile(filename, xmlfile:str, host:str, port:int)->bool:
 
 
 args = sys.argv
-args.pop(0)
+if len(args)>0 and args[0].endswith('.py'):
+    args.pop(0)
+src = None
+profile = None
+newArgs=[]
+print(args)
+while len(args)>0:
+    arg = args.pop(0)
+    if arg == "--src":
+        src = args.pop(0)
+    elif arg == '--profile':
+        profile = args.pop(0)
+    else:
+        newArgs.append(arg)
+args=newArgs
 if len(args) < 1:
-    printHelp()
+    printHelp('no command given')
     exit(1)
 command = args.pop(0)
 if not command in COMMANDS:
-    printHelp()
+    printHelp('unknown command')
     exit(1)
 (hosts, odls) = loadHostsFile(HOSTSFILE)
-src = None
-profile = None
+
 if len(hosts) == 0:
     print(
         "ERR: no hosts found to deploy the simulators. please add at least one entry to the simulators section in hosts.ini"
@@ -143,16 +158,6 @@ if command == COMMAND_DESTROY_ALL:
             'docker rm -f $(docker ps -aq)'
         ])
     exit(0)
-if len(args) < 1:
-    printHelp()
-    exit(1)
-
-while len(args) > 0:
-    arg = args.pop(0)
-    if arg == "--src":
-        src = args.pop(0)
-    elif arg == '--profile':
-        profile = args.pop(0)
 
 if src is None:
     print("please add --src argument for the source folder")
