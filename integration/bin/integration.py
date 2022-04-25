@@ -19,6 +19,7 @@ from lib.siminfo import SimulatorInfo
 from constants import *
 from typing import List
 
+INTERNAL_ROADM_CONFIG=PROFILES_SIM_FOLDER+'/rdmConfiguration.json'
 class Integration:
 
     def getUrl(self,config):
@@ -50,11 +51,12 @@ class Integration:
                 else:
                     self.odlSdnrClients.append(client)
         # implemented for the backbone network service creation
-        if os.path.exists(PROFILES_SIM_FOLDER+'/rdmConfiguration.json'):
-            with open(PROFILES_SIM_FOLDER+'/rdmConfiguration.json', 'r') as f:
+        if os.path.exists(INTERNAL_ROADM_CONFIG):
+            with open(INTERNAL_ROADM_CONFIG, 'r') as f:
                 self.rdmInternalConfig = json.load(f)
             f.close()
-
+        else:
+            self.rdmInternalConfig=None
     # def resolveFile(self, filename):
     #     return os.path.dirname(__file__)+"/"+filename
 
@@ -197,13 +199,19 @@ class Integration:
             infos = self.dockerExec.inspect("transportpce")
             self.openBrowser("http://"+infos.getIpAddress()+":8181/apidoc/explorer/index.html")
 
-    def setLogs(self):
+    def setLogs(self,args=[]):
 
+        all=args.pop(0)=='all' if len(args)>0 else None
         tc = self.getTransportPCEContainer()
+        if all:
+            tc.exec("/opt/opendaylight/bin/client 'log:set DEBUG'")
+
         tc.exec("/opt/opendaylight/bin/client 'log:set DEBUG org.opendaylight.transportpce'")
         tc.exec("/opt/opendaylight/bin/client 'log:set TRACE org.onap.ccsdk.features.sdnr.wt'")
         if self.config.isRemoteEnabled():
             sc = self.getSdnrContainer()
+            if all:
+                sc.exec("/opt/opendaylight/bin/client 'log:set DEBUG'")
             sc.exec("/opt/opendaylight/bin/client 'log:set DEBUG org.onap.ccsdk.features.sdnr.wt'")
             sc.exec("/opt/opendaylight/bin/client 'log:set TRACE org.opendaylight.netconf'")    
         else:
@@ -287,6 +295,9 @@ class Integration:
                 self.getTransportPCEContainer(),self.collectSimInfos(),self.config)
             test.test(args)
         elif test == 'end2endbb':
+            if self.rdmInternalConfig is None:
+                print('unable to load roadm config {}'.format(INTERNAL_ROADM_CONFIG))
+                exit(1)
             test = End2EndTestBBNet(self.odlSdnrClients, self.primarySdncClient, self.odlTrpceClient,
                 self.getTransportPCEContainer(),self.collectSimInfos(),self.config, self.rdmInternalConfig)
             test.test(args)
@@ -376,7 +387,7 @@ if __name__ == "__main__":
     elif cmd == "isready":
         integration.waitForReadyState(sys.argv)
     elif cmd == "setlogs":
-        integration.setLogs()
+        integration.setLogs(sys.argv)
     elif cmd == "test":
         if len(sys.argv) > 0:
             integration.executeTest(sys.argv)

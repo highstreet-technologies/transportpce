@@ -20,7 +20,9 @@ class BaseTest:
         if self.config.doIgnoreReadyState():
             print("ignoring ready state by config")
             return True
+        print('waiting for ready state',end='',flush=True)
         while timeout>0:
+            print('.',end='',flush=True)
             if self.config.isRemoteEnabled():
                 ready = self.trpceClient.isReady()
                 if ready:
@@ -31,9 +33,11 @@ class BaseTest:
             else:
                 ready = self.trpceClient.isReady()
             if ready:
+                print('success')
                 return True
             timeout-=1
             time.sleep(1)
+        print('failed')
         return False
 
     def waitForConnectedState(self, timeout=60):

@@ -295,14 +295,10 @@ class End2EndTest(BaseTest):
         # Config ROADMA-ROADMC oms-attributes
         data = {
             "span": {
-                "auto-spanloss":
-                "true",
-                "spanloss-base":
-                11.4,
-                "spanloss-current":
-                12,
-                "engineered-spanloss":
-                12.2,
+                "auto-spanloss": "true",
+                "spanloss-base": 11.4,
+                "spanloss-current": 12,
+                "engineered-spanloss": 12.2,
                 "link-concatenation": [{
                     "SRLG-Id": 0,
                     "fiber-type": "smf",
@@ -318,28 +314,34 @@ class End2EndTest(BaseTest):
 
         #add_omsAttributes_ROADMC_ROADMA
         # Config ROADMC-ROADMA oms-attributes
-        data = {
-            "span": {
-                "auto-spanloss":
-                "true",
-                "spanloss-base":
-                11.4,
-                "spanloss-current":
-                12,
-                "engineered-spanloss":
-                12.2,
-                "link-concatenation": [{
-                    "SRLG-Id": 0,
-                    "fiber-type": "smf",
-                    "SRLG-length": 100000,
-                    "pmd": 0.5
-                }]
-            }
-        }
         response = self.trpceClient.addOmsAttributes(
             "ROADM-C1-DEG1-DEG1-TTP-TXRXtoROADM-A1-DEG2-DEG2-TTP-TXRX", data)
         if not response.isSucceeded():
             return False
+        
+        # Config ROADMA-ROADMB oms-attributes
+        response = self.trpceClient.addOmsAttributes(
+            "ROADM-A1-DEG1-DEG1-TTP-TXRXtoROADM-B1-DEG1-DEG1-TTP-TXRX", data)
+        if not response.isSucceeded():
+            return False
+        
+        # Config ROADMB-ROADMA oms-attributes
+        response = self.trpceClient.addOmsAttributes(
+            "ROADM-B1-DEG1-DEG1-TTP-TXRXtoROADM-A1-DEG1-DEG1-TTP-TXRX", data)
+        if not response.isSucceeded():
+            return False
+         # Config ROADMC-ROADMB oms-attributes
+        response = self.trpceClient.addOmsAttributes(
+            "ROADM-C1-DEG2-DEG2-TTP-TXRXtoROADM-B1-DEG2-DEG2-TTP-TXRX", data)
+        if not response.isSucceeded():
+            return False
+        
+        # Config ROADMB-ROADMC oms-attributes
+        response = self.trpceClient.addOmsAttributes(
+            "ROADM-B1-DEG2-DEG2-TTP-TXRXtoROADM-C1-DEG2-DEG2-TTP-TXRX", data)
+        if not response.isSucceeded():
+            return False
+        
         return True
 
     def createService1(self):
