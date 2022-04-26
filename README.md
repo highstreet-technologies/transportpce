@@ -11,7 +11,7 @@
 
  * build artifacts
 ```
-mvn clean install -DskipTests
+mvn clean install -DskipTests -s settings_onap.xml
 ```
   * build docker image
 ```
