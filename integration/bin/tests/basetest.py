@@ -33,7 +33,7 @@ class BaseTest:
             else:
                 ready = self.trpceClient.isReady()
             if ready:
-                print('success')
+                print('succeeded')
                 return True
             timeout-=1
             time.sleep(1)
@@ -41,7 +41,9 @@ class BaseTest:
         return False
 
     def waitForConnectedState(self, timeout=60):
+        print('waiting for connected state',end='',flush=True)
         while timeout>0:
+            print('.',end='',flush=True)
             allConnected = True
             idx=0
             for sim in self.sims:
@@ -56,18 +58,19 @@ class BaseTest:
                     break
             
             if allConnected:
+                print('succeeded')
                 return True
             timeout-=1
             time.sleep(1)
-
+        print('failed')
         return False
 
-    def urlencode(self, str):
-        return urllib.parse.quote_plus(str)
+    def urlencode(self, s:str):
+        return urllib.parse.quote_plus(s)
 
-    def testString(self, str, regex):
+    def testString(self, s:str, regex):
         pattern = re.compile(regex)
-        return pattern.search(str) != None
+        return pattern.search(s) != None
 
     def assertIn(self, const, data):
         if type(data) == str:

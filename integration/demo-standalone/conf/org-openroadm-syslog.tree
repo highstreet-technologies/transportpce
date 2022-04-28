@@ -1,0 +1,25 @@
+module: org-openroadm-syslog
+  +--rw syslog
+     +--ro local-syslog-filename    string
+     +--rw log-actions
+        +--rw remote
+           +--rw destination* [name]
+              +--rw name            string
+              +--rw (transport)
+              |  +--:(tcp)
+              |  |  +--rw tcp
+              |  |     +--rw address?   ietf-inet-types:host
+              |  |     +--rw port?      ietf-inet-types:port-number <514>
+              |  +--:(udp)
+              |     +--rw udp
+              |        +--rw address?   ietf-inet-types:host
+              |        +--rw port?      ietf-inet-types:port-number <514>
+              +--rw log-selector
+                 +--rw (selector-facility)
+                    +--:(no-log-facility)
+                    |  +--rw no-facilities?   empty
+                    +--:(log-facility)
+                       +--rw log-facility* [facility]
+                          +--rw facility             union
+                          +--rw severity             severity
+                          +--rw severity-operator?   enumeration <equals-or-higher> {selector-sevop-config}?
