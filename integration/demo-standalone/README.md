@@ -45,7 +45,7 @@ if it fails and you need logs
 ### End2End for Germany-17 backbone network
 
  * additonal prerequisites:
-    * ansible
+    * ansible (pls install with pip)
 
  * autogenereate the data models for the roadms and xpdrs
 ```
