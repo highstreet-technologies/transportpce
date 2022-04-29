@@ -49,3 +49,5 @@ integration/**/conf-generated/*
 .env.*
 issues/
 integration/**/docker-compose-generated.yml
+integration/**/*-running.xml
+integration/**/*-operational.xml
