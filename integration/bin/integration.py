@@ -85,9 +85,12 @@ class Integration:
         return self.odlTrpceClient
     
     def mount(self, args):
+        deviceName = args.pop(0) if len(args)>0 else None
         infos = self.collectSimInfos()
         idx=0
         for info in infos:
+            if deviceName is not None and info.name != deviceName:
+                continue
             if self.config.getEnv("REMOTE_ODL_ENABLED") == "true":
                  self.getSdnrClient(idx).mount(info.name, info.ip, info.port, info.username, info.password)
             else:
