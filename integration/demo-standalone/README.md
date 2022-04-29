@@ -18,22 +18,13 @@ docker-compose up -d
 ```
 
 ## Tests
-### To test with the Germany-17 network, change default profile to germany profile by using
-```
---profile "germany-17"
-```
-### Mount remotely
-
-```
-../bin/integration.py --profile "germany-17" mount
-```
 
 ### End2End test
 
 For creation of service 1
 
 ```
-../bin/integration.py  --profile "germany-17"  test end2end
+../bin/integration.py test end2end
 ```
 for remote enabled=true
 ```
@@ -73,7 +64,8 @@ ansible -i sim-deployment/hosts.ini -m ping all
 ```
  * deploy simulators with the models
 ```
-python3 sim-deployment deploy --src demo-standalone/conf-generated --profile germany-17
+cd sim-deployment
+./deploy-sims.py deploy --src ../demo-standalone/conf-generated/ --profile germany-17
 ```
 
  * run end2end test with crteated profile
