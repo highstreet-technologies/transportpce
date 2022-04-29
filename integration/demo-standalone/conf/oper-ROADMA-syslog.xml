@@ -1,0 +1,19 @@
+
+<syslog xmlns="http://org/openroadm/syslog">
+  <local-syslog-filename>log.txt</local-syslog-filename>
+  <log-actions>
+    <remote>
+      <destination>
+        <name/>
+        <tcp>
+          <address>10.20.30.40</address>
+          <port>514</port>
+        </tcp>
+        <log-selector>
+          <no-facilities/>
+        </log-selector>
+      </destination>
+    </remote>
+  </log-actions>
+</syslog>
+  
