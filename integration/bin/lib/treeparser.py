@@ -4,10 +4,11 @@ from typing import List
 
 class TreeNode:
 
-    def __init__(self, name, access, mandatory) -> None:
+    def __init__(self, name, access, mandatory, listKey=None) -> None:
         self.name = name
         self.access = access
         self.mandatory = mandatory
+        self.listKey = listKey
         self.children=[]
 
     def addChild(self, child):
@@ -16,19 +17,21 @@ class TreeNode:
         return len(self.children)<=0
     def isReadOnly(self):
         return self.access=='ro'
+    def isList(self):
+        return self.listKey is not None
 
     def __str__(self) -> str:
         schildren=[]
         for child in self.children:
             schildren.append(str(child))
-        return 'TreeNode[name={}, access={}, mandatory={}]'.format(
-            self.name, self.access, self.mandatory, ','.join(schildren))
+        return 'TreeNode[name={}, access={}, mandatory={}, listKey={}]'.format(
+            self.name, self.access, self.mandatory, self.listKey)
 
 class TreeFile:
 
     baseIndent=3
     regexModule = r"^module:\ ([^ ]+)$"
-    regexProperty = r"^([\s\|]+)\+--(rw|ro)\s([^\s\?]+)(\?)?"
+    regexProperty = r"^([\s\|]+)\+--(rw|ro)\s([^\s\?\*]+)([\?\*])?\s?(\[([^\]]+)\])?"
     def __init__(self, filename) -> None:
         self.filename = filename
         self.rootNodes:List[TreeNode]=[]
@@ -71,17 +74,23 @@ class TreeFile:
                 break
             (indent, node) = TreeFile.parseLine(line)
             if indent is None:
-                return False
+                return (None, None)
             if indent==rootIndent or curNode is None:
                 parentNode.addChild(node)
                 curNode=node
             elif indent == rootIndent+TreeFile.baseIndent:
                 curNode.addChild(node)
-                if not TreeFile.parseInnerTree(fp, node, curNode, indent):
-                    return False
+                (tmpIndent, tmp) = TreeFile.parseInnerTree(fp, node, curNode, indent)
+                if tmp is None:
+                    return (None, None)
+                if tmpIndent==rootIndent:
+                    parentNode.addChild(tmp)
+                    curNode = tmp
+                else:
+                    return (tmpIndent, tmp)
             else: 
                 break
-        return True
+        return (indent, node)
 
 
     @staticmethod
@@ -98,7 +107,9 @@ class TreeFile:
         else:
             indent=len(match.group(1))
             x = len(match.groups())
-            node=TreeNode(match.group(3),match.group(2),(not match.group(4)=='?') if x>=4 else True)
+            node=TreeNode(match.group(3),match.group(2),
+                (not match.group(4)=='?') if x>=4 else True, 
+                match.group(6) if x>=6 else None)
             return (indent, node)
 
 
