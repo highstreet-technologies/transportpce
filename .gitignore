@@ -51,3 +51,4 @@ issues/
 integration/**/docker-compose-generated.yml
 integration/**/*-running.xml
 integration/**/*-operational.xml
+integration/bin/codetest.py

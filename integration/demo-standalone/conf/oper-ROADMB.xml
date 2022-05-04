@@ -36,6 +36,22 @@
       <group>sudo</group>
     </user>
   </users>
+  <shelves>
+      <shelf-name>1</shelf-name>
+      <shelf-type>typeA</shelf-type>
+      <rack>Rack01</rack>
+      <vendor>VerdorA</vendor>
+      <model>ModelB</model>
+      <serial-id>123456789a</serial-id>
+  </shelves>
+  <shelves>
+      <shelf-name>2</shelf-name>
+      <shelf-type>typeA</shelf-type>
+      <rack>Rack01</rack>
+      <vendor>VerdorB</vendor>
+      <model>ModelA</model>
+      <serial-id>1233456789a</serial-id>
+  </shelves>
   <circuit-packs>
     <circuit-pack-name>1/0</circuit-pack-name>
     <is-pluggable-optics>true</is-pluggable-optics>
@@ -56,7 +72,7 @@
     </circuit-pack-category>
     <equipment-state>not-reserved-available</equipment-state>
     <circuit-pack-mode>inServiceMode</circuit-pack-mode>
-    <!-- <shelf>1</shelf> -->
+    <shelf>1</shelf>
     <slot>1</slot>
     <cp-slots>
       <slot-name>OSC-SLOT</slot-name>
@@ -152,7 +168,7 @@
     </circuit-pack-category>
     <equipment-state>not-reserved-available</equipment-state>
     <circuit-pack-mode>inServiceMode</circuit-pack-mode>
-    <!-- <shelf>1</shelf> -->
+    <shelf>1</shelf>
     <slot>1</slot>
     <subSlot>0</subSlot>
     <parent-circuit-pack>
@@ -186,7 +202,7 @@
     <hardware-version>01</hardware-version>
     <equipment-state>not-reserved-available</equipment-state>
     <circuit-pack-mode>NORMAL</circuit-pack-mode>
-    <!-- <shelf>2</shelf> -->
+    <shelf>2</shelf>
     <slot>0</slot>
     <subSlot>0</subSlot>
     <parent-circuit-pack>
@@ -223,7 +239,7 @@
     </circuit-pack-category>
     <equipment-state>not-reserved-available</equipment-state>
     <circuit-pack-mode>inServiceMode</circuit-pack-mode>
-    <!-- <shelf>1</shelf> -->
+    <shelf>1</shelf>
     <slot>2</slot>
     <cp-slots>
       <slot-name>OSC-SLOT</slot-name>
@@ -319,7 +335,7 @@
     </circuit-pack-category>
     <equipment-state>not-reserved-available</equipment-state>
     <circuit-pack-mode>inServiceMode</circuit-pack-mode>
-    <!-- <shelf>1</shelf> -->
+    <shelf>1</shelf>
     <slot>2</slot>
     <subSlot>0</subSlot>
     <parent-circuit-pack>
@@ -353,7 +369,7 @@
     <hardware-version>01</hardware-version>
     <equipment-state>not-reserved-available</equipment-state>
     <circuit-pack-mode>NORMAL</circuit-pack-mode>
-    <!-- <shelf>1</shelf> -->
+    <shelf>1</shelf>
     <slot>2</slot>
     <subSlot>0</subSlot>
     <parent-circuit-pack>

@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import sys
 import os
 import shutil
@@ -30,6 +31,8 @@ class RoadmModelSplitter:
     def recursiveRemoveROProperties(xmlFile:XmlFile, treeNodes:List[TreeNode], curXpath:str):
         for node in treeNodes:
             xpath='{}/{}'.format(curXpath, node.name)
+            if node.name =="org-openroadm-ethernet-interfaces:curr-speed":
+                print(xpath)
             if xpath.endswith('circuit-pack-category'):
                 x=1+2
             if node.isReadOnly():

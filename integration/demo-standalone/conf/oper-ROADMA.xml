@@ -1,4 +1,4 @@
-
+<?xml version="1.0" encoding="utf-8"?>
   <org-openroadm-device xmlns="http://org/openroadm/device">
      <info>
       <node-id>ROADM-A1</node-id>

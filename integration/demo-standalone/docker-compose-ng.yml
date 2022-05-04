@@ -20,7 +20,7 @@ services:
     image: ${NTSNG_IMAGE}
     container_name: roadma
     environment: 
-#      - NTS_NF_STANDALONE_START_FEATURES="datastore-populate"
+      - NTS_NF_STANDALONE_START_FEATURES="datastore-populate"
       - NTS_NF_MOUNT_POINT_ADDRESSING_METHOD=host-mapping # mapping types: host-mapping, docker-mapping
       - NTS_HOST_IP=${NTS_HOST_IP}
       - HOSTNAME=roadma
@@ -44,7 +44,7 @@ services:
     image: ${NTSNG_IMAGE}
     container_name: roadmb
     environment: 
-#      - NTS_NF_STANDALONE_START_FEATURES="datastore-populate"
+      - NTS_NF_STANDALONE_START_FEATURES="datastore-populate"
       - NTS_NF_MOUNT_POINT_ADDRESSING_METHOD=host-mapping # mapping types: host-mapping, docker-mapping
       - NTS_HOST_IP=${NTS_HOST_IP}
       - HOSTNAME=roadma
@@ -68,7 +68,7 @@ services:
     image: ${NTSNG_IMAGE}
     container_name: roadmc
     environment: 
-#      - NTS_NF_STANDALONE_START_FEATURES="datastore-populate"
+      - NTS_NF_STANDALONE_START_FEATURES="datastore-populate"
       - NTS_NF_MOUNT_POINT_ADDRESSING_METHOD=host-mapping # mapping types: host-mapping, docker-mapping
       - NTS_HOST_IP=${NTS_HOST_IP}
       - HOSTNAME=roadma
@@ -92,7 +92,7 @@ services:
     image: ${NTSNG_IMAGE}
     container_name: xpdra
     environment: 
-#      - NTS_NF_STANDALONE_START_FEATURES="datastore-populate"
+      - NTS_NF_STANDALONE_START_FEATURES="datastore-populate"
       - NTS_NF_MOUNT_POINT_ADDRESSING_METHOD=host-mapping # mapping types: host-mapping, docker-mapping
       - NTS_HOST_IP=${NTS_HOST_IP}
       - HOSTNAME=roadma
@@ -116,7 +116,7 @@ services:
     image: ${NTSNG_IMAGE}
     container_name: xpdrc
     environment: 
-#      - NTS_NF_STANDALONE_START_FEATURES="datastore-populate"
+      - NTS_NF_STANDALONE_START_FEATURES="datastore-populate"
       - NTS_NF_MOUNT_POINT_ADDRESSING_METHOD=host-mapping # mapping types: host-mapping, docker-mapping
       - NTS_HOST_IP=${NTS_HOST_IP}
       - HOSTNAME=roadma

@@ -7,7 +7,10 @@ class XPathComponent:
     def __init__(self, expr):
         matches = re.finditer(XPathComponent.regex, expr, re.DOTALL | re.IGNORECASE)
         match = next(matches)
-        self.name = match.group(1)
+        if ":" in match.group(1):
+            self.name = match.group(1).split(":")[1]
+        else:
+            self.name = match.group(1)
         tmp = match.group(3) if len(match.groups())>2 else None
         self.filter = tmp.split(',') if tmp is not None else [] 
 
@@ -64,7 +67,7 @@ class XPath:
     def equals(self, path, ignoreFilter=False, ignoreDeeper=False) -> bool:
         if not ignoreDeeper and (len(self.components) != len(path.components)):
             return False
-        if ignoreDeeper and len(self.components)>len(path.components):
+        if ignoreDeeper and (len(self.components) > len(path.components)):
             return False
         
         for i in range(len(self.components)):
