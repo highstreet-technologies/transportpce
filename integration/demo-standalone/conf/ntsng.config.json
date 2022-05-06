@@ -12,7 +12,7 @@
             "stdout": "log/netopeer-stdout.log",
             "stderr": "log/netopeer-stderr.log"
         },
-    
+
         "ntsim-network-function": {
             "path": "/opt/dev/ntsim-ng/ntsim-ng",
             "args": ["-w/opt/dev/ntsim-ng", "-f"],
@@ -22,7 +22,7 @@
 
     "datastore-random-generation-rules" : {
         "excluded-modules": [
-            "sysrepo", 
+            "sysrepo",
             "sysrepo-monitoring",
             "ietf-yang-library",
             "ietf-netconf-acm",
@@ -35,7 +35,7 @@
             "org-openroadm-syslog",
             "nts-network-function"
         ],
-        
+
         "default-list-instances": 1,
         "custom-list-instances" : []
     },
@@ -44,12 +44,14 @@
         "random-generation-enabled": false,
 
         "pre-generated-operational-data": [
-            "/opt/dev/deploy/data/org-openroadm-device-operational.xml"
+            "/opt/dev/deploy/data/org-openroadm-device-operational.xml",
+            "/opt/dev/deploy/data/org-openroadm-pm-operational.xml",
+            "/opt/dev/deploy/data/org-openroadm-syslog-operational.xml"
         ],
         "pre-generated-running-data": [
-            "/opt/dev/deploy/data/org-openroadm-device-running.xml"
-        ]
+            "/opt/dev/deploy/data/org-openroadm-device-running.xml" ,
+            "/opt/dev/deploy/data/org-openroadm-syslog-running.xml"]
     }
 
-    
+
 }

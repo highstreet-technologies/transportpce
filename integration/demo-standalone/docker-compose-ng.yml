@@ -19,7 +19,7 @@ services:
   roadma:
     image: ${NTSNG_IMAGE}
     container_name: roadma
-    environment: 
+    environment:
       - NTS_NF_STANDALONE_START_FEATURES="datastore-populate"
       - NTS_NF_MOUNT_POINT_ADDRESSING_METHOD=host-mapping # mapping types: host-mapping, docker-mapping
       - NTS_HOST_IP=${NTS_HOST_IP}
@@ -29,21 +29,20 @@ services:
       - TLS_CONNECTIONS=0
       - NTS_HOST_NETCONF_SSH_BASE_PORT=${SIMPORT}
       - NTS_HOST_NETCONF_TLS_BASE_PORT=65500
-    volumes: 
+    volumes:
       - ./conf/ntsng.config.json:/opt/dev/ntsim-ng/config/config.json
       - ./conf/oper-ROADMA-operational.xml:/opt/dev/deploy/data/org-openroadm-device-operational.xml
-      # - ./conf/oper-ROADMA-pm-operational.xml:/opt/dev/deploy/data/org-openroadm-pm-operational.xml
-      # - ./conf/oper-ROADMA-syslog-operational.xml:/opt/dev/deploy/data/org-openroadm-syslog-operational.xml
+      - ./conf/oper-ROADMA-pm-operational.xml:/opt/dev/deploy/data/org-openroadm-pm-operational.xml
       - ./conf/oper-ROADMA-running.xml:/opt/dev/deploy/data/org-openroadm-device-running.xml
-      # - ./conf/oper-ROADMA-pm-running.xml:/opt/dev/deploy/data/org-openroadm-pm-running.xml
-      # - ./conf/oper-ROADMA-syslog-running.xml:/opt/dev/deploy/data/org-openroadm-syslog-running.xml
-    ports: 
-      - 50010:${SIMPORT}
+      - ./conf/oper-ROADMA-syslog-operational.xml:/opt/dev/deploy/data/org-openroadm-syslog-operational.xml
+      - ./conf/oper-ROADMA-syslog-running.xml:/opt/dev/deploy/data/org-openroadm-syslog-running.xml
+    ports:
+      - 51000:${SIMPORT}
 
   roadmb:
     image: ${NTSNG_IMAGE}
     container_name: roadmb
-    environment: 
+    environment:
       - NTS_NF_STANDALONE_START_FEATURES="datastore-populate"
       - NTS_NF_MOUNT_POINT_ADDRESSING_METHOD=host-mapping # mapping types: host-mapping, docker-mapping
       - NTS_HOST_IP=${NTS_HOST_IP}
@@ -53,7 +52,7 @@ services:
       - TLS_CONNECTIONS=0
       - NTS_HOST_NETCONF_SSH_BASE_PORT=${SIMPORT}
       - NTS_HOST_NETCONF_TLS_BASE_PORT=65500
-    volumes: 
+    volumes:
       - ./conf/ntsng.config.json:/opt/dev/ntsim-ng/config/config.json
       - ./conf/oper-ROADMB-operational.xml:/opt/dev/deploy/data/org-openroadm-device-operational.xml
       # - ./conf/oper-ROADMB-pm-operational.xml:/opt/dev/deploy/data/org-openroadm-pm-operational.xml
@@ -61,13 +60,13 @@ services:
       - ./conf/oper-ROADMB-running.xml:/opt/dev/deploy/data/org-openroadm-device-running.xml
       # - ./conf/oper-ROADMB-pm-running.xml:/opt/dev/deploy/data/org-openroadm-pm-running.xml
       # - ./conf/oper-ROADMB-syslog-running.xml:/opt/dev/deploy/data/org-openroadm-syslog-running.xml
-    ports: 
+    ports:
       - 50011:${SIMPORT}
 
   roadmc:
     image: ${NTSNG_IMAGE}
     container_name: roadmc
-    environment: 
+    environment:
       - NTS_NF_STANDALONE_START_FEATURES="datastore-populate"
       - NTS_NF_MOUNT_POINT_ADDRESSING_METHOD=host-mapping # mapping types: host-mapping, docker-mapping
       - NTS_HOST_IP=${NTS_HOST_IP}
@@ -77,7 +76,7 @@ services:
       - TLS_CONNECTIONS=0
       - NTS_HOST_NETCONF_SSH_BASE_PORT=${SIMPORT}
       - NTS_HOST_NETCONF_TLS_BASE_PORT=65500
-    volumes: 
+    volumes:
       - ./conf/ntsng.config.json:/opt/dev/ntsim-ng/config/config.json
       - ./conf/oper-ROADMC-operational.xml:/opt/dev/deploy/data/org-openroadm-device-operational.xml
       # - ./conf/oper-ROADMC-pm-operational.xml:/opt/dev/deploy/data/org-openroadm-pm-operational.xml
@@ -85,13 +84,13 @@ services:
       - ./conf/oper-ROADMC-running.xml:/opt/dev/deploy/data/org-openroadm-device-running.xml
       # - ./conf/oper-ROADMC-pm-running.xml:/opt/dev/deploy/data/org-openroadm-pm-running.xml
       # - ./conf/oper-ROADMC-syslog-running.xml:/opt/dev/deploy/data/org-openroadm-syslog-running.xml
-    ports: 
+    ports:
       - 50012:${SIMPORT}
 
   xpdra:
     image: ${NTSNG_IMAGE}
     container_name: xpdra
-    environment: 
+    environment:
       - NTS_NF_STANDALONE_START_FEATURES="datastore-populate"
       - NTS_NF_MOUNT_POINT_ADDRESSING_METHOD=host-mapping # mapping types: host-mapping, docker-mapping
       - NTS_HOST_IP=${NTS_HOST_IP}
@@ -101,21 +100,21 @@ services:
       - TLS_CONNECTIONS=0
       - NTS_HOST_NETCONF_SSH_BASE_PORT=${SIMPORT}
       - NTS_HOST_NETCONF_TLS_BASE_PORT=65500
-    volumes: 
+    volumes:
       - ./conf/ntsng.config.json:/opt/dev/ntsim-ng/config/config.json
       - ./conf/oper-XPDRA-operational.xml:/opt/dev/deploy/data/org-openroadm-device-operational.xml
-      # - ./conf/oper-XPDRA-pm-operational.xml:/opt/dev/deploy/data/org-openroadm-pm-operational.xml
+     # - ./conf/oper-XPDRA-pm-operational.xml:/opt/dev/deploy/data/org-openroadm-pm-operational.xml
       # - ./conf/oper-XPDRA-syslog-operational.xml:/opt/dev/deploy/data/org-openroadm-syslog-operational.xml
       - ./conf/oper-XPDRA-running.xml:/opt/dev/deploy/data/org-openroadm-device-running.xml
-      # - ./conf/oper-XPDRA-pm-running.xml:/opt/dev/deploy/data/org-openroadm-pm-running.xml
+     # - ./conf/oper-XPDRA-pm-running.xml:/opt/dev/deploy/data/org-openroadm-pm-running.xml
       # - ./conf/oper-XPDRA-syslog-running.xml:/opt/dev/deploy/data/org-openroadm-syslog-running.xml
-    ports: 
+    ports:
       - 50013:${SIMPORT}
 
   xpdrc:
     image: ${NTSNG_IMAGE}
     container_name: xpdrc
-    environment: 
+    environment:
       - NTS_NF_STANDALONE_START_FEATURES="datastore-populate"
       - NTS_NF_MOUNT_POINT_ADDRESSING_METHOD=host-mapping # mapping types: host-mapping, docker-mapping
       - NTS_HOST_IP=${NTS_HOST_IP}
@@ -125,13 +124,13 @@ services:
       - TLS_CONNECTIONS=0
       - NTS_HOST_NETCONF_SSH_BASE_PORT=${SIMPORT}
       - NTS_HOST_NETCONF_TLS_BASE_PORT=65500
-    volumes: 
+    volumes:
       - ./conf/ntsng.config.json:/opt/dev/ntsim-ng/config/config.json
       - ./conf/oper-XPDRC-operational.xml:/opt/dev/deploy/data/org-openroadm-device-operational.xml
       # - ./conf/oper-XPDRC-pm-operational.xml:/opt/dev/deploy/data/org-openroadm-pm-operational.xml
       # - ./conf/oper-XPDRC-syslog-operational.xml:/opt/dev/deploy/data/org-openroadm-syslog-operational.xml
       - ./conf/oper-XPDRC-running.xml:/opt/dev/deploy/data/org-openroadm-device-running.xml
       # - ./conf/oper-XPDRC-pm-running.xml:/opt/dev/deploy/data/org-openroadm-pm-running.xml
-      # - ./conf/oper-XPDRC-syslog-running.xml:/opt/dev/deploy/data/org-openroadm-syslog-running.xml                           
-    ports: 
+      # - ./conf/oper-XPDRC-syslog-running.xml:/opt/dev/deploy/data/org-openroadm-syslog-running.xml
+    ports:
       - 50014:${SIMPORT}

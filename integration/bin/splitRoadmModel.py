@@ -14,10 +14,12 @@ class RoadmModelSplitter:
 
 
     def makeSplit(self, xmlFilename:str, treeFilename:str):
+        print("xmlFilename {}".format(xmlFilename))
         parser = TreeParser()
         treeFile = parser.parse(treeFilename)
-        runningXmlFilename='{}-running.xml'.format(xmlFilename.rstrip('.xml'))
-        operationalXmlFilename='{}-operational.xml'.format(xmlFilename.rstrip('.xml'))
+        runningXmlFilename='{}-running.xml'.format(xmlFilename.rstrip("xml").rstrip("."))
+        print("runningXmlFilename {}".format(runningXmlFilename))
+        operationalXmlFilename='{}-operational.xml'.format(xmlFilename.rstrip("xml").rstrip("."))
         if os.path.isfile(runningXmlFilename):
             os.remove(runningXmlFilename)
         if os.path.isfile(operationalXmlFilename):
