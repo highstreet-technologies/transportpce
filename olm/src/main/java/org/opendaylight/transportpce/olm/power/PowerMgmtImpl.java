@@ -137,14 +137,14 @@ public class PowerMgmtImpl implements PowerMgmt {
                         continue;
                     }
                     LOG.info("Transponder OCH connection: {} power updated ", interfaceName);
-                    try {
-                        LOG.info("Now going in sleep mode");
-                        Thread.sleep(timer1);
-                    } catch (InterruptedException e) {
-                        LOG.info("Transponder warmup failed for OCH connection: {}", interfaceName, e);
-                        // FIXME shouldn't it be LOG.warn  or LOG.error?
-                        // or maybe this try/catch block can simply be removed
-                    }
+//                    try {
+//                        LOG.info("Now going in sleep mode");
+//                        Thread.sleep(timer1);
+//                    } catch (InterruptedException e) {
+//                        LOG.info("Transponder warmup failed for OCH connection: {}", interfaceName, e);
+//                        // FIXME shouldn't it be LOG.warn  or LOG.error?
+//                        // or maybe this try/catch block can simply be removed
+//                    }
                     break;
                 case Rdm:
                     LOG.info("This is a roadm {} device", openroadmVersion.getName());

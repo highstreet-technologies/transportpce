@@ -22,8 +22,8 @@ import org.opendaylight.transportpce.common.device.DeviceTransactionManager;
 import org.opendaylight.transportpce.common.mapping.PortMapping;
 import org.opendaylight.transportpce.common.mapping.PortMappingVersion221;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220114.mapping.Mapping;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.circuit.pack.Ports;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.circuit.pack.PortsKey;
+//import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.circuit.pack.Ports;
+//import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.circuit.pack.PortsKey;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.circuit.packs.CircuitPacks;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.circuit.packs.CircuitPacksBuilder;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.circuit.packs.CircuitPacksKey;
@@ -31,11 +31,11 @@ import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.interfac
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.interfaces.grp.InterfaceBuilder;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.interfaces.grp.InterfaceKey;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.org.openroadm.device.container.OrgOpenroadmDevice;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.port.Interfaces;
+//import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.port.Interfaces;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.equipment.states.types.rev171215.AdminStates;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.equipment.states.types.rev171215.States;
 import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
-import org.opendaylight.yangtools.yang.binding.KeyedInstanceIdentifier;
+//import org.opendaylight.yangtools.yang.binding.KeyedInstanceIdentifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,7 +69,6 @@ public class OpenRoadmInterfacesImpl221 {
             throw new OpenRoadmInterfaceException(String.format("Failed to obtain device transaction for node %s!",
                 nodeId), e);
         }
-
         InstanceIdentifier<Interface> interfacesIID = InstanceIdentifier.create(OrgOpenroadmDevice.class).child(
             Interface.class, new InterfaceKey(ifBuilder.getName()));
         LOG.info("POST INTERF for {} : InterfaceBuilder : name = {} \t type = {}", nodeId, ifBuilder.getName(),
@@ -80,8 +79,9 @@ public class OpenRoadmInterfacesImpl221 {
         // TODO: instead of using this infinite loop coupled with this timeout,
         // it would be better to use a notification mechanism from the device to be advertised
         // that the new created interface is present in the device circuit-pack/port
-        final Thread current = Thread.currentThread();
+        /*        final Thread current = Thread.currentThread();
         Thread timer = new Thread() {
+            @Override
             public void run() {
                 try {
                     Thread.sleep(3000);
@@ -90,21 +90,21 @@ public class OpenRoadmInterfacesImpl221 {
                     LOG.error("Timeout before the new created interface appears on the deivce circuit-pack port", e);
                 }
             }
-        };
+        };*/
         try {
             txSubmitFuture.get();
             LOG.info("Successfully posted/deleted interface {} on node {}", ifBuilder.getName(), nodeId);
             // this check is not needed during the delete operation
             // during the delete operation, ifBuilder does not contain supporting-cp and supporting-port
-            if (ifBuilder.getSupportingCircuitPackName() != null && ifBuilder.getSupportingPort() != null) {
-                boolean devicePortIsUptodated = false;
-                while (!devicePortIsUptodated) {
-                    devicePortIsUptodated = checkIfDevicePortIsUpdatedWithInterface(nodeId, ifBuilder);
-                }
-                LOG.info("{} - {} - interface {} updated on port {}", nodeId, ifBuilder.getSupportingCircuitPackName(),
-                    ifBuilder.getName(), ifBuilder.getSupportingPort());
-            }
-            timer.interrupt();
+//            if (ifBuilder.getSupportingCircuitPackName() != null && ifBuilder.getSupportingPort() != null) {
+//                boolean devicePortIsUptodated = false;
+//                while (!devicePortIsUptodated) {
+//                    devicePortIsUptodated = checkIfDevicePortIsUpdatedWithInterface(nodeId, ifBuilder);
+//                }
+//             LOG.info("{} - {} - interface {} updated on port {}", nodeId, ifBuilder.getSupportingCircuitPackName(),
+//                    ifBuilder.getName(), ifBuilder.getSupportingPort());
+//            }
+//           timer.interrupt();
         } catch (InterruptedException | ExecutionException e) {
             throw new OpenRoadmInterfaceException(String.format("Failed to post interface %s on node %s!", ifBuilder
                 .getName(), nodeId), e);
@@ -259,20 +259,20 @@ public class OpenRoadmInterfacesImpl221 {
         }
     }
 
-    private boolean checkIfDevicePortIsUpdatedWithInterface(String nodeId, InterfaceBuilder ifBuilder) {
-        KeyedInstanceIdentifier<Ports, PortsKey> portIID = InstanceIdentifier.create(OrgOpenroadmDevice.class)
-            .child(CircuitPacks.class, new CircuitPacksKey(ifBuilder.getSupportingCircuitPackName()))
-            .child(Ports.class, new PortsKey(ifBuilder.getSupportingPort()));
-        Ports port = deviceTransactionManager.getDataFromDevice(nodeId, LogicalDatastoreType.OPERATIONAL,
-            portIID, Timeouts.DEVICE_READ_TIMEOUT, Timeouts.DEVICE_READ_TIMEOUT_UNIT).get();
-        if (port.getInterfaces() == null) {
-            return false;
-        }
-        for (Interfaces interf : port.getInterfaces()) {
-            if (interf.getInterfaceName().equals(ifBuilder.getName())) {
-                return true;
-            }
-        }
-        return false;
-    }
+//    private boolean checkIfDevicePortIsUpdatedWithInterface(String nodeId, InterfaceBuilder ifBuilder) {
+//        KeyedInstanceIdentifier<Ports, PortsKey> portIID = InstanceIdentifier.create(OrgOpenroadmDevice.class)
+//            .child(CircuitPacks.class, new CircuitPacksKey(ifBuilder.getSupportingCircuitPackName()))
+//            .child(Ports.class, new PortsKey(ifBuilder.getSupportingPort()));
+//        Ports port = deviceTransactionManager.getDataFromDevice(nodeId, LogicalDatastoreType.OPERATIONAL,
+//            portIID, Timeouts.DEVICE_READ_TIMEOUT, Timeouts.DEVICE_READ_TIMEOUT_UNIT).get();
+//        if (port.getInterfaces() == null) {
+//            return false;
+//        }
+//        for (Interfaces interf : port.getInterfaces()) {
+//            if (interf.getInterfaceName().equals(ifBuilder.getName())) {
+//                return true;
+//            }
+//        }
+//        return false;
+//    }
 }
