@@ -384,12 +384,11 @@ class End2EndTestBBNet(BaseTest):
                 "connection-type": "service",
                 "service-a-end": {
                     "service-rate": "100",
-                    "node-id": "XPDR-EsseDort",
+                    "node-id": "XPDR-HammBerl",
                     "service-format": "Ethernet",
                     "clli": "SNJSCAMCJP8",
                     "tx-direction": {
                         "port": {
-                            "port-device-name": "ROUTER_SNJSCAMCJP8_000000.00_00",
                             "port-type": "router",
                             "port-name": "Gigabit Ethernet_Tx.ge-5/0/0.0",
                             "port-rack": "000000.00",
@@ -404,7 +403,6 @@ class End2EndTestBBNet(BaseTest):
                     },
                     "rx-direction": {
                         "port": {
-                            "port-device-name": "ROUTER_SNJSCAMCJP8_000000.00_00",
                             "port-type": "router",
                             "port-name": "Gigabit Ethernet_Rx.ge-5/0/0.0",
                             "port-rack": "000000.00",
@@ -421,12 +419,11 @@ class End2EndTestBBNet(BaseTest):
                 },
                 "service-z-end": {
                     "service-rate": "100",
-                    "node-id": "XPDR-BerlHann",
+                    "node-id": "XPDR-BerlHamm",
                     "service-format": "Ethernet",
                     "clli": "SNJSCAMCJT4",
                     "tx-direction": {
                         "port": {
-                            "port-device-name": "ROUTER_SNJSCAMCJT4_000000.00_00",
                             "port-type": "router",
                             "port-name": "Gigabit Ethernet_Tx.ge-1/0/0.0",
                             "port-rack": "000000.00",
@@ -441,7 +438,6 @@ class End2EndTestBBNet(BaseTest):
                     },
                     "rx-direction": {
                         "port": {
-                            "port-device-name": "ROUTER_SNJSCAMCJT4_000000.00_00",
                             "port-type": "router",
                             "port-name": "Gigabit Ethernet_Rx.ge-1/0/0.0",
                             "port-rack": "000000.00",

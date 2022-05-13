@@ -16,7 +16,7 @@ class End2EndTest(BaseTest):
         print("ERROR: " + message)
 
     def test(self, args):
-        self.waitForReadyState()
+        # self.waitForReadyState()
         step = None
         print("e2e test args=" + str(args))
         if len(args) > 0:
@@ -368,10 +368,8 @@ class End2EndTest(BaseTest):
                     "clli": "SNJSCAMCJP8",
                     "tx-direction": {
                         "port": {
-                            "port-device-name":
-                            "ROUTER_SNJSCAMCJP8_000000.00_00",
                             "port-type": "router",
-                            "port-name": "Gigabit Ethernet_Tx.ge-5/0/0.0",
+                            "port-name": "XPDR1-CLIENT1",
                             "port-rack": "000000.00",
                             "port-shelf": "00"
                         },
@@ -385,10 +383,8 @@ class End2EndTest(BaseTest):
                     },
                     "rx-direction": {
                         "port": {
-                            "port-device-name":
-                            "ROUTER_SNJSCAMCJP8_000000.00_00",
                             "port-type": "router",
-                            "port-name": "Gigabit Ethernet_Rx.ge-5/0/0.0",
+                            "port-name": "XPDR1-NETWORK1",
                             "port-rack": "000000.00",
                             "port-shelf": "00"
                         },
@@ -409,10 +405,8 @@ class End2EndTest(BaseTest):
                     "clli": "SNJSCAMCJT4",
                     "tx-direction": {
                         "port": {
-                            "port-device-name":
-                            "ROUTER_SNJSCAMCJT4_000000.00_00",
                             "port-type": "router",
-                            "port-name": "Gigabit Ethernet_Tx.ge-1/0/0.0",
+                            "port-name": "XPDR1-CLIENT1",
                             "port-rack": "000000.00",
                             "port-shelf": "00"
                         },
@@ -426,10 +420,8 @@ class End2EndTest(BaseTest):
                     },
                     "rx-direction": {
                         "port": {
-                            "port-device-name":
-                            "ROUTER_SNJSCAMCJT4_000000.00_00",
                             "port-type": "router",
-                            "port-name": "Gigabit Ethernet_Rx.ge-1/0/0.0",
+                            "port-name": "XPDR1-NETWORK1",
                             "port-rack": "000000.00",
                             "port-shelf": "00"
                         },
@@ -482,7 +474,7 @@ class End2EndTest(BaseTest):
                     response.data['services'][0]['lifecycle-state'], 'planned')
                 if not success and retries > 0:
                     print(
-                        "service still not with lifecycle-state inServerice (state="
+                        "service still not with lifecycle-state in Service (state="
                         + response.data['services'][0]['lifecycle-state'] +
                         "). waiting...")
 
