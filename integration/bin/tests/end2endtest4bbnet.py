@@ -384,7 +384,7 @@ class End2EndTestBBNet(BaseTest):
                 "connection-type": "service",
                 "service-a-end": {
                     "service-rate": "100",
-                    "node-id": "XPDR-HammBerl",
+                    "node-id": "XPDR-BerlHamb",
                     "service-format": "Ethernet",
                     "clli": "SNJSCAMCJP8",
                     "tx-direction": {
@@ -419,7 +419,7 @@ class End2EndTestBBNet(BaseTest):
                 },
                 "service-z-end": {
                     "service-rate": "100",
-                    "node-id": "XPDR-BerlHamm",
+                    "node-id": "XPDR-HambBerl",
                     "service-format": "Ethernet",
                     "clli": "SNJSCAMCJT4",
                     "tx-direction": {
