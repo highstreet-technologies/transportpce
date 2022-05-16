@@ -16,7 +16,7 @@ class End2EndTest(BaseTest):
         print("ERROR: " + message)
 
     def test(self, args):
-        # self.waitForReadyState()
+        self.waitForReadyState()
         step = None
         print("e2e test args=" + str(args))
         if len(args) > 0:
@@ -368,14 +368,14 @@ class End2EndTest(BaseTest):
                     "clli": "SNJSCAMCJP8",
                     "tx-direction": {
                         "port": {
+                            "port-device-name": "ROUTER_SNJSCAMCJP8_000000.00_00",
                             "port-type": "router",
-                            "port-name": "XPDR1-CLIENT1",
+                            "port-name": "Gigabit Ethernet_Tx.ge-5/0/0.0",
                             "port-rack": "000000.00",
                             "port-shelf": "00"
                         },
                         "lgx": {
-                            "lgx-device-name":
-                            "LGX Panel_SNJSCAMCJP8_000000.00_00",
+                            "lgx-device-name": "LGX Panel_SNJSCAMCJP8_000000.00_00",
                             "lgx-port-name": "LGX Back.3",
                             "lgx-port-rack": "000000.00",
                             "lgx-port-shelf": "00"
@@ -383,14 +383,14 @@ class End2EndTest(BaseTest):
                     },
                     "rx-direction": {
                         "port": {
+                            "port-device-name": "ROUTER_SNJSCAMCJP8_000000.00_00",
                             "port-type": "router",
-                            "port-name": "XPDR1-NETWORK1",
+                            "port-name": "Gigabit Ethernet_Rx.ge-5/0/0.0",
                             "port-rack": "000000.00",
                             "port-shelf": "00"
                         },
                         "lgx": {
-                            "lgx-device-name":
-                            "LGX Panel_SNJSCAMCJP8_000000.00_00",
+                            "lgx-device-name": "LGX Panel_SNJSCAMCJP8_000000.00_00",
                             "lgx-port-name": "LGX Back.4",
                             "lgx-port-rack": "000000.00",
                             "lgx-port-shelf": "00"
@@ -405,14 +405,14 @@ class End2EndTest(BaseTest):
                     "clli": "SNJSCAMCJT4",
                     "tx-direction": {
                         "port": {
+                            "port-device-name": "ROUTER_SNJSCAMCJT4_000000.00_00",
                             "port-type": "router",
-                            "port-name": "XPDR1-CLIENT1",
+                            "port-name": "Gigabit Ethernet_Tx.ge-1/0/0.0",
                             "port-rack": "000000.00",
                             "port-shelf": "00"
                         },
                         "lgx": {
-                            "lgx-device-name":
-                            "LGX Panel_SNJSCAMCJT4_000000.00_00",
+                            "lgx-device-name": "LGX Panel_SNJSCAMCJT4_000000.00_00",
                             "lgx-port-name": "LGX Back.29",
                             "lgx-port-rack": "000000.00",
                             "lgx-port-shelf": "00"
@@ -420,14 +420,14 @@ class End2EndTest(BaseTest):
                     },
                     "rx-direction": {
                         "port": {
+                            "port-device-name": "ROUTER_SNJSCAMCJT4_000000.00_00",
                             "port-type": "router",
-                            "port-name": "XPDR1-NETWORK1",
+                            "port-name": "Gigabit Ethernet_Rx.ge-1/0/0.0",
                             "port-rack": "000000.00",
                             "port-shelf": "00"
                         },
                         "lgx": {
-                            "lgx-device-name":
-                            "LGX Panel_SNJSCAMCJT4_000000.00_00",
+                            "lgx-device-name": "LGX Panel_SNJSCAMCJT4_000000.00_00",
                             "lgx-port-name": "LGX Back.30",
                             "lgx-port-rack": "000000.00",
                             "lgx-port-shelf": "00"
@@ -437,8 +437,8 @@ class End2EndTest(BaseTest):
                 },
                 "due-date": "2016-11-28T00:00:01Z",
                 "operator-contact": "pw1234"
+                }
             }
-        }
         response = self.trpceClient.createService(data)
         if not response.isSucceeded():
             self.logError(str(response.code) + " | " + response.content)
@@ -1087,7 +1087,7 @@ class End2EndTest(BaseTest):
                 "common-id": "ASATT1234567",
                 "connection-type": "service",
                 "service-a-end": {
-                    "service-rate": "100",
+                    "service-rate": "10",
                     "node-id": "XPDR-A1",
                     "service-format": "Ethernet",
                     "clli": "SNJSCAMCJP8",
@@ -1128,7 +1128,7 @@ class End2EndTest(BaseTest):
                     "optic-type": "gray"
                 },
                 "service-z-end": {
-                    "service-rate": "100",
+                    "service-rate": "10",
                     "node-id": "XPDR-C1",
                     "service-format": "Ethernet",
                     "clli": "SNJSCAMCJT4",
