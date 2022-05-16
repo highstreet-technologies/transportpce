@@ -11,6 +11,7 @@ class End2EndTest(BaseTest):
                           sims, config)
         self.WAITING = 30
         self.trpceContainer = trpceContainer
+        self.isAluminium = '2.3' in self.trpceContainer.getImageTag()
 
     def logError(self, message):
         print("ERROR: " + message)
@@ -65,7 +66,7 @@ class End2EndTest(BaseTest):
             print("problem configure Roadms")
             return False
         time.sleep(self.WAITING)
-        success = self.createService1()
+        success = self.createService()
         if success:
             print("creating service 1 succeeded")
         else:
@@ -290,15 +291,15 @@ class End2EndTest(BaseTest):
 
         return success
 
-    def configROADMS(self):
+    def configROADMS(self, spanlossBase=11.4, spanlossCurrent=12, spanlossEngineered=12.2):
         #add_omsAttributes_ROADMA_ROADMC
         # Config ROADMA-ROADMC oms-attributes
         data = {
             "span": {
                 "auto-spanloss": "true",
-                "spanloss-base": 11.4,
-                "spanloss-current": 12,
-                "engineered-spanloss": 12.2,
+                "spanloss-base": spanlossBase,
+                "spanloss-current": spanlossCurrent,
+                "engineered-spanloss": spanlossEngineered,
                 "link-concatenation": [{
                     "SRLG-Id": 0,
                     "fiber-type": "smf",
@@ -344,7 +345,7 @@ class End2EndTest(BaseTest):
         
         return True
 
-    def createService1(self):
+    def createService(self, serviceName='service1', serviceRate=100, nodeidA='XPDR-A1', nodeidZ='XPDR-C1'):
         #create_eth_service1
         data = {
             "input": {
@@ -358,17 +359,17 @@ class End2EndTest(BaseTest):
                     "notification-url":
                     "http://localhost:8585/NotificationServer/notify"
                 },
-                "service-name": "service1",
+                "service-name": serviceName,
                 "common-id": "ASATT1234567",
                 "connection-type": "service",
                 "service-a-end": {
-                    "service-rate": "100",
-                    "node-id": "XPDR-A1",
+                    "service-rate": str(serviceRate),
+                    "node-id": nodeidA,
                     "service-format": "Ethernet",
                     "clli": "SNJSCAMCJP8",
                     "tx-direction": {
                         "port": {
-                            "port-device-name": "ROUTER_SNJSCAMCJP8_000000.00_00",
+                            "port-device-name": "ROUTER_SNJSCAMCJP8_000000.00_00" if self.isAluminium else nodeidA,
                             "port-type": "router",
                             "port-name": "Gigabit Ethernet_Tx.ge-5/0/0.0",
                             "port-rack": "000000.00",
@@ -383,7 +384,7 @@ class End2EndTest(BaseTest):
                     },
                     "rx-direction": {
                         "port": {
-                            "port-device-name": "ROUTER_SNJSCAMCJP8_000000.00_00",
+                            "port-device-name": "ROUTER_SNJSCAMCJP8_000000.00_00" if self.isAluminium else nodeidA,
                             "port-type": "router",
                             "port-name": "Gigabit Ethernet_Rx.ge-5/0/0.0",
                             "port-rack": "000000.00",
@@ -399,13 +400,13 @@ class End2EndTest(BaseTest):
                     "optic-type": "gray"
                 },
                 "service-z-end": {
-                    "service-rate": "100",
-                    "node-id": "XPDR-C1",
+                    "service-rate": str(serviceRate),
+                    "node-id": nodeidZ,
                     "service-format": "Ethernet",
                     "clli": "SNJSCAMCJT4",
                     "tx-direction": {
                         "port": {
-                            "port-device-name": "ROUTER_SNJSCAMCJT4_000000.00_00",
+                            "port-device-name": "ROUTER_SNJSCAMCJT4_000000.00_00" if self.isAluminium else nodeidZ,
                             "port-type": "router",
                             "port-name": "Gigabit Ethernet_Tx.ge-1/0/0.0",
                             "port-rack": "000000.00",
@@ -420,7 +421,7 @@ class End2EndTest(BaseTest):
                     },
                     "rx-direction": {
                         "port": {
-                            "port-device-name": "ROUTER_SNJSCAMCJT4_000000.00_00",
+                            "port-device-name": "ROUTER_SNJSCAMCJT4_000000.00_00" if self.isAluminium else nodeidZ,
                             "port-type": "router",
                             "port-name": "Gigabit Ethernet_Rx.ge-1/0/0.0",
                             "port-rack": "000000.00",

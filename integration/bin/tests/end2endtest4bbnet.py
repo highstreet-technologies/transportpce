@@ -11,6 +11,7 @@ class End2EndTestBBNet(BaseTest):
         self.WAITING = 10
         self.trpceContainer = trpceContainer
         self.rdmInternalConfig = rdmInternalConfig
+        self.isAluminium = '2.3' in self.trpceContainer.getImageTag()
 
     def logError(self, message):
         print("ERROR: " + message)
@@ -65,7 +66,7 @@ class End2EndTestBBNet(BaseTest):
             print("problem configure Roadms")
             return False
         time.sleep(self.WAITING)
-        success = self.createService1()
+        success = self.createService()
         if success:
             print("creating service 1 succeeded")
         else:
@@ -343,21 +344,25 @@ class End2EndTestBBNet(BaseTest):
 
         return success
 
-    def configROADMS(self):
+    def configROADMS(self, spanlossBase=11.4, spanlossCurrent=12, spanlossEngineered=12.2):
         # add_omsAttributes_ROADMA_ROADMC
         # Config ROADMA-ROADMC oms-attributes
+        data = {
+            "span": {
+                "auto-spanloss": "true",
+                "spanloss-base": spanlossBase,
+                "spanloss-current": spanlossCurrent,
+                "engineered-spanloss": spanlossEngineered,
+                "link-concatenation": [{
+                    "SRLG-Id": 0,
+                    "fiber-type": "smf",
+                    "SRLG-length": 100000,
+                    "pmd": 0.5
+                }]
+            }
+        }
         for k in self.rdmInternalConfig.keys():
             for i in self.rdmInternalConfig[k]:
-                data = {"span": {
-                    "auto-spanloss": "true",
-                    "spanloss-base": 11.4,
-                    "spanloss-current": 12,
-                    "engineered-spanloss": 12.2,
-                    "link-concatenation": [{
-                        "SRLG-Id": 0,
-                        "fiber-type": "smf",
-                        "SRLG-length": 100000,
-                        "pmd": 0.5}]}}
                 response = self.trpceClient.addOmsAttributes(
                     "ROADM-" + k  + "-DEG" + i + "-DEG" + i + "-TTP-TXRXtoROADM-" + self.rdmInternalConfig[k][
                         i] + "-DEG" + list(self.rdmInternalConfig[self.rdmInternalConfig[k][i]].keys())[
@@ -369,26 +374,32 @@ class End2EndTestBBNet(BaseTest):
                     return False
         return True
 
-    def createService1(self):
+    def createService(self, serviceName='service1', serviceRate=100, nodeidA='XPDR-BerlHamb', nodeidZ='XPDR-HambBerl'):
         # create_eth_service1
         #create_eth_service1
-        data = {"input": {
+        data = {
+            "input": {
                 "sdnc-request-header": {
-                    "request-id": "e3028bae-a90f-4ddd-a83f-cf224eba0e58",
-                    "rpc-action": "service-create",
-                    "request-system-id": "appname",
-                    "notification-url": "http://localhost:8585/NotificationServer/notify"
+                    "request-id":
+                    "e3028bae-a90f-4ddd-a83f-cf224eba0e58",
+                    "rpc-action":
+                    "service-create",
+                    "request-system-id":
+                    "appname",
+                    "notification-url":
+                    "http://localhost:8585/NotificationServer/notify"
                 },
-                "service-name": "service1",
+                "service-name": serviceName,
                 "common-id": "ASATT1234567",
                 "connection-type": "service",
                 "service-a-end": {
-                    "service-rate": "100",
-                    "node-id": "XPDR-BerlHamb",
+                    "service-rate": str(serviceRate),
+                    "node-id": nodeidA,
                     "service-format": "Ethernet",
                     "clli": "SNJSCAMCJP8",
                     "tx-direction": {
                         "port": {
+                            "port-device-name": "ROUTER_SNJSCAMCJP8_000000.00_00" if self.isAluminium else nodeidA,
                             "port-type": "router",
                             "port-name": "Gigabit Ethernet_Tx.ge-5/0/0.0",
                             "port-rack": "000000.00",
@@ -403,6 +414,7 @@ class End2EndTestBBNet(BaseTest):
                     },
                     "rx-direction": {
                         "port": {
+                            "port-device-name": "ROUTER_SNJSCAMCJP8_000000.00_00" if self.isAluminium else nodeidA,
                             "port-type": "router",
                             "port-name": "Gigabit Ethernet_Rx.ge-5/0/0.0",
                             "port-rack": "000000.00",
@@ -418,12 +430,13 @@ class End2EndTestBBNet(BaseTest):
                     "optic-type": "gray"
                 },
                 "service-z-end": {
-                    "service-rate": "100",
-                    "node-id": "XPDR-HambBerl",
+                    "service-rate": str(serviceRate),
+                    "node-id": nodeidZ,
                     "service-format": "Ethernet",
                     "clli": "SNJSCAMCJT4",
                     "tx-direction": {
                         "port": {
+                            "port-device-name": "ROUTER_SNJSCAMCJT4_000000.00_00" if self.isAluminium else nodeidZ,
                             "port-type": "router",
                             "port-name": "Gigabit Ethernet_Tx.ge-1/0/0.0",
                             "port-rack": "000000.00",
@@ -438,6 +451,7 @@ class End2EndTestBBNet(BaseTest):
                     },
                     "rx-direction": {
                         "port": {
+                            "port-device-name": "ROUTER_SNJSCAMCJT4_000000.00_00" if self.isAluminium else nodeidZ,
                             "port-type": "router",
                             "port-name": "Gigabit Ethernet_Rx.ge-1/0/0.0",
                             "port-rack": "000000.00",

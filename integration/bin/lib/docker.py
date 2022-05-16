@@ -1,7 +1,5 @@
-import sys
 import subprocess
 import json
-
 
 class InspectInfo:
 
@@ -13,9 +11,12 @@ class InspectInfo:
             self.state = o[0]["State"]["Status"]
             networks = o[0]["NetworkSettings"]["Networks"]
             self.ip = networks[list(networks)[0]]["IPAddress"]
-
+            self.image = o[0]['Config']['Image']
         except:
             print("WARN: unable to parse docker inspect info")
+
+    def getImage(self):
+        return self.image
 
     def getIpAddress(self):
         return self.ip
@@ -28,7 +29,6 @@ class Docker:
 
     def __init__(self):
         self.bin = "/usr/bin/docker"
-        pass
 
     def exec(self, params):
         output = subprocess.Popen(
@@ -65,3 +65,8 @@ class DockerContainer:
 
     def inspect(self):
         return self.docker.inspect(self.containerName)
+
+    def getImageTag(self):
+        return self.docker.inspect(self.containerName).getImage()
+
+    
