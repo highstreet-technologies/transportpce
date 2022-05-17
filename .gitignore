@@ -34,6 +34,12 @@ nosetests.xml
 api/src/main/java
 api/src/main/java/org/opendaylight/yang/gen/v1/gnpy/path/rev190502/TeTpIdBuilder.java
 api/src/main/java/org/opendaylight/yang/gen/v1/gnpy/path/rev190502/AccumulatedMetricTypeBuilder.java
+ordmodels/common/src/main/java/org/opendaylight/yang/gen/v1/http/org/openroadm/pm/types/rev161014/PmDataTypeBuilder.java
+ordmodels/common/src/main/java/org/opendaylight/yang/gen/v1/http/org/openroadm/pm/types/rev171215/PmDataTypeBuilder.java
+ordmodels/common/src/main/java/org/opendaylight/yang/gen/v1/http/org/openroadm/pm/types/rev200327/PmDataTypeBuilder.java
+ordmodels/device/src/main/java/org/opendaylight/yang/gen/v1/http/org/openroadm/syslog/rev161014/syslog/selector/log/selector/selector/facility/log/facility/LogFacilityFacilityBuilder.java
+ordmodels/device/src/main/java/org/opendaylight/yang/gen/v1/http/org/openroadm/syslog/rev171215/syslog/selector/log/selector/selector/facility/log/facility/LogFacilityFacilityBuilder.java
+ordmodels/device/src/main/java/org/opendaylight/yang/gen/v1/http/org/openroadm/syslog/rev191129/syslog/selector/log/selector/selector/facility/log/facility/LogFacilityFacilityBuilder.java
 # Sphinx documentation
 .tox/
 docs/_build/
