@@ -1,0 +1,4 @@
+<input xmlns="http://org/openroadm/device">
+  <enabled>true</enabled>
+  <shelf-name>1/0</shelf-name>
+</input>

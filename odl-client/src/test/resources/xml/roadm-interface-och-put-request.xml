@@ -1,0 +1,15 @@
+<interface xmlns="http://org/openroadm/device">
+    <administrative-state>inService</administrative-state>
+    <circuit-id>TBD</circuit-id>
+    <description>TBD</description>
+    <name>XPDR1-NETWORK1-761:768</name>
+    <supporting-circuit-pack-name>1/0/1-PLUG-NET</supporting-circuit-pack-name>
+    <supporting-port>1</supporting-port>
+    <type xmlns:a="http://org/openroadm/interfaces">a:opticalChannel</type>
+    <och xmlns="http://org/openroadm/optical-channel-interfaces">
+        <frequency xmlns:b="http://org/openroadm/common-types">196.1000</frequency>
+        <rate xmlns:c="http://org/openroadm/common-types">c:R100G</rate>
+        <transmit-power xmlns:d="http://org/openroadm/common-types">-5</transmit-power>
+        <modulation-format xmlns:e="http://org/openroadm/common-types">dp-qpsk</modulation-format>
+    </och>
+</interface>

@@ -1,0 +1,6 @@
+<interface xmlns="http://org/openroadm/device">
+    <type xmlns:a="http://org/openroadm/interfaces">a:opticalChannel</type>
+    <och xmlns="http://org/openroadm/optical-channel-interfaces">
+        <rate xmlns:c="http://org/openroadm/common-types">c:R100G</rate>
+    </och>
+</interface>

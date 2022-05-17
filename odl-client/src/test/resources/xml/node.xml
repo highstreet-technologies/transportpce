@@ -1,0 +1,15 @@
+<node xmlns="urn:TBD:params:xml:ns:yang:network-topology">
+    <node-id>ROADM-A1</node-id>
+    <reconnect-on-changed-schema xmlns="urn:opendaylight:netconf-node-topology">false</reconnect-on-changed-schema>
+    <connection-timeout-millis xmlns="urn:opendaylight:netconf-node-topology">20000</connection-timeout-millis>
+    <port xmlns="urn:opendaylight:netconf-node-topology">830</port>
+    <tcp-only xmlns="urn:opendaylight:netconf-node-topology">false</tcp-only>
+    <max-connection-attempts xmlns="urn:opendaylight:netconf-node-topology">100</max-connection-attempts>
+    <username xmlns="urn:opendaylight:netconf-node-topology">netconf</username>
+    <password xmlns="urn:opendaylight:netconf-node-topology">netconf</password>
+    <connection-status xmlns="urn:opendaylight:netconf-node-topology">connecting</connection-status>
+    <sleep-factor xmlns="urn:opendaylight:netconf-node-topology">1.5</sleep-factor>
+    <host xmlns="urn:opendaylight:netconf-node-topology">2001:db8:1:50::9:101</host>
+    <between-attempts-timeout-millis xmlns="urn:opendaylight:netconf-node-topology">2000</between-attempts-timeout-millis>
+    <keepalive-delay xmlns="urn:opendaylight:netconf-node-topology">120</keepalive-delay>
+</node>

@@ -1,0 +1,9 @@
+<org-openroadm-device>
+  <users>
+    <user>
+      <name>openroadm2</name>
+      <password>openroadm</password>
+      <group>sudo</group>
+    </user>
+  </users>
+</org-openroadm-device>

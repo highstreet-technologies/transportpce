@@ -1,0 +1,10 @@
+<interface xmlns="http://org/openroadm/device">
+    <name>DEG2-TTP-TXRX-mc-1</name>
+    <supporting-circuit-pack-name>2/0</supporting-circuit-pack-name>
+    <supporting-interface>OMS-DEG2-TTP-TXRX</supporting-interface>
+    <circuit-id>TBD</circuit-id>
+    <administrative-state>inService</administrative-state>
+    <supporting-port>L1</supporting-port>
+    <type xmlns:x="http://org/openroadm/interfaces">mediaChannelTrailTerminationPoint</type>
+    <description>TBD</description>
+</interface>

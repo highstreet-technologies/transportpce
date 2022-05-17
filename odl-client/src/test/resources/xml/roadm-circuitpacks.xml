@@ -1,0 +1,42 @@
+<circuit-packs xmlns="http://org/openroadm/device">
+  <circuit-pack-category xmlns:a="http://org/openroadm/device">
+    <type>circuitPack</type>
+  </circuit-pack-category>
+  <circuit-pack-mode>NORMAL</circuit-pack-mode>
+  <circuit-pack-name>1/0/1-PLUG-NET</circuit-pack-name>
+  <circuit-pack-product-code>Line_NW_P</circuit-pack-product-code>
+  <circuit-pack-type>line_pluggable</circuit-pack-type>
+  <equipment-state>notReservedInuse</equipment-state>
+  <hardware-version>0.1</hardware-version>
+  <model>CFP2</model>
+  <operational-state>inService</operational-state>
+  <parent-circuit-pack xmlns:b="http://org/openroadm/device">
+    <circuit-pack-name>1/0</circuit-pack-name>
+    <cp-slot-name>1</cp-slot-name>
+  </parent-circuit-pack>
+  <ports xmlns:c="http://org/openroadm/device">
+    <administrative-state>inService</administrative-state>
+    <label>2</label>
+    <operational-state>inService</operational-state>
+    <port-direction>bidirectional</port-direction>
+    <port-name>1</port-name>
+    <port-qual>xpdrNetwork</port-qual>
+    <port-type>CFP2</port-type>
+    <port-wavelength-type>wavelength</port-wavelength-type>
+    <supported-interface-capability xmlns:d="http://org/openroadm/port/types">d:if-OCH</supported-interface-capability>
+    <transponder-port xmlns:e="http://org/openroadm/device">
+      <port-power-capability-max-rx>1.0</port-power-capability-max-rx>
+      <port-power-capability-max-tx>0.0</port-power-capability-max-tx>
+      <port-power-capability-min-rx>-22.0</port-power-capability-min-rx>
+      <port-power-capability-min-tx>-5.0</port-power-capability-min-tx>
+    </transponder-port>
+  </ports>
+  <product-code>Line_NW_P</product-code>
+  <serial-id>_1234_</serial-id>
+  <shelf>1</shelf>
+  <slot>1</slot>
+  <sub-slot>1</sub-slot>
+  <type>line/network pluggable</type>
+  <vendor>VendorA</vendor>
+  <is-pluggable-optics>true</is-pluggable-optics>
+</circuit-packs>

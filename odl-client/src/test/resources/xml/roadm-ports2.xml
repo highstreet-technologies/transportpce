@@ -1,0 +1,17 @@
+<ports xmlns="http://org/openroadm/device">
+    <port-name>1</port-name>
+    <operational-state>inService</operational-state>
+    <port-qual>xpdr-network</port-qual>
+    <administrative-state>inService</administrative-state>
+    <port-direction>bidirectional</port-direction>
+    <label>2</label>
+    <supported-interface-capability xmlns:x="http://org/openroadm/port/types">x:if-OCH</supported-interface-capability>
+    <transponder-port>
+        <port-power-capability-min-tx>-5.0</port-power-capability-min-tx>
+        <port-power-capability-min-rx>-22.0</port-power-capability-min-rx>
+        <port-power-capability-max-rx>1.0</port-power-capability-max-rx>
+        <port-power-capability-max-tx>0.0</port-power-capability-max-tx>
+    </transponder-port>
+    <port-type>CFP2</port-type>
+    <port-wavelength-type>wavelength</port-wavelength-type>
+</ports>

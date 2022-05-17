@@ -1,0 +1,18 @@
+<interface xmlns:a="urn:ietf:params:xml:ns:netconf:base:1.0" a:operation="replace">
+    <name>XPDR1-NETWORK1-ODU</name>
+    <odu xmlns="http://org/openroadm/otn-odu-interfaces">
+        <rate xmlns:x="http://org/openroadm/otn-common-types">x:ODU4</rate>
+        <opu>
+            <payload-type>07</payload-type>
+            <exp-payload-type>07</exp-payload-type>
+        </opu>
+        <monitoring-mode>terminated</monitoring-mode>
+    </odu>
+    <supporting-interface>XPDR1-NETWORK1-OTU</supporting-interface>
+    <supporting-circuit-pack-name>1/0/1-PLUG-NET</supporting-circuit-pack-name>
+    <administrative-state>inService</administrative-state>
+    <circuit-id> TBD    </circuit-id>
+    <description> TBD   </description>
+    <supporting-port>1</supporting-port>
+    <type xmlns:x="http://org/openroadm/interfaces">x:otnOdu</type>
+</interface>

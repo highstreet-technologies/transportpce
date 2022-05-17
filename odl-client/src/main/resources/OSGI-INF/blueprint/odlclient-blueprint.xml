@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- vi: set et smarttab sw=4 tabstop=4: -->
+<!-- Copyright © 2016 Orange and others. All rights reserved. This program and the accompanying materials
+    are made available under the terms of the Eclipse Public License v1.0 which accompanies this distribution,
+    and is available at http://www.eclipse.org/legal/epl-v10.html -->
+<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0" xmlns:odl="http://opendaylight.org/xmlns/blueprint/v1.0.0"
+    odl:use-default-for-reference-types="true">
+
+    <bean id="statusServlet" class="org.onap.ccsdk.features.sdnr.wt.odlclient.http.status.StatusServlet">
+        
+    </bean>
+    <service interface="javax.servlet.http.HttpServlet" ref="statusServlet">
+        <service-properties>
+            <entry key="alias" value="/odlclient/status"/>
+        </service-properties>
+    </service>
+    
+    <bean id="odlClient" class="org.onap.ccsdk.features.sdnr.wt.odlclient.OpendaylightClient">
+       <property name="statusServlet" ref="statusServlet"/>
+   </bean>
+
+    <service ref="odlClient" interface="org.onap.ccsdk.features.sdnr.wt.odlclient.data.RemoteOpendaylightClient" />
+
+</blueprint>

@@ -1,0 +1,10 @@
+<roadm-connections>
+    <connection-name>DEG2-TTP-TXRX-SRG1-PP1-TXRX-1</connection-name>
+    <destination>
+        <dst-if>SRG1-PP1-TXRX-nmc-1</dst-if>
+    </destination>
+    <opticalControlMode>off</opticalControlMode>
+    <source>
+        <src-if>DEG2-TTP-TXRX-nmc-1</src-if>
+    </source>
+</roadm-connections>

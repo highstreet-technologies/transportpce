@@ -1,0 +1,15 @@
+<interface xmlns="http://org/openroadm/device">
+	<name>OTS-DEG1-TTP-TXRX</name>
+	<operational-state>inService</operational-state>
+	<supporting-circuit-pack-name>1/0</supporting-circuit-pack-name>
+	<administrative-state>inService</administrative-state>
+	<ots xmlns="http://org/openroadm/optical-transport-interfaces">
+		<ingress-span-loss-aging-margin>0.0</ingress-span-loss-aging-margin>
+		<span-loss-receive>15.0</span-loss-receive>
+		<span-loss-transmit>6.0</span-loss-transmit>
+		<fiber-type>smf</fiber-type>
+	</ots>
+	<supporting-port>L1</supporting-port>
+	<type xmlns:x="http://org/openroadm/interfaces">x:opticalTransport</type>
+</interface>
+

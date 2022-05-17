@@ -1,0 +1,15 @@
+<ports xmlns="http://org/openroadm/device">
+	<port-name>L1</port-name>
+	<port-qual>roadm-external</port-qual>
+	<supported-interface-capability xmlns:x="http://org/openroadm/port/types">x:if-OCH</supported-interface-capability>
+	<supported-interface-capability xmlns:x="http://org/openroadm/port/types">x:if-OMS</supported-interface-capability>
+	<supported-interface-capability	xmlns:x="http://org/openroadm/port/types">x:if-OTS</supported-interface-capability>
+	<operational-state>inService</operational-state>
+	<administrative-state>inService</administrative-state>
+	<circuit-id>1</circuit-id>
+	<label>Dir1-RxTxAMP port</label>
+	<port-direction>bidirectional</port-direction>
+	<logical-connection-point>DEG1-TTP-TXRX</logical-connection-point>
+	<port-type>LINE</port-type>
+	<port-wavelength-type>multi-wavelength</port-wavelength-type>
+</ports>

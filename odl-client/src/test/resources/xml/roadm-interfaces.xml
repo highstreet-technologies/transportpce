@@ -1,0 +1,24 @@
+<interface xmlns="http://org/openroadm/device">
+	<name>1GE-interface-1</name>
+	<supporting-circuit-pack-name>1/0/ETH-PLUG
+	</supporting-circuit-pack-name>
+	<operational-state>inService</operational-state>
+	<administrative-state>inService</administrative-state>
+	<type xmlns:x="http://org/openroadm/interfaces">x:ethernetCsmacd</type>
+	<supporting-port>ETH-PLUG</supporting-port>
+	<ethernet xmlns="http://org/openroadm/ethernet-interfaces">
+		<duplex>full</duplex>
+		<maint-loopback />
+		<maint-testsignal />
+		<curr-speed>1000</curr-speed>
+		<speed>1000</speed>
+		<auto-negotiation>enabled</auto-negotiation>
+		<curr-duplex>FULL</curr-duplex>
+	</ethernet>
+</interface>
+Interface1{
+_ots=Ots{
+	_fiberType=Smf, 
+	_ingressSpanLossAgingMargin=RatioDB{_value=0.0, _UNITS=dB}, 
+	_spanLossReceive=RatioDB{_value=15.0, _UNITS=dB}, 
+	_spanLossTransmit=RatioDB{_value=6.0, _UNITS=dB}, augmentation=[]}}

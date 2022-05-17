@@ -1,0 +1,10 @@
+<interface xmlns="http://org/openroadm/device">
+  <administrative-state >inService</administrative-state>
+  <circuit-id >   TBD    </circuit-id>
+  <description >  TBD   </description>
+  <name >DEG1-TTP-TXRX-mc-1</name>
+  <supporting-circuit-pack-name >1/0</supporting-circuit-pack-name>
+  <supporting-interface >OMS-DEG1-TTP-TXRX</supporting-interface>
+  <supporting-port >L1</supporting-port>
+  <type xmlns:x="http://org/openroadm/interfaces">x:mediaChannelTrailTerminationPoint</type>
+</interface>
