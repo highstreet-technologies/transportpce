@@ -20,6 +20,7 @@
         <checkstyle.skip>true</checkstyle.skip>
         <skip.checkstyle>true</skip.checkstyle>
         <odlparent.spotbugs.enforce>false</odlparent.spotbugs.enforce>
+        <odlparent.modernizer.enforce>false</odlparent.modernizer.enforce>
     </properties>
     <dependencyManagement>
         <dependencies>

@@ -1,5 +1,4 @@
 /*
- * ============LICENSE_START=======================================================
  * ONAP : ccsdk features
  * ================================================================================
  * Copyright (C) 2020 highstreet technologies GmbH Intellectual Property.
