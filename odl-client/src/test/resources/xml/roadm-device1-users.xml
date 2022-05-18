@@ -1,0 +1,14 @@
+<org-openroadm-device>
+	<users>
+		<user>
+			<name>openroadm5</name>
+			<password>openroadm2</password>
+			<group>sudo</group>
+		</user>
+		<user>
+			<name>openroadm3</name>
+			<password>openroadm4</password>
+			<group>sudo</group>
+		</user>
+	</users>
+</org-openroadm-device>

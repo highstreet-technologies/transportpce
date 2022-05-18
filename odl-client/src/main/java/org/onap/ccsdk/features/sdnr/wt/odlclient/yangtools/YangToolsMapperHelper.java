@@ -217,17 +217,8 @@ public class YangToolsMapperHelper {
         return res;
     }
 
-    public static boolean implementsInterface(Class<?> clz, Class<?> ifToImplement) {
-        if (clz.equals(ifToImplement)) {
-            return true;
-        }
-        Class<?>[] ifs = clz.getInterfaces();
-        for (Class<?> iff : ifs) {
-            if (iff.equals(ifToImplement)) {
-                return true;
-            }
-        }
-        return ifToImplement.isAssignableFrom(clz);
+    public static boolean implementsInterface(Class<?> valueType, Class<?> iftoImpl) {
+        return iftoImpl.isAssignableFrom(valueType);
     }
 
     /**
@@ -268,7 +259,7 @@ public class YangToolsMapperHelper {
         return clsName.substring(0, 1).toUpperCase() + clsName.substring(1);
     }
 
-    private static BundleContext getBundleContext() {
+    public static BundleContext getBundleContext() {
         Bundle bundle = FrameworkUtil.getBundle(YangToolsMapperHelper.class);
         return bundle != null ? bundle.getBundleContext() : null;
     }

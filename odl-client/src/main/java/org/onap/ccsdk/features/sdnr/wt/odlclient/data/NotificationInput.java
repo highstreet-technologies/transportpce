@@ -25,7 +25,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.onap.ccsdk.features.sdnr.wt.odlclient.data.ws.ReducedSchemaInfo;
 import org.onap.ccsdk.features.sdnr.wt.odlclient.yangtools.YangToolsMapperHelper;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.yang.types.rev130715.DateAndTime;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.devicemanager.notifications.rev220517.ObjectCreationNotification;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.devicemanager.rev190109.ObjectCreationNotification;
 import org.opendaylight.yangtools.yang.binding.Notification;
 
 public class NotificationInput<T extends Notification> {

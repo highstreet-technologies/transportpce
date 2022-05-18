@@ -22,9 +22,9 @@ import org.onap.ccsdk.features.sdnr.wt.odlclient.data.ws.Scope;
 import org.onap.ccsdk.features.sdnr.wt.odlclient.data.ws.ScopeRegistration;
 import org.onap.ccsdk.features.sdnr.wt.odlclient.data.ws.ScopeRegistrationResponse;
 import org.onap.ccsdk.features.sdnr.wt.odlclient.data.ws.ScopeRegistrationResponse.Status;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.devicemanager.notifications.rev220517.AttributeValueChangedNotification;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.devicemanager.notifications.rev220517.ObjectCreationNotification;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.devicemanager.notifications.rev220517.ObjectDeletionNotification;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.devicemanager.rev190109.AttributeValueChangedNotification;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.devicemanager.rev190109.ObjectCreationNotification;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.devicemanager.rev190109.ObjectDeletionNotification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

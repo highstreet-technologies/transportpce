@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -68,6 +69,7 @@ import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.org.open
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.org.openroadm.device.container.org.openroadm.device.Info;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.org.openroadm.device.container.org.openroadm.device.RoadmConnections;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.org.openroadm.device.container.org.openroadm.device.RoadmConnectionsBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.org.openroadm.device.container.org.openroadm.device.Users;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.org.openroadm.device.container.org.openroadm.device.UsersBuilder;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.equipment.states.types.rev171215.AdminStates;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.equipment.states.types.rev171215.States;
@@ -83,6 +85,7 @@ import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev181019.IfOC
 import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev181019.PortWavelengthTypes;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.user.mgmt.rev171215.PasswordType;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.user.mgmt.rev171215.UsernameType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.user.mgmt.rev171215.user.profile.User;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.user.mgmt.rev171215.user.profile.User.Group;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.user.mgmt.rev171215.user.profile.UserBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.netconf.node.topology.rev150114.NetconfNode;
@@ -95,7 +98,7 @@ public class TestMapper {
 
     private static final Logger LOG = LoggerFactory.getLogger(TestMapper.class);
 
-    // @Test
+    @Test
     public void testMapRoadmInfo()
             throws ClassNotFoundException, JsonParseException, JsonMappingException, IOException {
         OdlObjectMapperXml xmlMapper = new OdlObjectMapperXml(true);
@@ -105,15 +108,25 @@ public class TestMapper {
         } catch (IOException e1) {
             fail(e1.getMessage());
         }
-        LOG.info("outputxml={}", xmlMapper.readValue(fileContent, Info.class));
+        Info info = xmlMapper.readValue(fileContent, Info.class);
+        LOG.info("outputxml={}", info);
+        assertEquals("127.0.0.11",info.getCurrentIpAddress().stringValue());
     }
 
-    //    @Test
-    public void testNodeInfo() throws JsonParseException, JsonMappingException, IOException {
+    @Test
+    public void testUserDeser() throws JsonProcessingException {
+        //org.opendaylight.yang.gen.v1.http.org.openroadm.user.mgmt.rev171215.user.profile
         OdlObjectMapperXml xmlMapper = new OdlObjectMapperXml(true);
+        List<User> users = new ArrayList<>();
 
         // LOG.info("outputjson={}", jsonMapper.readValue(NODEINFO, NetconfNode.class, "network-topology:node"));
-        LOG.info("outputxml={}", xmlMapper.readValue(this.getTrimmedFileContent("/xml/roadm-device3.xml"), Info.class));
+        LOG.info("outputxml={}", xmlMapper.readValue("<users><user><name>openroadm5</name><password>openroadm2</password><group>sudo</group></user><user><name>openroadm22</name><password>openroadm54</password><group>sudo</group></user><users>", Users.class));
+    }
+    @Test
+    public void testNodeInfo() throws JsonParseException, JsonMappingException, IOException {
+        OdlObjectMapperXml xmlMapper = new OdlObjectMapperXml(true);
+        // LOG.info("outputjson={}", jsonMapper.readValue(NODEINFO, NetconfNode.class, "network-topology:node"));
+        LOG.info("outputxml={}", xmlMapper.readValue(this.getTrimmedFileContent("/xml/roadm-device1-users.xml"), OrgOpenroadmDevice.class));
 
     }
 

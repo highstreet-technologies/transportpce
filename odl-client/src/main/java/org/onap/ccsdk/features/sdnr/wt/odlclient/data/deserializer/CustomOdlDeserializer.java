@@ -71,16 +71,16 @@ public class CustomOdlDeserializer extends BeanDeserializerModifier {
 
         final JsonDeserializer<?> deser = super.modifyDeserializer(config, beanDesc, deserializer);
         if (implementsInterface(rawClass, TypeObject.class)) {
-            return new TypeObjectJsonDeserializer<TypeObject>(type, deser);
+            return new TypeObjectDeserializer<TypeObject>(type, deser);
         }
         if (implementsInterface(rawClass, ScalarTypeObject.class)) {
-            return new TypeObjectJsonDeserializer<ScalarTypeObject>(type, deser);
+            return new TypeObjectDeserializer<ScalarTypeObject>(type, deser);
         }
         if (implementsInterface(rawClass, Class.class)) {
-            return new BaseIdentityJsonDeserializer<BaseIdentity>(deser, this.clsFinder);
+            return new BaseIdentityDeserializer<BaseIdentity>(deser, this.clsFinder);
         }
         if (rawClass.equals(Class.class)) {
-            return new ClassJsonDeserializer(rawClass, this.clsFinder);
+            return new ClassDeserializer(rawClass, this.clsFinder);
         }
 
         return deser;

@@ -53,15 +53,15 @@ import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev181019.IfOT
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class BaseIdentityJsonDeserializer<T> extends JsonDeserializer<Class<? extends T>> {
+public class BaseIdentityDeserializer<T> extends JsonDeserializer<Class<? extends T>> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(BaseIdentityJsonDeserializer.class);
+    private static final Logger LOG = LoggerFactory.getLogger(BaseIdentityDeserializer.class);
     private final JsonDeserializer<?> deser;
     private final ClassFinder clsFinder;
     private final Map<String, Class<?>> identityMap;
 
 
-    public BaseIdentityJsonDeserializer(final JsonDeserializer<?> deser, ClassFinder clsFinder) {
+    public BaseIdentityDeserializer(final JsonDeserializer<?> deser, ClassFinder clsFinder) {
         this.deser = deser;
         this.clsFinder = clsFinder;
         this.identityMap = initIdentityMap();

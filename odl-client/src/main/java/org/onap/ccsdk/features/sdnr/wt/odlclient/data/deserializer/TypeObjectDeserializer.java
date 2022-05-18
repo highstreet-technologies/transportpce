@@ -23,14 +23,14 @@ import java.util.NoSuchElementException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TypeObjectJsonDeserializer<T> extends JsonDeserializer<T> {
+public class TypeObjectDeserializer<T> extends JsonDeserializer<T> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(TypeObjectJsonDeserializer.class);
+    private static final Logger LOG = LoggerFactory.getLogger(TypeObjectDeserializer.class);
     private static final String TYPEOBJECT_INSTANCE_METHOD = "getDefaultInstance";
     private final JavaType type;
     private final JsonDeserializer<?> deser;
 
-    public TypeObjectJsonDeserializer(JavaType type, JsonDeserializer<?> deser) {
+    public TypeObjectDeserializer(JavaType type, JsonDeserializer<?> deser) {
         this.type = type;
         this.deser = deser;
     }

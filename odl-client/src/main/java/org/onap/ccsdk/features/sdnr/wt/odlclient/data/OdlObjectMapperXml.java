@@ -13,8 +13,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy.KebabCaseStrategy;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies.KebabCaseStrategy;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.gson.JsonIOException;
@@ -28,14 +28,9 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.eclipse.jdt.annotation.Nullable;
-import org.onap.ccsdk.features.sdnr.wt.odlclient.data.deserializer.CustomOdlDeserializer;
-import org.onap.ccsdk.features.sdnr.wt.odlclient.data.serializer.DateAndTimeSerializer;
 import org.onap.ccsdk.features.sdnr.wt.odlclient.yangtools.mapperextensions.YangToolsBuilderAnnotationIntrospector;
+import org.onap.ccsdk.features.sdnr.wt.odlclient.yangtools.mapperextensions.YangToolsModuleXml;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.resource.rev181019.resource.resource.resource.Interface;
-import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.yang.types.rev130715.DateAndTime;
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.FrameworkUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,22 +56,17 @@ public class OdlObjectMapperXml extends XmlMapper implements ClassFinder{
         super();
         this.autoAugmentationList = initAutoAugmentationList();
         this.doNormalize = doNormalize;
-        Bundle bundle = FrameworkUtil.getBundle(OdlObjectMapperXml.class);
-        BundleContext context = bundle != null ? bundle.getBundleContext() : null;
-        this.introspector = new YangToolsBuilderAnnotationIntrospector(context);
-        configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        enable(MapperFeature.USE_GETTERS_AS_SETTERS);
-        setPropertyNamingStrategy(PropertyNamingStrategy.KEBAB_CASE);
-        //setPropertyNamingStrategy(new YangToolsNamingStrategy());
-        setSerializationInclusion(Include.NON_NULL);
-        setAnnotationIntrospector(this.introspector);
-        SimpleModule customSerializerModule = new SimpleModule();
-        customSerializerModule.addSerializer(DateAndTime.class, new DateAndTimeSerializer());
-        //        customSerializerModule.addSerializer(ChoiceIn.class, new CustomChoiceSerializer());
-        customSerializerModule.setDeserializerModifier(new CustomOdlDeserializer(this));
-
-        this.registerModule(customSerializerModule);
+        this.introspector = new YangToolsBuilderAnnotationIntrospector();
+        this.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        this.enable(MapperFeature.USE_GETTERS_AS_SETTERS);
         this.enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS);
+        this.setPropertyNamingStrategy(PropertyNamingStrategies.KEBAB_CASE);
+        //setPropertyNamingStrategy(new YangToolsNamingStrategy());
+        this.setSerializationInclusion(Include.NON_NULL);
+        this.setAnnotationIntrospector(this.introspector);
+        SimpleModule customSerializerModule = new YangToolsModuleXml(this);
+        this.registerModule(customSerializerModule);
+
     }
 
 

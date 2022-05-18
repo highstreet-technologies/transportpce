@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import org.eclipse.jdt.annotation.NonNull;
 import org.onap.ccsdk.features.sdnr.wt.odlclient.data.OdlObjectMapper.DateAndTimeBuilder;
+import org.onap.ccsdk.features.sdnr.wt.odlclient.yangtools.YangToolsMapperHelper;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.yang.types.rev130715.DateAndTime;
 import org.opendaylight.yangtools.yang.common.Uint16;
 import org.opendaylight.yangtools.yang.common.Uint32;
@@ -38,7 +39,7 @@ public class YangToolsBuilderAnnotationIntrospector extends JacksonAnnotationInt
     private final Map<Class<?>, String> customDeserializer;
 
     public YangToolsBuilderAnnotationIntrospector() {
-        this(null);
+        this(YangToolsMapperHelper.getBundleContext());
     }
 
     public YangToolsBuilderAnnotationIntrospector(BundleContext context) {

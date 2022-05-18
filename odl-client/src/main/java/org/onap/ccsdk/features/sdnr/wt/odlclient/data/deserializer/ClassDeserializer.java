@@ -29,13 +29,13 @@ import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev181019.IfOT
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ClassJsonDeserializer extends FromStringDeserializer<Class<?>> {
+public class ClassDeserializer extends FromStringDeserializer<Class<?>> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ClassJsonDeserializer.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ClassDeserializer.class);
     private static final long serialVersionUID = 1L;
     private static final Map<String,Class<?>> exceptions = initExceptions();
     private final ClassFinder clsFinder;
-    public ClassJsonDeserializer(Class<?> vc, ClassFinder clsFinder) {
+    public ClassDeserializer(Class<?> vc, ClassFinder clsFinder) {
         super(vc);
         this.clsFinder = clsFinder;
 

@@ -29,9 +29,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import org.onap.ccsdk.features.sdnr.wt.odlclient.yangtools.YangToolsMapper;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.devicemanager.notifications.rev220517.AttributeValueChangedNotification;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.devicemanager.notifications.rev220517.ObjectCreationNotification;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.devicemanager.notifications.rev220517.ObjectDeletionNotification;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.devicemanager.rev190109.AttributeValueChangedNotification;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.devicemanager.rev190109.ObjectCreationNotification;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.devicemanager.rev190109.ObjectDeletionNotification;
 import org.opendaylight.yangtools.yang.binding.Notification;
 import org.opendaylight.yangtools.yang.common.QName;
 

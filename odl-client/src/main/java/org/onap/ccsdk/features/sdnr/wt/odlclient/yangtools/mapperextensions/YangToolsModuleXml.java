@@ -22,7 +22,7 @@
 package org.onap.ccsdk.features.sdnr.wt.odlclient.yangtools.mapperextensions;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.dataformat.xml.JacksonXmlModule;
 import java.util.Map;
 import org.onap.ccsdk.features.sdnr.wt.odlclient.yangtools.serialize.DateAndTimeSerializer;
 import org.onap.ccsdk.features.sdnr.wt.odlclient.yangtools.serialize.EnumSerializer;
@@ -32,14 +32,14 @@ import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.yang.types.
 import org.opendaylight.yangtools.yang.binding.ScalarTypeObject;
 import org.opendaylight.yangtools.yang.binding.TypeObject;
 
-public class YangToolsModule extends SimpleModule {
+public class YangToolsModuleXml extends JacksonXmlModule {
 
     private static final long serialVersionUID = 1L;
 
-    public YangToolsModule(ObjectMapper parent) {
+    public YangToolsModuleXml(ObjectMapper parent) {
         super();
+        this.setDefaultUseWrapper(false);
         setDeserializerModifier(new YangToolsDeserializerModifier(parent));
-
         addSerializer(DateAndTime.class, new DateAndTimeSerializer());
         addSerializer(TypeObject.class, new TypeObjectSerializer());
         addSerializer(ScalarTypeObject.class, new TypeObjectSerializer());

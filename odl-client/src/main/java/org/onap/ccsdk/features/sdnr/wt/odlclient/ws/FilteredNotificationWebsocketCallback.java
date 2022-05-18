@@ -9,7 +9,8 @@ package org.onap.ccsdk.features.sdnr.wt.odlclient.ws;
 
 import org.eclipse.jetty.websocket.api.Session;
 import org.onap.ccsdk.features.sdnr.wt.odlclient.data.NotificationInput;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.devicemanager.notifications.rev220517.ProblemNotification;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.devicemanager.rev190109.ProblemNotification;
+
 
 
 public abstract class FilteredNotificationWebsocketCallback implements SdnrWebsocketCallback{

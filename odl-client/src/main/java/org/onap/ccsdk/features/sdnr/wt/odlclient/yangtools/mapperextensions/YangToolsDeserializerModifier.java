@@ -28,6 +28,7 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.KeyDeserializer;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.BeanDeserializerModifier;
 import com.fasterxml.jackson.databind.type.MapType;
 import java.io.IOException;
@@ -35,11 +36,11 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import org.onap.ccsdk.features.sdnr.wt.odlclient.data.deserializer.TypeObjectDeserializer;
 import org.onap.ccsdk.features.sdnr.wt.odlclient.yangtools.YangToolsMapperHelper;
 import org.onap.ccsdk.features.sdnr.wt.odlclient.yangtools.serialize.BaseIdentityDeserializer;
 import org.onap.ccsdk.features.sdnr.wt.odlclient.yangtools.serialize.ClassDeserializer;
 import org.onap.ccsdk.features.sdnr.wt.odlclient.yangtools.serialize.IdentifierDeserializer;
-import org.onap.ccsdk.features.sdnr.wt.odlclient.yangtools.serialize.TypeObjectDeserializer;
 import org.opendaylight.yangtools.yang.binding.BaseIdentity;
 import org.opendaylight.yangtools.yang.binding.Identifier;
 import org.opendaylight.yangtools.yang.binding.ScalarTypeObject;
@@ -52,6 +53,11 @@ public class YangToolsDeserializerModifier extends BeanDeserializerModifier {
     private static final Logger LOG = LoggerFactory.getLogger(YangToolsDeserializerModifier.class);
     private static final String getEnumMethodName = "valueOf";
     private static final String getEnumMethodName2 = "forName";
+    private final ObjectMapper parentMapper;
+
+    public YangToolsDeserializerModifier(ObjectMapper parent) {
+        this.parentMapper = parent;
+    }
 
     @SuppressWarnings("unchecked")
     public static Enum<?> parseEnum(String value, Class<?> clazz) throws IllegalAccessException,
@@ -118,7 +124,7 @@ public class YangToolsDeserializerModifier extends BeanDeserializerModifier {
     public JsonDeserializer<?> modifyMapDeserializer(DeserializationConfig config, MapType type,
             BeanDescription beanDesc, JsonDeserializer<?> deserializer) {
         final Class<?> rawClass = type.getBindings().getBoundType(1).getRawClass();
-        return new YangtoolsMapDesirializer(rawClass);
+        return new YangtoolsMapDeserializer(rawClass, this.parentMapper);
     }
 
     @Override

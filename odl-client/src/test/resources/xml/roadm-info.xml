@@ -26,4 +26,5 @@
     </geoLocation>
     <max-num-bin-15min-historical-pm>32</max-num-bin-15min-historical-pm>
     <max-num-bin-24hour-historical-pm>7</max-num-bin-24hour-historical-pm>
+
 </info>

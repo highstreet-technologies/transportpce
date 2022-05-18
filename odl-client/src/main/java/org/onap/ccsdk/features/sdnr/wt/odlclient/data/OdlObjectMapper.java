@@ -25,9 +25,8 @@ import java.lang.reflect.InvocationTargetException;
 import org.eclipse.jdt.annotation.Nullable;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.onap.ccsdk.features.sdnr.wt.odlclient.data.deserializer.CustomOdlDeserializer;
-import org.onap.ccsdk.features.sdnr.wt.odlclient.data.serializer.DateAndTimeSerializer;
 import org.onap.ccsdk.features.sdnr.wt.odlclient.yangtools.mapperextensions.YangToolsBuilderAnnotationIntrospector;
+import org.onap.ccsdk.features.sdnr.wt.odlclient.yangtools.mapperextensions.YangToolsModule;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.types.rev181019.NodeIdType;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.yang.types.rev130715.DateAndTime;
 import org.opendaylight.yangtools.concepts.Builder;
@@ -53,10 +52,7 @@ public class OdlObjectMapper extends ObjectMapper implements ClassFinder{
         setSerializationInclusion(Include.NON_NULL);
         setAnnotationIntrospector(this.introspector);
 
-        SimpleModule customSerializerModule = new SimpleModule();
-        customSerializerModule.addSerializer(DateAndTime.class, new DateAndTimeSerializer());
-        //        customSerializerModule.addSerializer(EquipmentEntity.class, new CustomChoiceSerializer());
-        customSerializerModule.setDeserializerModifier(new CustomOdlDeserializer(this));
+        SimpleModule customSerializerModule = new YangToolsModule(this);
         customSerializerModule.addKeyDeserializer(DataObject.class, new KeyDeserializer() {
 
             @Override
@@ -69,6 +65,7 @@ public class OdlObjectMapper extends ObjectMapper implements ClassFinder{
                 return ctxt.getAttribute(key);
             }
         });
+
         this.registerModule(customSerializerModule);
         this.enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS);
 

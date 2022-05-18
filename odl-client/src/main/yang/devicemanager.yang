@@ -1,8 +1,8 @@
-module devicemanager-notifications {
+module devicemanager {
 
   yang-version 1;
-  namespace "urn:opendaylight:params:xml:ns:yang:devicemanager-notifications";
-  prefix devicemanager-notifications;
+  namespace "urn:opendaylight:params:xml:ns:yang:devicemanager";
+  prefix devicemanager;
 
   import ietf-yang-types {
     prefix yang;
@@ -35,9 +35,9 @@ module devicemanager-notifications {
      See the License for the specific language governing permissions and
      limitations under the License.";
 
-  revision 2022-05-17 {
+  revision 2019-01-09 {
     description
-      "Initial revision";
+      "!!!!!manupulated revision - notifications only";
     reference
       "devicemanager.yang@2019-01-19";
   }
