@@ -1,0 +1,145 @@
+version: '3'
+
+services:
+  transportpce:
+    container_name: transportpce
+    image: odl/transportpce:4.2.0-STAGING-latest
+    environment: 
+      - REMOTE_SDNRURL=${REMOTE_SDNR_URL}
+      - REMOTE_WSURL=${REMOTE_SDNR_WSURL}
+      - REMOTE_ODL_USERNAME=${SDNR_USERNAME}
+      - REMOTE_ODL_PASSWORD=${SDNR_PASSWORD}
+      - REMOTE_ODL_ENABLED=${REMOTE_ODL_ENABLED}
+      - REMOTE_ODL_TRUSTALL=${TRUSTALL}
+    ports: 
+      - '28181:8181'
+    depends_on: 
+      - sdnr
+    volumes:
+      - ./conf/org.opendaylight.transportpce.cfg:/opt/opendaylight/etc/org.opendaylight.transportpce.cfg
+
+  # transportpce-gui:
+  #   image: odl/transportpce-gui
+  #   environment: 
+  #     - IETF_NETWORK_BASEURL=http://transportpce:8181
+  #     - TRANSPORTPCE_BASEURL=http://transportpce:8181
+  #   ports:
+  #     - '28082:8082'
+  #   depends_on: 
+  #     - transportpce
+  sdncweb:
+#    image: nexus3.onap.org:10001/onap/sdnc-web-image:latest
+    image: 10.20.6.10:30000/hightec/sdnr-image-phosphorus:1.3.0-SNAPSHOT-20220315T130351Z
+    environment: 
+      - SDNRHOST=sdnr
+    ports:
+      - '28080:8080'
+    depends_on: 
+      - sdnr
+  sdnr:
+    #image: hightec/sdnc-image-wt-patch:1.2.0-SNAPSHOT-20210625T063556Z
+    image: 10.20.6.10:30000/hightec/sdnr-image-phosphorus:1.3.0-SNAPSHOT-20220315T130351Z
+    container_name: sdnr
+    environment:
+      - ODL_ADMIN_PASSWORD=${SDNR_PASSWORD}
+      - SDNRONLY=true
+      - SDNRINIT=true
+      - SDNRDM=false
+      - SDNRWT=true
+      - SDNRDBURL=http://sdnrdb:9200                                          
+      - SDNRDM_BOOTFEATURES=odl-restconf-all,odl-netconf-topology,odl-mdsal-all,odl-mdsal-apidocs,odl-daexim-all,odl-restconf-nb-rfc8040,odl-netconf-callhome-ssh,odl-mdsal-model-rfc8345,sdnr-wt-feature-aggregator-devicemanager-base,sdnr-wt-feature-aggregator-devicemanager
+    depends_on: 
+      - sdnrdb
+    ports:
+      - '8181:8181'
+  sdnrdb:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.9.3
+    environment: 
+      - discovery.type=single-node
+  roadma:
+    image: ${NTSIM_ROADM_STANDALONE_IMAGE}
+    container_name: roadma
+    environment: 
+      - NTS_IP=10.20.11.121
+      - EXTERNAL_NTS_IP=10.20.11.121
+      - NETCONF_BASE=${SIMPORT}
+      - SCRIPTS_DIR=/opt/dev/scripts
+      - K8S_DEPLOYMENT=false
+      - IPv6Enabled=false
+    volumes: 
+      - ./conf/ntsim_configuration.json:/opt/dev/scripts/configuration.json
+      - ./conf/oper-ROADMA.xml:/opt/dev/scripts/startup-load.xml
+    depends_on: 
+      - sdnr
+    ports: 
+      - 50000:${SIMPORT}
+  roadmb:
+    image: ${NTSIM_ROADM_STANDALONE_IMAGE}
+    container_name: roadmb
+    environment: 
+      - NTS_IP=10.20.11.121
+      - EXTERNAL_NTS_IP=10.20.11.121
+      - NETCONF_BASE=${SIMPORT}
+      - SCRIPTS_DIR=/opt/dev/scripts
+      - K8S_DEPLOYMENT=false
+      - IPv6Enabled=false
+    volumes: 
+      - ./conf/ntsim_configuration.json:/opt/dev/scripts/configuration.json
+      - ./conf/oper-ROADMB.xml:/opt/dev/scripts/startup-load.xml
+    depends_on: 
+      - sdnr
+    ports: 
+      - 50001:${SIMPORT}  
+  roadmc:
+    image: ${NTSIM_ROADM_STANDALONE_IMAGE}
+    container_name: roadmc
+    environment: 
+      - NTS_IP=10.20.11.121
+      - EXTERNAL_NTS_IP=10.20.11.121
+      - NETCONF_BASE=${SIMPORT}
+      - SCRIPTS_DIR=/opt/dev/scripts
+      - K8S_DEPLOYMENT=false
+      - IPv6Enabled=false
+    volumes: 
+      - ./conf/ntsim_configuration.json:/opt/dev/scripts/configuration.json
+      - ./conf/oper-ROADMC.xml:/opt/dev/scripts/startup-load.xml
+    depends_on: 
+      - sdnr  
+    ports: 
+      - 50002:${SIMPORT}
+  xpdra:
+    image: ${NTSIM_ROADM_STANDALONE_IMAGE}
+    container_name: xpdra
+    environment: 
+      - NTS_IP=10.20.11.121
+      - EXTERNAL_NTS_IP=10.20.11.121
+      - NETCONF_BASE=${SIMPORT}
+      - SCRIPTS_DIR=/opt/dev/scripts
+      - K8S_DEPLOYMENT=false
+      - IPv6Enabled=false
+    volumes: 
+      - ./conf/ntsim_configuration.json:/opt/dev/scripts/configuration.json
+      - ./conf/oper-XPDRA.xml:/opt/dev/scripts/startup-load.xml
+    depends_on: 
+      - sdnr      
+    ports: 
+      - 50003:${SIMPORT}
+  
+  xpdrc:
+    image: ${NTSIM_ROADM_STANDALONE_IMAGE}
+    container_name: xpdrc
+    environment: 
+      - NTS_IP=10.20.11.121
+      - EXTERNAL_NTS_IP=10.20.11.121
+      - NETCONF_BASE=${SIMPORT}
+      - SCRIPTS_DIR=/opt/dev/scripts
+      - K8S_DEPLOYMENT=false
+      - IPv6Enabled=false
+    volumes: 
+      - ./conf/ntsim_configuration.json:/opt/dev/scripts/configuration.json
+      - ./conf/oper-XPDRC.xml:/opt/dev/scripts/startup-load.xml
+    depends_on: 
+      - sdnr
+    ports: 
+      - 50004:${SIMPORT}
+                                            

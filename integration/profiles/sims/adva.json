@@ -1,0 +1,37 @@
+[
+    {
+        "node-id": "ROADM-A",
+        "host": "10.20.6.49",
+        "port": 17931,
+        "username":"netconf",
+        "password":"netconf"
+    },
+    {
+        "node-id": "ROADM-B",
+        "host": "10.20.6.49",
+        "port": 17941,
+        "username":"netconf",
+        "password":"netconf"
+    },
+    {
+        "node-id": "ROADM-C",
+        "host": "10.20.6.49",
+        "port": 17951,
+        "username":"netconf",
+        "password":"netconf"
+    },
+    {
+        "node-id": "XPDR-A",
+        "host": "10.20.6.49",
+        "port": 17932,
+        "username":"netconf",
+        "password":"netconf"
+    },
+    {
+        "node-id": "XPDR-C",
+        "host": "10.20.6.49",
+        "port": 17952,
+        "username":"netconf",
+        "password":"netconf"
+    }
+]

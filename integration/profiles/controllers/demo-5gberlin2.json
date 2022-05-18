@@ -1,0 +1,33 @@
+{
+    "sdnr": [
+        {
+            "scheme":"https",
+            "host": "sdnc-web-0.smo-int-1.t3.lab.osn-lab.com",
+            "port": 443,
+            "username":"${SDNR_USERNAME}",
+            "password":"${SDNR_PASSWORD}",
+            "container":"",
+            "primary":false
+        },
+        {
+            "scheme":"https",
+            "host": "sdnc-web-net.smo-int-1.t3.lab.osn-lab.com",
+            "port": 443,
+            "username":"${SDNR_USERNAME}",
+            "password":"${SDNR_PASSWORD}",
+            "container":"",
+            "primary":true
+        }
+    ],
+    "transportpce": {
+        "scheme": "https",
+        "host": "sdnc-web-net.smo-int-1.t3.lab.osn-lab.com",
+        "port": 443,
+        "suffix":"/transportpce",
+        "username": "admin",
+        "password": "admin",
+        "container": "",
+        "primary": true
+    }
+}
+   
