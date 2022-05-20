@@ -43,7 +43,6 @@ public class RemoteDeviceReadWriteTransaction extends RemoteTransaction implemen
         CommitInfo result = new CommitInfo() {
 
         };
-        //       LOG.warn("rw transaction not yet implemented: commit, {}",whoCalledMeAll());
         if (this.futureRequest != null) {
             try {
                 this.futureRequest.get();
@@ -73,35 +72,11 @@ public class RemoteDeviceReadWriteTransaction extends RemoteTransaction implemen
         }
     }
 
-//    @Override
-//    public <T extends DataObject> void put(@NonNull LogicalDatastoreType store, @NonNull InstanceIdentifier<T> path,
-//            @NonNull T data, boolean createMissingParents) {
-//        LOG.debug("rw transaction now implemented: deprecated put");
-//        try {
-//            this.futureRequest = this.client.put(store, path, data, this.nodeId);
-//        } catch (ClassNotFoundException | NoSuchFieldException | SecurityException | IllegalArgumentException
-//                | IllegalAccessException e) {
-//            LOG.warn("problem creating put request: ", e);
-//        }
-//    }
-
     @Override
     public <T extends DataObject> void mergeParentStructurePut(@NonNull LogicalDatastoreType store,
             @NonNull InstanceIdentifier<T> path, @NonNull T data) {
         LOG.warn("rw transaction not yet implemented: mergeParentStructurePut, {}", whoCalledMeAll());
     }
-
-//    @Override
-//    public <T extends DataObject> void merge(@NonNull LogicalDatastoreType store, @NonNull InstanceIdentifier<T> instanceIdentifier,
-//            @NonNull T data, boolean createMissingParents) {
-//        LOG.debug("rw transaction now implemented: deprecated merge ");
-//        try {
-//            this.futureRequest = this.client.merge(store, instanceIdentifier, data, this.nodeId);
-//        } catch (ClassNotFoundException | NoSuchFieldException | SecurityException | IllegalArgumentException
-//                | IllegalAccessException e) {
-//            LOG.warn("problem creating merge request: ", e);
-//        }
-//    }
 
     @Override
     public <T extends DataObject> void merge(@NonNull LogicalDatastoreType store,

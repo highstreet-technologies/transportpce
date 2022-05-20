@@ -1,0 +1,27 @@
+{
+    "org-openroadm-device:info": {
+        "source": "static",
+        "current-prefix-length": 10,
+        "macAddress": "00:01:02:03:04:05",
+        "vendor": "vendorA",
+        "geoLocation": {
+            "latitude": "1.0",
+            "longitude": "2.0"
+        },
+        "openroadm-version": "2.2",
+        "serial-id": "nodeid-1234",
+        "model": "model2",
+        "current-ipAddress": "1.2.3.4",
+        "softwareVersion": "swversion1234",
+        "node-id": "XPDR-A1",
+        "template": "template_TRANSPONDER",
+        "node-type": "xpdr",
+        "node-number": 1,
+        "defaultGateway": "1.2.3.4",
+        "current-defaultGateway": "1.2.3.1",
+        "clli": "NodeA",
+        "ipAddress": "1.2.3.4",
+        "prefix-length": 24,
+        "current-datetime": "2017-10-22T15:23:43Z"
+    }
+}

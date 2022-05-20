@@ -1,0 +1,45 @@
+{
+    "org-openroadm-device:protocols": {
+        "org-openroadm-lldp:lldp": {
+            "global-config": {
+                "adminStatus": "enable",
+                "msgTxHoldMultiplier": 4,
+                "msgTxInterval": 20
+            },
+            "nbr-list": {
+                "if-name": [
+                    {
+                        "ifName": "1GE-interface-1",
+                        "remoteSysName": "ROADM-A1",
+                        "remoteChassisId": "1?",
+                        "remoteMgmtAddress": "1.1.1.1",
+                        "remotePortId": "1GE-interface-1",
+                        "remoteChassisIdSubType": "chassiscomponent",
+                        "remotePortIdSubType": "ifalias",
+                        "remoteMgmtAddressSubType": "ipV4"
+                    },
+                    {
+                        "ifName": "1GE-interface-2",
+                        "remoteSysName": "ROADM-C1",
+                        "remoteChassisId": "1?",
+                        "remoteMgmtAddress": "1.1.1.1",
+                        "remotePortId": "1GE-interface-2",
+                        "remoteChassisIdSubType": "chassiscomponent",
+                        "remotePortIdSubType": "ifalias",
+                        "remoteMgmtAddressSubType": "ipV4"
+                    }
+                ]
+            },
+            "port-config": [
+                {
+                    "ifName": "1GE-interface-2",
+                    "adminStatus": "txandrx"
+                },
+                {
+                    "ifName": "1GE-interface-1",
+                    "adminStatus": "txandrx"
+                }
+            ]
+        }
+    }
+}

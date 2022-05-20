@@ -39,7 +39,7 @@ public class RemoteDataBroker implements DataBroker {
     @Override
     public <T extends DataObject, L extends DataTreeChangeListener<T>> @NonNull ListenerRegistration<L>
         registerDataTreeChangeListener(@NonNull DataTreeIdentifier<T> treeId, @NonNull L listener) {
-        // TODO Auto-generated method stub
+        LOG.warn("listener registration not yet implemented");
         return null;
     }
 
@@ -50,13 +50,13 @@ public class RemoteDataBroker implements DataBroker {
 
     @Override
     public @NonNull ReadWriteTransaction newReadWriteTransaction() {
-        // TODO Auto-generated method stub
+        LOG.warn("read write transaction not yet implemented");
         return null;
     }
 
     @Override
     public @NonNull WriteTransaction newWriteOnlyTransaction() {
-        // TODO Auto-generated method stub
+        LOG.warn("write transaction not yet implemented");
         return null;
     }
 
@@ -69,7 +69,7 @@ public class RemoteDataBroker implements DataBroker {
     @Override
     public @NonNull TransactionChain createMergingTransactionChain(
             @NonNull TransactionChainListener listener) {
-        // TODO Auto-generated method stub
+        LOG.warn("merge transaction chain not yet implemented");
         return null;
     }
 

@@ -1,0 +1,24 @@
+{
+    "interface": {
+        "odu": {
+            "odu-function": "org-openroadm-otn-common-types:ODU-TTP-CTP",
+            "expected-sapi": "APfLSzbpVWok",
+            "monitoring-mode": "terminated",
+            "opu": {
+                "payload-type": "07",
+                "exp-payload-type": "07"
+            },
+            "rate": "org-openroadm-otn-common-types:ODU4",
+            "tx-sapi": "T8lKM1sTaxI=",
+            "expected-dapi": "T8lKM1sTaxI=",
+            "tx-dapi": "APfLSzbpVWok"
+        },
+        "supporting-circuit-pack-name": "1/0/1-PLUG-NET",
+        "circuit-id": "TBD",
+        "administrative-state": "inService",
+        "name": "XPDR1-NETWORK1-ODU4",
+        "description": "TBD",
+        "type": "org-openroadm-interfaces:otnOdu",
+        "supporting-port": "1"
+    }
+}

@@ -1,0 +1,346 @@
+{
+    "org-openroadm-device:org-openroadm-device": {
+        "info": {
+            "source": "static",
+            "current-prefix-length": 10,
+            "macAddress": "00:01:02:03:04:05",
+            "vendor": "vendorA",
+            "geoLocation": {
+                "latitude": "1.0",
+                "longitude": "2.0"
+            },
+            "openroadm-version": "2.2",
+            "serial-id": "nodeid-1234",
+            "model": "model2",
+            "current-ipAddress": "1.2.3.4",
+            "softwareVersion": "swversion1234",
+            "node-id": "XPDR-A1",
+            "template": "template_TRANSPONDER",
+            "node-type": "xpdr",
+            "node-number": 1,
+            "defaultGateway": "1.2.3.4",
+            "current-defaultGateway": "1.2.3.1",
+            "clli": "NodeA",
+            "ipAddress": "1.2.3.4",
+            "prefix-length": 24,
+            "current-datetime": "2017-10-22T15:23:43Z"
+        },
+        "users": {
+            "user": [
+                {
+                    "name": "openroadm",
+                    "password": "openroadm",
+                    "group": "sudo"
+                }
+            ]
+        },
+        "circuit-packs": [
+            {
+                "circuit-pack-name": "1/0/2-PLUG-NET",
+                "circuit-pack-category": {
+                    "type": "circuitPack"
+                },
+                "parent-circuit-pack": {
+                    "circuit-pack-name": "1/0",
+                    "cp-slot-name": "3"
+                },
+                "operational-state": "inService",
+                "vendor": "VendorA",
+                "is-pluggable-optics": true,
+                "serial-id": "_1234_",
+                "hardware-version": "0.1",
+                "model": "CFP2",
+                "circuit-pack-type": "line_pluggable",
+                "circuit-pack-mode": "NORMAL",
+                "product-code": "Line_NW_P",
+                "subSlot": "1",
+                "circuit-pack-product-code": "Line_NW_P",
+                "type": "line/network pluggable",
+                "ports": [
+                    {
+                        "port-name": "1",
+                        "supported-interface-capability": [
+                            "org-openroadm-port-types:if-OCH"
+                        ],
+                        "port-qual": "xpdr-network",
+                        "operational-state": "inService",
+                        "administrative-state": "inService",
+                        "label": "2",
+                        "transponder-port": {
+                            "port-power-capability-max-rx": "1.0",
+                            "port-power-capability-min-rx": "-22.0",
+                            "port-power-capability-max-tx": "0.0",
+                            "port-power-capability-min-tx": "-5.0"
+                        },
+                        "port-type": "CFP2",
+                        "port-wavelength-type": "wavelength",
+                        "port-direction": "bidirectional"
+                    }
+                ],
+                "shelf": "1",
+                "slot": "1"
+            },
+            {
+                "circuit-pack-name": "1/0/2-PLUG-CLIENT",
+                "circuit-pack-category": {
+                    "type": "circuitPack"
+                },
+                "parent-circuit-pack": {
+                    "circuit-pack-name": "1/0",
+                    "cp-slot-name": "4"
+                },
+                "operational-state": "inService",
+                "vendor": "VendorA",
+                "is-pluggable-optics": true,
+                "serial-id": "_1234_",
+                "hardware-version": "0.1",
+                "model": "client_pluggable",
+                "circuit-pack-type": "client_pluggable",
+                "circuit-pack-mode": "NORMAL",
+                "product-code": "Client_P",
+                "subSlot": "1",
+                "circuit-pack-product-code": "Client_P",
+                "type": "QSFP28",
+                "ports": [
+                    {
+                        "port-name": "C1",
+                        "supported-interface-capability": [
+                            "org-openroadm-port-types:if-100GE"
+                        ],
+                        "port-qual": "xpdr-client",
+                        "operational-state": "inService",
+                        "administrative-state": "inService",
+                        "label": "2",
+                        "transponder-port": {
+                            "port-power-capability-max-rx": "4.0",
+                            "port-power-capability-min-rx": "-4.0",
+                            "port-power-capability-max-tx": "4.0",
+                            "port-power-capability-min-tx": "-10.0"
+                        },
+                        "port-type": "QSFP28",
+                        "port-wavelength-type": "wavelength",
+                        "port-direction": "bidirectional"
+                    }
+                ],
+                "shelf": "1",
+                "slot": "1"
+            },
+            {
+                "circuit-pack-name": "1/0",
+                "circuit-pack-category": {
+                    "type": "circuitPack"
+                },
+                "operational-state": "inService",
+                "vendor": "VendorA",
+                "is-pluggable-optics": false,
+                "administrative-state": "inService",
+                "serial-id": "nodeid-1234",
+                "hardware-version": "0.1",
+                "model": "model1",
+                "circuit-pack-type": "Base_transponder_circuit_pack",
+                "circuit-pack-mode": "inServiceMode",
+                "product-code": "baseXPDR",
+                "clei": "12345678901",
+                "circuit-pack-product-code": "baseXPDR",
+                "type": "XPDR1",
+                "shelf": "1",
+                "cp-slots": [
+                    {
+                        "slot-name": "4",
+                        "label": "2",
+                        "provisioned-circuit-pack": "1/0/2-PLUG-CLIENT"
+                    },
+                    {
+                        "slot-name": "3",
+                        "label": "1",
+                        "provisioned-circuit-pack": "1/0/2-PLUG-NET"
+                    },
+                    {
+                        "slot-name": "2",
+                        "label": "2",
+                        "provisioned-circuit-pack": "1/0/1-PLUG-CLIENT"
+                    },
+                    {
+                        "slot-name": "1",
+                        "label": "1",
+                        "provisioned-circuit-pack": "1/0/1-PLUG-NET"
+                    }
+                ],
+                "slot": "1",
+                "manufacture-date": "2007-10-10T00:00:00Z"
+            },
+            {
+                "circuit-pack-name": "1/0/1-PLUG-NET",
+                "circuit-pack-category": {
+                    "type": "circuitPack"
+                },
+                "parent-circuit-pack": {
+                    "circuit-pack-name": "1/0",
+                    "cp-slot-name": "1"
+                },
+                "operational-state": "inService",
+                "vendor": "VendorA",
+                "is-pluggable-optics": true,
+                "serial-id": "_1234_",
+                "hardware-version": "0.1",
+                "model": "CFP2",
+                "circuit-pack-type": "line_pluggable",
+                "equipment-state": "not-reserved-available",
+                "circuit-pack-mode": "NORMAL",
+                "product-code": "Line_NW_P",
+                "subSlot": "1",
+                "circuit-pack-product-code": "Line_NW_P",
+                "type": "line/network pluggable",
+                "ports": [
+                    {
+                        "port-name": "1",
+                        "supported-interface-capability": [
+                            "org-openroadm-port-types:if-OCH"
+                        ],
+                        "port-qual": "xpdr-network",
+                        "operational-state": "inService",
+                        "administrative-state": "inService",
+                        "label": "2",
+                        "transponder-port": {
+                            "port-power-capability-max-rx": "1.0",
+                            "port-power-capability-min-rx": "-22.0",
+                            "port-power-capability-max-tx": "0.0",
+                            "port-power-capability-min-tx": "-5.0"
+                        },
+                        "port-type": "CFP2",
+                        "port-wavelength-type": "wavelength",
+                        "port-direction": "bidirectional"
+                    }
+                ],
+                "shelf": "1",
+                "slot": "1"
+            },
+            {
+                "circuit-pack-name": "1/0/1-PLUG-CLIENT",
+                "circuit-pack-category": {
+                    "type": "circuitPack"
+                },
+                "parent-circuit-pack": {
+                    "circuit-pack-name": "1/0",
+                    "cp-slot-name": "2"
+                },
+                "operational-state": "inService",
+                "vendor": "VendorA",
+                "is-pluggable-optics": true,
+                "serial-id": "_1234_",
+                "hardware-version": "0.1",
+                "model": "client_pluggable",
+                "circuit-pack-type": "client_pluggable",
+                "equipment-state": "not-reserved-available",
+                "circuit-pack-mode": "NORMAL",
+                "product-code": "Client_P",
+                "subSlot": "1",
+                "circuit-pack-product-code": "Client_P",
+                "type": "QSFP28",
+                "ports": [
+                    {
+                        "port-name": "C1",
+                        "supported-interface-capability": [
+                            "org-openroadm-port-types:if-100GE"
+                        ],
+                        "port-qual": "xpdr-client",
+                        "operational-state": "inService",
+                        "administrative-state": "inService",
+                        "label": "2",
+                        "transponder-port": {
+                            "port-power-capability-max-rx": "4.0",
+                            "port-power-capability-min-rx": "-4.0",
+                            "port-power-capability-max-tx": "4.0",
+                            "port-power-capability-min-tx": "-10.0"
+                        },
+                        "port-type": "QSFP28",
+                        "port-wavelength-type": "wavelength",
+                        "port-direction": "bidirectional"
+                    }
+                ],
+                "shelf": "1",
+                "slot": "1"
+            }
+        ],
+        "shelves": [
+            {
+                "shelf-name": "1",
+                "slots": [
+                    {
+                        "slot-name": "1",
+                        "label": "1",
+                        "provisioned-circuit-pack": "1/0"
+                    }
+                ],
+                "operational-state": "inService",
+                "vendor": "vendorA",
+                "administrative-state": "inService",
+                "serial-id": "nodeid-1",
+                "hardware-version": "0.1",
+                "model": "1",
+                "shelf-type": "pizza",
+                "product-code": "zzz",
+                "clei": "1234567890",
+                "shelf-position": "1",
+                "due-date": "2017-02-24T15:56:10+00:00",
+                "type": "pizza",
+                "rack": "XYZ",
+                "manufacture-date": "2017-04-01T00:00:00+00:00"
+            }
+        ],
+        "connection-map": [
+            {
+                "connection-map-number": 4,
+                "source": {
+                    "circuit-pack-name": "1/0/2-PLUG-NET",
+                    "port-name": "1"
+                },
+                "destination": [
+                    {
+                        "circuit-pack-name": "1/0/2-PLUG-CLIENT",
+                        "port-name": "C1"
+                    }
+                ]
+            },
+            {
+                "connection-map-number": 1,
+                "source": {
+                    "circuit-pack-name": "1/0/1-PLUG-CLIENT",
+                    "port-name": "C1"
+                },
+                "destination": [
+                    {
+                        "circuit-pack-name": "1/0/1-PLUG-NET",
+                        "port-name": "1"
+                    }
+                ]
+            },
+            {
+                "connection-map-number": 3,
+                "source": {
+                    "circuit-pack-name": "1/0/2-PLUG-CLIENT",
+                    "port-name": "C1"
+                },
+                "destination": [
+                    {
+                        "circuit-pack-name": "1/0/2-PLUG-NET",
+                        "port-name": "1"
+                    }
+                ]
+            },
+            {
+                "connection-map-number": 2,
+                "source": {
+                    "circuit-pack-name": "1/0/1-PLUG-NET",
+                    "port-name": "1"
+                },
+                "destination": [
+                    {
+                        "circuit-pack-name": "1/0/1-PLUG-CLIENT",
+                        "port-name": "C1"
+                    }
+                ]
+            }
+        ]
+    }
+}

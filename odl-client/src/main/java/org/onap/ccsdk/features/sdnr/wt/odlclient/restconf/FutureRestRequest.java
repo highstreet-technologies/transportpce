@@ -17,9 +17,8 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
-import org.onap.ccsdk.features.sdnr.wt.odlclient.data.OdlObjectMapperXml;
-import org.onap.ccsdk.features.sdnr.wt.odlclient.http.BaseHTTPClient;
 import org.onap.ccsdk.features.sdnr.wt.odlclient.http.BaseHTTPResponse;
+import org.onap.ccsdk.features.sdnr.wt.odlclient.yangtools.YangToolsMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,31 +27,31 @@ public class FutureRestRequest<T> implements ListenableFuture<Optional<T>> {
 
     private static final Logger LOG = LoggerFactory.getLogger(FutureRestRequest.class);
 
-    public static <T> FluentFuture<Optional<T>> createFutureGetRequest(BaseHTTPClient client, String uri, String data,
-            Map<String, String> headers, Class<T> clazz, boolean clearWrappingParent) {
+    public static <T> FluentFuture<Optional<T>> createFutureGetRequest(RestconfHttpClient client, String uri, String data,
+            Map<String, String> headers, Class<T> clazz, boolean isLeafListItem) {
         return FluentFuture
-                .from(new FutureRestRequest<T>(client, uri, "GET", data, headers, clazz, clearWrappingParent));
+                .from(new FutureRestRequest<T>(client, uri, "GET", data, headers, clazz, isLeafListItem));
     }
 
-    public static <T> FluentFuture<Optional<T>> createFuturePutRequest(BaseHTTPClient client, String uri, String data,
-            Map<String, String> headers, boolean clearWrappingParent) {
+    public static <T> FluentFuture<Optional<T>> createFuturePutRequest(RestconfHttpClient client, String uri, String data,
+            Map<String, String> headers, boolean isLeafListItem) {
         return FluentFuture
-                .from(new FutureRestRequest<T>(client, uri, "PUT", data, headers, null, clearWrappingParent));
+                .from(new FutureRestRequest<T>(client, uri, "PUT", data, headers, null, isLeafListItem));
     }
 
-    public static <T> FluentFuture<Optional<T>> createFuturePostRequest(BaseHTTPClient client, String uri, String data,
-            Map<String, String> headers, Class<T> clazz, boolean clearWrappingParent) {
+    public static <T> FluentFuture<Optional<T>> createFuturePostRequest(RestconfHttpClient client, String uri, String data,
+            Map<String, String> headers, Class<T> clazz, boolean isLeafListItem) {
         return FluentFuture
-                .from(new FutureRestRequest<T>(client, uri, "POST", data, headers, clazz, clearWrappingParent));
+                .from(new FutureRestRequest<T>(client, uri, "POST", data, headers, clazz, isLeafListItem));
     }
 
-    public static <T> FluentFuture<Optional<T>> createFutureDeleteRequest(BaseHTTPClient client, String uri,
-            String data, Map<String, String> headers, boolean clearWrappingParent) {
+    public static <T> FluentFuture<Optional<T>> createFutureDeleteRequest(RestconfHttpClient client, String uri,
+            String data, Map<String, String> headers, boolean isLeafListItem) {
         return FluentFuture
-                .from(new FutureRestRequest<T>(client, uri, "DELETE", data, headers, null, clearWrappingParent));
+                .from(new FutureRestRequest<T>(client, uri, "DELETE", data, headers, null, isLeafListItem));
     }
 
-    private final BaseHTTPClient client;
+    private final RestconfHttpClient client;
     private final String uri;
     private final String method;
     private final String data;
@@ -60,15 +59,15 @@ public class FutureRestRequest<T> implements ListenableFuture<Optional<T>> {
     private final Class<T> clazz;
     private boolean isDone;
     private boolean isCancelled;
-    private boolean clearWrappingParent;
+    private boolean isLeafListItem;
     private final RequestCallback callback;
 
-    private FutureRestRequest(BaseHTTPClient client, String uri, String method, String data,
+    private FutureRestRequest(RestconfHttpClient client, String uri, String method, String data,
             Map<String, String> headers, Class<T> clazz, boolean clearWrappingParent) {
         this(client, uri, method, data, headers, clazz, clearWrappingParent, null);
     }
-    private FutureRestRequest(BaseHTTPClient client, String uri, String method, String data,
-            Map<String, String> headers, Class<T> clazz, boolean clearWrappingParent, RequestCallback callback) {
+    private FutureRestRequest(RestconfHttpClient client, String uri, String method, String data,
+            Map<String, String> headers, Class<T> clazz, boolean isLeafListItem, RequestCallback callback) {
         this.client = client;
         this.uri = uri;
         this.method = method;
@@ -77,7 +76,7 @@ public class FutureRestRequest<T> implements ListenableFuture<Optional<T>> {
         this.clazz = clazz;
         this.isDone = false;
         this.isCancelled = false;
-        this.clearWrappingParent = clearWrappingParent;
+        this.isLeafListItem = isLeafListItem;
         this.callback = callback;
     }
 
@@ -108,8 +107,8 @@ public class FutureRestRequest<T> implements ListenableFuture<Optional<T>> {
                 LOG.debug("request to {}", uri);
                 LOG.debug("response({}):{}", response.code, response.body);
                 if (this.clazz != null) {
-                    OdlObjectMapperXml mapper = new OdlObjectMapperXml(true);
-                    return Optional.ofNullable(mapper.readValue(response.body, this.clazz));
+                    YangToolsMapper mapper = this.client.getReaderMapper();
+                    return Optional.ofNullable(mapper.readValue(response.body, this.clazz, this.isLeafListItem));
                 }
             }
         } catch (IOException e) {

@@ -18,7 +18,6 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.eclipse.jdt.annotation.NonNull;
@@ -27,12 +26,16 @@ import org.onap.ccsdk.features.sdnr.wt.odlclient.data.NotImplementedException;
 import org.onap.ccsdk.features.sdnr.wt.odlclient.data.OdlRpcObjectMapperXml;
 import org.onap.ccsdk.features.sdnr.wt.odlclient.http.BaseHTTPClient;
 import org.onap.ccsdk.features.sdnr.wt.odlclient.http.BaseHTTPResponse;
+import org.onap.ccsdk.features.sdnr.wt.odlclient.yangtools.YangToolsMapper;
+import org.onap.ccsdk.features.sdnr.wt.odlclient.yangtools.YangToolsMapperHelper;
 import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev130715.Uri;
+import org.opendaylight.yangtools.yang.binding.Augmentation;
 import org.opendaylight.yangtools.yang.binding.ChildOf;
 import org.opendaylight.yangtools.yang.binding.DataObject;
 import org.opendaylight.yangtools.yang.binding.Identifier;
 import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
+import org.opendaylight.yangtools.yang.binding.InstanceIdentifier.IdentifiableItem;
 import org.opendaylight.yangtools.yang.binding.InstanceIdentifier.PathArgument;
 import org.opendaylight.yangtools.yang.common.QName;
 import org.opendaylight.yangtools.yang.common.RpcError.ErrorType;
@@ -46,7 +49,8 @@ public class RestconfHttpClient extends BaseHTTPClient {
     private static final Logger LOG = LoggerFactory.getLogger(RestconfHttpClient.class);
     private static final int DEFAULT_TIMEOUT = 5000;
     private final Map<String, String> headers;
-    private final OdlRpcObjectMapperXml mapper;
+    private final OdlRpcObjectMapperXml mapperWriter;
+    private final YangToolsMapper mapperReader;
     private RequestCallback callback;
 
     public RestconfHttpClient(String base, boolean trustAllCerts, AuthMethod authMethod, String username,
@@ -58,32 +62,42 @@ public class RestconfHttpClient extends BaseHTTPClient {
         this.headers = new HashMap<>();
         this.headers.put("Content-Type", "application/xml");
         this.headers.put("Authorization", BaseHTTPClient.getAuthorizationHeaderValue(username, password));
-        this.headers.put("Accept", "application/xml");
-        this.mapper = new OdlRpcObjectMapperXml();
+        this.headers.put("Accept", "application/json");
+        this.mapperWriter = new OdlRpcObjectMapperXml();
+        this.mapperReader = new YangToolsMapper(true);
 
     }
 
     public <T extends DataObject> @NonNull FluentFuture<Optional<T>> read(LogicalDatastoreType storage,
             InstanceIdentifier<T> instanceIdentifier, String nodeId) throws IOException, ClassNotFoundException,
             NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
-        final boolean isLeafList = isCompleteLeafListRequest(instanceIdentifier);
-        final String uri = this.getRfc8040UriFromIif(storage, instanceIdentifier, nodeId, false, isLeafList);
+        final boolean isLeafListItem = isListItemRequest(instanceIdentifier);
+        final String uri = this.getRfc8040UriFromIif(storage, instanceIdentifier, nodeId, false, isLeafListItem);
         return FutureRestRequest.createFutureGetRequest(this, uri, (String) null, this.headers,
-                instanceIdentifier.getTargetType(), isLeafList);
+                instanceIdentifier.getTargetType(), isLeafListItem);
     }
 
-    private <T extends DataObject> boolean isCompleteLeafListRequest(InstanceIdentifier<T> instanceIdentifier) {
+
+    /**
+     * Checks if the last item of the instance identifier is a yang specified list item or not
+     * @param <T>
+     * @param instanceIdentifier
+     * @return true if it is a list
+     */
+    private <T extends DataObject> boolean isListItemRequest(InstanceIdentifier<T> instanceIdentifier) {
         Iterable<PathArgument> iterable = instanceIdentifier.getPathArguments();
         Iterator<PathArgument> it = iterable.iterator();
-        boolean isLeafList = false;
         PathArgument pa = null;
+        PathArgument palast = null;
         while (it.hasNext()) {
+            palast = pa;
             pa = it.next();
+            if(YangToolsMapperHelper.implementsInterface(pa.getType(),Augmentation.class)) {
+                pa = palast;
+            }
         }
-        if (pa != null) {
-            isLeafList = pa.getType().isAssignableFrom(List.class);
-        }
-        return isLeafList;
+        return pa instanceof IdentifiableItem;
+
     }
 
     public <T extends DataObject> @NonNull FluentFuture<Optional<T>> read(LogicalDatastoreType store,
@@ -112,7 +126,7 @@ public class RestconfHttpClient extends BaseHTTPClient {
         String moduleName = null;
         while (it.hasNext()) {
             PathArgument pa = it.next();
-            Class<?> cls = this.mapper.findClass(pa.getType().getName(), RestconfHttpClient.class);
+            Class<?> cls = this.mapperWriter.findClass(pa.getType().getName(), RestconfHttpClient.class);
             String key = getKeyOrNull(pa);
             Field qname = cls.getField("QNAME");
             QName value = (QName) qname.get(cls);
@@ -137,7 +151,7 @@ public class RestconfHttpClient extends BaseHTTPClient {
 
     private static final String urlencode(String value) {
         try {
-            return URLEncoder.encode(value, StandardCharsets.UTF_8.toString()).replace(":","%3A");
+            return URLEncoder.encode(value, StandardCharsets.UTF_8.toString()).replace(":", "%3A");
         } catch (UnsupportedEncodingException ex) {
             LOG.warn("problem encode {}:", value, ex);
         }
@@ -170,8 +184,8 @@ public class RestconfHttpClient extends BaseHTTPClient {
         try {
             Class<? extends PathArgument> clazz = pa.getClass();
 
-            Field field = getDeclaredFieldOrNull(clazz,"key");
-            if(field==null) {
+            Field field = getDeclaredFieldOrNull(clazz, "key");
+            if (field == null) {
                 return null;
             }
             field.setAccessible(true);
@@ -200,8 +214,8 @@ public class RestconfHttpClient extends BaseHTTPClient {
 
     private static Field getDeclaredFieldOrNull(Class<?> clazz, String key) {
         Field[] fields = clazz.getDeclaredFields();
-        for(Field f:fields) {
-            if(f.getName()==key) {
+        for (Field f : fields) {
+            if (f.getName() == key) {
                 return f;
             }
         }
@@ -226,9 +240,9 @@ public class RestconfHttpClient extends BaseHTTPClient {
 
             BaseHTTPResponse response = this.sendRequest(
                     this.getRfc8040UriFromIif(LogicalDatastoreType.OPERATIONAL, rpc, nodeId, true), "POST",
-                    input == null ? "" : this.mapper.writeValueAsString(input), this.headers, DEFAULT_TIMEOUT);
+                    input == null ? "" : this.mapperWriter.writeValueAsString(input), this.headers, DEFAULT_TIMEOUT);
             if (response.isSuccess()) {
-                O output = this.mapper.readValue(response.body, clazz);
+                O output = this.mapperReader.readValue(response.body, clazz);
                 result = RpcResultBuilder.success(output);
             } else {
                 result = RpcResultBuilder.failed();
@@ -254,8 +268,8 @@ public class RestconfHttpClient extends BaseHTTPClient {
             throws ClassNotFoundException, NoSuchFieldException, SecurityException, IllegalArgumentException,
             IllegalAccessException {
         final String uri = this.getRfc8040UriFromIif(store, instanceIdentifier, nodeId, false, false);
-        LOG.debug("serialize {}",data);
-        final String strData = this.mapper.writeValueAsString(data,data.getClass());
+        LOG.debug("serialize {}", data);
+        final String strData = this.mapperWriter.writeValueAsString(data, data.getClass());
         LOG.debug("putting data: {}", strData);
         return FutureRestRequest.createFuturePutRequest(this, uri, strData, this.headers, false);
     }
@@ -265,14 +279,19 @@ public class RestconfHttpClient extends BaseHTTPClient {
             throws ClassNotFoundException, NoSuchFieldException, SecurityException, IllegalArgumentException,
             IllegalAccessException {
         final String uri = this.getRfc8040UriFromIif(store, instanceIdentifier, nodeId, false, false);
-        LOG.debug("serialize {}",data);
-        final String strData = this.mapper.writeValueAsString(data,data.getClass());
+        LOG.debug("serialize {}", data);
+        final String strData = this.mapperWriter.writeValueAsString(data, data.getClass());
         LOG.debug("merging data: {}", strData);
-        return FutureRestRequest.createFuturePostRequest(this, uri, strData, this.headers,
-                instanceIdentifier.getTargetType(), false);
+//        return FutureRestRequest.createFuturePostRequest(this, uri, strData, this.headers,
+//                instanceIdentifier.getTargetType(), false);
+        return FutureRestRequest.createFuturePutRequest(this, uri, strData, this.headers, false);
     }
 
     public void registerRequestCallback(RequestCallback callback) {
         this.callback = callback;
+    }
+
+    public YangToolsMapper getReaderMapper() {
+        return this.mapperReader;
     }
 }

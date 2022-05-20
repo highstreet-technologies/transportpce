@@ -1,0 +1,15 @@
+{
+    "org-openroadm-device:users": {
+        "user": [
+            {
+                "name": "openroadm",
+                "password": "openroadm2",
+                "group": "sudo"
+            }, {
+                "name": "openroadm3",
+                "password": "openroadm4",
+                "group": "sudo"
+            }
+        ]
+    }
+}

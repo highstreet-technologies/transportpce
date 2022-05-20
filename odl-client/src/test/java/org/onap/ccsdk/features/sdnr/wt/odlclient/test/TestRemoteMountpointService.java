@@ -8,10 +8,13 @@
 package org.onap.ccsdk.features.sdnr.wt.odlclient.test;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import org.junit.BeforeClass;
 import org.junit.Test;
+import org.onap.ccsdk.features.sdnr.wt.odlclient.OpendaylightClient;
 import org.onap.ccsdk.features.sdnr.wt.odlclient.config.RemoteOdlConfig.AuthMethod;
 import org.onap.ccsdk.features.sdnr.wt.odlclient.data.NotImplementedException;
 import org.onap.ccsdk.features.sdnr.wt.odlclient.data.OdlRpcObjectMapperXml;
@@ -37,17 +40,22 @@ public class TestRemoteMountpointService {
 
     private static final Logger LOG = LoggerFactory.getLogger(TestRemoteMountpointService.class);
 
-    private static final String DEVICEID = "onapextroadma1";
+    private static final String DEVICEID = "ROADM-A1";
     private static final String ODL_USERNAME = "admin";
     //private static final String ODL_PASSWD = "Kp8bJ4SXszM0WXlhak3eHlcse2gAw84vaoGGmJvUy2U";
     private static final String ODL_PASSWD = "admin";
-    private static final String BASEURL = "http://192.168.16.3:8181";
+    private static final String BASEURL = "http://172.25.0.3:8181";
+    private static RestconfHttpClient restClient;
+    private static OpendaylightClient odlClient;
+    @BeforeClass
+    public static void init() throws NotImplementedException, URISyntaxException {
+        restClient = new RestconfHttpClient(BASEURL, false, AuthMethod.BASIC, ODL_USERNAME, ODL_PASSWD);
+        odlClient = new OpendaylightClient<>(BASEURL, null, AuthMethod.BASIC, ODL_USERNAME, ODL_PASSWD);
+    }
 
-    //@Test
-    public void test() throws Exception {
+    @Test
+    public void test() {
 
-        RestconfHttpClient restClient =
-                new RestconfHttpClient(BASEURL, false, AuthMethod.BASIC, ODL_USERNAME, ODL_PASSWD);
         MountPoint mountPoint = new RemoteMountPoint(restClient, null, DEVICEID);
         final Optional<RpcConsumerRegistry> service = mountPoint.getService(RpcConsumerRegistry.class);
         if (!service.isPresent()) {
@@ -58,6 +66,12 @@ public class TestRemoteMountpointService {
         builder.setEnabled(true).setEquipmentEntity(new CircuitPackBuilder().setCircuitPackName("1/0").build());
         final Future<RpcResult<LedControlOutput>> output = rpcService.ledControl(builder.build());
         LOG.info("{}", output);
+    }
+    @Test
+    public void test2() {
+        boolean mountPoint = odlClient.isDeviceMounted(DEVICEID);
+        LOG.info("{}", mountPoint);
+
     }
 
     //@Test
@@ -79,7 +93,7 @@ public class TestRemoteMountpointService {
         InstanceIdentifier<Protocols> protocoliid =
                 InstanceIdentifier.create(OrgOpenroadmDevice.class).child(Protocols.class);
         Optional<Protocols> protocolObject =
-                restClient.read(LogicalDatastoreType.OPERATIONAL, protocoliid, "onapext3roadma1").get();
+                restClient.read(LogicalDatastoreType.OPERATIONAL, protocoliid, DEVICEID).get();
         if (protocolObject.isPresent()) {
 
             LOG.info("pro={}", protocolObject);

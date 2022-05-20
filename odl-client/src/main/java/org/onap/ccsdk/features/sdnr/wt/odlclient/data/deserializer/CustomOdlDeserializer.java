@@ -20,6 +20,8 @@ import java.lang.reflect.Method;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import org.onap.ccsdk.features.sdnr.wt.odlclient.data.ClassFinder;
+import org.onap.ccsdk.features.sdnr.wt.odlclient.yangtools.serialize.BaseIdentityDeserializer;
+import org.onap.ccsdk.features.sdnr.wt.odlclient.yangtools.serialize.ClassDeserializer;
 import org.opendaylight.yangtools.yang.binding.BaseIdentity;
 import org.opendaylight.yangtools.yang.binding.ScalarTypeObject;
 import org.opendaylight.yangtools.yang.binding.TypeObject;
@@ -77,10 +79,10 @@ public class CustomOdlDeserializer extends BeanDeserializerModifier {
             return new TypeObjectDeserializer<ScalarTypeObject>(type, deser);
         }
         if (implementsInterface(rawClass, Class.class)) {
-            return new BaseIdentityDeserializer<BaseIdentity>(deser, this.clsFinder);
+            return new BaseIdentityDeserializer<BaseIdentity>(deser);
         }
         if (rawClass.equals(Class.class)) {
-            return new ClassDeserializer(rawClass, this.clsFinder);
+            return new ClassDeserializer(rawClass);
         }
 
         return deser;

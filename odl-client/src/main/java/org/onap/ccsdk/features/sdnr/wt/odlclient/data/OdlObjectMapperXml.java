@@ -28,7 +28,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.eclipse.jdt.annotation.Nullable;
-import org.onap.ccsdk.features.sdnr.wt.odlclient.yangtools.mapperextensions.YangToolsBuilderAnnotationIntrospector;
+import org.onap.ccsdk.features.sdnr.wt.odlclient.yangtools.mapperextensions.YangToolsBuilderAnnotationIntrospectorXml;
 import org.onap.ccsdk.features.sdnr.wt.odlclient.yangtools.mapperextensions.YangToolsModuleXml;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.resource.rev181019.resource.resource.resource.Interface;
 import org.slf4j.Logger;
@@ -46,7 +46,7 @@ public class OdlObjectMapperXml extends XmlMapper implements ClassFinder{
     private static final Pattern XMLNS_PATTERN = Pattern.compile(XMLNS_REGEX, Pattern.MULTILINE);
 
     private final boolean doNormalize;
-    private final YangToolsBuilderAnnotationIntrospector introspector;
+    private final YangToolsBuilderAnnotationIntrospectorXml introspector;
     private final Map<Class<?>,List<Class<?>>> autoAugmentationList;
     public OdlObjectMapperXml() {
         this(false);
@@ -56,16 +56,16 @@ public class OdlObjectMapperXml extends XmlMapper implements ClassFinder{
         super();
         this.autoAugmentationList = initAutoAugmentationList();
         this.doNormalize = doNormalize;
-        this.introspector = new YangToolsBuilderAnnotationIntrospector();
+        this.introspector = new YangToolsBuilderAnnotationIntrospectorXml();
         this.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         this.enable(MapperFeature.USE_GETTERS_AS_SETTERS);
         this.enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS);
         this.setPropertyNamingStrategy(PropertyNamingStrategies.KEBAB_CASE);
         //setPropertyNamingStrategy(new YangToolsNamingStrategy());
         this.setSerializationInclusion(Include.NON_NULL);
-        this.setAnnotationIntrospector(this.introspector);
         SimpleModule customSerializerModule = new YangToolsModuleXml(this);
         this.registerModule(customSerializerModule);
+        this.setAnnotationIntrospector(this.introspector);
 
     }
 

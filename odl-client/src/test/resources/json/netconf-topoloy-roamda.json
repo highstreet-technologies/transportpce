@@ -1,0 +1,324 @@
+{
+    "network-topology:node": [
+        {
+            "node-id": "ROADM-A1",
+            "netconf-node-topology:sleep-factor": "1.5",
+            "netconf-node-topology:host": "172.25.0.6",
+            "netconf-node-topology:reconnect-on-changed-schema": false,
+            "netconf-node-topology:between-attempts-timeout-millis": 2000,
+            "netconf-node-topology:connection-status": "connected",
+            "netconf-node-topology:max-connection-attempts": 100,
+            "netconf-node-topology:username": "netconf",
+            "netconf-node-topology:password": "netconf",
+            "netconf-node-topology:available-capabilities": {
+                "available-capability": [
+                    {
+                        "capability": "urn:ietf:params:netconf:base:1.1",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "urn:ietf:params:netconf:base:1.0",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "urn:ietf:params:netconf:capability:candidate:1.0",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "urn:ietf:params:netconf:capability:with-defaults:1.0?basic-mode=explicit&also-supported=report-all,report-all-tagged,trim,explicit",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "urn:ietf:params:netconf:capability:notification:1.0",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "urn:ietf:params:netconf:capability:startup:1.0",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "urn:ietf:params:netconf:capability:url:1.0",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "urn:ietf:params:netconf:capability:interleave:1.0",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "urn:ietf:params:netconf:capability:rollback-on-error:1.0",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "urn:ietf:params:netconf:capability:confirmed-commit:1.1",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "urn:ietf:params:netconf:capability:yang-library:1.0?revision=2019-01-04&module-set-id=64",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "urn:ietf:params:netconf:capability:validate:1.1",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "urn:ietf:params:netconf:capability:writable-running:1.0",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "urn:ietf:params:netconf:capability:xpath:1.0",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(urn:ietf:params:xml:ns:netconf:base:1.0?revision=2011-06-01)ietf-netconf",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(urn:ietf:params:xml:ns:yang:ietf-keystore?revision=2016-10-31)ietf-keystore"
+                    },
+                    {
+                        "capability": "(http://org/openroadm/wavelength-map?revision=2017-12-15)org-openroadm-wavelength-map",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(http://org/openroadm/lldp?revision=2018-10-19)org-openroadm-lldp",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(urn:ietf:params:xml:ns:yang:ietf-inet-types?revision=2013-07-15)ietf-inet-types",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(urn:ietf:params:xml:ns:yang:iana-crypt-hash?revision=2014-08-06)iana-crypt-hash",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(http://org/openroadm/maintenance-testsignal?revision=2017-12-15)org-openroadm-maintenance-testsignal",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(http://org/openroadm/pluggable-optics-holder-capability?revision=2018-10-19)org-openroadm-pluggable-optics-holder-capability",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(http://org/openroadm/switching-pool-types?revision=2017-12-15)org-openroadm-switching-pool-types",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(http://org/openroadm/pm?revision=2018-10-19)org-openroadm-pm",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(urn:ietf:params:xml:ns:yang:ietf-netconf-server?revision=2016-11-02)ietf-netconf-server"
+                    },
+                    {
+                        "capability": "(urn:ietf:params:xml:ns:yang:ietf-datastores?revision=2017-08-17)ietf-datastores"
+                    },
+                    {
+                        "capability": "(http://org/openroadm/interfaces?revision=2017-06-26)org-openroadm-interfaces",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(urn:ietf:params:xml:ns:yang:ietf-tls-server?revision=2016-11-02)ietf-tls-server"
+                    },
+                    {
+                        "capability": "(http://org/openroadm/port/types?revision=2018-10-19)org-openroadm-port-types",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(http://org/openroadm/rstp?revision=2018-10-19)org-openroadm-rstp",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(http://org/openroadm/otn-common-types?revision=2017-12-15)org-openroadm-otn-common-types",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(http://org/openroadm/tca?revision=2018-10-19)org-openroadm-tca",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(urn:ietf:params:xml:ns:yang:ietf-x509-cert-to-name?revision=2014-12-10)ietf-x509-cert-to-name",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(urn:ietf:params:xml:ns:yang:1?revision=2017-02-20)yang",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(urn:ietf:params:xml:ns:yang:ietf-system?revision=2014-08-06)ietf-system",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(http://org/openroadm/alarm?revision=2018-10-19)org-openroadm-alarm",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(http://org/openroadm/otn-odu-interfaces?revision=2018-10-19)org-openroadm-otn-odu-interfaces",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(urn:ietf:params:xml:ns:yang:ietf-yang-types?revision=2013-07-15)ietf-yang-types",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(http://org/openroadm/equipment/states/types?revision=2017-12-15)org-openroadm-equipment-states-types",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(urn:ietf:params:xml:ns:yang:ietf-netconf-notifications?revision=2012-02-06)ietf-netconf-notifications",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(http://org/openroadm/physical/types?revision=2018-10-19)org-openroadm-physical-types",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(http://org/openroadm/media-channel-interfaces?revision=2018-10-19)org-openroadm-media-channel-interfaces",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(http://org/openroadm/database?revision=2018-10-19)org-openroadm-database",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(http://org/openroadm/maintenance-loopback?revision=2017-12-15)org-openroadm-maintenance-loopback",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(http://org/openroadm/manifest-file?revision=2017-12-15)org-openroadm-manifest-file",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(http://org/openroadm/pm-types?revision=2017-12-15)org-openroadm-pm-types",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(http://org/openroadm/network-media-channel-interfaces?revision=2018-10-19)org-openroadm-network-media-channel-interfaces",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(http://org/openroadm/device?revision=2018-10-19)org-openroadm-device",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(http://org/openroadm/layerRate?revision=2017-12-15)org-openroadm-layerRate",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(urn:ietf:params:xml:ns:yang:ietf-yang-metadata?revision=2016-08-05)ietf-yang-metadata",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(http://org/openroadm/fwdl?revision=2018-10-19)org-openroadm-fwdl",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(http://org/openroadm/otn-common?revision=2017-06-26)org-openroadm-otn-common",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(http://org/openroadm/user-mgmt?revision=2017-12-15)org-openroadm-user-mgmt",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(http://org/openroadm/file-transfer?revision=2018-10-19)org-openroadm-file-transfer",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(urn:ietf:params:xml:ns:netconf:notification:1.0?revision=2008-07-14)notifications",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(urn:ietf:params:xml:ns:yang:ietf-crypto-types?revision=2019-10-18)ietf-crypto-types"
+                    },
+                    {
+                        "capability": "(http://org/openroadm/port-capability?revision=2018-10-19)org-openroadm-port-capability",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(http://org/openroadm/prot/otn-linear-aps?revision=2018-10-19)org-openroadm-prot-otn-linear-aps",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(http://org/openroadm/otn-otu-interfaces?revision=2018-10-19)org-openroadm-otn-otu-interfaces",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(urn:ietf:params:xml:ns:yang:ietf-yang-library?revision=2019-01-04)ietf-yang-library"
+                    },
+                    {
+                        "capability": "(http://org/openroadm/optical-transport-interfaces?revision=2018-10-19)org-openroadm-optical-transport-interfaces",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(http://org/openroadm/probableCause?revision=2018-10-19)org-openroadm-probable-cause",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(urn:ietf:params:xml:ns:yang:ietf-netconf-with-defaults?revision=2011-06-01)ietf-netconf-with-defaults",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(urn:ietf:params:xml:ns:yang:ietf-ssh-server?revision=2016-11-02)ietf-ssh-server"
+                    },
+                    {
+                        "capability": "(urn:ietf:params:xml:ns:yang:ietf-netconf-acm?revision=2018-02-14)ietf-netconf-acm",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(urn:ietf:params:xml:ns:yang:ietf-netconf-monitoring?revision=2010-10-04)ietf-netconf-monitoring",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(http://org/openroadm/de/operations?revision=2018-10-19)org-openroadm-de-operations",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(urn:ietf:params:xml:ns:netmod:notification?revision=2008-07-14)nc-notifications",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(http://org/openroadm/maintenance?revision=2018-10-19)org-openroadm-maintenance",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(http://org/openroadm/common-types?revision=2018-10-19)org-openroadm-common-types",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(http://org/openroadm/resource?revision=2018-10-19)org-openroadm-resource",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(http://org/openroadm/ethernet-interfaces?revision=2018-10-19)org-openroadm-ethernet-interfaces",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(http://org/openroadm/syslog?revision=2017-12-15)org-openroadm-syslog",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(urn:ietf:params:xml:ns:yang:iana-afn-safi?revision=2013-07-04)iana-afn-safi",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(http://org/openroadm/resource/types?revision=2018-10-19)org-openroadm-resource-types",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(http://org/openroadm/optical-channel-interfaces?revision=2018-10-19)org-openroadm-optical-channel-interfaces",
+                        "capability-origin": "device-advertised"
+                    },
+                    {
+                        "capability": "(http://org/openroadm/de/swdl?revision=2018-10-19)org-openroadm-swdl",
+                        "capability-origin": "device-advertised"
+                    }
+                ]
+            },
+            "netconf-node-topology:connection-timeout-millis": 20000,
+            "netconf-node-topology:port": 830,
+            "netconf-node-topology:tcp-only": false,
+            "netconf-node-topology:keepalive-delay": 120
+        }
+    ]
+}

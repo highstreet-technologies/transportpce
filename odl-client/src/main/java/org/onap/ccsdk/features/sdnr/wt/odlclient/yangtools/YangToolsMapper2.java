@@ -53,7 +53,7 @@ public class YangToolsMapper2<T extends DataObject> extends YangToolsMapper {
      */
     public <X extends T, B extends Builder<X>> YangToolsMapper2(@NonNull Class<T> clazz,
              Class<B> builderClazz) throws ClassNotFoundException {
-        super(new YangToolsBuilderAnnotationIntrospector(clazz, builderClazz));
+        super(new YangToolsBuilderAnnotationIntrospector(clazz, builderClazz), false);
 
         this.builderClazz =
                 builderClazz != null ? builderClazz : getBuilderClass(YangToolsMapperHelper.getBuilderClassName(clazz));

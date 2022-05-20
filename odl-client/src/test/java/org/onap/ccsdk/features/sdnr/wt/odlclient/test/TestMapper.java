@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -38,6 +37,7 @@ import org.onap.ccsdk.features.sdnr.wt.odlclient.data.OdlJsonSerializer;
 import org.onap.ccsdk.features.sdnr.wt.odlclient.data.OdlObjectMapperXml;
 import org.onap.ccsdk.features.sdnr.wt.odlclient.data.OdlRpcObjectMapperXml;
 import org.onap.ccsdk.features.sdnr.wt.odlclient.data.OdlXmlSerializer;
+import org.onap.ccsdk.features.sdnr.wt.odlclient.yangtools.YangToolsMapper;
 import org.onap.ccsdk.features.sdnr.wt.odlclient.yangtools.YangToolsMapperHelper;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.types.rev181019.Direction;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.types.rev181019.EquipmentTypeEnum;
@@ -67,6 +67,7 @@ import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.led.cont
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.org.openroadm.device.container.OrgOpenroadmDevice;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.org.openroadm.device.container.OrgOpenroadmDeviceBuilder;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.org.openroadm.device.container.org.openroadm.device.Info;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.org.openroadm.device.container.org.openroadm.device.Protocols;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.org.openroadm.device.container.org.openroadm.device.RoadmConnections;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.org.openroadm.device.container.org.openroadm.device.RoadmConnectionsBuilder;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.org.openroadm.device.container.org.openroadm.device.Users;
@@ -77,6 +78,7 @@ import org.opendaylight.yang.gen.v1.http.org.openroadm.interfaces.rev170626.Netw
 import org.opendaylight.yang.gen.v1.http.org.openroadm.interfaces.rev170626.OpenROADMOpticalMultiplex;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.lldp.rev181019.Protocols1;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.lldp.rev181019.lldp.container.lldp.PortConfig;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.lldp.rev181019.lldp.container.lldp.nbr.list.IfName;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.optical.channel.interfaces.rev181019.Interface1Builder;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.optical.channel.interfaces.rev181019.och.container.OchBuilder;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.optical.transport.interfaces.rev181019.Interface1;
@@ -85,10 +87,10 @@ import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev181019.IfOC
 import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev181019.PortWavelengthTypes;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.user.mgmt.rev171215.PasswordType;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.user.mgmt.rev171215.UsernameType;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.user.mgmt.rev171215.user.profile.User;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.user.mgmt.rev171215.user.profile.User.Group;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.user.mgmt.rev171215.user.profile.UserBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.netconf.node.topology.rev150114.NetconfNode;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.netconf.node.topology.rev150114.NetconfNodeConnectionStatus.ConnectionStatus;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.netconf.node.topology.rev150114.netconf.node.connection.status.available.capabilities.AvailableCapability;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -97,37 +99,29 @@ import org.xml.sax.SAXException;
 public class TestMapper {
 
     private static final Logger LOG = LoggerFactory.getLogger(TestMapper.class);
+    private static final YangToolsMapper mapper = new YangToolsMapper(true);
 
     @Test
-    public void testMapRoadmInfo()
-            throws ClassNotFoundException, JsonParseException, JsonMappingException, IOException {
-        OdlObjectMapperXml xmlMapper = new OdlObjectMapperXml(true);
-        String fileContent = null;
-        try {
-            fileContent = this.getTrimmedFileContent("/xml/roadm-info.xml");
-        } catch (IOException e1) {
-            fail(e1.getMessage());
-        }
-        Info info = xmlMapper.readValue(fileContent, Info.class);
-        LOG.info("outputxml={}", info);
-        assertEquals("127.0.0.11",info.getCurrentIpAddress().stringValue());
+    public void testRoadmInfo() throws ClassNotFoundException, JsonParseException, JsonMappingException, IOException {
+        Info info = mapper.readValue(this.getTrimmedFileContent("/json/roadm-info.json"), Info.class);
+        LOG.info("output={}", info);
+        assertEquals("127.0.0.11", info.getCurrentIpAddress().stringValue());
     }
 
     @Test
-    public void testUserDeser() throws JsonProcessingException {
-        //org.opendaylight.yang.gen.v1.http.org.openroadm.user.mgmt.rev171215.user.profile
-        OdlObjectMapperXml xmlMapper = new OdlObjectMapperXml(true);
-        List<User> users = new ArrayList<>();
+    public void testUserDeser() throws IOException {
+        Users users = mapper.readValue(this.getTrimmedFileContent("/json/roadm-users.json"), Users.class);
+        LOG.info("output={}", users);
+        assertEquals(2, users.getUser().size());
 
-        // LOG.info("outputjson={}", jsonMapper.readValue(NODEINFO, NetconfNode.class, "network-topology:node"));
-        LOG.info("outputxml={}", xmlMapper.readValue("<users><user><name>openroadm5</name><password>openroadm2</password><group>sudo</group></user><user><name>openroadm22</name><password>openroadm54</password><group>sudo</group></user><users>", Users.class));
     }
-    @Test
-    public void testNodeInfo() throws JsonParseException, JsonMappingException, IOException {
-        OdlObjectMapperXml xmlMapper = new OdlObjectMapperXml(true);
-        // LOG.info("outputjson={}", jsonMapper.readValue(NODEINFO, NetconfNode.class, "network-topology:node"));
-        LOG.info("outputxml={}", xmlMapper.readValue(this.getTrimmedFileContent("/xml/roadm-device1-users.xml"), OrgOpenroadmDevice.class));
 
+    @Test
+    public void testNetconfTopoRoadmA() throws JsonMappingException, JsonProcessingException, IOException {
+        NetconfNode node = mapper.readValue(this.getTrimmedFileContent("/json/netconf-topoloy-roamda.json"),
+                NetconfNode.class, true);
+        LOG.info("output={}", node);
+        assertEquals(ConnectionStatus.Connected, node.getConnectionStatus());
     }
 
     //@Test
@@ -218,19 +212,33 @@ public class TestMapper {
         }).count() > 0);
     }
 
-    //@Test
+    @Test
     public void testProtocolAugment() throws IOException {
-        String xml = this.getTrimmedFileContent("/xml/roadm-device-protocols.xml");
-        OdlObjectMapperXml mapper = new OdlObjectMapperXml(true);
-        Protocols1 data = mapper.readValue(xml, Protocols1.class);
+        Protocols data = mapper.readValue(this.getTrimmedFileContent("/json/roadm-protocols.json"), Protocols.class);
         LOG.info("protocol={}", data);
-        LOG.info("protocol lldp={}", data.getLldp());
+        Protocols1 data1 = data.augmentation(Protocols1.class);
+        LOG.info("protocol lldp={}", data1.getLldp());
         @Nullable
-        Collection<PortConfig> cfgs = data.getLldp().getPortConfig().values();
+        Collection<PortConfig> cfgs = data1.getLldp().getPortConfig().values();
         LOG.info("protocol lldp portconfig={}", cfgs);
         for (PortConfig portConfig : cfgs) {
             LOG.info("portconfig={} if={}", portConfig.getAdminStatus(), portConfig.getIfName());
         }
+    }
+
+    @Test
+    public void testProtocolIfitem() throws JsonMappingException, JsonProcessingException, IOException {
+        IfName ifname =
+                mapper.readValue(this.getTrimmedFileContent("/json/roadm-protocols-nbrlist-ifitem.json"), IfName.class);
+        LOG.info("if={}", ifname);
+    }
+
+    @Test
+    public void testRoadmInterfaceOdu() throws JsonMappingException, JsonProcessingException, IOException {
+        org.opendaylight.yang.gen.v1.http.org.openroadm.otn.odu.interfaces.rev181019.Interface1 iface =
+                mapper.readValue(this.getTrimmedFileContent("/json/roadm-interface-odu.json"),
+                        org.opendaylight.yang.gen.v1.http.org.openroadm.otn.odu.interfaces.rev181019.Interface1.class);
+        LOG.info("if={}", iface);
     }
 
     @Test
@@ -365,20 +373,14 @@ public class TestMapper {
 
     @Test
     public void testInterfaceOCHSerializer() {
-        InterfaceBuilder ifbuilder = new InterfaceBuilder()
-                .setAdministrativeState(AdminStates.InService)
-                .setCircuitId("TBD").setDescription("TBD")
-                .setName("XPDR1-NETWORK1-761:768")
-                .setSupportingCircuitPackName("1/0/1-PLUG-NET")
-                .setSupportingPort("1")
+        InterfaceBuilder ifbuilder = new InterfaceBuilder().setAdministrativeState(AdminStates.InService)
+                .setCircuitId("TBD").setDescription("TBD").setName("XPDR1-NETWORK1-761:768")
+                .setSupportingCircuitPackName("1/0/1-PLUG-NET").setSupportingPort("1")
                 .setType(org.opendaylight.yang.gen.v1.http.org.openroadm.interfaces.rev170626.OpticalChannel.class);
         Interface1Builder ifOCHBuilder = new Interface1Builder()
-                .setOch(new OchBuilder()
-                    .setFrequency(FrequencyTHz.getDefaultInstance("196.1000"))
-                    .setRate(R100G.class)
-                    .setTransmitPower(PowerDBm.getDefaultInstance("-5"))
-                    .setModulationFormat(ModulationFormat.DpQpsk)
-                    .build());
+                .setOch(new OchBuilder().setFrequency(FrequencyTHz.getDefaultInstance("196.1000")).setRate(R100G.class)
+                        .setTransmitPower(PowerDBm.getDefaultInstance("-5"))
+                        .setModulationFormat(ModulationFormat.DpQpsk).build());
         ifbuilder.addAugmentation(ifOCHBuilder.build());
         OdlRpcObjectMapperXml mapper = new OdlRpcObjectMapperXml();
         String res = mapper.writeValueAsString(ifbuilder.build(), Interface.class);
@@ -397,6 +399,7 @@ public class TestMapper {
             fail(e.getMessage());
         }
     }
+
     @Test
     public void testInterfaceOCHDeSerializer() {
         OdlObjectMapperXml mapper = new OdlObjectMapperXml(true);
@@ -408,12 +411,13 @@ public class TestMapper {
         }
         Interface iface = null;
         try {
-            iface = mapper.readValue(fileContent,Interface.class);
+            iface = mapper.readValue(fileContent, Interface.class);
         } catch (JsonProcessingException e) {
             fail(e.getMessage());
         }
-        LOG.info("deser={}",iface);
+        LOG.info("deser={}", iface);
     }
+
     @Ignore
     @Test
     public void testPowerSerializer() {
@@ -523,7 +527,8 @@ public class TestMapper {
         LOG.info("if = {}", interfaceObj);
         org.opendaylight.yang.gen.v1.http.org.openroadm.otn.odu.interfaces.rev181019.Interface1Builder oduBuilder =
                 new org.opendaylight.yang.gen.v1.http.org.openroadm.otn.odu.interfaces.rev181019.Interface1Builder(
-                        interfaceObj.augmentation(org.opendaylight.yang.gen.v1.http.org.openroadm.otn.odu.interfaces.rev181019.Interface1.class));
+                        interfaceObj.augmentation(
+                                org.opendaylight.yang.gen.v1.http.org.openroadm.otn.odu.interfaces.rev181019.Interface1.class));
         OduBuilder odu = new OduBuilder(oduBuilder.getOdu());
         LOG.info("odu = {}", odu.build());
     }
@@ -532,27 +537,26 @@ public class TestMapper {
     public void testCuircutPackSerializer() {
         CircuitPacksBuilder cpBldr = new CircuitPacksBuilder();
         cpBldr.setCircuitPackCategory(new CircuitPackCategoryBuilder().setType(EquipmentTypeEnum.CircuitPack).build())
-        .setCircuitPackMode("NORMAL").setCircuitPackName("1/0/1-PLUG-NET")
-        .setCircuitPackProductCode("Line_NW_P").setCircuitPackType("line_pluggable")
-        .setEquipmentState(States.NotReservedInuse).setHardwareVersion("0.1")
-        .setModel("CFP2").setOperationalState(State.InService)
-        .setParentCircuitPack(new ParentCircuitPackBuilder().setCircuitPackName("1/0").setCpSlotName("1").build())
-        .setPorts(YangToolsMapperHelper.toMap(Arrays.asList(new PortsBuilder()
-                .setAdministrativeState(AdminStates.InService).setLabel("2")
-                .setOperationalState(State.InService).setPortDirection(Direction.Bidirectional)
-                .setPortName("1").setPortQual(PortQual.XpdrNetwork)
-                .setPortType("CFP2").setPortWavelengthType(PortWavelengthTypes.Wavelength)
-                .setSupportedInterfaceCapability(Arrays.asList(IfOCH.class))
-                .setTransponderPort(new TransponderPortBuilder()
-                        .setPortPowerCapabilityMaxRx(PowerDBm.getDefaultInstance("1.0"))
-                        .setPortPowerCapabilityMaxTx(PowerDBm.getDefaultInstance("0.0"))
-                        .setPortPowerCapabilityMinRx(PowerDBm.getDefaultInstance("22.0"))
-                        .setPortPowerCapabilityMinTx(PowerDBm.getDefaultInstance("5.0"))
-                        .build())
-                .build())))
-        .setProductCode("Line_NW_P").setSerialId("_1234_")
-        .setShelf("1").setSlot("1").setSubSlot("1").setType("line/network pluggable")
-        .setVendor("VendorA").setIsPluggableOptics(true).build();
+                .setCircuitPackMode("NORMAL").setCircuitPackName("1/0/1-PLUG-NET")
+                .setCircuitPackProductCode("Line_NW_P").setCircuitPackType("line_pluggable")
+                .setEquipmentState(States.NotReservedInuse).setHardwareVersion("0.1").setModel("CFP2")
+                .setOperationalState(State.InService)
+                .setParentCircuitPack(
+                        new ParentCircuitPackBuilder().setCircuitPackName("1/0").setCpSlotName("1").build())
+                .setPorts(YangToolsMapperHelper.toMap(Arrays.asList(new PortsBuilder()
+                        .setAdministrativeState(AdminStates.InService).setLabel("2")
+                        .setOperationalState(State.InService).setPortDirection(Direction.Bidirectional).setPortName("1")
+                        .setPortQual(PortQual.XpdrNetwork).setPortType("CFP2")
+                        .setPortWavelengthType(PortWavelengthTypes.Wavelength)
+                        .setSupportedInterfaceCapability(Arrays.asList(IfOCH.class))
+                        .setTransponderPort(new TransponderPortBuilder()
+                                .setPortPowerCapabilityMaxRx(PowerDBm.getDefaultInstance("1.0"))
+                                .setPortPowerCapabilityMaxTx(PowerDBm.getDefaultInstance("0.0"))
+                                .setPortPowerCapabilityMinRx(PowerDBm.getDefaultInstance("22.0"))
+                                .setPortPowerCapabilityMinTx(PowerDBm.getDefaultInstance("5.0")).build())
+                        .build())))
+                .setProductCode("Line_NW_P").setSerialId("_1234_").setShelf("1").setSlot("1").setSubSlot("1")
+                .setType("line/network pluggable").setVendor("VendorA").setIsPluggableOptics(true).build();
         OdlRpcObjectMapperXml mapper = new OdlRpcObjectMapperXml();
         String res = mapper.writeValueAsString(cpBldr.build(), CircuitPacks.class);
         String fileContent = null;
@@ -570,6 +574,7 @@ public class TestMapper {
             fail(e.getMessage());
         }
     }
+
     @Test
     public void testNodeDeserializer() {
         String fileContent = null;
@@ -580,11 +585,12 @@ public class TestMapper {
         }
         OdlObjectMapperXml mapper = new OdlObjectMapperXml(true);
         try {
-            LOG.info("node={}",mapper.readValue(fileContent,NetconfNode.class));
+            LOG.info("node={}", mapper.readValue(fileContent, NetconfNode.class));
         } catch (IOException e) {
             fail(e.getMessage());
         }
     }
+
     @Test
     public void testRoadmPortDeserializer() {
         String fileContent = null;
@@ -595,30 +601,31 @@ public class TestMapper {
         }
         OdlObjectMapperXml mapper = new OdlObjectMapperXml(true);
         try {
-            Ports port = mapper.readValue(fileContent,Ports.class);
-            LOG.info("port={}",port);
-            assertEquals("1",port.getPortName());
-            LOG.info("portName: {}",port.getPortName());
-            assertEquals(State.InService,port.getOperationalState());
-            assertEquals(PortQual.XpdrNetwork,port.getPortQual());
-            assertEquals(AdminStates.InService,port.getAdministrativeState());
-            assertEquals(Direction.Bidirectional,port.getPortDirection());
-            assertEquals("2",port.getLabel());
-            assertEquals(Arrays.asList(IfOCH.class),port.getSupportedInterfaceCapability());
-            assertEquals("CFP2",port.getPortType());
-            assertEquals(PortWavelengthTypes.Wavelength,port.getPortWavelengthType());
+            Ports port = mapper.readValue(fileContent, Ports.class);
+            LOG.info("port={}", port);
+            assertEquals("1", port.getPortName());
+            LOG.info("portName: {}", port.getPortName());
+            assertEquals(State.InService, port.getOperationalState());
+            assertEquals(PortQual.XpdrNetwork, port.getPortQual());
+            assertEquals(AdminStates.InService, port.getAdministrativeState());
+            assertEquals(Direction.Bidirectional, port.getPortDirection());
+            assertEquals("2", port.getLabel());
+            assertEquals(Arrays.asList(IfOCH.class), port.getSupportedInterfaceCapability());
+            assertEquals("CFP2", port.getPortType());
+            assertEquals(PortWavelengthTypes.Wavelength, port.getPortWavelengthType());
             TransponderPort tport = port.getTransponderPort();
             assertNotNull(tport);
-            assertEquals(PowerDBm.getDefaultInstance("-5.0"),tport.getPortPowerCapabilityMinTx());
-            assertEquals(PowerDBm.getDefaultInstance("-22.0"),tport.getPortPowerCapabilityMinRx());
-            assertEquals(PowerDBm.getDefaultInstance("1.0"),tport.getPortPowerCapabilityMaxRx());
-            assertEquals(PowerDBm.getDefaultInstance("0.0"),tport.getPortPowerCapabilityMaxTx());
+            assertEquals(PowerDBm.getDefaultInstance("-5.0"), tport.getPortPowerCapabilityMinTx());
+            assertEquals(PowerDBm.getDefaultInstance("-22.0"), tport.getPortPowerCapabilityMinRx());
+            assertEquals(PowerDBm.getDefaultInstance("1.0"), tport.getPortPowerCapabilityMaxRx());
+            assertEquals(PowerDBm.getDefaultInstance("0.0"), tport.getPortPowerCapabilityMaxTx());
 
 
         } catch (IOException e) {
             fail(e.getMessage());
         }
     }
+
     @Test
     public void testRoadmInterfaces3Deserializer() {
         String fileContent = null;
@@ -629,17 +636,17 @@ public class TestMapper {
         }
         OdlObjectMapperXml mapper = new OdlObjectMapperXml(true);
         try {
-            Interface if3 = mapper.readValue(fileContent,Interface.class);
-            LOG.info("if3={}",if3);
-            assertEquals("OMS-DEG2-TTP-TXRX",if3.getName());
-            assertEquals("2/0",if3.getSupportingCircuitPackName());
-            assertEquals(State.InService,if3.getOperationalState());
-            assertEquals("OTS-DEG2-TTP-TXRX",if3.getSupportingInterface());
-            assertEquals("TBD",if3.getCircuitId());
-            assertEquals(AdminStates.InService,if3.getAdministrativeState());
-            assertEquals("L1",if3.getSupportingPort());
-            assertEquals(OpenROADMOpticalMultiplex.class,if3.getType());
-            assertEquals("TBD",if3.getDescription());
+            Interface if3 = mapper.readValue(fileContent, Interface.class);
+            LOG.info("if3={}", if3);
+            assertEquals("OMS-DEG2-TTP-TXRX", if3.getName());
+            assertEquals("2/0", if3.getSupportingCircuitPackName());
+            assertEquals(State.InService, if3.getOperationalState());
+            assertEquals("OTS-DEG2-TTP-TXRX", if3.getSupportingInterface());
+            assertEquals("TBD", if3.getCircuitId());
+            assertEquals(AdminStates.InService, if3.getAdministrativeState());
+            assertEquals("L1", if3.getSupportingPort());
+            assertEquals(OpenROADMOpticalMultiplex.class, if3.getType());
+            assertEquals("TBD", if3.getDescription());
 
         } catch (IOException e) {
             fail(e.getMessage());
