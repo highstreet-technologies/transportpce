@@ -25,6 +25,35 @@ services:
             - ./gnpy:/shared
         depends_on:
             - transportpce
+    sdncweb:
+    #    image: nexus3.onap.org:10001/onap/sdnc-web-image:latest
+        image: 10.20.6.10:30000/hightec/sdnr-image-phosphorus:1.3.0-SNAPSHOT-20220315T130351Z
+        environment: 
+        - SDNRHOST=sdnr
+        ports:
+        - '28080:8080'
+        depends_on: 
+        - sdnr
+    sdnr:
+        #image: hightec/sdnc-image-wt-patch:1.2.0-SNAPSHOT-20210625T063556Z
+        image: 10.20.6.10:30000/hightec/sdnr-image-phosphorus:1.3.0-SNAPSHOT-20220315T130351Z
+        container_name: sdnr
+        environment:
+        - ODL_ADMIN_PASSWORD=${SDNR_PASSWORD}
+        - SDNRONLY=true
+        - SDNRINIT=true
+        - SDNRDM=false
+        - SDNRWT=true
+        - SDNRDBURL=http://sdnrdb:9200                                          
+        - SDNRDM_BOOTFEATURES=odl-restconf-all,odl-netconf-topology,odl-mdsal-all,odl-mdsal-apidocs,odl-daexim-all,odl-restconf-nb-rfc8040,odl-netconf-callhome-ssh,odl-mdsal-model-rfc8345,sdnr-wt-feature-aggregator-devicemanager-base,sdnr-wt-feature-aggregator-devicemanager
+        depends_on: 
+        - sdnrdb
+        ports:
+        - '8181:8181'
+    sdnrdb:
+        image: docker.elastic.co/elasticsearch/elasticsearch:7.9.3
+        environment: 
+        - discovery.type=single-node
     roadma:
         image: ${NTSIM_ROADM_STANDALONE_IMAGE}
         container_name: roadma

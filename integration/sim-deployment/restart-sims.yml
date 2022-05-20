@@ -1,0 +1,19 @@
+---
+- hosts: "{{target}}"
+  name: restart network function
+  gather_facts: false
+  tasks:
+    - name: "prepare vars"
+      set_fact:
+        filename: "{{file | basename }}"
+        nodeId: "{{(file | basename | splitext)[0]}}"
+    - name: "prepare vars2"
+      set_fact:
+        remoteFolder: "{{remote_workspace}}/{{nodeId}}"
+    - name: get the file contents
+      debug:
+        msg: "{{nodeId}}: {{file}}"
+    - name: restart container {{nodeId}}
+      ansible.builtin.shell: "docker restart {{nodeId}}"
+
+        
