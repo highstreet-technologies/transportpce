@@ -12,6 +12,9 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
+import org.onap.ccsdk.features.sdnr.wt.odlclient.data.RemoteOpendaylightClient;
 import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
 import org.opendaylight.transportpce.common.StringConstants;
 import org.opendaylight.transportpce.common.Timeouts;
@@ -328,12 +331,22 @@ public class OpenRoadmInterface121 {
     }
 
     public boolean isUsedByXc(String nodeId, String interfaceName, String xc,
-        DeviceTransactionManager deviceTransactionManager) {
+        DeviceTransactionManager deviceTransactionManager, RemoteOpendaylightClient odlClient) {
         InstanceIdentifier<RoadmConnections> xciid = InstanceIdentifier.create(OrgOpenroadmDevice.class)
             .child(RoadmConnections.class, new RoadmConnectionsKey(xc));
         LOG.info("reading xc {} in node {}", xc, nodeId);
-        Optional<RoadmConnections> crossconnection = deviceTransactionManager.getDataFromDevice(nodeId,
-            LogicalDatastoreType.CONFIGURATION, xciid, Timeouts.DEVICE_READ_TIMEOUT, Timeouts.DEVICE_READ_TIMEOUT_UNIT);
+        Optional<RoadmConnections> crossconnection = Optional.empty();
+        if (odlClient.isEnabled()) {
+            try {
+                crossconnection = odlClient.getDataFromDevice(nodeId, LogicalDatastoreType.CONFIGURATION, xciid,
+                        Timeouts.DEVICE_READ_TIMEOUT, Timeouts.DEVICE_READ_TIMEOUT_UNIT);
+            } catch (InterruptedException | TimeoutException | ExecutionException e) {
+                LOG.warn("problem reading connection: ", e);
+            }
+        } else {
+            deviceTransactionManager.getDataFromDevice(nodeId, LogicalDatastoreType.CONFIGURATION, xciid,
+                    Timeouts.DEVICE_READ_TIMEOUT, Timeouts.DEVICE_READ_TIMEOUT_UNIT);
+        }
         if (crossconnection.isPresent()) {
             RoadmConnections rc = crossconnection.get();
             LOG.info("xd {} found", xc);

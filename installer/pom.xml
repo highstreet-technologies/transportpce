@@ -114,7 +114,7 @@
               <transitive>false</transitive>
               <excludeTransitive>false</excludeTransitive>
               <!-- <includeGroupIds>org.opendaylight.transportpce,org.glassfish.jersey.ext,org.glassfish.jersey.media,com.fasterxml.jackson.datatype,org.jgrapht</includeGroupIds> -->
-              <includeGroupIds>org.opendaylight.transportpce,org.opendaylight.transportpce.ordmodels</includeGroupIds>
+              <includeGroupIds>org.opendaylight.transportpce,org.opendaylight.transportpce.ordmodels,org.onap.ccsdk.features.sdnr.wt</includeGroupIds>
               <outputDirectory>${project.build.directory}/assembly/system</outputDirectory>
               <overWriteReleases>false</overWriteReleases>
               <overWriteSnapshots>true</overWriteSnapshots>

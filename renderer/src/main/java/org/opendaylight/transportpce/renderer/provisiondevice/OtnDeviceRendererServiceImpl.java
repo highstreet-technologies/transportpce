@@ -20,6 +20,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.onap.ccsdk.features.sdnr.wt.odlclient.data.RemoteOpendaylightClient;
 import org.opendaylight.transportpce.common.StringConstants;
 import org.opendaylight.transportpce.common.crossconnect.CrossConnect;
 import org.opendaylight.transportpce.common.device.DeviceTransactionManager;
@@ -52,16 +53,19 @@ public class OtnDeviceRendererServiceImpl implements OtnDeviceRendererService {
     private final OpenRoadmInterfaces openRoadmInterfaces;
     private final DeviceTransactionManager deviceTransactionManager;
     private final NetworkModelService networkModelService;
+    private final RemoteOpendaylightClient odlClient;
 
     public OtnDeviceRendererServiceImpl(OpenRoadmInterfaceFactory openRoadmInterfaceFactory, CrossConnect crossConnect,
                                         OpenRoadmInterfaces openRoadmInterfaces,
                                         DeviceTransactionManager deviceTransactionManager,
-                                        NetworkModelService networkModelService) {
+                                        NetworkModelService networkModelService,
+                                        RemoteOpendaylightClient odlClient) {
         this.openRoadmInterfaceFactory = openRoadmInterfaceFactory;
         this.crossConnect = crossConnect;
         this.openRoadmInterfaces = openRoadmInterfaces;
         this.deviceTransactionManager = deviceTransactionManager;
         this.networkModelService = networkModelService;
+        this.odlClient = odlClient;
     }
 
 //TODO Align log messages and returned results messages
@@ -147,6 +151,7 @@ public class OtnDeviceRendererServiceImpl implements OtnDeviceRendererService {
                 .build();
     }
 
+    @Override
     @SuppressWarnings("rawtypes")
     // FIXME check if the ForkJoinTask raw type can be avoided
     // Raw types use are discouraged since they lack type safety.
@@ -173,7 +178,7 @@ public class OtnDeviceRendererServiceImpl implements OtnDeviceRendererService {
                     networkTp, input.getServiceRate(), input.getServiceFormat());
                 return;
             }
-            if (!this.deviceTransactionManager.isDeviceMounted(nodeId)) {
+            if (!this.isDeviceMounted(nodeId)) {
                 String result = nodeId + " is not mounted on the controller";
                 results.add(result);
                 success.set(false);
@@ -251,7 +256,7 @@ public class OtnDeviceRendererServiceImpl implements OtnDeviceRendererService {
             List<String> intToDelete = this.crossConnect.deleteCrossConnect(nodeId, connectionNumber, true);
             for (String interf : intToDelete == null ? new ArrayList<String>() : intToDelete) {
                 if (!this.openRoadmInterfaceFactory.isUsedByOtnXc(nodeId, interf, connectionNumber,
-                        this.deviceTransactionManager)) {
+                        this.deviceTransactionManager, this.odlClient)) {
                     interfacesToDelete.add(interf);
                     String supportedInterface = this.openRoadmInterfaces.getSupportedInterface(nodeId, interf);
                     if (supportedInterface == null) {
@@ -294,6 +299,15 @@ public class OtnDeviceRendererServiceImpl implements OtnDeviceRendererService {
                         ? "Request processed"
                         : String.join("\n", results))
                 .build();
+    }
+
+
+    private boolean isDeviceMounted(String nodeId) {
+        if (this.odlClient.isEnabled()) {
+            LOG.info("remote odlclient isDeviceMounted");
+            return this.odlClient.isDevicePresent(nodeId);
+        }
+        return this.deviceTransactionManager.isDeviceMounted(nodeId);
     }
 
     private String getConnectionNumber(String serviceName, Nodes node, String networkTp, String oduType) {

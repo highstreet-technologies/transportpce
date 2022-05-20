@@ -96,6 +96,11 @@ and is available at http://www.eclipse.org/legal/epl-v10.html INTERNAL
       <version>${project.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.onap.ccsdk.features.sdnr.wt</groupId>
+      <artifactId>sdnr-wt-odl-ready</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.opendaylight.netconf</groupId>
       <artifactId>odl-restconf</artifactId>
       <classifier>features</classifier>

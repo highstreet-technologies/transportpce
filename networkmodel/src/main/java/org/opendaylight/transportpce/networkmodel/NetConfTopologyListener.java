@@ -11,12 +11,15 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.ListenableFuture;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
+import org.onap.ccsdk.features.sdnr.wt.odlclient.data.DeviceConnectionChangedHandler;
 import org.opendaylight.mdsal.binding.api.DataBroker;
 import org.opendaylight.mdsal.binding.api.DataObjectModification;
 import org.opendaylight.mdsal.binding.api.DataTreeChangeListener;
@@ -40,6 +43,7 @@ import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.netmod.notification.r
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.netmod.notification.rev080714.netconf.streams.Stream;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.netconf.node.topology.rev150114.NetconfNode;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.netconf.node.topology.rev150114.NetconfNodeConnectionStatus.ConnectionStatus;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.netconf.node.topology.rev150114.netconf.node.connection.status.AvailableCapabilities;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.netconf.node.topology.rev150114.netconf.node.connection.status.available.capabilities.AvailableCapability;
 import org.opendaylight.yang.gen.v1.urn.tbd.params.xml.ns.yang.network.topology.rev131021.network.topology.topology.Node;
 import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
@@ -47,7 +51,7 @@ import org.opendaylight.yangtools.yang.common.RpcResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class NetConfTopologyListener implements DataTreeChangeListener<Node> {
+public class NetConfTopologyListener implements DataTreeChangeListener<Node>, DeviceConnectionChangedHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(NetConfTopologyListener.class);
     private static final String RPC_SERVICE_FAILED = "Failed to get RpcService for node {}";
@@ -69,6 +73,7 @@ public class NetConfTopologyListener implements DataTreeChangeListener<Node> {
         this.portMapping = portMapping;
     }
 
+    @Override
     public void onDataTreeChanged(@Nonnull Collection<DataTreeModification<Node>> changes) {
         LOG.info("onDataTreeChanged - {}", this.getClass().getSimpleName());
         for (DataTreeModification<Node> change : changes) {
@@ -140,7 +145,9 @@ public class NetConfTopologyListener implements DataTreeChangeListener<Node> {
 
     private void onDeviceDisConnected(final String nodeId) {
         LOG.info("onDeviceDisConnected: {}", nodeId);
-        this.registrations.remove(nodeId).unregisterListeners();
+        if (this.registrations.containsKey(nodeId)) {
+            this.registrations.remove(nodeId).unregisterListeners();
+        }
     }
 
     private boolean subscribeStream(MountPoint mountPoint, String nodeId) {
@@ -220,5 +227,49 @@ public class NetConfTopologyListener implements DataTreeChangeListener<Node> {
                 ? List.of("OPENROADM","NETCONF")
                 : streams;
     }
+
+    @Override
+    public void onRemoteDeviceConnected(String nodeId, NetconfNode netconfNode) {
+        LOG.debug("handle on remote device connected for {} with data {}",nodeId, netconfNode);
+        try {
+            AvailableCapabilities caps = netconfNode.getAvailableCapabilities();
+            if (caps == null || caps.getAvailableCapability().size() <= 0) {
+                LOG.error("connected state without capabilities. should never happen. nodeid={}", nodeId);
+                return;
+            }
+            List<AvailableCapability> deviceCapabilities = caps.getAvailableCapability().stream()
+                    .filter(cp -> cp.getCapability().contains(StringConstants.OPENROADM_DEVICE_MODEL_NAME))
+                    .collect(Collectors.toList());
+            if (!deviceCapabilities.isEmpty()) {
+                Collections.sort(deviceCapabilities, (cp0, cp1) -> cp1.getCapability().compareTo(cp0.getCapability()));
+                LOG.debug("found org-openroadm-device capabilities for {}", nodeId);
+                this.networkModelService.createOpenRoadmNode(nodeId, deviceCapabilities.get(0).getCapability());
+                this.onDeviceConnected(nodeId, deviceCapabilities.get(0).getCapability());
+            } else {
+                LOG.debug("no org-openroadm-device capabilities found for netconfnode {}", nodeId);
+            }
+        } catch (NullPointerException e) {
+            LOG.error("Cannot get available Capabilities: ",e);
+        }
+    }
+
+    @Override
+    public void onRemoteDeviceDisConnected(String nodeId) {
+        this.networkModelService.deleteOpenRoadmnode(nodeId);
+        onDeviceDisConnected(nodeId);
+    }
+
+    @Override
+    public void onRemoteDeviceUnableToConnect(String nodeId) {
+        this.networkModelService.setOpenRoadmNodeStatus(nodeId, ConnectionStatus.UnableToConnect);
+        onDeviceDisConnected(nodeId);
+    }
+
+    @Override
+    public void onRemoteDeviceConnecting(String nodeId) {
+        this.networkModelService.setOpenRoadmNodeStatus(nodeId, ConnectionStatus.Connecting);
+        onDeviceDisConnected(nodeId);
+    }
+
 
 }

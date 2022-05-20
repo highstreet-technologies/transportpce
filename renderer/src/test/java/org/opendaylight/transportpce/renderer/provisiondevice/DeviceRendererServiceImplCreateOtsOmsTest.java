@@ -34,6 +34,7 @@ import org.opendaylight.transportpce.common.openroadminterfaces.OpenRoadmInterfa
 import org.opendaylight.transportpce.common.openroadminterfaces.OpenRoadmInterfacesImpl121;
 import org.opendaylight.transportpce.common.openroadminterfaces.OpenRoadmInterfacesImpl221;
 import org.opendaylight.transportpce.common.openroadminterfaces.OpenRoadmInterfacesImpl710;
+import org.opendaylight.transportpce.renderer.DisabledRemoteOpendaylightClient;
 import org.opendaylight.transportpce.renderer.openroadminterface.OpenRoadmInterface121;
 import org.opendaylight.transportpce.renderer.openroadminterface.OpenRoadmInterface221;
 import org.opendaylight.transportpce.renderer.openroadminterface.OpenRoadmInterface710;
@@ -100,7 +101,7 @@ public class DeviceRendererServiceImplCreateOtsOmsTest extends AbstractTest {
         this.crossConnect = Mockito.spy(this.crossConnect);
         this.deviceRendererService = new DeviceRendererServiceImpl(getDataBroker(),
             this.deviceTransactionManager, this.openRoadmInterfaceFactory, this.openRoadmInterfaces,
-            this.crossConnect, portMapping, null);
+            this.crossConnect, portMapping, null, new DisabledRemoteOpendaylightClient());
     }
 
     @Test

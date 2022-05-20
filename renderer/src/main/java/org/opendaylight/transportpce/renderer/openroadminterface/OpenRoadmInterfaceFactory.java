@@ -9,6 +9,7 @@
 package org.opendaylight.transportpce.renderer.openroadminterface;
 
 import java.util.List;
+import org.onap.ccsdk.features.sdnr.wt.odlclient.data.RemoteOpendaylightClient;
 import org.opendaylight.transportpce.common.StringConstants;
 import org.opendaylight.transportpce.common.device.DeviceTransactionManager;
 import org.opendaylight.transportpce.common.fixedflex.GridConstant;
@@ -194,25 +195,26 @@ public class OpenRoadmInterfaceFactory {
     }
 
     public boolean isUsedByXc(String nodeId, String interfaceName, String xc,
-            DeviceTransactionManager deviceTransactionManager) {
+            DeviceTransactionManager deviceTransactionManager, RemoteOpendaylightClient odlClient) {
         switch (mappingUtils.getOpenRoadmVersion(nodeId)) {
             case StringConstants.OPENROADM_DEVICE_VERSION_1_2_1:
-                return openRoadmInterface121.isUsedByXc(nodeId, interfaceName, xc, deviceTransactionManager);
+                return openRoadmInterface121.isUsedByXc(nodeId, interfaceName, xc, deviceTransactionManager, odlClient);
             case StringConstants.OPENROADM_DEVICE_VERSION_2_2_1:
-                return openRoadmInterface221.isUsedByXc(nodeId, interfaceName, xc, deviceTransactionManager);
+                return openRoadmInterface221.isUsedByXc(nodeId, interfaceName, xc, deviceTransactionManager, odlClient);
             default:
                 return false;
         }
     }
 
     public boolean isUsedByOtnXc(String nodeId, String interfaceName, String xc,
-            DeviceTransactionManager deviceTransactionManager) {
+            DeviceTransactionManager deviceTransactionManager, RemoteOpendaylightClient odlClient) {
         switch (mappingUtils.getOpenRoadmVersion(nodeId)) {
             case StringConstants.OPENROADM_DEVICE_VERSION_1_2_1:
                 LOG.error(OTN_FUNTIONS_ARE_NOT_SUPPORTED_BY_OPENROADM_MODELS_1_2_1_MSG);
                 return false;
             case StringConstants.OPENROADM_DEVICE_VERSION_2_2_1:
-                return openRoadmInterface221.isUsedByOtnXc(nodeId, interfaceName, xc, deviceTransactionManager);
+                return openRoadmInterface221.isUsedByOtnXc(nodeId, interfaceName, xc, deviceTransactionManager,
+                        odlClient);
             default:
                 return false;
         }

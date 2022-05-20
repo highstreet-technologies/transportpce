@@ -27,6 +27,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.eclipse.jdt.annotation.NonNull;
+import org.onap.ccsdk.features.sdnr.wt.odlclient.data.RemoteOpendaylightClient;
 import org.opendaylight.mdsal.binding.api.DataBroker;
 import org.opendaylight.mdsal.binding.api.ReadTransaction;
 import org.opendaylight.mdsal.binding.api.WriteTransaction;
@@ -92,10 +93,12 @@ public class DeviceRendererServiceImpl implements DeviceRendererService {
     private final CrossConnect crossConnect;
     private final PortMapping portMapping;
     private final NetworkModelService networkModelService;
+    private final RemoteOpendaylightClient odlClient;
 
     public DeviceRendererServiceImpl(DataBroker dataBroker, DeviceTransactionManager deviceTransactionManager,
             OpenRoadmInterfaceFactory openRoadmInterfaceFactory, OpenRoadmInterfaces openRoadmInterfaces,
-            CrossConnect crossConnect, PortMapping portMapping, NetworkModelService networkModelService) {
+            CrossConnect crossConnect, PortMapping portMapping, NetworkModelService networkModelService,
+            RemoteOpendaylightClient odlClient) {
         this.dataBroker = dataBroker;
         this.deviceTransactionManager = deviceTransactionManager;
         this.openRoadmInterfaceFactory = openRoadmInterfaceFactory;
@@ -103,6 +106,7 @@ public class DeviceRendererServiceImpl implements DeviceRendererService {
         this.crossConnect = crossConnect;
         this.portMapping = portMapping;
         this.networkModelService = networkModelService;
+        this.odlClient = odlClient;
     }
 
     @SuppressWarnings("rawtypes")
@@ -149,7 +153,7 @@ public class DeviceRendererServiceImpl implements DeviceRendererService {
             int crossConnectFlag = 0;
             try {
                 // if the node is currently mounted then proceed
-                if (this.deviceTransactionManager.isDeviceMounted(nodeId)) {
+                if (this.isDeviceMounted(nodeId)) {
                     String srcTp = node.getSrcTp();
                     String destTp = node.getDestTp();
                     if ((destTp != null) && destTp.contains(StringConstants.NETWORK_TOKEN)) {
@@ -275,6 +279,14 @@ public class DeviceRendererServiceImpl implements DeviceRendererService {
                 .build();
     }
 
+    private boolean isDeviceMounted(String nodeId) {
+        if (this.odlClient.isEnabled()) {
+            LOG.info("remote odlclient isDeviceMounted");
+            return this.odlClient.isDevicePresent(nodeId);
+        }
+        return this.deviceTransactionManager.isDeviceMounted(nodeId);
+    }
+
     private ConcurrentLinkedQueue<String> processErrorMessage(String message, ForkJoinPool forkJoinPool,
             ConcurrentLinkedQueue<String> messages) {
         LOG.warn("Received error message {}", message);
@@ -304,7 +316,7 @@ public class DeviceRendererServiceImpl implements DeviceRendererService {
                 LOG.error("Destination termination point must not be null.");
                 return;
             }
-            if (!this.deviceTransactionManager.isDeviceMounted(nodeId)) {
+            if (!this.isDeviceMounted(nodeId)) {
                 String result = nodeId + IS_NOT_MOUNTED_ON_THE_CONTROLLER;
                 results.add(result);
                 success.set(false);
@@ -377,7 +389,7 @@ public class DeviceRendererServiceImpl implements DeviceRendererService {
         List<String> intToDelete = this.crossConnect.deleteCrossConnect(nodeId, connectionNumber, false);
         for (String interf : intToDelete == null ? new ArrayList<String>() : intToDelete) {
             if (!this.openRoadmInterfaceFactory.isUsedByXc(
-                    nodeId, interf, connectionNumber, this.deviceTransactionManager)) {
+                    nodeId, interf, connectionNumber, this.deviceTransactionManager, this.odlClient)) {
                 interfacesToDelete.add(interf);
             }
         }
@@ -608,7 +620,7 @@ public class DeviceRendererServiceImpl implements DeviceRendererService {
             + "since they are used in the returned object")
     @Override
     public CreateOtsOmsOutput createOtsOms(CreateOtsOmsInput input) throws OpenRoadmInterfaceException {
-        if (!this.deviceTransactionManager.isDeviceMounted(input.getNodeId())) {
+        if (!this.isDeviceMounted(input.getNodeId())) {
             String result = input.getNodeId() + IS_NOT_MOUNTED_ON_THE_CONTROLLER;
             LOG.warn(result);
             return new CreateOtsOmsOutputBuilder().setResult(result).setSuccess(false).build();

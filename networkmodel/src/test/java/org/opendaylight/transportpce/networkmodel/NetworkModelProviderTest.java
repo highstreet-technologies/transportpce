@@ -50,7 +50,7 @@ public class NetworkModelProviderTest extends AbstractTest {
     public void networkmodelProviderInitTest() {
         NetworkModelProvider provider = new NetworkModelProvider(networkTransactionService, getDataBroker(),
             rpcProviderService, networkutilsService, topologyListener, notificationService,
-            frequenciesService, portMappingListener);
+            frequenciesService, portMappingListener, new DisabledRemoteOpendaylightClient());
         Answer<FluentFuture<CommitInfo>> answer = new Answer<FluentFuture<CommitInfo>>() {
 
             @Override

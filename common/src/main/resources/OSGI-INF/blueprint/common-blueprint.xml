@@ -13,11 +13,13 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
 
     <reference id="mountPointService" interface="org.opendaylight.mdsal.binding.api.MountPointService" />
     <reference id="dataBroker" interface="org.opendaylight.mdsal.binding.api.DataBroker" />
+    <reference id="odlClient" interface="org.onap.ccsdk.features.sdnr.wt.odlclient.data.RemoteOpendaylightClient" />
 
     <bean id="deviceTransactionManager" class="org.opendaylight.transportpce.common.device.DeviceTransactionManagerImpl"
           destroy-method="preDestroy" >
         <argument ref="mountPointService" />
         <argument value="15000" />
+        <argument ref="odlClient" />
     </bean>
 
     <bean id="mappingUtils" class="org.opendaylight.transportpce.common.mapping.MappingUtilsImpl" >
