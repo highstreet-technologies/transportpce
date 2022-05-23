@@ -166,7 +166,7 @@ class NTSDeviceModelCreator:
                         'K8S_DEPLOYMENT=false',
                         'IPv6Enabled=false'],
             volumes=['./conf/ntsim_configuration.json:/opt/dev/scripts/configuration.json',
-                    self.outputFolder +'/' + rname + '.xml:/opt/dev/scripts/startup-load.xml'],
+                    './conf-generated/' + rname + '.xml:/opt/dev/scripts/startup-load.xml'],
             ports=[str(port_num) + ':${SIMPORT}']
         )
         return dev_body
