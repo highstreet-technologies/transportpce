@@ -53,3 +53,4 @@ integration/**/*-running.xml
 integration/**/*-operational.xml
 integration/bin/codetest.py
 integration/**/gnpy
+integration/**/env

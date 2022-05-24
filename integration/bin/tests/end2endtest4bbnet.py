@@ -19,13 +19,10 @@ class End2EndTestBBNet(BaseTest):
 
     def test(self, args):
         self.waitForReadyState()
-        step = None
         print("e2e test args=" + str(args))
-        if len(args) > 0:
-            step = args.pop(0)
-        if step == "--clean":
+        if "--clean" in args:
             return self.clean()
-        if step != "--skipmount":
+        if "--skipmount" not in args:
             success = self.mountAll()
             if success:
                 print("mounting simulators succeeded")
@@ -33,19 +30,17 @@ class End2EndTestBBNet(BaseTest):
                 print("problem mounting simulators")
                 return False
             # stop if requested
-            if step == '--mount':
+            if '--mount' in args:
                 return True
-            time.sleep(300)
         else:
             print("skip mounting")
-            step = args.pop(0) if len(args) > 0 else None
         success = self.waitForConnectedState(self.WAITING)
         if success:
             print("all devices are connected")
         else:
             print("problem with deviceconnection")
             return False
-        success = self.checkAutocreatedNetworksAfterMount(2, self.WAITING)
+        success = self.checkAutocreatedNetworksAfterMount(30, self.WAITING)
         if success:
             print("autocreated networks are looking good")
         else:
@@ -65,6 +60,8 @@ class End2EndTestBBNet(BaseTest):
         else:
             print("problem configure Roadms")
             return False
+        if '--prepare' in args:
+            return True
         time.sleep(self.WAITING)
         success = self.createService(nodeidA='XPDR-UlmMuen', nodeidZ='XPDR-EsseDues')
         if success:
@@ -93,8 +90,7 @@ class End2EndTestBBNet(BaseTest):
         else:
             print("problem with topology")
             return False
-        if step == "test2":
-            step = args.pop(0) if len(args) > 0 else None
+        if "test2" in args:
             time.sleep(self.WAITING)
             success = self.test2()
             if success:
@@ -102,7 +98,7 @@ class End2EndTestBBNet(BaseTest):
             else:
                 print("test2 failed")
                 return False
-        if step == "test3":
+        if "test3" in args:
             time.sleep(10)
             success = self.test3()
             if success:

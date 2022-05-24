@@ -18,13 +18,10 @@ class End2EndTest(BaseTest):
 
     def test(self, args):
         self.waitForReadyState()
-        step = None
         print("e2e test args=" + str(args))
-        if len(args) > 0:
-            step = args.pop(0)
-        if step == "--clean":
+        if "--clean" in args:
             return self.clean()
-        if step != "--skipmount":
+        if not "--skipmount" in args:
             success = self.mountAll()
             if success:
                 print("mounting simulators succeeded")
@@ -32,13 +29,11 @@ class End2EndTest(BaseTest):
                 print("problem mounting simulators")
                 return False
             # stop if requested
-            if step == '--mount':
+            if '--mount' in args:
                 return True
-            time.sleep(self.WAITING)
         else:
             print("skip mounting")
-            step = args.pop(0) if len(args) > 0 else None
-
+      
         success = self.waitForConnectedState(self.WAITING)
         if success:
             print("all devices are connected")
@@ -65,6 +60,8 @@ class End2EndTest(BaseTest):
         else:
             print("problem configure Roadms")
             return False
+        if '--prepare' in args:
+            return True
         time.sleep(self.WAITING)
         success = self.createService()
         if success:
@@ -94,8 +91,7 @@ class End2EndTest(BaseTest):
             print("problem with topology")
             return False
 
-        if step == "test2":
-            step = args.pop(0) if len(args) > 0 else None
+        if "test2" in args:
             time.sleep(self.WAITING)
             success = self.test2()
             if success:
@@ -103,8 +99,8 @@ class End2EndTest(BaseTest):
             else:
                 print("test2 failed")
                 return False
-        if step == "test3":
-            time.sleep(10)
+        if "test3" in args:
+            time.sleep(self.WAITING)
             success = self.test3()
             if success:
                 print("test3 passed")
