@@ -130,7 +130,7 @@ class TrpceOdlClient(OdlClient):
                 list.append(n['network-id'])
 
         else:
-            print('unable to read ietf networks. response code '+response.code)
+            print('unable to read ietf networks. response code {}'.format(response.code))
         return list
     
     def getIetfNetworkNodes(self, networkId):
