@@ -13,15 +13,16 @@ ODL_SCHEME = "http"
 ODL_PORT = 8181
 BASEPORT = 50000
 COMMAND_DEPLOY = "deploy"
+COMMAND_DEPLOY_NG = "deploy-ng"
 COMMAND_DESTROY = "destroy"
 COMMAND_RESTART = "restart"
 COMMAND_RESTARTVMS = "restart-vms"
 COMMAND_DESTROY_ALL = "destroy-all"
-COMMANDS = [COMMAND_DEPLOY, COMMAND_DESTROY, COMMAND_DESTROY_ALL, COMMAND_RESTART, COMMAND_RESTARTVMS]
+COMMANDS = [COMMAND_DEPLOY, COMMAND_DEPLOY_NG, COMMAND_DESTROY, COMMAND_DESTROY_ALL, COMMAND_RESTART,
+            COMMAND_RESTARTVMS]
 
 
 def execCommand(command: List[str], inBackground=False):
-    
     if inBackground:
         process = subprocess.Popen(command)
     else:
@@ -31,29 +32,42 @@ def execCommand(command: List[str], inBackground=False):
 
 
 def runDeploy(targetHost: str, xmlFilename: str, sdnrBaseUrl: str,
-              simPort: int, debug = False):
+              simPort: int, debug=False):
     execCommand([
         'ansible-playbook', '-i', HOSTSFILE, '-e', 'file=' + xmlFilename, '-e',
-        'target=' + targetHost, '-e', 'sdnr=' + sdnrBaseUrl, '-e',
-        'simport=' + str(simPort), '-e', '@' + DIR + '/vars.yml',
-        DIR + '/deploy-sims.yml'
+                                                   'target=' + targetHost, '-e', 'sdnr=' + sdnrBaseUrl, '-e',
+                                                   'simport=' + str(simPort), '-e', '@' + DIR + '/vars.yml',
+                                                   DIR + '/deploy-sims.yml'
     ], not debug)
 
-def runRestart(targetHost: str, xmlFilename: str, sdnrBaseUrl: str,
-              simPort: int, debug = False):
+
+def runDeployNg(targetHost: str, xmlFilenameOper: str, xmlFilenameRun: str, sdnrBaseUrl: str,
+                simPort: int, debug=False):
     execCommand([
-        'ansible-playbook', '-i', HOSTSFILE, '-e', 'file=' + xmlFilename, '-e',
-        'target=' + targetHost, '-e', 'sdnr=' + sdnrBaseUrl, '-e',
-        'simport=' + str(simPort), '-e', '@' + DIR + '/vars.yml',
-        DIR + '/restart-sims.yml'
+        'ansible-playbook', '-i', HOSTSFILE, '-e', 'file_o=' + xmlFilenameOper, '-e', 'file_r=' + xmlFilenameRun, '-e',
+                                                   'target=' + targetHost, '-e', 'sdnr=' + sdnrBaseUrl, '-e',
+                                                   'simport=' + str(simPort), '-e', '@' + DIR + '/vars.yml',
+                                                   DIR + '/deploy-sims-ng.yml'
     ], not debug)
-def runDestroy(targetHost: str, xmlFilename: str, sdnrBaseUrl: str,
-               simPort: int, debug = False):
+
+
+def runRestart(targetHost: str, xmlFilename: str, sdnrBaseUrl: str,
+               simPort: int, debug=False):
     execCommand([
         'ansible-playbook', '-i', HOSTSFILE, '-e', 'file=' + xmlFilename, '-e',
-        'target=' + targetHost, '-e', 'sdnr=' + sdnrBaseUrl, '-e',
-        'simport=' + str(simPort), '-e', '@' + DIR + '/vars.yml',
-        DIR + '/destroy-sims.yml'
+                                                   'target=' + targetHost, '-e', 'sdnr=' + sdnrBaseUrl, '-e',
+                                                   'simport=' + str(simPort), '-e', '@' + DIR + '/vars.yml',
+                                                   DIR + '/restart-sims.yml'
+    ], not debug)
+
+
+def runDestroy(targetHost: str, xmlFilename: str, sdnrBaseUrl: str,
+               simPort: int, debug=False):
+    execCommand([
+        'ansible-playbook', '-i', HOSTSFILE, '-e', 'file=' + xmlFilename, '-e',
+                                                   'target=' + targetHost, '-e', 'sdnr=' + sdnrBaseUrl, '-e',
+                                                   'simport=' + str(simPort), '-e', '@' + DIR + '/vars.yml',
+                                                   DIR + '/destroy-sims.yml'
     ], not debug)
 
 
@@ -112,7 +126,7 @@ def loadHostsFile(filename) -> List[str]:
     return (hosts, odls)
 
 
-def updateProfile(filename, xmlfile:str, host:str, port:int)->bool:
+def updateProfile(filename, xmlfile: str, host: str, port: int) -> bool:
     fn = os.path.basename(xmlfile)
     nodeId = fn[0:len(fn) - 4]
     success = False
@@ -124,31 +138,31 @@ def updateProfile(filename, xmlfile:str, host:str, port:int)->bool:
                 item['host'] = host
                 item['port'] = port
                 success = True
-    
+
     with open(filename, 'w') as fp:
         json.dump(data, fp)
     return success
 
 
 args = sys.argv
-if len(args)>0 and args[0].endswith('.py'):
+if len(args) > 0 and args[0].endswith('.py'):
     args.pop(0)
 src = None
 profile = None
-debug=False
-newArgs=[]
+debug = False
+newArgs = []
 print(args)
-while len(args)>0:
+while len(args) > 0:
     arg = args.pop(0)
     if arg == "--src":
         src = args.pop(0)
     elif arg == '--profile':
         profile = args.pop(0)
     elif arg == '--debug' or arg == '-v':
-        debug=True
+        debug = True
     else:
         newArgs.append(arg)
-args=newArgs
+args = newArgs
 if len(args) < 1:
     printHelp('no command given')
     exit(1)
@@ -206,18 +220,27 @@ i = 0
 for xmlfile in files:
     if not xmlfile.endswith('.xml'):
         continue
+
+    if xmlfile.endswith('-operational.xml') or xmlfile.endswith('-running.xml'):
+        continue
+
     print('exec {} for {} of {}'.format(command, i, len(files)))
     hostIndex = i % (len(hosts))
     odlIndex = i % (len(odls))
     port = BASEPORT + (i // len(hosts))
     if command == COMMAND_DEPLOY:
-        runDeploy(hosts[hostIndex]['name'],src+'/'+xmlfile, odls[odlIndex], port, debug)
+        runDeploy(hosts[hostIndex]['name'], src + '/' + xmlfile, odls[odlIndex], port, debug)
         updateProfile(profileFilename, xmlfile, hosts[hostIndex]['host'], port)
+    elif command == COMMAND_DEPLOY_NG:
+        runDeployNg(hosts[hostIndex]['name'], src + '/' + xmlfile[:-4] + '-operational.xml',
+                    src + '/' + xmlfile[:-4] + '-running.xml', odls[odlIndex], port, debug)
+        updateProfile(profileFilename, xmlfile, hosts[hostIndex]['host'], port)
+
     elif command == COMMAND_DESTROY:
         runDestroy(hosts[hostIndex]['name'], src + '/' + xmlfile,
                    odls[odlIndex], port, debug)
     elif command == COMMAND_RESTART:
         runRestart(hosts[hostIndex]['name'], src + '/' + xmlfile,
                    odls[odlIndex], port, debug)
-    
+
     i += 1

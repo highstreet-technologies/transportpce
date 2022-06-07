@@ -53,22 +53,32 @@ if it fails and you need logs
   --nodes ../topology-info/Nodes_Germany_17.json \
   --links ../topology-info/Links_Germany_17.json \
   --output-profile germany-17 \
-  --output-folder demo-standalone/conf-generated
+  --output-folder demo-standalone/conf-generated \
+  --sim 'nts-ng'   ## For creation of nts-ng image files
 
 ```
- * edit the sim-deployment/hosts.ini
+* edit the sim-deployment/hosts.ini
 
- * check that your remote hosts are accessable with ansible
+* check that your remote hosts are accessable with ansible
 ```
 ansible -i sim-deployment/hosts.ini -m ping all
 ```
- * deploy simulators with the models
+ * deploy simulators with the models (NTS)
 ```
 cd sim-deployment
 ./deploy-sims.py deploy --src ../demo-standalone/conf-generated/ --profile germany-17
 ```
 
- * run end2end test with crteated profile
+ * deploy simulators with the NTS-NG models
+```
+cd sim-deployment
+./deploy-sims.py deploy-ng --src ../demo-standalone/conf-generated/ --profile germany-17-ng
+```
+
+ * run end2end test with created profile
 ```
 ../bin/integration.py test end2endbb --profile germany-17
+```
+```
+../bin/integration.py test end2endbb --profile germany-17-ng  ## with NTS-NG devices
 ```

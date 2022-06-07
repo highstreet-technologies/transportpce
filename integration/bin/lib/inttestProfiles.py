@@ -16,12 +16,18 @@ class IntegrationTestSimProfile:
     def addLocalContainerSim(self, nodeId, containerName, port=830, username='netconf', password='netconf'):
         self.addSimulator(nodeId, port=port, username=username,password=password,container=containerName )
 
+    def addLocalContainerSimNG(self, nodeId, containerName, port=830, username='netconf', password='netconf!'):
+        self.addSimulator(nodeId, port=port, username=username,password=password,container=containerName )
+
     def addRemoteSim(self, nodeId, host, port, username='netconf', password='netconf'):
         self.addSimulator(nodeId, host, port, username, password)
 
     def save(self, filename):
         with open(filename, 'w') as fp:
-            json.dump(self.items,fp)
+            json.dump(self.items,fp,indent=4)
+
+    def clear(self):
+        self.items.clear()
 
 
 class IntegrationTestControllerProfile:
@@ -53,3 +59,4 @@ class IntegrationTestControllerProfile:
     def save(self, filename):
         with open(filename, 'w') as fp:
             json.dump({'sdnr':self.sdnrs,'transportpce':self.transportpce},fp)
+

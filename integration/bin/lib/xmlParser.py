@@ -230,6 +230,7 @@ class OpenRoadmXmlParser:
                             '<type xmlns:openROADM-if="http://org/openroadm/interfaces">openROADM-if:opticalTransport')
         data = data.replace('<type>openROADM-if:openROADMOpticalMultiplex',
                             '<type xmlns:openROADM-if="http://org/openroadm/interfaces">openROADM-if:openROADMOpticalMultiplex')
+        data=data.replace('</ns1:nbr-list></ns1:lldp>', '</ns1:nbr-list>\n</ns1:lldp>')
         # close the input file
         fin.close()
         # open the input file in write mode

@@ -1,0 +1,43 @@
+---
+- hosts: "{{target}}"
+  name: deploy network function
+  gather_facts: false
+  tasks:
+    - name: "prepare vars"
+      set_fact:
+        filename_o: "{{file_o | basename }}"
+        filename_r: "{{file_r | basename }}"
+        nodeId: "{{(file_r | basename | splitext)[0][:-8]}}"
+    - name: "prepare vars2"
+      set_fact:
+        remoteFolder: "{{remote_workspace}}/{{nodeId}}"
+    - name: get the file contents
+      debug:
+        msg: "{{nodeId}}: {{file_r}}"
+    - name: Ensures multi_deployment dir exists
+      file: path={{remoteFolder}} state=directory
+    - name: copy xml file_o
+      copy:
+        src: "{{file_o}}"
+        dest: "{{remoteFolder}}"
+    - name: copy xml file_r
+      copy:
+        src: "{{file_r}}"
+        dest: "{{remoteFolder}}"
+    - name: copy ntsim config file
+      copy:
+        src: "ntsng.config.json"
+        dest: "{{remoteFolder}}"
+    - name: create container {{nodeId}}
+      community.docker.docker_container:
+        name: "{{nodeId}}"
+        image: "{{image_ng}}"
+        env:
+          NTS_NF_STANDALONE_START_FEATURES: "datastore-populate"
+          NTS_NF_MOUNT_POINT_ADDRESSING_METHOD: "host-mapping"
+        volumes:
+          - "./{{remoteFolder}}/{{filename_o}}:/opt/dev/deploy/data/org-openroadm-device-operational.xml"
+          - "./{{remoteFolder}}/{{filename_r}}:/opt/dev/deploy/data/org-openroadm-device-running.xml"
+          - "./{{remoteFolder}}/ntsng.config.json:/opt/dev/ntsim-ng/config/config.json"
+        ports:
+          - "{{simport}}:830"

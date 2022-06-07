@@ -1,5 +1,5 @@
 #!/usr/bin/python3
- 
+
 import os
 import sys
 import json
@@ -12,7 +12,7 @@ import networkx as nx
 from lib.xmlParser import OpenRoadmXmlParser
 from lib.ntsngDeployGenerator import OpenroamdNtsNgDeployGenerator
 from lib.inttestProfiles import IntegrationTestSimProfile, IntegrationTestControllerProfile
-
+import subprocess
 
 
 class NTSDeviceModelCreator:
@@ -21,7 +21,9 @@ class NTSDeviceModelCreator:
         linksSourceFile=TRPCEPATH+"/integration/topology-info/Links_Germany_17.json",
         outputProfile='germany-17',
         outputFolder=TRPCEPATH+'/integration/demo-standalone/conf-generated',
-        outputDockerComposeFile=CURRENT_PATH+'/docker-compose-generated.yml') -> None:
+        outputDockerComposeFile=CURRENT_PATH+'/docker-compose-generated.yml',
+        sim='',
+        outputDockerComposeFileNg=CURRENT_PATH + '/docker-compose-generated-ng.yml') -> None:
         self.linksSourceFile = linksSourceFile
         self.nodesSourceFile = nodesSourceFile
         self.outputProfile = outputProfile
@@ -29,6 +31,8 @@ class NTSDeviceModelCreator:
         self.outputDockerComposeFile = outputDockerComposeFile
         self.edges=None
         self.nodes=None
+        self.sim=sim
+        self.outputDockerComposeFileNg = outputDockerComposeFileNg
 
     def run(self):
         # Variable to be provided w.r.t to different  environments
@@ -38,55 +42,57 @@ class NTSDeviceModelCreator:
         with open(self.linksSourceFile) as edge_file:
             self.edges = json.load(edge_file)
 
-        topo=self.create_topology()
+        topo=self.createTopology()
         i=1
-        xpdr_num = 1
-        port_number = 50001
+        xpdrNum = 1
+        portNumber = 50001
         rdmConfiguration = {}
         simProfile = IntegrationTestSimProfile()
         controllerProfile = IntegrationTestControllerProfile()
         COMPOSITION = {'version': '3', 'services': {}}
-        COMPOSITION['services']['transportpce'] = self.create_compose_data()
+        COMPOSITION['services']['transportpce'] = self.createComposeData()
 
         xmlParser = OpenRoadmXmlParser(TRPCEPATH, outputPath=TRPCEPATH+'/integration/demo-standalone/conf-generated')
         deployGen = OpenroamdNtsNgDeployGenerator(TRPCEPATH,outputPath=TRPCEPATH+'/integration/demo-standalone/conf-generated')
         for node in topo.nodes():
-            interface_dict = {}
-            node_edges = topo.edges(node)
+            interfaceDict = {}
+            nodeEdges = topo.edges(node)
             degree = topo.degree(node)
             neighbours = list(topo.neighbors(node))
-            remote_ports_list = self.find_remote_port(topo, node)
-            node_edges= topo.edges(node)
+            remotePortsList = self.findRemotePort(topo, node)
+            nodeEdges= topo.edges(node)
 
             degree= topo.degree(node)
-            rdm_resp=xmlParser.create_data_models(str(node), degree, 'roadm', i,neighbours,remote_ports_list)
+            rdmResp=xmlParser.create_data_models(str(node), degree, 'roadm', i,neighbours,remotePortsList)
             time.sleep(0.01)
-            print(rdm_resp)
+            print(rdmResp)
             for i in range(0, len(neighbours)):
-                xpdr_resp = xmlParser.create_xpdr_data_models(str(node[:4]) + str(neighbours[i][:4]), 'xpdr', xpdr_num)
-                xpdr_num = xpdr_num + 1
-                print(xpdr_resp)
-                interface_dict[i + 1] = str(neighbours[i])
+                xpdrResp = xmlParser.create_xpdr_data_models(str(node[:4]) + str(neighbours[i][:4]), 'xpdr', xpdrNum)
+                xpdrNum = xpdrNum + 1
+               # print(xpdrResp)
+                interfaceDict[i + 1] = str(neighbours[i])
                 time.sleep(0.01)
-            print("Node {} has {} degrees and links {}".format(str(node), degree, node_edges))
-            rdmConfiguration[str(node)] = interface_dict
+           # print("Node {} has {} degrees and links {}".format(str(node), degree, node_edges))
+            rdmConfiguration[str(node)] = interfaceDict
             i = i + 1
-            print(rdmConfiguration)
-            print(len(rdmConfiguration))
+           # print(rdmConfiguration)
+            #print(len(rdmConfiguration))
             #remote_ports_list.clear()
-            #interface_dict.clear()
+            #interfaceDict.clear()
             #neighbours.clear()
-        device_list = self.find_files(TRPCEPATH+'/integration/demo-standalone/conf-generated', 'xml')
-        device_list.sort()
+        deviceList = self.findFiles(TRPCEPATH + '/integration/demo-standalone/conf-generated', 'xml')
+        deviceList=[i for i in deviceList if 'operational' not in i and 'running' not in i]
+        deviceList.sort()
 
-        for device in device_list:
-            dev_name = device.split(".")[0]
-            dev_body = self.create_nts_for_docker_compose(dev_name, ip, port_number)
-            COMPOSITION['services'][dev_name.replace('-', '').lower()] = dev_body
+
+        for device in deviceList:
+            devName = device.split(".")[0]
+            devBody = self.createNtsForDockerCompose(devName, ip, portNumber)
+            COMPOSITION['services'][devName.replace('-', '').lower()] = devBody
 
             # Create the json data for profile.json file for the Germany-17 node network
-            simProfile.addLocalContainerSim(nodeId=dev_name,port=830, username='netconf', password='netconf',containerName=dev_name.replace('-', '').lower())
-            port_number = port_number + 1
+            simProfile.addLocalContainerSim(nodeId=devName,port=830, username='netconf', password='netconf',containerName=devName.replace('-', '').lower())
+            portNumber = portNumber + 1
         # time.sleep(0.01)
 
         with open(self.outputDockerComposeFile, 'w') as outfile:
@@ -96,16 +102,46 @@ class NTSDeviceModelCreator:
         # Create profile.json file for the Germany-17 node network
         simProfile.save(PROFILES_SIM_FOLDER+'/'+self.outputProfile+'.json')
 
-        profile_control = json.dumps(self.create_profile_controller(), indent=4)
+        profileControl = json.dumps(self.createProfileController(), indent=4)
         with open(PROFILES_CONTROLLER_FOLDER+'/'+self.outputProfile+'.json', 'w') as f:
-            f.write(profile_control)
+            f.write(profileControl)
         f.close()
         rdmConfig= json.dumps(rdmConfiguration, indent=4)
         with open(PROFILES_SIM_FOLDER+'/rdmConfiguration.json', 'w') as f:
             f.write(rdmConfig)
         f.close()
+        if self.sim == "nts-ng":
+            portNumber = 51000
+            simProfile.clear()
+            try:
+                treeFile = self.findFiles(TRPCEPATH + '/integration/demo-standalone/conf', '-device.tree')
+                if len(treeFile) > 0:
+                    for device in deviceList:
+                        print(deviceList)
+                        cliCmd="../bin/splitRoadmModel.py --src conf-generated/"+ device +" --tree conf/org-openroadm-device.tree"
+                        subprocess.call(cliCmd, shell=True)
+                        devName = device.split(".")[0]
+                        devBody = self.createNtsNGDockerCompose(devName, ip, portNumber)
+                        COMPOSITION['services'][devName.replace('-', '').lower()] = devBody
+                        # Create the json data for profile.json file for the Germany-17 node network
+                        simProfile.addLocalContainerSim(nodeId=devName, port=830, username='netconf',
+                                                        password='netconf!',
+                                                        containerName=devName.replace('-', '').lower())
+                        portNumber=portNumber+1
+                with open(self.outputDockerComposeFileNg, 'w') as outfile:
+                    yaml.dump(COMPOSITION, outfile, default_flow_style=False, sort_keys=False, indent=4)
+                outfile.close()
+                # Create profile.json file for the Germany-17 node network
+                simProfile.save(PROFILES_SIM_FOLDER + '/' + self.outputProfile + '-ng.json')
+                with open(PROFILES_CONTROLLER_FOLDER + '/' + self.outputProfile + '-ng.json', 'w') as f:
+                    f.write(profileControl)
+                f.close()
+            except FileNotFoundError:
+                print('File does not exist..Generate the tree first')
 
-    def create_topology(self):
+
+
+    def createTopology(self):
         graph = nx.Graph()
         for k,node in self.nodes.items():
             graph.add_node(node[0], lon=node[1], lat=node[2], pos=(node[1], node[2]),
@@ -118,45 +154,43 @@ class NTSDeviceModelCreator:
         return graph
 
 
-    def find_files(self, path, name):
-        text_files = [f for f in os.listdir(path) if f.endswith(name)]
-        return text_files
+    def findFiles(self, path, name):
+        textFiles = [f for f in os.listdir(path) if f.endswith(name)]
+        return textFiles
 
 
-    def find_remote_port(self, topology, actualNode):
-        remote_ports_list = []
+    def findRemotePort(self, topology, actualNode):
+        remotePortsList = []
         ngbrs = list(topology.neighbors(actualNode))
         # print("ngbrs are {}".format(ngbrs))
         for n in ngbrs:
             remote_ngbrs = list(topology.neighbors(n))
             remote_port = remote_ngbrs.index(actualNode)
-            remote_ports_list.append(remote_port + 1)
-        return remote_ports_list
+            remotePortsList.append(remote_port + 1)
+        return remotePortsList
 
 
-    def create_compose_data(self):
-        env_var_service = ['REMOTE_SDNRURL=${REMOTE_SDNR_URL}', 'REMOTE_WSURL=${REMOTE_SDNR_WSURL}',
+    def createComposeData(self):
+        envVarService = ['REMOTE_SDNRURL=${REMOTE_SDNR_URL}', 'REMOTE_WSURL=${REMOTE_SDNR_WSURL}',
                         'REMOTE_ODL_USERNAME=${SDNR_USERNAME}', 'REMOTE_ODL_PASSWORD=${SDNR_PASSWORD}',
                         'REMOTE_ODL_ENABLED=${REMOTE_ODL_ENABLED}', 'REMOTE_ODL_TRUSTALL=${TRUSTALL}',
                         'TRANSPORTPCE_SIMULATOR_MODE=true']
-        volume_service = [TRPCEPATH+"/integration/demo-standalone/conf/org.ops4j.pax.logging.cfg:/opt/opendaylight/etc/org.ops4j.pax.logging.cfg"]
-        ports_service = ["18181:8181"]
+        volumeService = [TRPCEPATH+"/integration/demo-standalone/conf/org.ops4j.pax.logging.cfg:/opt/opendaylight/etc/org.ops4j.pax.logging.cfg"]
+        portService = ["18181:8181"]
         transportpce = dict(
             image='odl/transportpce',
             container_name='transportpce',
-            environment=env_var_service,
-            volumes=volume_service,
-            ports=ports_service
+            environment=envVarService,
+            volumes=volumeService,
+            ports=portService
 
         )
 
         return transportpce
 
 
-    def create_nts_for_docker_compose(self, rname, ip, port_num):
-        port_map = {}
-        port_map[port_num] = '${SIMPORT}'
-        dev_body = dict(
+    def createNtsForDockerCompose(self, rname, ip, portNum):
+        devBody = dict(
             image='${NTSIM_ROADM_STANDALONE_IMAGE}',
             container_name=rname.replace('-', '').lower(),
             environment=['NTS_IP=' + ip,
@@ -167,14 +201,14 @@ class NTSDeviceModelCreator:
                         'IPv6Enabled=false'],
             volumes=['./conf/ntsim_configuration.json:/opt/dev/scripts/configuration.json',
                     './conf-generated/' + rname + '.xml:/opt/dev/scripts/startup-load.xml'],
-            ports=[str(port_num) + ':${SIMPORT}']
+            ports=[str(portNum) + ':${SIMPORT}']
         )
-        return dev_body
+        return devBody
 
 
 
-    def create_profile_controller(self):
-        profile_content_controller = {
+    def createProfileController(self):
+        profileContentController = {
             "sdnr": [
                 {
                     "scheme": "http",
@@ -196,8 +230,43 @@ class NTSDeviceModelCreator:
                 "primary": True
             }
         }
-        return profile_content_controller
-    
+        return profileContentController
+
+    def createDatastores(self, treePath):
+        fileFound = False
+        try:
+            treeFile = self.findFiles(treePath, '-device.tree')
+            if len(treeFile)> 0:
+                print(treeFile)
+                # splitter = RoadmModelSplitter()
+                # deviceFiles = self.findFiles(self.outputFolder, 'xml')
+                # for deviceFile in deviceFiles:
+                #     splitter.run(args=['--src ' + self.outputFolder + '/' + deviceFile,
+                #                        '--tree ' + treePath + 'org-openroadm-device.tree'])
+                return True
+        except FileNotFoundError:
+            print('Tree File does not exist..Generate the tree first')
+        return False
+
+    def createNtsNGDockerCompose(self, rName, ip, portNum):
+        devBody = dict(
+            image='${NTSNG_IMAGE}',
+            container_name=rName.replace('-', '').lower(),
+            environment=['NTS_NF_STANDALONE_START_FEATURES=datastore-populate',
+                         'NTS_NF_MOUNT_POINT_ADDRESSING_METHOD=host-mapping',
+                         'NTS_HOST_IP=' + ip,
+                         'HOSTNAME=' + rName.replace('-', '').lower(),
+                         'IPv6Enabled=false',
+                         'SSH_CONNECTIONS=1',
+                         'TLS_CONNECTIONS=0',
+                         'NTS_HOST_NETCONF_SSH_BASE_PORT=${SIMPORT}',
+                         'NTS_HOST_NETCONF_TLS_BASE_PORT=65500'],
+            volumes=['./conf/ntsng.config.json:/opt/dev/ntsim-ng/config/config.json',
+                     './conf-generated/' + rName + '-operational.xml:/opt/dev/deploy/data/org-openroadm-device-operational.xml',
+                     './conf-generated/' + rName + '-running.xml:/opt/dev/deploy/data/org-openroadm-device-running.xml'],
+            ports=[str(portNum) + ':${SIMPORT}']
+        )
+        return devBody
 
 parser = argparse.ArgumentParser(description='Process some integers.')
 
@@ -206,9 +275,9 @@ parser.add_argument('--links', required=True, help='filename of the topology lin
 parser.add_argument('--output-profile', required=True, help='filename to put the integration test profile in')
 parser.add_argument('--output-folder', required=False, default=CURRENT_PATH+'/conf-generated', help='folder to put the generated xml modesl in')
 parser.add_argument('--output-dc', required=False, default=CURRENT_PATH+'/docker-compose-generated.yml', help='folder to put the generated xml modesl in')
-
+parser.add_argument('--sim', required=False, default='nts', help='support for nts-ng sims')
 args = parser.parse_args()
 
 creator = NTSDeviceModelCreator(args.nodes, args.links, 
-    args.output_profile, args.output_folder, args.output_dc)
+    args.output_profile, args.output_folder, args.output_dc, args.sim)
 creator.run()
