@@ -15,18 +15,18 @@ services:
       - '28181:8181'
     depends_on: 
       - sdnr
-  transportpce-gui:
-    image: odl/transportpce-gui
-    environment: 
-      - IETF_NETWORK_BASEURL=http://transportpce:8181
-      - TRANSPORTPCE_BASEURL=http://transportpce:8181
-    ports:
-      - '28082:8082'
-    depends_on: 
-      - transportpce
+  # transportpce-gui:
+  #   image: odl/transportpce-gui
+  #   environment: 
+  #     - IETF_NETWORK_BASEURL=http://transportpce:8181
+  #     - TRANSPORTPCE_BASEURL=http://transportpce:8181
+  #   ports:
+  #     - '28082:8082'
+  #   depends_on: 
+  #     - transportpce
   sdncweb:
-#    image: nexus3.onap.org:10001/onap/sdnc-web-image:latest
-    image: 10.20.6.10:30000/hightec/sdnc-web-image:2.2.0-SNAPSHOT-20210624T064521Z
+    image: nexus3.onap.org:10001/onap/sdnc-web-image:latest
+#    image: 10.20.6.10:30000/hightec/sdnc-web-image:2.2.0-SNAPSHOT-20210624T064521Z
     environment: 
       - SDNRHOST=sdnr
     ports:
@@ -35,7 +35,7 @@ services:
       - sdnr
   sdnr:
     #image: hightec/sdnc-image-wt-patch:1.2.0-SNAPSHOT-20210625T063556Z
-    image: 10.20.6.10:30000/hightec/sdnr-image-aluminium:1.2.0-SNAPSHOT-20210707T234903Z
+    image: nexus3.onap.org:10001/onap/sdnc-image:2.2.5
     container_name: sdnr
     environment:
       - ODL_ADMIN_PASSWORD=${SDNR_PASSWORD}

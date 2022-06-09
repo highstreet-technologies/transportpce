@@ -22,8 +22,9 @@ services:
     depends_on: 
       - sdnr
   sdnr:
-    image: nexus3.onap.org:10001/onap/sdnc-image:2.0.6
+    image: nexus3.onap.org:10001/onap/sdnc-image:2.2.5
     environment: 
+      - ODL_ADMIN_PASSWORD=${SDNR_PASSWORD}
       - SDNRONLY=true
       - SDNRINIT=true
       - SDNRDM=true
