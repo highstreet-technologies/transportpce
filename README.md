@@ -14,3 +14,4 @@ Fork of the Opendaylight transportpce project
 | ------ | ------ |
 | [stable/magnesium](https://github.com/highstreet-technologies/transportpce/tree/stable/magnesium) | stable |
 | [stable/aluminium](https://github.com/highstreet-technologies/transportpce/tree/stable/aluminium) | stable |
+| [stable/phosphorus](https://github.com/highstreet-technologies/transportpce/tree/stable/phosphorus) | stable |
