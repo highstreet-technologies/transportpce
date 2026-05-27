@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
 @Component
 public class CatalogDataStoreOperationsImpl implements CatalogDataStoreOperations {
     private static final Logger LOG = LoggerFactory.getLogger(CatalogDataStoreOperationsImpl.class);
-    private static final String CATALOG_FILE = "apidoc-operational-modes-to-catalog-13_1-optical-spec-6_0.json";
+    private static final String CATALOG_FILE = "apidoc-operational-modes-to-catalog-17_0-optical-spec-9_0.json";
 
     private BindingDOMCodecServices bindingDOMCodecServices;
     private NetworkTransactionService networkTransactionService;
