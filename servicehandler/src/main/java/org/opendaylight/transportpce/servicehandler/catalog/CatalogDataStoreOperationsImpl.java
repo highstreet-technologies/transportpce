@@ -17,9 +17,9 @@ import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
 import org.opendaylight.transportpce.common.Timeouts;
 import org.opendaylight.transportpce.common.converter.JsonStringConverter;
 import org.opendaylight.transportpce.common.network.NetworkTransactionService;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250110.operational.mode.catalog.OpenroadmOperationalModes;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250110.operational.mode.catalog.SpecificOperationalModes;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250110.OperationalModeCatalog;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250530.operational.mode.catalog.OpenroadmOperationalModes;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250530.operational.mode.catalog.SpecificOperationalModes;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.OperationalModeCatalog;
 import org.opendaylight.yangtools.binding.DataObjectIdentifier;
 import org.opendaylight.yangtools.binding.data.codec.spi.BindingDOMCodecServices;
 import org.opendaylight.yangtools.yang.data.api.YangInstanceIdentifier;
@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
 @Component
 public class CatalogDataStoreOperationsImpl implements CatalogDataStoreOperations {
     private static final Logger LOG = LoggerFactory.getLogger(CatalogDataStoreOperationsImpl.class);
-    private static final String CATALOG_FILE = "apidoc-operational-modes-to-catalog-13_1-optical-spec-6_0.json";
+    private static final String CATALOG_FILE = "apidoc-operational-modes-to-catalog-17_0-optical-spec-9_0.json";
 
     private BindingDOMCodecServices bindingDOMCodecServices;
     private NetworkTransactionService networkTransactionService;
