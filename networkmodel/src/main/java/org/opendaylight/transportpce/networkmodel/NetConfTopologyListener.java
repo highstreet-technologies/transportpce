@@ -100,7 +100,12 @@ public class NetConfTopologyListener implements DataTreeChangeListener<Node> {
                 LOG.info("writtenNode: {}", writtenNode.dataAfter());
             }
             case DataObjectDeleted<Node> deletedNode -> {
-                String nodeId = deletedNode.dataBefore().key().getNodeId().getValue();
+                Node priorNodeState = deletedNode.dataBefore();
+                if (priorNodeState == null) {
+                    LOG.error("Received delete event without prior state: {}", deletedNode.step());
+                    return;
+                }
+                String nodeId = priorNodeState.key().getNodeId().getValue();
                 Nodes portmappingNode = portMapping.getNode(nodeId);
                 NodeDatamodelType type = portmappingNode != null ? portmappingNode.getDatamodelType() : null;
                 boolean cleanupOk;
