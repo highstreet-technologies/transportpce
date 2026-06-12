@@ -146,7 +146,7 @@ public class NetConfTopologyListenerTest {
             deviceTransactionManager, portMapping);
         listener.onDataTreeChanged(changes);
         verify(ch, times(1)).getRootNode();
-        verify(node, times(2)).dataBefore();
+        verify(node, times(1)).dataBefore();
         verify(node, times(1)).dataAfter();
         verify(networkModelService, times(1)).createOpenRoadmNode(anyString(), anyString());
     }
@@ -170,7 +170,7 @@ public class NetConfTopologyListenerTest {
             deviceTransactionManager, portMapping);
         listener.onDataTreeChanged(changes);
         verify(ch, times(1)).getRootNode();
-        verify(node, times(2)).dataBefore();
+        verify(node, times(1)).dataBefore();
         verify(node, times(1)).dataAfter();
         verify(networkModelService, never()).createOpenRoadmNode(anyString(), anyString());
         verify(networkModelService, never()).deleteOpenRoadmnode(anyString());
