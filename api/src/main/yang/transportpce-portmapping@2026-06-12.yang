@@ -151,8 +151,9 @@ module transportpce-portmapping {
     type enumeration {
       enum 1.2.1 {
         value 1;
+        status deprecated; 
         description
-          "Version 1.2.1";
+          "Deprecated: kept for backward compatibility only.";
       }
       enum 2.2.1 {
         value 2;
