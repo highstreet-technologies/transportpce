@@ -69,7 +69,7 @@ import org.slf4j.LoggerFactory;
 public class TapiOpticalNodeTest extends AbstractTest {
 
     private static final Logger LOG = LoggerFactory.getLogger(TapiOpticalNodeTest.class);
-    private static final String TOPOLOGY_FILE = "src/test/resources/topologyData/refTopoTapiFull.xml";
+    private static final String TOPOLOGY_FILE = "src/test/resources/topologyData/refTopoTapiFullUnidirLink.xml";
     private static Context tapiContext;
     private String serviceType;
     private static String version = "2.4.0";
@@ -372,11 +372,12 @@ public class TapiOpticalNodeTest extends AbstractTest {
                 "All ROADM A Degrees OTS Neps of TTP shall be bidirectional");
         var freqBitSet = new BitSet(GridConstant.EFFECTIVE_BITS);
         freqBitSet.set(0, GridConstant.EFFECTIVE_BITS, true);
-        assertEquals(4, rdmAdegOTSNep.stream()
+        assertEquals(2, rdmAdegOTSNep.stream()
                 .filter(bpn -> bpn.getFrequenciesBitSet() != null && bpn.getFrequenciesBitSet().equals(freqBitSet))
                 .toList()
                 .size(),
-                "All ROADM A Degrees OTS Neps shall have the full spectrum available");
+                "Only 1 ROADM A Degree = 2 OTS Neps shall have the full spectrum available,"
+                + " the other supporting 3 photonic services");
         //Testing private method buildDefaultVirtualCtps() and private method buildVirtualCpsAndCtps()
         assertEquals(2, rdmAdegOTSNep.stream()
                 .filter(bpn -> bpn.getTpType().equals(OpenroadmTpType.DEGREETXRXTTP))
@@ -422,24 +423,25 @@ public class TapiOpticalNodeTest extends AbstractTest {
                 .size(),
                 "The 2 ROADM A Degrees OTS Neps of TTP shall be referenced as parent NEP of OMS basePceNeps");
         List<BasePceNep> rdmAsrgOTSNep = new ArrayList<>(tapiONroadmA.getSrgOtsNep());
-        assertEquals(10, rdmAsrgOTSNep.size(), "ROADM A shall contain 2 SRG(1&3)x(4 OTS Nep (PPs)+ 1 virtual Nep (CP)");
-        assertEquals(10, rdmAsrgOTSNep.stream()
+        assertEquals(7, rdmAsrgOTSNep.size(), "ROADM A shall contain 2 SRG(1&3)x(4 OTS Nep (PPs)+ 1 virtual Nep (CP)"
+            + "- 3 Used OTS NEP that are not considered since they are used and support photonic services");
+        assertEquals(7, rdmAsrgOTSNep.stream()
                 .filter(bpn -> bpn.getAdminState().equals(AdministrativeState.UNLOCKED))
                 .toList()
                 .size(),
                 "All ROADM A SRGs OTS Neps of TTP shall be unlocked");
-        assertEquals(10, rdmAsrgOTSNep.stream()
+        assertEquals(7, rdmAsrgOTSNep.stream()
                 .filter(bpn -> bpn.getOperationalState().equals(OperationalState.ENABLED))
                 .toList()
                 .size(),
                 "All ROADM A SRG's OTS Neps of TTP shall be enabled");
         //Testing private method calculateDirection()
-        assertEquals(10, rdmAsrgOTSNep.stream()
+        assertEquals(7, rdmAsrgOTSNep.stream()
                 .filter(bpn -> bpn.getDirection().equals(Direction.BIDIRECTIONAL))
                 .toList()
                 .size(),
                 "All ROADM A SRG's OTS Neps of TTP shall be bidirectional");
-        assertEquals(10, rdmAsrgOTSNep.stream()
+        assertEquals(7, rdmAsrgOTSNep.stream()
                 .filter(bpn -> bpn.getFrequenciesBitSet().equals(freqBitSet))
                 .toList()
                 .size(),
@@ -450,7 +452,7 @@ public class TapiOpticalNodeTest extends AbstractTest {
                 .toList()
                 .size(),
                 "ROADM A shall contain 2 (SRG1&SRG3) OTS Virtual Neps of CP type");
-        assertEquals(8, rdmAsrgOTSNep.stream()
+        assertEquals(5, rdmAsrgOTSNep.stream()
                 .filter(bpn -> bpn.getTpType().equals(OpenroadmTpType.SRGTXRXPP))
                 .toList()
                 .size(),
@@ -469,9 +471,6 @@ public class TapiOpticalNodeTest extends AbstractTest {
         //Testing private method buildBitsetFromSpectrum()
         for (BasePceNep bpn : rdmAsrgOTSNep) {
             assertEquals(bpn.getFrequenciesBitSet(), freqBitSet, "SRG OTSNep spectrum shall be fully available");
-        }
-        for (BasePceNep bpn : rdmAdegOTSNep) {
-            assertEquals(bpn.getFrequenciesBitSet(), freqBitSet, "DEG OTSNep spectrum shall be fully available");
         }
     }
 
@@ -633,8 +632,8 @@ public class TapiOpticalNodeTest extends AbstractTest {
         assertEquals(0, spdrAclientDsrNep.size(),
                 "SPDRAX1 shall have 0 Client port eligible since it does not correspond to NodeId");
         spdrAclientDsrNep = new ArrayList<>(tapiONspdrAx2.getClientDsrNep());
-        assertEquals(8, spdrAclientDsrNep.size(),
-                "SPDRAX2 shall have 8 ports equiped (OTS +OTU), and in visibility of the Network port");
+        assertEquals(12, spdrAclientDsrNep.size(),
+                "SPDRAX2 shall have 8 NEPs (4eODU + 4DSR) and 4 CEPs (4eODU), in visibility of the Network port");
         for (BasePceNep clientbpnNep : spdrAclientDsrNep) {
             testTransponderBpn(clientbpnNep, false);
         }
@@ -669,8 +668,8 @@ public class TapiOpticalNodeTest extends AbstractTest {
         assertEquals(1, spdrAnwOTSNep.size(),
                 "SPDRAX2 shall have 1 NW ports and Neps (OTS) since N2 network port is not used");
         List<BasePceNep> spdrAclientDsrNep = new ArrayList<>(tapiONspdrAx2.getClientDsrNep());
-        assertEquals(8, spdrAclientDsrNep.size(),
-                "SPDRAX2 shall have 8 ports equiped (OTS +OTU), and in visibility of the Network port");
+        assertEquals(12, spdrAclientDsrNep.size(),
+                "SPDRAX2 shall have 8 NEPs (4eODU + 4DSR) and 4 CEPs (4eODU), in visibility of the Network port");
         for (BasePceNep clientbpnNep : spdrAclientDsrNep) {
             testTransponderBpn(clientbpnNep, false);
         }
@@ -704,12 +703,13 @@ public class TapiOpticalNodeTest extends AbstractTest {
             + "is considered as valid as it is part of the intermediate path");
         assertFalse(tapiONspdrCx3.isValid());
         List<BasePceNep> spdrAoduNep = new ArrayList<>(tapiONspdrAx2.getOduCepAndNep());
-        assertEquals(4, spdrAoduNep.size(), "SPDRAX2 shall have 4 ODU ports and Neps (4 iODU network ports) available");
+        assertEquals(12, spdrAoduNep.size(),
+            "SPDRAX2 shall have 8 NEPs (4eODU + 4iODU) and 4 CEPs (4eODU), in visibility of the NW port available");
         for (BasePceNep bpnNep : spdrAoduNep) {
             testTransponderBpn(bpnNep, false);
         }
-        List<BasePceNep> spdrAotuNep = new ArrayList<>(tapiONspdrAx2.getOduCepAndNep());
-        assertEquals(4, spdrAotuNep.size(), "SPDRAX2 shall have 4 iOTU port/Nep provisioned");
+        List<BasePceNep> spdrAotuNep = new ArrayList<>(tapiONspdrAx2.getOtuCepAndNep());
+        assertEquals(5, spdrAotuNep.size(), "SPDRAX2 shall have 4 iOTU NEP and 1 OTU CEP provisioned");
         for (BasePceNep bpnNep : spdrAotuNep) {
             testTransponderBpn(bpnNep, false);
         }
@@ -749,12 +749,13 @@ public class TapiOpticalNodeTest extends AbstractTest {
                 "SPDRAX2 shall have 0 OTS NW ports and Neps available for an ODU service");
         assertFalse(tapiONspdrCx3.isValid());
         List<BasePceNep> spdrAoduNep = new ArrayList<>(tapiONspdrAx2.getOduCepAndNep());
-        assertEquals(4, spdrAoduNep.size(), "SPDRAX2 shall have 4 ODU ports and Neps (4 iODU network ports) available");
+        assertEquals(12, spdrAoduNep.size(),
+            "SPDRAX2 shall have 8 NEPs (4eODU + 4iODU) and 4 CEPs (4eODU), in visibility of the NW port available");
         for (BasePceNep clientbpnNep : spdrAoduNep) {
             testTransponderBpn(clientbpnNep, false);
         }
-        List<BasePceNep> spdrAotuNep = new ArrayList<>(tapiONspdrAx2.getOduCepAndNep());
-        assertEquals(4, spdrAotuNep.size(), "SPDRAX2 shall have 4 iOTU port/Nep provisioned");
+        List<BasePceNep> spdrAotuNep = new ArrayList<>(tapiONspdrAx2.getOtuCepAndNep());
+        assertEquals(5, spdrAotuNep.size(), "SPDRAX2 shall have 4 iOTU NEP and 1 OTU CEP provisioned");
         for (BasePceNep clientbpnNep : spdrAotuNep) {
             testTransponderBpn(clientbpnNep, false);
         }
@@ -861,8 +862,8 @@ public class TapiOpticalNodeTest extends AbstractTest {
         assertEquals(0, spdrAclientDsrNep.size(),
                 "SPDRAX1 shall have 0 Client port eligible since it does not correspond to NodeId");
         spdrAclientDsrNep = new ArrayList<>(tapiONspdrAx2.getClientDsrNep());
-        assertEquals(8, spdrAclientDsrNep.size(),
-                "SPDRAX2 shall have 8 Client port equiped (DSR + eODU), all validated as no a/z portId specified");
+        assertEquals(12, spdrAclientDsrNep.size(),
+                "SPDRAX2 shall have 8 NEP (DSR + eODU) and 4 CEP (eODU) all validated as no a/z portId specified");
         spdrAclientDsrNep = new ArrayList<>(tapiONspdrAx3.getClientDsrNep());
         assertEquals(0, spdrAclientDsrNep.size(),
                 "SPDRAX3 shall have 0 Client port eligible since it does not correspond to NodeId");
