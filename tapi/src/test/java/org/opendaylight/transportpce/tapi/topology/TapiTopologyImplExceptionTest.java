@@ -7,100 +7,63 @@
  */
 package org.opendaylight.transportpce.tapi.topology;
 
-import static org.junit.Assert.assertNull;
-import static org.mockito.Mockito.mock;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import com.google.common.util.concurrent.FluentFuture;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import java.util.Optional;
+import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
-import org.eclipse.jdt.annotation.NonNull;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
-import org.opendaylight.mdsal.binding.api.DataBroker;
-import org.opendaylight.mdsal.binding.api.ReadTransaction;
-import org.opendaylight.mdsal.common.api.CommitInfo;
-import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.opendaylight.mdsal.binding.api.RpcService;
 import org.opendaylight.transportpce.common.network.NetworkTransactionService;
-import org.opendaylight.transportpce.tapi.TapiStringConstants;
+import org.opendaylight.transportpce.tapi.TapiConstants;
+import org.opendaylight.transportpce.tapi.impl.rpc.GetTopologyDetailsImpl;
 import org.opendaylight.transportpce.tapi.utils.TapiContext;
 import org.opendaylight.transportpce.tapi.utils.TapiLink;
 import org.opendaylight.transportpce.tapi.utils.TapiTopologyDataUtils;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev181210.GetTopologyDetailsInput;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev181210.GetTopologyDetailsOutput;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev181210.get.topology.details.output.Topology;
-import org.opendaylight.yangtools.yang.binding.DataObject;
-import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.Uuid;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev221121.GetTopologyDetails;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev221121.GetTopologyDetailsInput;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev221121.GetTopologyDetailsOutput;
+import org.opendaylight.yangtools.yang.common.ErrorType;
 import org.opendaylight.yangtools.yang.common.RpcResult;
 
+@ExtendWith(MockitoExtension.class)
 public class TapiTopologyImplExceptionTest {
     @Mock
-    TapiContext tapiContext;
+    private RpcService rpcService;
     @Mock
-    TopologyUtils topologyUtils;
+    private NetworkTransactionService networkTransactionService;
     @Mock
-    TapiLink tapiLink;
+    private TapiContext tapiContext;
+    @Mock
+    private TopologyUtils topologyUtils;
+    @Mock
+    private TapiLink tapiLink;
 
     @Test
-    public void getTopologyDetailsWithExceptionTest() throws InterruptedException, ExecutionException {
-        DataBroker dataBroker = mock(DataBroker.class);
-        when(dataBroker.newReadOnlyTransaction())
-                .thenReturn(new ReadTransactionMock());
-        NetworkTransactionService networkTransactionService = mock(NetworkTransactionService.class);
-        Answer<FluentFuture<CommitInfo>> answer = new Answer<FluentFuture<CommitInfo>>() {
-
-            @Override
-            public FluentFuture<CommitInfo> answer(InvocationOnMock invocation) throws Throwable {
-                return CommitInfo.emptyFluentFuture();
-            }
-
-        };
-        when(networkTransactionService.commit()).then(answer);
-        tapiContext = new TapiContext(networkTransactionService);
-        tapiLink = new TapiLink(networkTransactionService);
-
-        GetTopologyDetailsInput input = TapiTopologyDataUtils.buildGetTopologyDetailsInput(
-            TapiStringConstants.T0_MULTILAYER);
-        TapiTopologyImpl tapiTopoImpl = new TapiTopologyImpl(dataBroker, tapiContext, topologyUtils, tapiLink);
-        ListenableFuture<RpcResult<GetTopologyDetailsOutput>> result = tapiTopoImpl.getTopologyDetails(input);
-        RpcResult<GetTopologyDetailsOutput> rpcResult = result.get();
-        if (rpcResult.isSuccessful()) {
-            Topology topology = rpcResult.getResult().getTopology();
-            assertNull("Topology should be null", topology);
-        } else {
-            assertNull("Topology should be null", null);
-        }
+    void getTopologyDetailsWithExceptionTest() throws InterruptedException, ExecutionException {
+        when(networkTransactionService.read(any(), any()))
+            .thenReturn(FluentFuture.from(Futures.immediateFailedFuture(new InterruptedException())));
+        when(rpcService.getRpc(GetTopologyDetails.class))
+            .thenReturn(new GetTopologyDetailsImpl(tapiContext, topologyUtils, tapiLink, networkTransactionService));
+        Uuid topologyUuid = new Uuid(
+                UUID.nameUUIDFromBytes(TapiConstants.T0_MULTILAYER.getBytes(StandardCharsets.UTF_8)).toString());
+        GetTopologyDetailsInput input = TapiTopologyDataUtils.buildGetTopologyDetailsInput(topologyUuid);
+        ListenableFuture<RpcResult<GetTopologyDetailsOutput>> result = rpcService
+                .getRpc(GetTopologyDetails.class).invoke(input);
+        assertFalse(result.get().isSuccessful(), "RpcResult is not successful");
+        assertNull(result.get().getResult(), "RpcResult result should be null");
+        assertEquals(ErrorType.RPC, result.get().getErrors().get(0).getErrorType());
+        assertEquals("Error building topology", result.get().getErrors().get(0).getMessage());
     }
-
-    private class ReadTransactionMock implements ReadTransaction {
-
-        @Override
-        public @NonNull Object getIdentifier() {
-            // TODO Auto-generated method stub
-            return null;
-        }
-
-        @Override
-        public <T extends DataObject> @NonNull FluentFuture<Optional<T>> read(@NonNull LogicalDatastoreType store,
-                                                                              @NonNull InstanceIdentifier<T> path) {
-            return FluentFuture.from(Futures.immediateFailedFuture(new InterruptedException()));
-        }
-
-        @Override
-        public @NonNull FluentFuture<Boolean> exists(@NonNull LogicalDatastoreType store,
-                                                     @NonNull InstanceIdentifier<?> path) {
-            // TODO Auto-generated method stub
-            return null;
-        }
-
-        @Override
-        public void close() {
-            // TODO Auto-generated method stub
-        }
-    }
-
 }

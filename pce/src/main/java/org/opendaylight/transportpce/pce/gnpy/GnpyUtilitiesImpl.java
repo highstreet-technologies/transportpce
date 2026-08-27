@@ -10,24 +10,24 @@ package org.opendaylight.transportpce.pce.gnpy;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.opendaylight.transportpce.common.network.NetworkTransactionService;
 import org.opendaylight.transportpce.pce.constraints.PceConstraints;
 import org.opendaylight.transportpce.pce.gnpy.consumer.GnpyConsumer;
 import org.opendaylight.yang.gen.v1.gnpy.gnpy.api.rev220221.RequestBuilder;
 import org.opendaylight.yang.gen.v1.gnpy.gnpy.api.rev220221.request.ServiceBuilder;
 import org.opendaylight.yang.gen.v1.gnpy.gnpy.api.rev220221.request.TopologyBuilder;
-import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev220221.topo.Connections;
-import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev220221.topo.Elements;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220221.Result;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220221.generic.path.properties.path.properties.PathRouteObjects;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220221.service.PathRequest;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220221.synchronization.info.Synchronization;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.PathComputationRequestInput;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.routing.constraints.HardConstraints;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.path.description.AToZDirection;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.path.description.AToZDirectionBuilder;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.path.description.ZToADirection;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev220615.topo.Connections;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev220615.topo.Elements;
+import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.Result;
+import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.generic.path.properties.path.properties.PathRouteObjects;
+import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.service.PathRequest;
+import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.synchronization.info.Synchronization;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.PathComputationRequestInput;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.routing.constraints.HardConstraints;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.path.description.AToZDirection;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.path.description.AToZDirectionBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.path.description.ZToADirection;
+import org.opendaylight.yangtools.binding.util.BindingMap;
 import org.opendaylight.yangtools.yang.common.Uint32;
 
 /**
@@ -53,7 +53,7 @@ public class GnpyUtilitiesImpl {
         this.input = input;
         this.gnpyAtoZ = null;
         this.gnpyZtoA = null;
-        this.requestId = Uint32.valueOf(0);
+        this.requestId = Uint32.ZERO;
         this.gnpyConsumer = gnpyConsumer;
     }
 
@@ -118,12 +118,12 @@ public class GnpyUtilitiesImpl {
         return gnpyConsumer.computePaths(new RequestBuilder()
             .setTopology(
                 new TopologyBuilder()
-                .setElements(elementsList.stream().collect(Collectors.toMap(Elements::key, element -> element)))
+                .setElements(elementsList.stream().collect(BindingMap.toMap()))
                 .setConnections(connectionsList).build())
             .setService(
                 new ServiceBuilder()
                 .setPathRequest(pathRequestList.stream()
-                        .collect(Collectors.toMap(PathRequest::key, pathRequest -> pathRequest)))
+                        .collect(BindingMap.toMap()))
                 .build())
             .build());
     }

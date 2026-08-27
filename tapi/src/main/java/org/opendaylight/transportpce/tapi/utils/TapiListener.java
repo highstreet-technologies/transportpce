@@ -7,80 +7,57 @@
  */
 package org.opendaylight.transportpce.tapi.utils;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import org.eclipse.jdt.annotation.NonNull;
+import org.opendaylight.mdsal.binding.api.DataObjectDeleted;
 import org.opendaylight.mdsal.binding.api.DataObjectModification;
+import org.opendaylight.mdsal.binding.api.DataObjectModified;
+import org.opendaylight.mdsal.binding.api.DataObjectWritten;
 import org.opendaylight.mdsal.binding.api.DataTreeChangeListener;
 import org.opendaylight.mdsal.binding.api.DataTreeModification;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev181210.Uuid;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.tapi.rev180928.ServiceInterfacePoints;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.tapi.rev180928.service._interface.points.ServiceEndPoint;
-import org.opendaylight.yangtools.yang.binding.DataObject;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.tapi.rev230728.ServiceInterfacePoints;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.tapi.rev230728.service._interface.points.ServiceEndPoint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class TapiListener implements DataTreeChangeListener<ServiceInterfacePoints> {
 
     private static final Logger LOG = LoggerFactory.getLogger(TapiListener.class);
+    private static final String SE_JAVA_INTF =
+        "interface org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.tapi.rev180928"
+            + ".service._interface.points.ServiceEndPoint";
 
     @Override
-    public void onDataTreeChanged(@NonNull Collection<DataTreeModification<ServiceInterfacePoints>> changes) {
+    public void onDataTreeChanged(@NonNull List<DataTreeModification<ServiceInterfacePoints>> changes) {
         LOG.info("onDataTreeChanged in TapiListener");
         for (DataTreeModification<ServiceInterfacePoints> change : changes) {
             DataObjectModification<ServiceInterfacePoints> rootSIP = change.getRootNode();
-            switch (rootSIP.getModificationType()) {
-                case WRITE:
+            switch (rootSIP) {
+                case DataObjectWritten<ServiceInterfacePoints> writtenSIP -> {
                     LOG.info("onDataTreeChanged in TapiListener : WRITE");
-                    ServiceInterfacePoints data = rootSIP.getDataAfter();
-                    List<ServiceEndPoint> listSEP = new ArrayList<>(data.getServiceEndPoint().values());
                     MappingUtils.deleteMap();
-                    for (ServiceEndPoint sep : listSEP) {
+                    for (ServiceEndPoint sep : writtenSIP.dataAfter().getServiceEndPoint().values()) {
                         MappingUtils.addMapSEP(sep);
                     }
                     MappingUtils.afficheMap();
-                    break;
-                case SUBTREE_MODIFIED:
-                    LOG.info("onDataTreeChanged in TapiListener : SUBTREE_MODIFIED");
-                    Iterator<? extends DataObjectModification<? extends DataObject>> iterator = rootSIP
-                        .getModifiedChildren().iterator();
-                    while (iterator.hasNext()) {
-                        DataObjectModification<? extends DataObject> dom = iterator.next();
-                        // to delete existing child entry
-                        if (dom.getDataAfter() == null) {
-                            DataObject dataObject = dom.getDataBefore();
-                            ServiceEndPoint sep = null;
-                            sep = (ServiceEndPoint) dataObject;
-                            Uuid uuid = sep.getUuid();
-                            MappingUtils.deleteMapEntry(uuid);
-                            MappingUtils.afficheMap();
-                            break;
-                        }
-
-                        // to add new child entry
-                        if (dom.getDataType().toString().compareTo("interface org.opendaylight.yang.gen.v1.urn.opendayl"
-                            + "ight.params.xml.ns.yang.tapi.rev180928.service._interface.points.ServiceEndPoint") == 0
-                            && dom.getDataBefore() == null) {
-                            DataObject dataObject = dom.getDataAfter();
-                            ServiceEndPoint sep = null;
-                            sep = (ServiceEndPoint) dataObject;
-                            MappingUtils.addMapSEP(sep);
-                            MappingUtils.afficheMap();
-                        } else {
-                            LOG.error("data input type is not a valid 'service-end-point'");
-                        }
-                        break;
+                }
+                case DataObjectModified<ServiceInterfacePoints> modifiedSIP -> {
+                    LOG.info("onDataTreeChanged in TapiListener : MODIFIED");
+                    ServiceInterfacePoints modifiedSIPBefore = modifiedSIP.dataBefore();
+                    ServiceInterfacePoints modifiedSIPAfter = modifiedSIP.dataAfter();
+                    // to add new child entry
+                    if (modifiedSIPBefore != null || modifiedSIP.dataType().toString().compareTo(SE_JAVA_INTF) != 0) {
+                        LOG.error("data input type is not a valid 'service-end-point'");
+                        continue;
                     }
-                    break;
-                case DELETE:
+                    MappingUtils.addMapSEP(
+                            modifiedSIPAfter.getServiceEndPoint().values().stream().findFirst().orElseThrow());
+                    MappingUtils.afficheMap();
+                }
+                case DataObjectDeleted<ServiceInterfacePoints> deletedSIP -> {
                     LOG.info("onDataTreeChanged in TapiListener : DELETE");
                     MappingUtils.deleteMap();
-                    break;
-                default:
-                    LOG.error("Error of API REST modification type");
-                    break;
+                }
             }
 
         }

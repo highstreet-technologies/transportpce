@@ -7,11 +7,13 @@
  */
 package org.opendaylight.transportpce.pce.graph;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.jgrapht.graph.DefaultWeightedEdge;
 import org.opendaylight.transportpce.pce.networkanalyzer.PceLink;
+//import org.opendaylight.transportpce.pce.networkanalyzer.PceORLink;
 
 @SuppressWarnings("serial")
-@edu.umd.cs.findbugs.annotations.SuppressFBWarnings(
+@SuppressFBWarnings(
     value = "SE_NO_SERIALVERSIONID",
     justification = "https://github.com/rzwitserloot/lombok/wiki/WHY-NOT:-serialVersionUID")
 public class PceGraphEdge extends DefaultWeightedEdge {

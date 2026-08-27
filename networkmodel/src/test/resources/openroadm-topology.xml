@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <data xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
 <networks xmlns="urn:ietf:params:xml:ns:yang:ietf-network">
 <network>
@@ -37,8 +38,8 @@
       xmlns="http://org/openroadm/network/topology">
     <avail-freq-maps>
         <map-name>cband</map-name>
-        <start-edge-freq> 191.325</start-edge-freq>
-        <freq-map-granularity> 6.25</freq-map-granularity>
+        <start-edge-freq>191.325</start-edge-freq>
+        <freq-map-granularity>6.25</freq-map-granularity>
         <effective-bits>768</effective-bits>
         <freq-map>////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         </freq-map>
@@ -59,29 +60,25 @@
     <termination-point
       xmlns="urn:ietf:params:xml:ns:yang:ietf-network-topology">
       <tp-id>XPDR1-CLIENT1</tp-id>
-      <associated-connection-map-port
-        xmlns="http://transportpce/topology">XPDR1-NETWORK1</associated-connection-map-port>
+      <associated-connection-map-tp xmlns="http://org/openroadm/common/network">XPDR1-NETWORK1</associated-connection-map-tp>
       <tp-type xmlns="http://org/openroadm/common/network">XPONDER-CLIENT</tp-type>
     </termination-point>
     <termination-point
       xmlns="urn:ietf:params:xml:ns:yang:ietf-network-topology">
       <tp-id>XPDR1-CLIENT2</tp-id>
-      <associated-connection-map-port
-        xmlns="http://transportpce/topology">XPDR1-NETWORK2</associated-connection-map-port>
+      <associated-connection-map-tp xmlns="http://org/openroadm/common/network">XPDR1-NETWORK2</associated-connection-map-tp>
       <tp-type xmlns="http://org/openroadm/common/network">XPONDER-CLIENT</tp-type>
     </termination-point>
     <termination-point
       xmlns="urn:ietf:params:xml:ns:yang:ietf-network-topology">
       <tp-id>XPDR1-NETWORK2</tp-id>
-      <associated-connection-map-port
-        xmlns="http://transportpce/topology">XPDR1-CLIENT2</associated-connection-map-port>
+      <associated-connection-map-tp xmlns="http://org/openroadm/common/network">XPDR1-CLIENT2</associated-connection-map-tp>
       <tp-type xmlns="http://org/openroadm/common/network">XPONDER-NETWORK</tp-type>
     </termination-point>
     <termination-point
       xmlns="urn:ietf:params:xml:ns:yang:ietf-network-topology">
       <tp-id>XPDR1-NETWORK1</tp-id>
-      <associated-connection-map-port
-        xmlns="http://transportpce/topology">XPDR1-CLIENT1</associated-connection-map-port>
+      <associated-connection-map-tp xmlns="http://org/openroadm/common/network">XPDR1-CLIENT1</associated-connection-map-tp>
       <xpdr-network-attributes
         xmlns="http://org/openroadm/network/topology">
         <tail-equipment-id>ROADM-C1-SRG1--SRG1-PP1-TXRX
@@ -130,8 +127,8 @@
       xmlns="http://org/openroadm/network/topology">
     <avail-freq-maps>
         <map-name>cband</map-name>
-        <start-edge-freq> 191.325</start-edge-freq>
-        <freq-map-granularity> 6.25</freq-map-granularity>
+        <start-edge-freq>191.325</start-edge-freq>
+        <freq-map-granularity>6.25</freq-map-granularity>
         <effective-bits>768</effective-bits>
         <freq-map>////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         </freq-map>
@@ -164,12 +161,12 @@
       <degree-number>1</degree-number>
     <avail-freq-maps>
         <map-name>cband</map-name>
-        <start-edge-freq> 191.325</start-edge-freq>
-        <freq-map-granularity> 6.25</freq-map-granularity>
+        <start-edge-freq>191.325</start-edge-freq>
+        <freq-map-granularity>6.25</freq-map-granularity>
         <effective-bits>768</effective-bits>
         <freq-map>////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         </freq-map>
-    </avail-freq-maps>     </degree-attributes>
+    </avail-freq-maps></degree-attributes>
     <supporting-node>
       <network-ref>clli-network</network-ref>
       <node-ref>NodeA</node-ref>
@@ -185,29 +182,25 @@
     <termination-point
       xmlns="urn:ietf:params:xml:ns:yang:ietf-network-topology">
       <tp-id>XPDR1-CLIENT1</tp-id>
-      <associated-connection-map-port
-        xmlns="http://transportpce/topology">XPDR1-NETWORK1</associated-connection-map-port>
+      <associated-connection-map-tp xmlns="http://org/openroadm/common/network">XPDR1-NETWORK1</associated-connection-map-tp>
       <tp-type xmlns="http://org/openroadm/common/network">XPONDER-CLIENT</tp-type>
     </termination-point>
     <termination-point
       xmlns="urn:ietf:params:xml:ns:yang:ietf-network-topology">
       <tp-id>XPDR1-CLIENT2</tp-id>
-      <associated-connection-map-port
-        xmlns="http://transportpce/topology">XPDR1-NETWORK2</associated-connection-map-port>
+      <associated-connection-map-tp xmlns="http://org/openroadm/common/network">XPDR1-NETWORK2</associated-connection-map-tp>
       <tp-type xmlns="http://org/openroadm/common/network">XPONDER-CLIENT</tp-type>
     </termination-point>
     <termination-point
       xmlns="urn:ietf:params:xml:ns:yang:ietf-network-topology">
       <tp-id>XPDR1-NETWORK2</tp-id>
-      <associated-connection-map-port
-        xmlns="http://transportpce/topology">XPDR1-CLIENT2</associated-connection-map-port>
+      <associated-connection-map-tp xmlns="http://org/openroadm/common/network">XPDR1-CLIENT2</associated-connection-map-tp>
       <tp-type xmlns="http://org/openroadm/common/network">XPONDER-NETWORK</tp-type>
     </termination-point>
     <termination-point
       xmlns="urn:ietf:params:xml:ns:yang:ietf-network-topology">
       <tp-id>XPDR1-NETWORK1</tp-id>
-      <associated-connection-map-port
-        xmlns="http://transportpce/topology">XPDR1-CLIENT1</associated-connection-map-port>
+      <associated-connection-map-tp xmlns="http://org/openroadm/common/network">XPDR1-CLIENT1</associated-connection-map-tp>
       <xpdr-network-attributes
         xmlns="http://org/openroadm/network/topology">
         <tail-equipment-id>ROADM-A1-SRG1--SRG1-PP1-TXRX
@@ -242,12 +235,12 @@
       <degree-number>2</degree-number>
     <avail-freq-maps>
         <map-name>cband</map-name>
-        <start-edge-freq> 191.325</start-edge-freq>
-        <freq-map-granularity> 6.25</freq-map-granularity>
+        <start-edge-freq>191.325</start-edge-freq>
+        <freq-map-granularity>6.25</freq-map-granularity>
         <effective-bits>768</effective-bits>
         <freq-map>////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         </freq-map>
-    </avail-freq-maps>     </degree-attributes>
+    </avail-freq-maps></degree-attributes>
     <supporting-node>
       <network-ref>clli-network</network-ref>
       <node-ref>NodeA</node-ref>
@@ -289,12 +282,12 @@
       xmlns="http://org/openroadm/network/topology">
     <avail-freq-maps>
         <map-name>cband</map-name>
-        <start-edge-freq> 191.325</start-edge-freq>
-        <freq-map-granularity> 6.25</freq-map-granularity>
+        <start-edge-freq>191.325</start-edge-freq>
+        <freq-map-granularity>6.25</freq-map-granularity>
         <effective-bits>768</effective-bits>
         <freq-map>////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         </freq-map>
-    </avail-freq-maps>     </srg-attributes>
+    </avail-freq-maps></srg-attributes>
     <supporting-node>
       <network-ref>clli-network</network-ref>
       <node-ref>NodeC</node-ref>
@@ -344,12 +337,12 @@
       <degree-number>1</degree-number>
     <avail-freq-maps>
         <map-name>cband</map-name>
-        <start-edge-freq> 191.325</start-edge-freq>
-        <freq-map-granularity> 6.25</freq-map-granularity>
+        <start-edge-freq>191.325</start-edge-freq>
+        <freq-map-granularity>6.25</freq-map-granularity>
         <effective-bits>768</effective-bits>
         <freq-map>////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         </freq-map>
-    </avail-freq-maps>     </degree-attributes>
+    </avail-freq-maps></degree-attributes>
     <supporting-node>
       <network-ref>clli-network</network-ref>
       <node-ref>NodeC</node-ref>
@@ -399,8 +392,8 @@
       <degree-number>2</degree-number>
     <avail-freq-maps>
         <map-name>cband</map-name>
-        <start-edge-freq> 191.325</start-edge-freq>
-        <freq-map-granularity> 6.25</freq-map-granularity>
+        <start-edge-freq>191.325</start-edge-freq>
+        <freq-map-granularity>6.25</freq-map-granularity>
         <effective-bits>768</effective-bits>
         <freq-map>////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         </freq-map>

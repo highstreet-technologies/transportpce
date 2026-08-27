@@ -7,7 +7,8 @@
  */
 
 package org.opendaylight.transportpce.common.mapping;
-import static org.opendaylight.transportpce.common.StringConstants.OPENROADM_DEVICE_VERSION_1_2_1;
+
+import static org.opendaylight.transportpce.common.StringConstants.OPENCONFIG_DEVICE_VERSION_2_0_0;
 import static org.opendaylight.transportpce.common.StringConstants.OPENROADM_DEVICE_VERSION_2_2_1;
 import static org.opendaylight.transportpce.common.StringConstants.OPENROADM_DEVICE_VERSION_7_1;
 
@@ -21,23 +22,32 @@ import org.opendaylight.mdsal.binding.api.DataBroker;
 import org.opendaylight.mdsal.binding.api.ReadTransaction;
 import org.opendaylight.mdsal.binding.api.WriteTransaction;
 import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.Network;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.OpenroadmNodeVersion;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.mapping.Mapping;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.mapping.MappingKey;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.mc.capabilities.McCapabilities;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.mc.capabilities.McCapabilitiesKey;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.network.Nodes;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.network.NodesKey;
+import org.opendaylight.transportpce.common.Timeouts;
+import org.opendaylight.transportpce.common.device.DeviceTransactionManager;
+import org.opendaylight.transportpce.common.metadata.OCMetaDataTransaction;
+import org.opendaylight.transportpce.common.network.NetworkTransactionService;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.Network;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.NodeDatamodelType;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.OpenroadmNodeVersion;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mapping.Mapping;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mapping.MappingKey;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mc.capabilities.McCapabilities;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mc.capabilities.McCapabilitiesKey;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.network.Nodes;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.network.NodesKey;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.org.openroadm.device.container.org.openroadm.device.OduSwitchingPools;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.org.openroadm.device.container.org.openroadm.device.odu.switching.pools.non.blocking.list.PortList;
-import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
-import org.opendaylight.yangtools.yang.binding.KeyedInstanceIdentifier;
+import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev130715.IpAddress;
+import org.opendaylight.yangtools.binding.DataObjectIdentifier;
+import org.opendaylight.yangtools.binding.DataObjectIdentifier.WithKey;
 import org.opendaylight.yangtools.yang.common.Uint16;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
+@Component
 public class PortMappingImpl implements PortMapping {
 
     private static final Logger LOG = LoggerFactory.getLogger(PortMappingImpl.class);
@@ -45,15 +55,26 @@ public class PortMappingImpl implements PortMapping {
     private final DataBroker dataBroker;
     private final PortMappingVersion710 portMappingVersion710;
     private final PortMappingVersion221 portMappingVersion22;
-    private final PortMappingVersion121 portMappingVersion121;
+    private final OCPortMappingVersion200 ocPortMappingVersion200;
+
+    @Activate
+    public PortMappingImpl(@Reference DataBroker dataBroker,
+            @Reference DeviceTransactionManager deviceTransactionManager,
+            @Reference OCMetaDataTransaction ocMetaDataTransaction,
+            @Reference NetworkTransactionService networkTransactionService) {
+        this(dataBroker,
+            new PortMappingVersion710(dataBroker, deviceTransactionManager),
+            new PortMappingVersion221(dataBroker, deviceTransactionManager),
+            new OCPortMappingVersion200(dataBroker,deviceTransactionManager,ocMetaDataTransaction,
+                        networkTransactionService));
+    }
 
     public PortMappingImpl(DataBroker dataBroker, PortMappingVersion710 portMappingVersion710,
-        PortMappingVersion221 portMappingVersion22, PortMappingVersion121 portMappingVersion121) {
-
+        PortMappingVersion221 portMappingVersion22, OCPortMappingVersion200 ocPortMappingVersion200) {
         this.dataBroker = dataBroker;
         this.portMappingVersion710 = portMappingVersion710;
         this.portMappingVersion22 = portMappingVersion22;
-        this.portMappingVersion121 = portMappingVersion121;
+        this.ocPortMappingVersion200 = ocPortMappingVersion200;
     }
 
     @Override
@@ -62,18 +83,21 @@ public class PortMappingImpl implements PortMapping {
     }
 
     @Override
-    public boolean createMappingData(String nodeId, String nodeVersion) {
-        switch (nodeVersion) {
-            case OPENROADM_DEVICE_VERSION_1_2_1:
-                return portMappingVersion121.createMappingData(nodeId);
-            case OPENROADM_DEVICE_VERSION_2_2_1:
-                return portMappingVersion22.createMappingData(nodeId);
-            case OPENROADM_DEVICE_VERSION_7_1:
-                return portMappingVersion710.createMappingData(nodeId);
-            default:
-                LOG.error("Unable to create mapping data for unmanaged openroadm device version");
-                return false;
-        }
+    public PortMappingVersion710 getPortMappingVersion710() {
+        return portMappingVersion710;
+    }
+
+    @Override
+    public boolean createMappingData(String nodeId, String nodeVersion, IpAddress ipAddress) {
+        return switch (nodeVersion) {
+            case OPENROADM_DEVICE_VERSION_2_2_1 -> portMappingVersion22.createMappingData(nodeId);
+            case OPENROADM_DEVICE_VERSION_7_1 -> portMappingVersion710.createMappingData(nodeId);
+            case OPENCONFIG_DEVICE_VERSION_2_0_0 -> ocPortMappingVersion200.createMappingData(nodeId, ipAddress);
+            default -> {
+                LOG.error("Unable to create mapping data for unmanaged device version");
+                yield false;
+            }
+        };
     }
 
     @Override
@@ -82,12 +106,14 @@ public class PortMappingImpl implements PortMapping {
         /*
          * Getting physical mapping corresponding to logical connection point
          */
-        InstanceIdentifier<Mapping> portMappingIID = InstanceIdentifier.builder(Network.class).child(Nodes.class,
-            new NodesKey(nodeId)).child(Mapping.class, new MappingKey(logicalConnPoint)).build();
+        DataObjectIdentifier<Mapping> portMappingIID = DataObjectIdentifier.builder(Network.class)
+                .child(Nodes.class, new NodesKey(nodeId))
+                .child(Mapping.class, new MappingKey(logicalConnPoint))
+                .build();
         try (ReadTransaction readTx = this.dataBroker.newReadOnlyTransaction()) {
             Optional<Mapping> mapObject = readTx.read(LogicalDatastoreType.CONFIGURATION, portMappingIID).get();
             if (mapObject.isPresent()) {
-                Mapping mapping = mapObject.get();
+                Mapping mapping = mapObject.orElseThrow();
                 LOG.info("Found mapping for {} - {}. Mapping: {}", nodeId, logicalConnPoint, mapping.toString());
                 return mapping;
             }
@@ -101,15 +127,16 @@ public class PortMappingImpl implements PortMapping {
 
     @Override
     public Mapping getMapping(String nodeId, String circuitPackName, String portName) {
-        KeyedInstanceIdentifier<Nodes, NodesKey> portMappingIID = InstanceIdentifier.create(Network.class)
-            .child(Nodes.class, new NodesKey(nodeId));
+        WithKey<Nodes, NodesKey> portMappingIID = DataObjectIdentifier.builder(Network.class)
+            .child(Nodes.class, new NodesKey(nodeId))
+            .build();
         try (ReadTransaction readTx = this.dataBroker.newReadOnlyTransaction()) {
             Optional<Nodes> portMapppingOpt = readTx.read(LogicalDatastoreType.CONFIGURATION, portMappingIID).get();
-            if (!portMapppingOpt.isPresent()) {
+            if (portMapppingOpt.isEmpty()) {
                 LOG.warn("Could not get portMapping for node {}", nodeId);
                 return null;
             }
-            Map<MappingKey, Mapping> mappings = portMapppingOpt.get().getMapping();
+            Map<MappingKey, Mapping> mappings = portMapppingOpt.orElseThrow().getMapping();
             for (Mapping mapping : mappings.values()) {
                 if (circuitPackName.equals(mapping.getSupportingCircuitPackName())
                     && portName.equals(mapping.getSupportingPort())) {
@@ -127,14 +154,16 @@ public class PortMappingImpl implements PortMapping {
     public void deleteMapping(String nodeId, String logicalConnectionPoint) {
         LOG.info("Deleting Mapping {} of node '{}'", logicalConnectionPoint, nodeId);
         WriteTransaction rw = this.dataBroker.newWriteOnlyTransaction();
-        InstanceIdentifier<Mapping> mappingIID = InstanceIdentifier.create(Network.class)
-            .child(Nodes.class, new NodesKey(nodeId)).child(Mapping.class, new MappingKey(logicalConnectionPoint));
+        DataObjectIdentifier<Mapping> mappingIID = DataObjectIdentifier.builder(Network.class)
+            .child(Nodes.class, new NodesKey(nodeId))
+            .child(Mapping.class, new MappingKey(logicalConnectionPoint))
+            .build();
         rw.delete(LogicalDatastoreType.CONFIGURATION, mappingIID);
         try {
             rw.commit().get(1, TimeUnit.SECONDS);
             LOG.info("Mapping {} removed for node '{}'", logicalConnectionPoint, nodeId);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            LOG.error("Error for removing mapping {} for node '{}'", logicalConnectionPoint, nodeId);
+            LOG.error("Error for removing mapping {} for node '{}'", logicalConnectionPoint, nodeId, e);
         }
     }
 
@@ -143,13 +172,15 @@ public class PortMappingImpl implements PortMapping {
         /*
          * Getting physical mapping corresponding to logical connection point
          */
-        InstanceIdentifier<McCapabilities> mcCapabilitiesIID = InstanceIdentifier.builder(Network.class)
-            .child(Nodes.class, new NodesKey(nodeId)).child(McCapabilities.class, new McCapabilitiesKey(mcLcp)).build();
+        DataObjectIdentifier<McCapabilities> mcCapabilitiesIID = DataObjectIdentifier.builder(Network.class)
+            .child(Nodes.class, new NodesKey(nodeId))
+            .child(McCapabilities.class, new McCapabilitiesKey(mcLcp))
+            .build();
         try (ReadTransaction readTx = this.dataBroker.newReadOnlyTransaction()) {
             Optional<McCapabilities> mcCapObject = readTx.read(LogicalDatastoreType.CONFIGURATION,
                 mcCapabilitiesIID).get();
             if (mcCapObject.isPresent()) {
-                McCapabilities mcCap = mcCapObject.get();
+                McCapabilities mcCap = mcCapObject.orElseThrow();
                 LOG.info("Found MC-cap for {} - {}. Mapping: {}", nodeId, mcLcp, mcCap.toString());
                 return mcCap;
             }
@@ -163,44 +194,54 @@ public class PortMappingImpl implements PortMapping {
 
 
     @Override
-    public void deletePortMappingNode(String nodeId) {
+    public boolean deletePortMappingNode(String nodeId) {
         LOG.info("Deleting Mapping Data corresponding at node '{}'", nodeId);
+        boolean success = true;
         WriteTransaction rw = this.dataBroker.newWriteOnlyTransaction();
-        InstanceIdentifier<Nodes> nodesIID = InstanceIdentifier.create(Network.class)
-            .child(Nodes.class, new NodesKey(nodeId));
+        DataObjectIdentifier<Nodes> nodesIID = DataObjectIdentifier.builder(Network.class)
+            .child(Nodes.class, new NodesKey(nodeId))
+            .build();
         rw.delete(LogicalDatastoreType.CONFIGURATION, nodesIID);
         try {
-            rw.commit().get(1, TimeUnit.SECONDS);
+            rw.commit().get(Timeouts.NODE_CLEANUP_COMMIT_TIMEOUT, Timeouts.NODE_CLEANUP_COMMIT_TIMEOUT_UNIT);
             LOG.info("Port mapping removal for node '{}'", nodeId);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
             LOG.error("Error for removing port mapping infos for node '{}'", nodeId, e);
+            success = false;
         }
+        return success;
     }
 
     @Override
     public boolean updateMapping(String nodeId, Mapping oldMapping) {
+        LOG.info("update mapping called");
         OpenroadmNodeVersion openROADMversion = getNode(nodeId).getNodeInfo().getOpenroadmVersion();
-        switch (openROADMversion.getIntValue()) {
-            case 1:
-                return portMappingVersion121.updateMapping(nodeId, oldMapping);
-            case 2:
-                return portMappingVersion22.updateMapping(nodeId, oldMapping);
-            case 3:
-                return portMappingVersion710.updateMapping(nodeId, oldMapping);
-            default:
-                return false;
+        NodeDatamodelType datamodelType = getNode(nodeId).getDatamodelType();
+
+        if (datamodelType != null && datamodelType.equals(NodeDatamodelType.OPENCONFIG)) {
+            return ocPortMappingVersion200.updateMapping(nodeId, oldMapping);
+        } else {
+            return switch (openROADMversion) {
+                case _221 -> portMappingVersion22.updateMapping(nodeId, oldMapping);
+                case _71 -> portMappingVersion710.updateMapping(nodeId, oldMapping);
+                default -> false;
+            };
         }
     }
 
     @Override
     public Nodes getNode(String nodeId) {
-        InstanceIdentifier<Nodes> nodePortMappingIID = InstanceIdentifier.builder(Network.class).child(Nodes.class,
-            new NodesKey(nodeId)).build();
+        DataObjectIdentifier<Nodes> nodePortMappingIID = DataObjectIdentifier.builder(Network.class)
+                .child(Nodes.class, new NodesKey(nodeId))
+                .build();
         try (ReadTransaction readTx = this.dataBroker.newReadOnlyTransaction()) {
             Optional<Nodes> nodePortMapObject =
                 readTx.read(LogicalDatastoreType.CONFIGURATION, nodePortMappingIID).get();
             if (nodePortMapObject.isPresent()) {
-                Nodes node = nodePortMapObject.get();
+                Nodes node = nodePortMapObject.orElseThrow();
                 LOG.info("Found node {} in portmapping.", nodeId);
                 return node;
             }
@@ -212,8 +253,8 @@ public class PortMappingImpl implements PortMapping {
     }
 
     @Override
-    public boolean updatePortMappingWithOduSwitchingPools(String nodeId, InstanceIdentifier<OduSwitchingPools> ospIID,
-            Map<Uint16, List<InstanceIdentifier<PortList>>> nbliidMap) {
+    public boolean updatePortMappingWithOduSwitchingPools(String nodeId, DataObjectIdentifier<OduSwitchingPools> ospIID,
+            Map<Uint16, List<DataObjectIdentifier<PortList>>> nbliidMap) {
         OpenroadmNodeVersion openROADMversion = getNode(nodeId).getNodeInfo().getOpenroadmVersion();
         switch (openROADMversion.getIntValue()) {
             case 3:
@@ -228,5 +269,29 @@ public class PortMappingImpl implements PortMapping {
     @Override
     public boolean isNodeExist(String nodeId) {
         return this.getNode(nodeId) != null;
+    }
+
+    @Override
+    public Mapping getMappingFromOtsInterface(String nodeId, String interfName) {
+        WithKey<Nodes, NodesKey> nodePortmappingIID = DataObjectIdentifier.builder(Network.class)
+            .child(Nodes.class, new NodesKey(nodeId))
+            .build();
+        try (ReadTransaction readTx = this.dataBroker.newReadOnlyTransaction()) {
+            Optional<Nodes> nodePortmapppingOpt
+                = readTx.read(LogicalDatastoreType.CONFIGURATION, nodePortmappingIID).get();
+            if (nodePortmapppingOpt.isEmpty()) {
+                LOG.warn("Could not get portMapping for node {}", nodeId);
+                return null;
+            }
+            Map<MappingKey, Mapping> mappings = nodePortmapppingOpt.orElseThrow().getMapping();
+            for (Mapping mapping : mappings.values()) {
+                if (interfName.equals(mapping.getSupportingOts())) {
+                    return mapping;
+                }
+            }
+        } catch (InterruptedException | ExecutionException ex) {
+            LOG.error("Unable to get mapping list for nodeId {}", nodeId, ex);
+        }
+        return null;
     }
 }

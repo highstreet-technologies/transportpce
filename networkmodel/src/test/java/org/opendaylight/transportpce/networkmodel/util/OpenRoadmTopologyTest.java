@@ -7,11 +7,11 @@
  */
 package org.opendaylight.transportpce.networkmodel.util;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -21,37 +21,41 @@ import com.google.common.util.concurrent.FluentFuture;
 import com.google.common.util.concurrent.ListenableFuture;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
 import org.opendaylight.mdsal.common.api.CommitInfo;
 import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
-import org.opendaylight.transportpce.common.NetworkUtils;
+import org.opendaylight.transportpce.common.StringConstants;
 import org.opendaylight.transportpce.common.fixedflex.GridConstant;
 import org.opendaylight.transportpce.common.network.NetworkTransactionService;
 import org.opendaylight.transportpce.networkmodel.dto.TopologyShard;
 import org.opendaylight.transportpce.networkmodel.util.test.NetworkmodelTestUtil;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.network.Nodes;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev211210.Link1;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev211210.Node1;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev211210.TerminationPoint1;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.device.types.rev191129.XpdrNodeTypes;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev211210.Link1Builder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev211210.OpenroadmLinkType;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev211210.OpenroadmNodeType;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev211210.OpenroadmTpType;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev211210.available.freq.map.AvailFreqMaps;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.network.Nodes;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.shared.risk.group.SharedRiskGroup;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.shared.risk.group.SharedRiskGroupBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.Link1;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.Node1;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.TerminationPoint1;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.node.types.rev210528.XpdrNodeTypes;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.optical.channel.types.rev250328.WavelengthDuplicationType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.Link1Builder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.OpenroadmLinkType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.OpenroadmNodeType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.OpenroadmTpType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.available.freq.map.AvailFreqMaps;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.NetworkId;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.Networks;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.NodeId;
@@ -68,22 +72,25 @@ import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.top
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.networks.network.link.DestinationBuilder;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.networks.network.link.SourceBuilder;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.networks.network.node.TerminationPoint;
-import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
+import org.opendaylight.yangtools.binding.DataObjectIdentifier;
 import org.opendaylight.yangtools.yang.common.Uint16;
 
 
-@RunWith(MockitoJUnitRunner.StrictStubs.class)
+/**
+ * OpenRoadmTopologyTest class.
+ */
+@ExtendWith(MockitoExtension.class)
 public class OpenRoadmTopologyTest {
     @Mock
     private NetworkTransactionService networkTransactionService;
 
     @Test
-    public void createTopologyShardForDegreeTest() {
-        Nodes mappingNode = NetworkmodelTestUtil.createMappingForRdm("ROADMA01", "nodeA", 2, 0);
+    void createTopologyShardForDegreeTest() {
+        Nodes mappingNode = NetworkmodelTestUtil.createMappingForRdm("ROADMA01", "nodeA", 2, List.of());
         TopologyShard topologyShard = OpenRoadmTopology.createTopologyShard(mappingNode);
         assertNotNull(topologyShard);
-        assertEquals("Should contain 2 Degree nodes only", 2, topologyShard.getNodes().size());
-        assertEquals("Should contain 2 links", 2, topologyShard.getLinks().size());
+        assertEquals(2, topologyShard.getNodes().size(), "Should contain 2 Degree nodes only");
+        assertEquals(2, topologyShard.getLinks().size(), "Should contain 2 links");
         List<Node> nodes = topologyShard.getNodes().stream()
             .sorted((n1, n2) -> n1.getNodeId().getValue().compareTo(n2.getNodeId().getValue()))
             .collect(Collectors.toList());
@@ -95,7 +102,7 @@ public class OpenRoadmTopologyTest {
         List<Link> links = topologyShard.getLinks().stream()
             .sorted((l1, l2) -> l1.getLinkId().getValue().compareTo(l2.getLinkId().getValue()))
             .collect(Collectors.toList());
-        assertEquals("Should contain 2 express links", 2, links.size());
+        assertEquals(2, links.size(), "Should contain 2 express links");
         assertEquals("ROADMA01-DEG1-DEG1-CTP-TXRXtoROADMA01-DEG2-DEG2-CTP-TXRX", links.get(0).getLinkId().getValue());
         assertEquals("ROADMA01-DEG1", links.get(0).getSource().getSourceNode().getValue());
         assertEquals("DEG1-CTP-TXRX", links.get(0).getSource().getSourceTp().getValue());
@@ -109,92 +116,113 @@ public class OpenRoadmTopologyTest {
     }
 
     @Test
-    public void createTopologyShardForSrgTest() {
-        Nodes mappingNode = NetworkmodelTestUtil.createMappingForRdm("ROADMA01", "nodeA", 0, 1);
+    void createTopologyShardForSrgTest() {
+        Nodes mappingNode = NetworkmodelTestUtil.createMappingForRdm(
+                "ROADMA01", "nodeA", 0, List.of(Integer.valueOf(1)));
         TopologyShard topologyShard = OpenRoadmTopology.createTopologyShard(mappingNode);
         assertNotNull(topologyShard);
         List<Node> nodes = topologyShard.getNodes();
-        assertEquals("Should contain 1 SRG node only", 1, nodes.size());
-        assertEquals("Should contain 0 link", 0, topologyShard.getLinks().size());
+        assertEquals(1, nodes.size(), "Should contain 1 SRG node only");
+        assertEquals(0, topologyShard.getLinks().size(), "Should contain 0 link");
         checkSrgNode("1", nodes.get(0));
     }
 
     @Test
-    public void createTopologyShardForCompleteRdmNodeTest() {
-        Nodes mappingNode = NetworkmodelTestUtil.createMappingForRdm("ROADMA01", "nodeA", 2, 2);
+    void createTopologyShardForMultipleSrgTest() {
+        List<Integer> srgNbs = List.of(Integer.valueOf(1), Integer.valueOf(2), Integer.valueOf(10),
+                Integer.valueOf(11));
+        Nodes mappingNode = NetworkmodelTestUtil.createMappingForRdm("ROADMA01", "nodeA", 0, srgNbs);
         TopologyShard topologyShard = OpenRoadmTopology.createTopologyShard(mappingNode);
         assertNotNull(topologyShard);
-        assertEquals("Should contain 2 Deg and 2 SRG nodes", 4, topologyShard.getNodes().size());
+        List<Node> nodes = topologyShard.getNodes().stream()
+            .sorted((n1, n2) -> n1.getNodeId().getValue().compareTo(n2.getNodeId().getValue()))
+            .collect(Collectors.toList());
+        assertEquals(4, nodes.size(), "Should contain 4 SRG nodes");
+        assertEquals(0, topologyShard.getLinks().size(), "Should contain 0 link");
+        checkSrgNode("1", nodes.get(0));
+        checkSrgNode("10", nodes.get(1));
+        checkSrgNode("11", nodes.get(2));
+        checkSrgNode("2", nodes.get(3));
+    }
+
+    @Test
+    void createTopologyShardForCompleteRdmNodeTest() {
+        Nodes mappingNode = NetworkmodelTestUtil.createMappingForRdm("ROADMA01", "nodeA", 2,
+            List.of(Integer.valueOf(1), Integer.valueOf(2)));
+        TopologyShard topologyShard = OpenRoadmTopology.createTopologyShard(mappingNode);
+        assertNotNull(topologyShard);
+        assertEquals(4, topologyShard.getNodes().size(), "Should contain 2 Deg and 2 SRG nodes");
         List<Link> addLinks = topologyShard.getLinks().stream()
             .filter(lk -> lk.augmentation(Link1.class).getLinkType().equals(OpenroadmLinkType.ADDLINK))
             .collect(Collectors.toList());
-        assertEquals("Should contain 4 add links", 4, addLinks.size());
+        assertEquals(4, addLinks.size(), "Should contain 4 add links");
         List<Link> dropLinks = topologyShard.getLinks().stream()
             .filter(lk -> lk.augmentation(Link1.class).getLinkType().equals(OpenroadmLinkType.DROPLINK))
             .collect(Collectors.toList());
-        assertEquals("Should contain 4 drop links", 4, dropLinks.size());
+        assertEquals(4, dropLinks.size(), "Should contain 4 drop links");
         List<Link> expressLinks = topologyShard.getLinks().stream()
             .filter(lk -> lk.augmentation(Link1.class).getLinkType().equals(OpenroadmLinkType.EXPRESSLINK))
             .collect(Collectors.toList());
-        assertEquals("Should contain 2 express links", 2, expressLinks.size());
+        assertEquals(2, expressLinks.size(), "Should contain 2 express links");
     }
 
     @Test
-    public void createTopologyShardForTpdrNodeTest() {
+    void createTopologyShardForTpdrNodeTest() {
         Nodes mappingNode = NetworkmodelTestUtil.createMappingForXpdr("XPDRA01", "nodeA", 2, 2, null);
         TopologyShard topologyShard = OpenRoadmTopology.createTopologyShard(mappingNode);
         assertNotNull(topologyShard);
-        assertEquals("Should contain a single node", 1, topologyShard.getNodes().size());
-        assertEquals("Should contain 0 link", 0, topologyShard.getLinks().size());
+        assertEquals(1, topologyShard.getNodes().size(), "Should contain a single node");
+        assertEquals(0, topologyShard.getLinks().size(), "Should contain 0 link");
         checkTpdrNode(topologyShard.getNodes().get(0));
     }
 
     @Test
-    public void createTopologyShardForTpdrNode2Test() {
+    void createTopologyShardForTpdrNode2Test() {
         Nodes mappingNode = NetworkmodelTestUtil.createMappingForXpdr("XPDRA01", "nodeA", 2, 2, XpdrNodeTypes.Tpdr);
         TopologyShard topologyShard = OpenRoadmTopology.createTopologyShard(mappingNode);
         assertNotNull(topologyShard);
-        assertEquals("Should contain a single node", 1, topologyShard.getNodes().size());
-        assertEquals("Should contain 0 link", 0, topologyShard.getLinks().size());
+        assertEquals(1, topologyShard.getNodes().size(), "Should contain a single node");
+        assertEquals(0, topologyShard.getLinks().size(), "Should contain 0 link");
         checkTpdrNode(topologyShard.getNodes().get(0));
     }
 
     @Test
-    public void createTopologyShardForMpdrNodeTest() {
+    void createTopologyShardForMpdrNodeTest() {
         Nodes mappingNode = NetworkmodelTestUtil.createMappingForXpdr("XPDRA01", "nodeA", 2, 2, XpdrNodeTypes.Mpdr);
         TopologyShard topologyShard = OpenRoadmTopology.createTopologyShard(mappingNode);
         assertNotNull(topologyShard);
-        assertEquals("Should contain a single node", 1, topologyShard.getNodes().size());
-        assertEquals("Should contain 0 link", 0, topologyShard.getLinks().size());
+        assertEquals(1, topologyShard.getNodes().size(), "Should contain a single node");
+        assertEquals(0, topologyShard.getLinks().size(), "Should contain 0 link");
         checkOtnXpdrNode(topologyShard.getNodes().get(0));
     }
 
     @Test
-    public void createTopologyShardForSwitchNodeTest() {
+    void createTopologyShardForSwitchNodeTest() {
         Nodes mappingNode = NetworkmodelTestUtil.createMappingForXpdr("XPDRA01", "nodeA", 2, 2, XpdrNodeTypes.Switch);
         TopologyShard topologyShard = OpenRoadmTopology.createTopologyShard(mappingNode);
         assertNotNull(topologyShard);
-        assertEquals("Should contain a single node", 1, topologyShard.getNodes().size());
-        assertEquals("Should contain 0 link", 0, topologyShard.getLinks().size());
+        assertEquals(1, topologyShard.getNodes().size(), "Should contain a single node");
+        assertEquals(0, topologyShard.getLinks().size(), "Should contain 0 link");
         checkOtnXpdrNode(topologyShard.getNodes().get(0));
     }
 
-    @Ignore
     @Test
-    public void createTopologyShardForRdmWithoutClliTest() {
-        Nodes mappingNode = NetworkmodelTestUtil.createMappingForRdm("ROADMA01", null, 2, 0);
-        TopologyShard topologyShard = OpenRoadmTopology.createTopologyShard(mappingNode);
-        assertNull("clli must not be null", topologyShard);
+    void createTopologyShardForRdmWithoutClliTest() {
+        Nodes mappingNode = NetworkmodelTestUtil.createMappingForRdm("ROADMA01", null, 2, List.of());
+        Exception exception = assertThrows(NullPointerException.class, () -> {
+            OpenRoadmTopology.createTopologyShard(mappingNode);
+        });
+        assertTrue("Supplied value may not be null".contains(exception.getMessage()));
     }
 
     @Test
-    public void deleteLinkOkTest() throws InterruptedException, ExecutionException {
+    void deleteLinkOkTest() {
         String srcNode = "ROADM-A1-DEG1";
         String dstNode = "ROADM-A1-SRG1";
         String srcTp = "DEG1-CTP-TXRX";
         String destTp = "SRG1-CP-TXRX";
         LinkId linkId = LinkIdUtil.buildLinkId(srcNode, srcTp, dstNode, destTp);
-        org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev211210.Link1 link1 =
+        org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.Link1 link1 =
             new Link1Builder().build();
         Link link = new LinkBuilder()
             .setLinkId(linkId)
@@ -203,9 +231,11 @@ public class OpenRoadmTopologyTest {
                 .build())
             .addAugmentation(link1)
             .build();
-        InstanceIdentifier<Link> linkIID = InstanceIdentifier.builder(Networks.class).child(Network.class,
-            new NetworkKey(new NetworkId(NetworkUtils.OVERLAY_NETWORK_ID))).augmentation(Network1.class)
-            .child(Link.class, new LinkKey(linkId)).build();
+        DataObjectIdentifier<Link> linkIID = DataObjectIdentifier.builder(Networks.class)
+            .child(Network.class, new NetworkKey(new NetworkId(StringConstants.OPENROADM_TOPOLOGY)))
+            .augmentation(Network1.class)
+            .child(Link.class, new LinkKey(linkId))
+            .build();
         when(networkTransactionService.read(LogicalDatastoreType.CONFIGURATION, linkIID))
             .thenReturn(new LinkFuture(link));
 
@@ -221,44 +251,71 @@ public class OpenRoadmTopologyTest {
 
         boolean result = OpenRoadmTopology.deleteLink("ROADM-A1-DEG1", "ROADM-A1-SRG1", "DEG1-CTP-TXRX", "SRG1-CP-TXRX",
             networkTransactionService);
-        assertTrue("link deletion should be ok", result);
+        assertTrue(result, "link deletion should be ok");
     }
 
     @Test
-    public void deleteLinkNotOkTest() throws InterruptedException, ExecutionException {
+    void deleteLinkNotOkTest() {
         String srcNode = "ROADM-A1-DEG1";
         String dstNode = "ROADM-A1-SRG1";
         String srcTp = "DEG1-CTP-TXRX";
         String destTp = "SRG1-CP-TXRX";
         LinkId linkId = LinkIdUtil.buildLinkId(srcNode, srcTp, dstNode, destTp);
 
-        InstanceIdentifier<Link> linkIID = InstanceIdentifier.builder(Networks.class).child(Network.class,
-            new NetworkKey(new NetworkId(NetworkUtils.OVERLAY_NETWORK_ID))).augmentation(Network1.class)
-            .child(Link.class, new LinkKey(linkId)).build();
+        DataObjectIdentifier<Link> linkIID = DataObjectIdentifier.builder(Networks.class)
+            .child(Network.class, new NetworkKey(new NetworkId(StringConstants.OPENROADM_TOPOLOGY)))
+            .augmentation(Network1.class)
+            .child(Link.class, new LinkKey(linkId))
+            .build();
         when(networkTransactionService.read(LogicalDatastoreType.CONFIGURATION, linkIID)).thenReturn(new LinkFuture());
 
-        boolean result = OpenRoadmTopology.deleteLink("ROADM-A1-DEG1", "ROADM-A1-SRG1", "DEG1-CTP-TXRX", "SRG1-CP-TXRX",
-            networkTransactionService);
-        assertFalse("link deletion should not be ok", result);
+        boolean result = OpenRoadmTopology.deleteLink(
+                "ROADM-A1-DEG1", "ROADM-A1-SRG1", "DEG1-CTP-TXRX", "SRG1-CP-TXRX", networkTransactionService);
+        assertFalse(result, "link deletion should not be ok");
     }
 
     @Test
-    public void deleteLinkExceptionTest() throws InterruptedException, ExecutionException {
+    void deleteLinkExceptionTest() {
         String srcNode = "ROADM-A1-DEG1";
         String dstNode = "ROADM-A1-SRG1";
         String srcTp = "DEG1-CTP-TXRX";
         String destTp = "SRG1-CP-TXRX";
         LinkId linkId = LinkIdUtil.buildLinkId(srcNode, srcTp, dstNode, destTp);
 
-        InstanceIdentifier<Link> linkIID = InstanceIdentifier.builder(Networks.class)
-                .child(Network.class, new NetworkKey(new NetworkId(NetworkUtils.OVERLAY_NETWORK_ID)))
-                .augmentation(Network1.class).child(Link.class, new LinkKey(linkId)).build();
+        DataObjectIdentifier<Link> linkIID = DataObjectIdentifier.builder(Networks.class)
+            .child(Network.class, new NetworkKey(new NetworkId(StringConstants.OPENROADM_TOPOLOGY)))
+            .augmentation(Network1.class)
+            .child(Link.class, new LinkKey(linkId))
+            .build();
         when(networkTransactionService.read(LogicalDatastoreType.CONFIGURATION, linkIID))
-                .thenReturn(new InterruptedLinkFuture());
-        boolean result = OpenRoadmTopology.deleteLink("ROADM-A1-DEG1", "ROADM-A1-SRG1", "DEG1-CTP-TXRX", "SRG1-CP-TXRX",
-                networkTransactionService);
+            .thenReturn(new InterruptedLinkFuture());
+        boolean result = OpenRoadmTopology.deleteLink(
+                "ROADM-A1-DEG1", "ROADM-A1-SRG1", "DEG1-CTP-TXRX", "SRG1-CP-TXRX", networkTransactionService);
         verify(networkTransactionService, never()).merge(any(), any(), any());
-        assertFalse("Result should be false du to InterruptedException", result);
+        assertFalse(result, "Result should be false du to InterruptedException");
+    }
+
+    @Test
+    void testDefaultWaveLengthDuplication() {
+        SharedRiskGroup sharedRiskGroup = OpenRoadmTopology.sharedRiskGroup("SRG1", new HashMap<>());
+        assertNotNull(sharedRiskGroup);
+        assertEquals(WavelengthDuplicationType.OnePerSrg, sharedRiskGroup.getWavelengthDuplication());
+    }
+
+    @Test
+    void testWaveLengthDuplicationReturnedFromMap() {
+        SharedRiskGroup sharedRiskGroup1 = new SharedRiskGroupBuilder()
+                .setSrgNumber(Uint16.valueOf(1))
+                .setWavelengthDuplication(WavelengthDuplicationType.OnePerDegree)
+                .build();
+
+        SharedRiskGroup sharedRiskGroup = OpenRoadmTopology.sharedRiskGroup(
+                "SRG1",
+                Map.of(sharedRiskGroup1.key(), sharedRiskGroup1)
+        );
+
+        assertNotNull(sharedRiskGroup);
+        assertEquals(WavelengthDuplicationType.OnePerDegree, sharedRiskGroup.getWavelengthDuplication());
     }
 
     private void checkDegreeNode(String nodeNb, Node node) {
@@ -272,18 +329,19 @@ public class OpenRoadmTopologyTest {
         assertEquals("openroadm-network", supportingNodes.get(1).getNetworkRef().getValue());
         assertEquals("ROADMA01", supportingNodes.get(1).getNodeRef().getValue());
         assertEquals(OpenroadmNodeType.DEGREE, node.augmentation(Node1.class).getNodeType());
-        assertEquals(Uint16.valueOf(nodeNb), node.augmentation(
-            org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev211210.Node1.class)
-            .getDegreeAttributes().getDegreeNumber());
+        assertEquals(
+            Uint16.valueOf(nodeNb),
+            node.augmentation(org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.Node1.class)
+                .getDegreeAttributes().getDegreeNumber());
         List<AvailFreqMaps> availFreqMapsValues = new ArrayList<>(node.augmentation(
-            org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev211210.Node1.class)
+                org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.Node1.class)
             .getDegreeAttributes().getAvailFreqMaps().values());
         assertEquals(GridConstant.NB_OCTECTS, availFreqMapsValues.get(0).getFreqMap().length);
         byte[] byteArray = new byte[GridConstant.NB_OCTECTS];
         Arrays.fill(byteArray, (byte) GridConstant.AVAILABLE_SLOT_VALUE);
         assertEquals(Arrays.toString(byteArray), Arrays.toString(availFreqMapsValues.get(0).getFreqMap()));
         List<TerminationPoint> tps = node.augmentation(
-            org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.Node1.class)
+                org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.Node1.class)
             .nonnullTerminationPoint().values().stream()
             .sorted((tp1, tp2) -> tp1.getTpId().getValue().compareTo(tp2.getTpId().getValue()))
             .collect(Collectors.toList());
@@ -306,14 +364,14 @@ public class OpenRoadmTopologyTest {
         assertEquals("ROADMA01", supportingNodes.get(1).getNodeRef().getValue());
         assertEquals(OpenroadmNodeType.SRG, node.augmentation(Node1.class).getNodeType());
         List<AvailFreqMaps> availFreqMapsValues = new ArrayList<>(node.augmentation(
-                org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev211210.Node1.class)
-                .getSrgAttributes().getAvailFreqMaps().values());
+                org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.Node1.class)
+            .getSrgAttributes().getAvailFreqMaps().values());
         assertEquals(GridConstant.NB_OCTECTS, availFreqMapsValues.get(0).getFreqMap().length);
         byte[] byteArray = new byte[GridConstant.NB_OCTECTS];
         Arrays.fill(byteArray, (byte) GridConstant.AVAILABLE_SLOT_VALUE);
         assertEquals(Arrays.toString(byteArray), Arrays.toString(availFreqMapsValues.get(0).getFreqMap()));
         List<TerminationPoint> tps = node.augmentation(
-            org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.Node1.class)
+                org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.Node1.class)
             .nonnullTerminationPoint().values().stream()
             .sorted((tp1, tp2) -> tp1.getTpId().getValue().compareTo(tp2.getTpId().getValue()))
             .collect(Collectors.toList());
@@ -336,21 +394,23 @@ public class OpenRoadmTopologyTest {
         assertEquals("XPDRA01", supportingNodes.get(1).getNodeRef().getValue());
         assertEquals(OpenroadmNodeType.XPONDER, node.augmentation(Node1.class).getNodeType());
         List<TerminationPoint> tps = node.augmentation(
-            org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.Node1.class)
+                org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.Node1.class)
             .nonnullTerminationPoint().values().stream()
             .sorted((tp1, tp2) -> tp1.getTpId().getValue().compareTo(tp2.getTpId().getValue()))
             .collect(Collectors.toList());
         assertEquals(4, tps.size());
         assertEquals("XPDR1-CLIENT1", tps.get(0).getTpId().getValue());
         assertEquals(OpenroadmTpType.XPONDERCLIENT, tps.get(0).augmentation(TerminationPoint1.class).getTpType());
-        assertEquals("XPDR1-NETWORK1", tps.get(0).augmentation(
-            org.opendaylight.yang.gen.v1.http.transportpce.topology.rev220123.TerminationPoint1.class)
-            .getAssociatedConnectionMapPort());
+        assertEquals(
+            "XPDR1-NETWORK1",
+            tps.get(0).augmentation(TerminationPoint1.class).getAssociatedConnectionMapTp().iterator().next()
+                .getValue());
         assertEquals("XPDR1-NETWORK1", tps.get(2).getTpId().getValue());
         assertEquals(OpenroadmTpType.XPONDERNETWORK, tps.get(2).augmentation(TerminationPoint1.class).getTpType());
-        assertEquals("XPDR1-CLIENT1", tps.get(2).augmentation(
-            org.opendaylight.yang.gen.v1.http.transportpce.topology.rev220123.TerminationPoint1.class)
-            .getAssociatedConnectionMapPort());
+        assertEquals(
+            "XPDR1-CLIENT1",
+            tps.get(2).augmentation(TerminationPoint1.class).getAssociatedConnectionMapTp().iterator().next()
+                .getValue());
     }
 
     private void checkOtnXpdrNode(Node node) {
@@ -365,7 +425,7 @@ public class OpenRoadmTopologyTest {
         assertEquals("XPDRA01", supportingNodes.get(1).getNodeRef().getValue());
         assertEquals(OpenroadmNodeType.XPONDER, node.augmentation(Node1.class).getNodeType());
         List<TerminationPoint> tps = node.augmentation(
-            org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.Node1.class)
+                org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.Node1.class)
             .nonnullTerminationPoint().values().stream()
             .sorted((tp1, tp2) -> tp1.getTpId().getValue().compareTo(tp2.getTpId().getValue()))
             .collect(Collectors.toList());
@@ -424,7 +484,7 @@ public class OpenRoadmTopologyTest {
         }
     }
 
-    private class InterruptedLinkFuture implements  ListenableFuture<Optional<Link>> {
+    private final class InterruptedLinkFuture implements  ListenableFuture<Optional<Link>> {
 
         @Override
         public boolean cancel(boolean arg0) {

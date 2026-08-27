@@ -5,77 +5,100 @@
  * terms of the Eclipse Public License v1.0 which accompanies this distribution,
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
-
 package org.opendaylight.transportpce.servicehandler.listeners;
 
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.Collection;
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import java.util.Optional;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-import org.opendaylight.mdsal.binding.api.DataBroker;
-import org.opendaylight.mdsal.binding.api.DataObjectModification;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.opendaylight.mdsal.binding.api.DataObjectDeleted;
+import org.opendaylight.mdsal.binding.api.DataObjectModified;
+import org.opendaylight.mdsal.binding.api.DataObjectWritten;
 import org.opendaylight.mdsal.binding.api.DataTreeModification;
 import org.opendaylight.mdsal.binding.api.NotificationPublishService;
+import org.opendaylight.mdsal.binding.api.RpcService;
+import org.opendaylight.transportpce.common.ResponseCodes;
+import org.opendaylight.transportpce.pce.service.PathComputationService;
+import org.opendaylight.transportpce.servicehandler.service.ServiceDataStoreOperations;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.node.types.rev210528.NodeIdType;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.ConnectionType;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.service.ServiceAEnd;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.service.ServiceAEndBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.service.ServiceZEnd;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.service.ServiceZEndBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.service.endpoint.RxDirection;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.service.endpoint.RxDirectionBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.service.endpoint.RxDirectionKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.service.endpoint.TxDirection;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.service.endpoint.TxDirectionBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.service.endpoint.TxDirectionKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.service.lgx.LgxBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.service.port.PortBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.ConnectionType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.Restorable;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.configuration.response.common.ConfigurationResponseCommonBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.sdnc.request.header.SdncRequestHeaderBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.service.ServiceAEndBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.service.ServiceZEndBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.service.endpoint.RxDirection;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.service.endpoint.RxDirectionBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.service.endpoint.RxDirectionKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.service.endpoint.TxDirection;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.service.endpoint.TxDirectionBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.service.endpoint.TxDirectionKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.service.lgx.LgxBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.service.port.PortBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.service.resiliency.ServiceResiliency;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.service.resiliency.ServiceResiliencyBuilder;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.state.types.rev191129.State;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.equipment.states.types.rev191129.AdminStates;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.format.rev191129.ServiceFormat;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.service.list.Services;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.service.list.ServicesBuilder;
-import org.opendaylight.yang.gen.v1.nbi.notifications.rev210813.PublishNotificationAlarmService;
-import org.opendaylight.yang.gen.v1.nbi.notifications.rev210813.PublishNotificationAlarmServiceBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.format.rev250530.ServiceFormat;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.ServiceCreate;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.ServiceCreateOutputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.ServiceDelete;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.ServiceDeleteOutputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.ServiceReroute;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.ServiceRerouteOutputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.service.list.Services;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.service.list.ServicesBuilder;
+import org.opendaylight.yang.gen.v1.nbi.notifications.rev230728.PublishNotificationAlarmService;
+import org.opendaylight.yang.gen.v1.nbi.notifications.rev230728.PublishNotificationAlarmServiceBuilder;
+import org.opendaylight.yangtools.yang.common.RpcResultBuilder;
 import org.opendaylight.yangtools.yang.common.Uint32;
 import org.opendaylight.yangtools.yang.common.Uint8;
 
-@RunWith(MockitoJUnitRunner.StrictStubs.class)
+@ExtendWith(MockitoExtension.class)
 public class ServiceListenerTest {
 
     @Mock
-    private DataBroker dataBroker;
+    private RpcService rpcService;
+    @Mock
+    private ServiceDataStoreOperations serviceDataStoreOperations;
     @Mock
     private NotificationPublishService notificationPublishService;
+    @Mock
+    private PathComputationService pathComputationService;
+    @Mock
+    private ServiceDelete serviceDelete;
+    @Mock
+    private ServiceReroute serviceReroute;
+    @Mock
+    private ServiceCreate serviceCreate;
 
     @Test
-    public void testOnDataTreeChangedWhenDeleteService() {
-        @SuppressWarnings("unchecked") final DataObjectModification<Services> service =
-                mock(DataObjectModification.class);
-        final Collection<DataTreeModification<Services>> changes = new HashSet<>();
+    void testOnDataTreeChangedWhenDeleteService() {
+        final DataObjectDeleted<Services> service = mock();
+        final List<DataTreeModification<Services>> changes = new ArrayList<>();
         @SuppressWarnings("unchecked") final DataTreeModification<Services> ch = mock(DataTreeModification.class);
         changes.add(ch);
         when(ch.getRootNode()).thenReturn(service);
 
-        when(service.getModificationType()).thenReturn(DataObjectModification.ModificationType.DELETE);
-        when(service.getDataBefore()).thenReturn(buildService(State.InService, AdminStates.InService));
-        ServiceListener listener = new ServiceListener(dataBroker, notificationPublishService);
+        when(service.dataBefore()).thenReturn(buildService(State.InService, AdminStates.InService));
+        ServiceListener listener = new ServiceListener(rpcService, serviceDataStoreOperations,
+                notificationPublishService);
         listener.onDataTreeChanged(changes);
         verify(ch, times(1)).getRootNode();
-        verify(service, times(1)).getModificationType();
-        verify(service, times(2)).getDataBefore();
-        verify(service, never()).getDataAfter();
+        verify(service, times(1)).dataBefore();
         try {
             verify(notificationPublishService, never()).putNotification(any(PublishNotificationAlarmService.class));
         } catch (InterruptedException e) {
@@ -84,88 +107,164 @@ public class ServiceListenerTest {
     }
 
     @Test
-    public void testOnDataTreeChangedWhenAddService() {
-        @SuppressWarnings("unchecked") final DataObjectModification<Services> service =
-                mock(DataObjectModification.class);
-        final Collection<DataTreeModification<Services>> changes = new HashSet<>();
+    void testOnDataTreeChangedWhenServiceBecomesOutOfService() {
+        final DataObjectWritten<Services> service = mock();
+        final List<DataTreeModification<Services>> changes = new ArrayList<>();
         @SuppressWarnings("unchecked") final DataTreeModification<Services> ch = mock(DataTreeModification.class);
         changes.add(ch);
         when(ch.getRootNode()).thenReturn(service);
 
-        Services serviceDown = buildService(State.OutOfService, AdminStates.OutOfService);
-        when(service.getModificationType()).thenReturn(DataObjectModification.ModificationType.WRITE);
-        when(service.getDataBefore()).thenReturn(buildService(State.InService, AdminStates.InService));
-        when(service.getDataAfter()).thenReturn(serviceDown);
-        ServiceListener listener = new ServiceListener(dataBroker, notificationPublishService);
+        Services serviceDown = buildService(State.OutOfService, AdminStates.InService);
+        when(service.dataBefore()).thenReturn(buildService(State.InService, AdminStates.InService));
+        when(service.dataAfter()).thenReturn(serviceDown);
+        ServiceListener listener = new ServiceListener(rpcService, serviceDataStoreOperations,
+                notificationPublishService);
+
         listener.onDataTreeChanged(changes);
         verify(ch, times(1)).getRootNode();
-        verify(service, times(1)).getModificationType();
-        verify(service, times(3)).getDataBefore();
-        verify(service, times(2)).getDataAfter();
-        PublishNotificationAlarmService publishNotificationAlarmService =
-                buildNotificationAlarmService(serviceDown, "The service is now outOfService");
+        verify(service, times(1)).dataBefore();
+        verify(service, times(1)).dataAfter();
         try {
             verify(notificationPublishService, times(1))
-                    .putNotification(publishNotificationAlarmService);
+                    .putNotification(buildNotificationAlarmService(serviceDown, "The service is now outOfService"));
         } catch (InterruptedException e) {
             fail("Failed publishing notification");
         }
     }
 
     @Test
-    public void testOnDataTreeChangedWhenShouldNeverHappen() {
-        @SuppressWarnings("unchecked") final DataObjectModification<Services> service =
-                mock(DataObjectModification.class);
-        final Collection<DataTreeModification<Services>> changes = new HashSet<>();
+    void testOnDataTreeChangedWhenShouldNeverHappen() {
+        final DataObjectModified<Services> service = mock();
+        final List<DataTreeModification<Services>> changes = new ArrayList<>();
         @SuppressWarnings("unchecked") final DataTreeModification<Services> ch = mock(DataTreeModification.class);
         changes.add(ch);
         when(ch.getRootNode()).thenReturn(service);
+        when(service.dataAfter()).thenReturn(buildService(State.InService, AdminStates.InService));
 
-        when(service.getModificationType()).thenReturn(DataObjectModification.ModificationType.SUBTREE_MODIFIED);
-        when(service.getDataBefore()).thenReturn(buildService(State.InService, AdminStates.InService));
-        ServiceListener listener = new ServiceListener(dataBroker, notificationPublishService);
+        ServiceListener listener = new ServiceListener(rpcService, serviceDataStoreOperations,
+                notificationPublishService);
         listener.onDataTreeChanged(changes);
         verify(ch, times(1)).getRootNode();
-        verify(service, times(2)).getModificationType();
-        verify(service, times(2)).getDataBefore();
-        verify(service, never()).getDataAfter();
+        verify(service, never()).dataBefore();
+        verify(service, times(1)).dataAfter();
         try {
             verify(notificationPublishService, never()).putNotification(any(PublishNotificationAlarmService.class));
         } catch (InterruptedException e) {
             fail("Failed publishing notification");
         }
+    }
+
+    @Test
+    void testOnDataTreeChangedWhenServiceDegradedShouldBeRerouted() {
+        final DataObjectWritten<Services> service = mock();
+        final List<DataTreeModification<Services>> changes = new ArrayList<>();
+        @SuppressWarnings("unchecked") final DataTreeModification<Services> ch = mock(DataTreeModification.class);
+        changes.add(ch);
+        when(ch.getRootNode()).thenReturn(service);
+
+        ServiceResiliency serviceResiliency = new ServiceResiliencyBuilder().setResiliency(Restorable.VALUE).build();
+        Services serviceAfter = new ServicesBuilder(buildService(State.OutOfService, AdminStates.InService))
+                .setServiceResiliency(serviceResiliency)
+                .build();
+        when(service.dataBefore())
+            .thenReturn(new ServicesBuilder(buildService(State.InService, AdminStates.InService))
+                        .setServiceResiliency(serviceResiliency)
+                        .build());
+        when(service.dataAfter()).thenReturn(serviceAfter);
+        when(serviceDataStoreOperations.getService(anyString())).thenReturn(Optional.of(serviceAfter));
+        when(rpcService.getRpc(ServiceDelete.class)).thenReturn(serviceDelete);
+        when(serviceDelete.invoke(any()))
+            .thenReturn(RpcResultBuilder.success(new ServiceDeleteOutputBuilder()
+                                .setConfigurationResponseCommon(new ConfigurationResponseCommonBuilder()
+                                                .setResponseCode(ResponseCodes.RESPONSE_OK)
+                                                .build())
+                                .build())
+                        .buildFuture());
+        when(rpcService.getRpc(ServiceReroute.class)).thenReturn(serviceReroute);
+        when(serviceReroute.invoke(any()))
+            .thenReturn(RpcResultBuilder.success(new ServiceRerouteOutputBuilder()
+                                .setConfigurationResponseCommon(new ConfigurationResponseCommonBuilder()
+                                                .setResponseCode(ResponseCodes.RESPONSE_OK)
+                                                .build())
+                                .build())
+                        .buildFuture());
+        when(rpcService.getRpc(ServiceCreate.class)).thenReturn(serviceCreate);
+        when(serviceCreate.invoke(any()))
+            .thenReturn(RpcResultBuilder.success(new ServiceCreateOutputBuilder()
+                                .setConfigurationResponseCommon(new ConfigurationResponseCommonBuilder()
+                                                .setResponseCode(ResponseCodes.RESPONSE_OK)
+                                                .build())
+                                .build())
+                        .buildFuture());
+        ServiceListener listener = new ServiceListener(rpcService, serviceDataStoreOperations,
+                notificationPublishService);
+        listener.onDataTreeChanged(changes);
+        verify(ch, times(1)).getRootNode();
+        verify(service, times(1)).dataBefore();
+        verify(service, times(1)).dataAfter();
+        verify(serviceDelete, times(1)).invoke(any());
+
+        final DataObjectDeleted<Services> serviceStep2 = mock();
+        when(ch.getRootNode()).thenReturn(serviceStep2);
+        when(serviceStep2.dataBefore())
+                .thenReturn(new ServicesBuilder(buildService(State.OutOfService, AdminStates.InService))
+                        .setServiceResiliency(serviceResiliency)
+                        .build());
+        listener.onDataTreeChanged(changes);
+        verify(serviceCreate, times(1)).invoke(any());
+    }
+
+    @Test
+    void testOnDataTreeChangedWhenServiceDegradedShouldNotBeRerouted() {
+        final DataObjectWritten<Services> service = mock();
+        final List<DataTreeModification<Services>> changes = new ArrayList<>();
+        @SuppressWarnings("unchecked") final DataTreeModification<Services> ch = mock(DataTreeModification.class);
+        changes.add(ch);
+        when(ch.getRootNode()).thenReturn(service);
+
+        Services serviceAfter = buildService(State.OutOfService, AdminStates.InService);
+        when(service.dataBefore()).thenReturn(buildService(State.InService, AdminStates.InService));
+        when(service.dataAfter()).thenReturn(serviceAfter);
+        ServiceListener listener = new ServiceListener(rpcService, serviceDataStoreOperations,
+                notificationPublishService);
+        listener.onDataTreeChanged(changes);
+        verify(ch, times(1)).getRootNode();
+        verify(service, times(1)).dataBefore();
+        verify(service, times(1)).dataAfter();
+        verify(serviceDelete, never()).invoke(any());
+
+        listener.onDataTreeChanged(changes);
+        verify(serviceCreate, never()).invoke(any());
     }
 
     private Services buildService(State state, AdminStates adminStates) {
-        ServiceAEnd serviceAEnd = getServiceAEndBuild().build();
-        ServiceZEnd serviceZEnd = new ServiceZEndBuilder()
-                    .setClli("clli")
-                    .setServiceFormat(ServiceFormat.OC)
-                    .setServiceRate(Uint32.valueOf(1))
-                    .setNodeId(new NodeIdType("XPONDER-3-2"))
-                    .setTxDirection(Map.of(new TxDirectionKey(getTxDirection().key()),getTxDirection()))
-                    .setRxDirection(Map.of(new RxDirectionKey(getRxDirection().key()), getRxDirection()))
-                    .build();
-        ServicesBuilder builtInput = new ServicesBuilder()
+        return new ServicesBuilder()
+                .setSdncRequestHeader(new SdncRequestHeaderBuilder().build())
                 .setCommonId("commonId")
                 .setConnectionType(ConnectionType.Service)
                 .setCustomer("Customer")
                 .setServiceName("service 1")
-                .setServiceAEnd(serviceAEnd)
-                .setServiceZEnd(serviceZEnd)
+                .setServiceAEnd(getServiceAEndBuild().build())
+                .setServiceZEnd(new ServiceZEndBuilder()
+                        .setClli("clli")
+                        .setServiceFormat(ServiceFormat.Ethernet)
+                        .setServiceRate(Uint32.ONE)
+                        .setNodeId(new NodeIdType("XPONDER-3-2"))
+                        .setTxDirection(Map.of(new TxDirectionKey(getTxDirection().key()), getTxDirection()))
+                        .setRxDirection(Map.of(new RxDirectionKey(getRxDirection().key()), getRxDirection()))
+                        .build())
                 .setOperationalState(state)
-                .setAdministrativeState(adminStates);
-
-        return builtInput.build();
+                .setAdministrativeState(adminStates)
+                .build();
     }
 
     private ServiceAEndBuilder getServiceAEndBuild() {
         return new ServiceAEndBuilder()
                 .setClli("clli")
-                .setServiceFormat(ServiceFormat.OC)
-                .setServiceRate(Uint32.valueOf(1))
+                .setServiceFormat(ServiceFormat.Ethernet)
+                .setServiceRate(Uint32.ONE)
                 .setNodeId(new NodeIdType("XPONDER-1-2"))
-                .setTxDirection(Map.of(new TxDirectionKey(getTxDirection().key()),getTxDirection()))
+                .setTxDirection(Map.of(new TxDirectionKey(getTxDirection().key()), getTxDirection()))
                 .setRxDirection(Map.of(new RxDirectionKey(getRxDirection().key()), getRxDirection()));
     }
 

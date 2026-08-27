@@ -7,89 +7,265 @@
  */
 package org.opendaylight.transportpce.common.mapping;
 
+import static java.util.Objects.requireNonNull;
+
+import com.google.common.collect.ImmutableMap;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import org.opendaylight.mdsal.binding.api.DataBroker;
 import org.opendaylight.mdsal.binding.api.ReadTransaction;
 import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
 import org.opendaylight.transportpce.common.StringConstants;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.Network;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.mc.capabilities.McCapabilities;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.network.Nodes;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.network.NodesKey;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.network.nodes.NodeInfo;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev201211.If100GE;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev201211.If100GEODU4;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev201211.If10GE;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev201211.If10GEODU2;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev201211.If10GEODU2e;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev201211.If1GE;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev201211.If1GEODU0;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev201211.If400GE;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev201211.IfOCH;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev201211.IfOCHOTU2EODU2E;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev201211.IfOCHOTU2ODU2;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev201211.IfOCHOTU4ODU4;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev201211.IfOTUCnODUCn;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev201211.IfOtsiOtsigroup;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev201211.SupportedIfCapability;
-import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.Network;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.OpenconfigNodeVersion;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.OpenroadmNodeVersion;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mc.capabilities.McCapabilities;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.network.Nodes;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.network.NodesKey;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.network.nodes.NodeInfo;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.If100GE;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.If100GEODU4;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.If100GEOduflexgfp;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.If10GE;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.If10GEODU2;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.If10GEODU2e;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.If10GEOduflexgfp;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.If1GE;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.If1GEODU0;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.If200GE;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.If200GEOduflexcbr;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.If25GEOduflexcbr;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.If400GE;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.If400GEOduflexcbr;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.If400GEOdufleximp;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.If40GE;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.If40GEODU3;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.If40GEOduflexgfp;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.IfOCH;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.IfOCHOTU1ODU1;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.IfOCHOTU2EODU2E;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.IfOCHOTU2ODU2;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.IfOCHOTU3ODU3;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.IfOCHOTU4ODU4;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.IfOCHOTU4ODU4Regen;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.IfOCHOTU4ODU4Uniregen;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.IfOTU1ODU1;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.IfOTU2ODU2;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.IfOTU3ODU3;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.IfOTU4ODU4;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.IfOTUCnODUCn;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.IfOTUCnODUCnRegen;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.IfOTUCnODUCnUniregen;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.IfOtsiOtsigroup;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.IfOtsiOtucnOducn;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.SupportedIfCapability;
+import org.opendaylight.yangtools.binding.DataObjectIdentifier;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MappingUtilsImpl implements MappingUtils {
+@Component
+public final class MappingUtilsImpl implements MappingUtils {
 
     private static final Logger LOG = LoggerFactory.getLogger(MappingUtilsImpl.class);
 
+    private static final ImmutableMap<String, SupportedIfCapability> CAP_TYPE_MAP =
+        ImmutableMap.<String, SupportedIfCapability>builder()
+            .put("If1GE{qname=(http://org/openroadm/port/types?revision=2018-10-19)if-1GE}", If1GE.VALUE)
+            .put("If1GE{qname=(http://org/openroadm/port/types?revision=2020-03-27)if-1GE}", If1GE.VALUE)
+            .put("If1GE{qname=(http://org/openroadm/port/types?revision=2023-05-26)if-1GE}", If1GE.VALUE)
+            .put("If1GEODU0{qname=(http://org/openroadm/port/types?revision=2018-10-19)if-1GE-ODU0}", If1GEODU0.VALUE)
+            .put("If1GEODU0{qname=(http://org/openroadm/port/types?revision=2020-03-27)if-1GE-ODU0}", If1GEODU0.VALUE)
+            .put("If1GEODU0{qname=(http://org/openroadm/port/types?revision=2023-05-26)if-1GE-ODU0}", If1GEODU0.VALUE)
+            .put("If10GE{qname=(http://org/openroadm/port/types?revision=2018-10-19)if-10GE}", If10GE.VALUE)
+            .put("If10GE{qname=(http://org/openroadm/port/types?revision=2020-03-27)if-10GE}", If10GE.VALUE)
+            .put("If10GE{qname=(http://org/openroadm/port/types?revision=2023-05-26)if-10GE}", If10GE.VALUE)
+            .put("If10GEODU2{qname=(http://org/openroadm/port/types?revision=2018-10-19)if-10GE-ODU2}",
+                If10GEODU2.VALUE)
+            .put("If10GEODU2{qname=(http://org/openroadm/port/types?revision=2020-03-27)if-10GE-ODU2}",
+                If10GEODU2.VALUE)
+            .put("If10GEODU2{qname=(http://org/openroadm/port/types?revision=2023-05-26)if-10GE-ODU2}",
+                If10GEODU2.VALUE)
+            .put("If10GEODU2e{qname=(http://org/openroadm/port/types?revision=2018-10-19)if-10GE-ODU2e}",
+                If10GEODU2e.VALUE)
+            .put("If10GEODU2e{qname=(http://org/openroadm/port/types?revision=2020-03-27)if-10GE-ODU2e}",
+                If10GEODU2e.VALUE)
+            .put("If10GEODU2e{qname=(http://org/openroadm/port/types?revision=2023-05-26)if-10GE-ODU2e}",
+                If10GEODU2e.VALUE)
+            .put("If10GEoduflexgfp{qname=(http://org/openroadm/port/types?revision=2020-03-27)if-10GE-oduflexgfp}",
+                If10GEOduflexgfp.VALUE)
+            .put("If10GEoduflexgfp{qname=(http://org/openroadm/port/types?revision=2023-05-26)if-10GE-oduflexgfp}",
+                If10GEOduflexgfp.VALUE)
+            .put("If25GEoduflexcbr{qname=(http://org/openroadm/port/types?revision=2020-03-27)if-25GE-oduflexcbr}",
+                If25GEOduflexcbr.VALUE)
+            .put("If25GEoduflexcbr{qname=(http://org/openroadm/port/types?revision=2023-05-26)if-25GE-oduflexcbr}",
+                If25GEOduflexcbr.VALUE)
+            .put("If40GE{qname=(http://org/openroadm/port/types?revision=2018-10-19)if-40GE}", If40GE.VALUE)
+            .put("If40GE{qname=(http://org/openroadm/port/types?revision=2020-03-27)if-40GE}", If40GE.VALUE)
+            .put("If40GE{qname=(http://org/openroadm/port/types?revision=2023-05-26)if-40GE}", If40GE.VALUE)
+            .put("If40GEODU3{qname=(http://org/openroadm/port/types?revision=2018-10-19)if-40GE-ODU3}",
+                If40GEODU3.VALUE)
+            .put("If40GEODU3{qname=(http://org/openroadm/port/types?revision=2020-03-27)if-40GE-ODU3}",
+                If40GEODU3.VALUE)
+            .put("If40GEODU3{qname=(http://org/openroadm/port/types?revision=2023-05-26)if-40GE-ODU3}",
+                If40GEODU3.VALUE)
+            .put("If40GEoduflexgfp{qname=(http://org/openroadm/port/types?revision=2020-03-27)if-40GE-oduflexgfp}",
+                If40GEOduflexgfp.VALUE)
+            .put("If40GEoduflexgfp{qname=(http://org/openroadm/port/types?revision=2023-05-26)if-40GE-oduflexgfp}",
+                If40GEOduflexgfp.VALUE)
+            .put("If100GE{qname=(http://org/openroadm/port/types?revision=2018-10-19)if-100GE}", If100GE.VALUE)
+            .put("If100GE{qname=(http://org/openroadm/port/types?revision=2020-03-27)if-100GE}", If100GE.VALUE)
+            .put("If100GE{qname=(http://org/openroadm/port/types?revision=2023-05-26)if-100GE}", If100GE.VALUE)
+            .put("If100GEODU4{qname=(http://org/openroadm/port/types?revision=2018-10-19)if-100GE-ODU4}",
+                If100GEODU4.VALUE)
+            .put("If100GEODU4{qname=(http://org/openroadm/port/types?revision=2020-03-27)if-100GE-ODU4}",
+                If100GEODU4.VALUE)
+            .put("If100GEODU4{qname=(http://org/openroadm/port/types?revision=2023-05-26)if-100GE-ODU4}",
+                If100GEODU4.VALUE)
+            .put("If100GEoduflexgfp{qname=(http://org/openroadm/port/types?revision=2020-03-27)if-100GE-oduflexgfp}",
+                If100GEOduflexgfp.VALUE)
+            .put("If100GEoduflexgfp{qname=(http://org/openroadm/port/types?revision=2023-05-26)if-100GE-oduflexgfp}",
+                If100GEOduflexgfp.VALUE)
+            .put("If200GE{qname=(http://org/openroadm/port/types?revision=2020-03-27)if-200GE}", If200GE.VALUE)
+            .put("If200GE{qname=(http://org/openroadm/port/types?revision=2023-05-26)if-200GE}", If200GE.VALUE)
+            .put("If200GEoduflexcbr{qname=(http://org/openroadm/port/types?revision=2020-03-27)if-200GE-oduflexcbr}",
+                If200GEOduflexcbr.VALUE)
+            .put("If200GEoduflexcbr{qname=(http://org/openroadm/port/types?revision=2023-05-26)if-200GE-oduflexcbr}",
+                If200GEOduflexcbr.VALUE)
+            .put("If400GE{qname=(http://org/openroadm/port/types?revision=2020-03-27)if-400GE}", If400GE.VALUE)
+            .put("If400GE{qname=(http://org/openroadm/port/types?revision=2023-05-26)if-400GE}", If400GE.VALUE)
+            .put("If400GEodufleximp{qname=(http://org/openroadm/port/types?revision=2020-03-27)if-400GE-odufleximp}",
+                If400GEOdufleximp.VALUE)
+            .put("If400GEodufleximp{qname=(http://org/openroadm/port/types?revision=2023-05-26)if-400GE-odufleximp}",
+                If400GEOdufleximp.VALUE)
+            .put("If400GEoduflexcbr{qname=(http://org/openroadm/port/types?revision=2020-03-27)if-400GE-oduflexcbr}",
+                If400GEOduflexcbr.VALUE)
+            .put("If400GEoduflexcbr{qname=(http://org/openroadm/port/types?revision=2023-05-26)if-400GE-oduflexcbr}",
+                If400GEOduflexcbr.VALUE)
+            .put("IfOTU1ODU1{qname=(http://org/openroadm/port/types?revision=2018-10-19)if-OTU1-ODU1}",
+                IfOTU1ODU1.VALUE)
+            .put("IfOTU1ODU1{qname=(http://org/openroadm/port/types?revision=2020-03-27)if-OTU1-ODU1}",
+                IfOTU1ODU1.VALUE)
+            .put("IfOTU1ODU1{qname=(http://org/openroadm/port/types?revision=2023-05-26)if-OTU1-ODU1}",
+                IfOTU1ODU1.VALUE)
+            .put("IfOTU2ODU2{qname=(http://org/openroadm/port/types?revision=2018-10-19)if-OTU2-ODU2}",
+                IfOTU2ODU2.VALUE)
+            .put("IfOTU2ODU2{qname=(http://org/openroadm/port/types?revision=2020-03-27)if-OTU2-ODU2}",
+                IfOTU2ODU2.VALUE)
+            .put("IfOTU2ODU2{qname=(http://org/openroadm/port/types?revision=2023-05-26)if-OTU2-ODU2}",
+                IfOTU2ODU2.VALUE)
+            .put("IfOTU3ODU3{qname=(http://org/openroadm/port/types?revision=2018-10-19)if-OTU3-ODU3}",
+                IfOTU3ODU3.VALUE)
+            .put("IfOTU3ODU3{qname=(http://org/openroadm/port/types?revision=2020-03-27)if-OTU3-ODU3}",
+                IfOTU3ODU3.VALUE)
+            .put("IfOTU3ODU3{qname=(http://org/openroadm/port/types?revision=2023-05-26)if-OTU3-ODU3}",
+                IfOTU3ODU3.VALUE)
+            .put("IfOTU4ODU4{qname=(http://org/openroadm/port/types?revision=2020-03-27)if-OTU4-ODU4}",
+                IfOTU4ODU4.VALUE)
+            .put("IfOTU4ODU4{qname=(http://org/openroadm/port/types?revision=2023-05-26)if-OTU4-ODU4}",
+                IfOTU4ODU4.VALUE)
+            .put("IfOtsiOtsigroup{qname=(http://org/openroadm/port/types?revision=2020-03-27)if-otsi-otsigroup}",
+                IfOtsiOtsigroup.VALUE)
+            .put("IfOtsiOtsigroup{qname=(http://org/openroadm/port/types?revision=2023-05-26)if-otsi-otsigroup}",
+                IfOtsiOtsigroup.VALUE)
+            .put("IfOCH{qname=(http://org/openroadm/port/types?revision=2018-10-19)if-OCH}", IfOCH.VALUE)
+            .put("IfOCH{qname=(http://org/openroadm/port/types?revision=2020-03-27)if-OCH}", IfOCH.VALUE)
+            .put("IfOCH{qname=(http://org/openroadm/port/types?revision=2023-05-26)if-OCH}", IfOCH.VALUE)
+            .put("IfOchOTU1ODU1{qname=(http://org/openroadm/port/types?revision=2018-10-19)if-OCH-OTU1-ODU1}",
+                IfOCHOTU1ODU1.VALUE)
+            .put("IfOchOTU1ODU1{qname=(http://org/openroadm/port/types?revision=2020-03-27)if-OCH-OTU1-ODU1}",
+                IfOCHOTU1ODU1.VALUE)
+            .put("IfOchOTU1ODU1{qname=(http://org/openroadm/port/types?revision=2023-05-26)if-OCH-OTU1-ODU1}",
+                IfOCHOTU1ODU1.VALUE)
+            .put("IfOchOTU2ODU2{qname=(http://org/openroadm/port/types?revision=2018-10-19)if-OCH-OTU2-ODU2}",
+                IfOCHOTU2ODU2.VALUE)
+            .put("IfOchOTU2ODU2{qname=(http://org/openroadm/port/types?revision=2020-03-27)if-OCH-OTU2-ODU2}",
+                IfOCHOTU2ODU2.VALUE)
+            .put("IfOchOTU2ODU2{qname=(http://org/openroadm/port/types?revision=2023-05-26)if-OCH-OTU2-ODU2}",
+                IfOCHOTU2ODU2.VALUE)
+            .put("IfOchOTU2EODU2E{qname=(http://org/openroadm/port/types?revision=2018-10-19)if-OCH-OTU2E-ODU2E}",
+                IfOCHOTU2EODU2E.VALUE)
+            .put("IfOchOTU2EODU2E{qname=(http://org/openroadm/port/types?revision=2020-03-27)if-OCH-OTU2E-ODU2E}",
+                IfOCHOTU2EODU2E.VALUE)
+            .put("IfOchOTU2EODU2E{qname=(http://org/openroadm/port/types?revision=2023-05-26)if-OCH-OTU2E-ODU2E}",
+                IfOCHOTU2EODU2E.VALUE)
+            .put("IfOchOTU3ODU3{qname=(http://org/openroadm/port/types?revision=2018-10-19)if-OCH-OTU3-ODU3}",
+                IfOCHOTU3ODU3.VALUE)
+            .put("IfOchOTU3ODU3{qname=(http://org/openroadm/port/types?revision=2020-03-27)if-OCH-OTU3-ODU3}",
+                IfOCHOTU3ODU3.VALUE)
+            .put("IfOchOTU3ODU3{qname=(http://org/openroadm/port/types?revision=2023-05-26)if-OCH-OTU3-ODU3}",
+                IfOCHOTU3ODU3.VALUE)
+            .put("IfOCHOTU4ODU4{qname=(http://org/openroadm/port/types?revision=2018-10-19)if-OCH-OTU4-ODU4}",
+                IfOCHOTU4ODU4.VALUE)
+            .put("IfOCHOTU4ODU4{qname=(http://org/openroadm/port/types?revision=2020-03-27)if-OCH-OTU4-ODU4}",
+                IfOCHOTU4ODU4.VALUE)
+            .put("IfOCHOTU4ODU4{qname=(http://org/openroadm/port/types?revision=2023-05-26)if-OCH-OTU4-ODU4}",
+                IfOCHOTU4ODU4.VALUE)
+            .put("IfOCHOTU4ODU4regen{qname=(http://org/openroadm/port/types?revision=2018-10-19)"
+                + "if-OCH-OTU4-ODU4-regen}", IfOCHOTU4ODU4Regen.VALUE)
+            .put("IfOCHOTU4ODU4uniregen{qname=(http://org/openroadm/port/types?revision=2018-10-19)"
+                + "if-OCH-OTU4-ODU4-uniregen}", IfOCHOTU4ODU4Uniregen.VALUE)
+            .put("IfOTUCnODUCn{qname=(http://org/openroadm/port/types?revision=2020-03-27)"
+                + "if-OTUCn-ODUCn}", IfOTUCnODUCn.VALUE)
+            .put("IfOTUCnODUCn{qname=(http://org/openroadm/port/types?revision=2023-05-26)"
+                + "if-OTUCn-ODUCn}", IfOTUCnODUCn.VALUE)
+            .put("IfOTUCnODUCnregen{qname=(http://org/openroadm/port/types?revision=2020-03-27)"
+                + "if-OTUCn-ODUCn-regen}", IfOTUCnODUCnRegen.VALUE)
+            .put("IfOTUCnODUCnregen{qname=(http://org/openroadm/port/types?revision=2023-05-26)"
+                + "if-OTUCn-ODUCn-regen}", IfOTUCnODUCnRegen.VALUE)
+            .put("IfOTUCnODUCnuniregen{qname=(http://org/openroadm/port/types?revision=2023-05-26)"
+                + "if-OTUCn-ODUCn-uniregen}", IfOTUCnODUCnUniregen.VALUE)
+            .put("IfOtsiOtucnOducn{qname=(http://org/openroadm/port/types?revision=2020-03-27)"
+                + "if-otsi-otucn-oducn}", IfOtsiOtucnOducn.VALUE)
+            .put("IfOtsiOtucnOducn{qname=(http://org/openroadm/port/types?revision=2023-05-26)"
+                + "if-otsi-otucn-oducn}", IfOtsiOtucnOducn.VALUE)
+            .build();
+
+   //This map will expanded for other interface capabilities
+    private static final ImmutableMap<String, SupportedIfCapability> OC_CAP_TYPE_MAP =
+            ImmutableMap.<String, SupportedIfCapability>builder()
+                    .put("if-100GE-ODU4", If100GEODU4.VALUE)
+                    .put("if-OTUCN-ODUCN", IfOTUCnODUCn.VALUE).build();
+
+    private static final ImmutableMap<String, String> OC_CAP_MAP =
+            ImmutableMap.<String, String>builder()
+                    .put("PROT_100GE", "100GE")
+                    .put("PROT_ODU4", "ODU4")
+                    .put("PROT_OTUCN", "OTUCN")
+                    .put("PROT_ODUCN", "ODUCN").build();
     private final DataBroker dataBroker;
 
-    private static Map<String, Class<? extends SupportedIfCapability>> capTypeClassMap = new HashMap<>() {
-        {
-            put("IfOtsiOtsigroup", IfOtsiOtsigroup.class);
-            put("IfOTUCnODUCn", IfOTUCnODUCn.class);
-            put("IfOCHOTU4ODU4", IfOCHOTU4ODU4.class);
-            put("IfOCH", IfOCH.class);
-            put("If100GEODU4", If100GEODU4.class);
-            put("If10GEODU2e", If10GEODU2e.class);
-            put("If10GEODU2", If10GEODU2.class);
-            put("If1GEODU0", If1GEODU0.class);
-            put("If400GE", If400GE.class);
-            put("If100GE", If100GE.class);
-            put("If10GE", If10GE.class);
-            put("If1GE", If1GE.class);
-            put("IfOCHOTU2EODU2E", IfOCHOTU2EODU2E.class);
-            put("IfOCHOTU2ODU2", IfOCHOTU2ODU2.class);
-        }
-    };
-
-    public MappingUtilsImpl(DataBroker dataBroker) {
-
-        this.dataBroker = dataBroker;
-
+    @Activate
+    public MappingUtilsImpl(@Reference DataBroker dataBroker) {
+        this.dataBroker = requireNonNull(dataBroker);
     }
 
     public String getOpenRoadmVersion(String nodeId) {
         /*
          * Getting physical mapping corresponding to logical connection point
          */
-        InstanceIdentifier<NodeInfo> nodeInfoIID = InstanceIdentifier.builder(Network.class).child(Nodes.class,
-                new NodesKey(nodeId)).child(NodeInfo.class).build();
+        DataObjectIdentifier<NodeInfo> nodeInfoIID = DataObjectIdentifier.builder(Network.class)
+                .child(Nodes.class, new NodesKey(nodeId)).child(NodeInfo.class)
+                .build();
         try (ReadTransaction readTx = dataBroker.newReadOnlyTransaction()) {
             Optional<NodeInfo> nodeInfoObj =
                     readTx.read(LogicalDatastoreType.CONFIGURATION, nodeInfoIID).get();
             if (nodeInfoObj.isPresent()) {
-                NodeInfo nodInfo = nodeInfoObj.get();
-                switch (nodInfo.getOpenroadmVersion()) {
+                NodeInfo nodInfo = nodeInfoObj.orElseThrow();
+                OpenroadmNodeVersion version = nodInfo.getOpenroadmVersion();
+                if (version == null) {
+                    LOG.warn("OpenRoadm version is null for nodeId {}", nodeId);
+                    return null;
+                }
+                switch (version) {
                     case _71:
                         return StringConstants.OPENROADM_DEVICE_VERSION_7_1;
                     case _221:
                         return StringConstants.OPENROADM_DEVICE_VERSION_2_2_1;
-                    case _121:
-                        return StringConstants.OPENROADM_DEVICE_VERSION_1_2_1;
                     default:
                         LOG.warn("unknown openROADM device version");
                 }
@@ -102,6 +278,50 @@ public class MappingUtilsImpl implements MappingUtils {
         return null;
     }
 
+    /**
+     * Retrieves the OpenConfig version string for the specified node ID.
+     * This method reads the NodeInfo data from the configuration datastore
+     * using the given nodeId, then checks the OpenConfig version.
+     * It returns a corresponding version string constant if recognized.
+     * If the OpenConfig version is unknown, or the node info is not found,
+     * it logs warnings. In case of read failures, it logs errors.
+     *
+     * @param nodeId the identifier of the node to query
+     * @return a string representing the OpenConfig device version if found; otherwise null
+     */
+    public String getOpenConfigVersion(String nodeId) {
+        /*
+         * Getting physical mapping corresponding to logical connection point
+         */
+        DataObjectIdentifier<NodeInfo> nodeInfoIID = DataObjectIdentifier.builder(Network.class)
+                .child(Nodes.class, new NodesKey(nodeId)).child(NodeInfo.class)
+                .build();
+        try (ReadTransaction readTx = dataBroker.newReadOnlyTransaction()) {
+            Optional<NodeInfo> nodeInfoObj =
+                    readTx.read(LogicalDatastoreType.CONFIGURATION, nodeInfoIID).get();
+            if (nodeInfoObj.isPresent()) {
+                NodeInfo nodInfo = nodeInfoObj.orElseThrow();
+                OpenconfigNodeVersion version = nodInfo.getOpenconfigVersion();
+                if (version == null) {
+                    LOG.warn("OpenConfig version is null for nodeId {}", nodeId);
+                    return null;
+                }
+                switch (version) {
+                    case _200:
+                        return StringConstants.OPENCONFIG_DEVICE_VERSION_2_0_0;
+                    case PROTOTYPE:
+                    default:
+                        LOG.warn("unknown openConfig device version");
+                }
+            } else {
+                LOG.warn("Could not find mapping for nodeId {}", nodeId);
+            }
+        } catch (InterruptedException | ExecutionException ex) {
+            LOG.error("Unable to read mapping for nodeId {}", nodeId, ex);
+        }
+        return null;
+    }
+
     /*
     * (non-Javadoc)
     *
@@ -110,14 +330,15 @@ public class MappingUtilsImpl implements MappingUtils {
     @Override
     public List<McCapabilities> getMcCapabilitiesForNode(String nodeId) {
         List<McCapabilities> mcCapabilities = new ArrayList<>();
-        InstanceIdentifier<Nodes> nodePortMappingIID = InstanceIdentifier.builder(Network.class)
-                .child(Nodes.class, new NodesKey(nodeId)).build();
+        DataObjectIdentifier<Nodes> nodePortMappingIID = DataObjectIdentifier.builder(Network.class)
+                .child(Nodes.class, new NodesKey(nodeId))
+                .build();
         try (ReadTransaction readTx = this.dataBroker.newReadOnlyTransaction()) {
             Optional<Nodes> nodePortMapObject = readTx.read(LogicalDatastoreType.CONFIGURATION, nodePortMappingIID)
                     .get();
             if (nodePortMapObject.isPresent()) {
-                LOG.info("Found node {}", nodeId);
-                Nodes node = nodePortMapObject.get();
+                LOG.debug("Found node {}", nodeId);
+                Nodes node = nodePortMapObject.orElseThrow();
                 mcCapabilities.addAll(node.nonnullMcCapabilities().values());
             }
         } catch (ExecutionException e) {
@@ -126,15 +347,41 @@ public class MappingUtilsImpl implements MappingUtils {
             LOG.error("Request interrupted for node {} interrupted", nodeId, e);
             Thread.currentThread().interrupt();
         }
-        LOG.info("Capabilitities for node {}: {}", nodeId, mcCapabilities);
+        LOG.debug("Capabilitities for node {}: {}", nodeId, mcCapabilities);
         return mcCapabilities;
     }
 
-    public static Class<? extends SupportedIfCapability> convertSupIfCapa(String ifCapType) {
-        if (!capTypeClassMap.containsKey(ifCapType)) {
+    public static SupportedIfCapability convertSupIfCapa(String ifCapType) {
+        if (!CAP_TYPE_MAP.containsKey(ifCapType)) {
             LOG.error("supported-if-capability {} not supported", ifCapType);
             return null;
         }
-        return capTypeClassMap.get(ifCapType);
+        return CAP_TYPE_MAP.get(ifCapType);
+    }
+
+    /**
+     * This Method is used to get SupportedIfCapability for openconfig port.
+     * @param ifCapType interface name
+     * @return supportedIf-capability
+     */
+    public static SupportedIfCapability ocConvertSupIfCapa(String ifCapType) {
+        if (!OC_CAP_TYPE_MAP.containsKey(ifCapType)) {
+            LOG.error("supported-if-capability {} not supported", ifCapType);
+            return null;
+        }
+        return OC_CAP_TYPE_MAP.get(ifCapType);
+    }
+
+    /**
+     * This Method is used to get interface type from metadata.
+     * @param interfaceType interface type
+     * @return interface name
+     */
+    public static String getInterfaceType(String interfaceType) {
+        if (!OC_CAP_MAP.containsKey(interfaceType)) {
+            LOG.error("Interface type {} not found", interfaceType);
+            return null;
+        }
+        return OC_CAP_MAP.get(interfaceType);
     }
 }

@@ -8,22 +8,22 @@
 
 package org.opendaylight.transportpce.pce.gnpy;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220221.Result;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220221.explicit.route.hop.type.NumUnnumHop;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220221.generic.path.properties.path.properties.PathMetric;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220221.generic.path.properties.path.properties.PathRouteObjects;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220221.result.Response;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220221.result.response.response.type.NoPathCase;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220221.result.response.response.type.PathCase;
+import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.Result;
+import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.explicit.route.hop.type.NumUnnumHop;
+import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.generic.path.properties.path.properties.PathMetric;
+import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.generic.path.properties.path.properties.PathRouteObjects;
+import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.result.Response;
+import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.result.response.response.type.NoPathCase;
+import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.result.response.response.type.PathCase;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.node.types.rev210528.NodeIdType;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.constraints.Include;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.constraints.IncludeBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.routing.constraints.HardConstraints;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.routing.constraints.HardConstraintsBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.constraints.Include;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.constraints.IncludeBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.routing.constraints.HardConstraints;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.routing.constraints.HardConstraintsBuilder;
+import org.opendaylight.yangtools.yang.common.Decimal64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,7 +48,6 @@ public class GnpyResult {
         }
         LOG.info("The response id is {}; ", responses.get(0).getResponseId());
         this.response = responses.get(0);
-        analyzeResult();
     }
 
     public boolean getPathFeasibility() {
@@ -78,8 +77,8 @@ public class GnpyResult {
                             .getPathProperties().nonnullPathMetric().values();
                     LOG.info("GNPy : path is not feasible : {}", noPathType);
                     for (PathMetric pathMetric : pathMetricList) {
-                        String metricType = pathMetric.getMetricType().getSimpleName();
-                        BigDecimal accumulativeValue = pathMetric.getAccumulativeValue();
+                        String metricType = pathMetric.getMetricType().toString();
+                        Decimal64 accumulativeValue = pathMetric.getAccumulativeValue();
                         LOG.info("Metric type {} // AccumulatriveValue {}", metricType, accumulativeValue);
                     }
                 }
@@ -90,8 +89,8 @@ public class GnpyResult {
                         .getPathProperties().nonnullPathMetric().values();
                 // Path metrics
                 for (PathMetric pathMetric : pathMetricList) {
-                    String metricType = pathMetric.getMetricType().getSimpleName();
-                    BigDecimal accumulativeValue = pathMetric.getAccumulativeValue();
+                    String metricType = pathMetric.getMetricType().toString();
+                    Decimal64 accumulativeValue = pathMetric.getAccumulativeValue();
                     LOG.info("Metric type {} // AccumulatriveValue {}", metricType, accumulativeValue);
                 }
                 // Path route objects

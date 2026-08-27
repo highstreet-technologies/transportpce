@@ -12,23 +12,40 @@ and is available at http://www.eclipse.org/legal/epl-v10.html INTERNAL
   <parent>
     <groupId>org.opendaylight.odlparent</groupId>
     <artifactId>single-feature-parent</artifactId>
-    <version>9.0.13</version>
+    <version>14.3.1</version>
     <relativePath/>
   </parent>
 
   <groupId>org.opendaylight.transportpce</groupId>
   <artifactId>odl-transportpce</artifactId>
-  <version>5.0.0-SNAPSHOT</version>
+  <version>13.0.0-SNAPSHOT</version>
   <packaging>feature</packaging>
   <name>OpenDaylight :: transportpce</name>
 
   <properties>
-    <netconf.version>2.0.14</netconf.version>
+    <mdsal.version>16.0.3</mdsal.version>
+    <netconf.version>11.0.0</netconf.version>
+    <transportpce.models.version>24.0.1</transportpce.models.version>
     <configfile.directory>etc/opendaylight/karaf</configfile.directory>
+    <sft.skip>false</sft.skip>
   </properties>
 
   <dependencyManagement>
     <dependencies>
+      <dependency>
+        <groupId>org.opendaylight.transportpce.models</groupId>
+        <artifactId>transportpce-models-artifacts</artifactId>
+        <version>${transportpce.models.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.opendaylight.mdsal</groupId>
+        <artifactId>mdsal-artifacts</artifactId>
+        <version>${mdsal.version}</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
       <dependency>
         <groupId>org.opendaylight.netconf</groupId>
         <artifactId>netconf-artifacts</artifactId>
@@ -41,24 +58,10 @@ and is available at http://www.eclipse.org/legal/epl-v10.html INTERNAL
 
   <dependencies>
     <dependency>
-      <groupId>${project.groupId}.ordmodels</groupId>
-      <artifactId>transportpce-ordmodels-common</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>${project.groupId}.ordmodels</groupId>
-      <artifactId>transportpce-ordmodels-device</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>${project.groupId}.ordmodels</groupId>
-      <artifactId>transportpce-ordmodels-network</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>${project.groupId}.ordmodels</groupId>
-      <artifactId>transportpce-ordmodels-service</artifactId>
-      <version>${project.version}</version>
+      <groupId>org.opendaylight.transportpce.models</groupId>
+      <artifactId>odl-openroadm-models</artifactId>
+      <classifier>features</classifier>
+      <type>xml</type>
     </dependency>
     <dependency>
       <groupId>org.opendaylight.transportpce</groupId>
@@ -87,6 +90,13 @@ and is available at http://www.eclipse.org/legal/epl-v10.html INTERNAL
     </dependency>
     <dependency>
       <groupId>org.opendaylight.transportpce</groupId>
+      <artifactId>transportpce-olm</artifactId>
+      <version>${project.version}</version>
+      <type>cfg</type>
+      <classifier>config</classifier>
+    </dependency>
+    <dependency>
+      <groupId>org.opendaylight.transportpce</groupId>
       <artifactId>transportpce-pce</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -97,13 +107,13 @@ and is available at http://www.eclipse.org/legal/epl-v10.html INTERNAL
     </dependency>
     <dependency>
       <groupId>org.opendaylight.netconf</groupId>
-      <artifactId>odl-restconf</artifactId>
+      <artifactId>odl-netconf-connector</artifactId>
       <classifier>features</classifier>
       <type>xml</type>
     </dependency>
     <dependency>
       <groupId>org.opendaylight.netconf</groupId>
-      <artifactId>odl-netconf-connector</artifactId>
+      <artifactId>odl-restconf-all</artifactId>
       <classifier>features</classifier>
       <type>xml</type>
     </dependency>
@@ -114,39 +124,4 @@ and is available at http://www.eclipse.org/legal/epl-v10.html INTERNAL
       <type>xml</type>
     </dependency>
   </dependencies>
-
-  <!-- skipping test since this is an umbrella project / folder -->
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <configuration>
-          <skipTests>true</skipTests>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>build-helper-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>attach-artifact</id>
-            <phase>test</phase>
-            <goals>
-              <goal>attach-artifact</goal>
-            </goals>
-            <configuration>
-              <artifacts>
-                <artifact>
-                  <file>${basedir}/src/main/resources/org.opendaylight.transportpce.cfg</file>
-                  <type>cfg</type>
-                  <classifier>config</classifier>
-                </artifact>
-              </artifacts>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
 </project>

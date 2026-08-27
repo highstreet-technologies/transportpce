@@ -11,21 +11,34 @@
   <parent>
     <groupId>io.lighty.core</groupId>
     <artifactId>lighty-app-parent</artifactId>
-    <version>15.1.1-SNAPSHOT</version>
+    <version>21.1.0</version>
     <relativePath/>
   </parent>
 
   <groupId>io.lighty.controllers</groupId>
   <artifactId>tpce</artifactId>
-  <version>5.0.0-SNAPSHOT</version>
+  <version>13.0.0-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <properties>
     <application.main.class>io.lighty.controllers.tpce.Main</application.main.class>
     <application.attach.zip>true</application.attach.zip>
     <maven.deploy.skip>true</maven.deploy.skip>
-    <transportpce.version>5.0.0-SNAPSHOT</transportpce.version>
+    <transportpce.version>13.0.0-SNAPSHOT</transportpce.version>
+    <transportpce.models.version>24.0.1</transportpce.models.version>
   </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.opendaylight.transportpce.models</groupId>
+        <artifactId>transportpce-models-artifacts</artifactId>
+        <version>${transportpce.models.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <dependencies>
     <!-- for parsing command line arguments -->
@@ -36,8 +49,47 @@
     </dependency>
     <!-- TPCE Models - BEGIN -->
     <dependency>
+      <groupId>org.opendaylight.transportpce.models</groupId>
+      <artifactId>openroadm-common-2.2.1</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.opendaylight.transportpce.models</groupId>
+      <artifactId>openroadm-common-7.1.0</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.opendaylight.transportpce.models</groupId>
+      <artifactId>openroadm-common-17.1.0</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.opendaylight.transportpce.models</groupId>
+      <artifactId>openroadm-device-2.2.1</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.opendaylight.transportpce.models</groupId>
+      <artifactId>openroadm-device-7.1.0</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.opendaylight.transportpce.models</groupId>
+      <artifactId>openroadm-network-17.1.0</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.opendaylight.transportpce.models</groupId>
+      <artifactId>openroadm-service-17.1.0</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.opendaylight.transportpce.models</groupId>
+      <artifactId>tapi-2.4.0</artifactId>
+    </dependency>
+    <!-- TPCE Models - END -->
+    <!-- TPCE bundles - BEGIN -->
+    <dependency>
       <groupId>org.opendaylight.transportpce</groupId>
       <artifactId>transportpce-api</artifactId>
+      <version>${transportpce.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.opendaylight.transportpce</groupId>
+      <artifactId>transportpce-common</artifactId>
       <version>${transportpce.version}</version>
     </dependency>
     <dependency>
@@ -45,8 +97,6 @@
       <artifactId>transportpce-networkmodel</artifactId>
       <version>${transportpce.version}</version>
     </dependency>
-    <!-- TPCE Models - END -->
-    <!-- TPCE bundles - BEGIN -->
     <dependency>
       <groupId>org.opendaylight.transportpce</groupId>
       <artifactId>transportpce-pce</artifactId>
@@ -80,6 +130,10 @@
     <dependency>
       <groupId>io.lighty.modules</groupId>
       <artifactId>lighty-restconf-nb-community</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.lighty.modules</groupId>
+      <artifactId>lighty-openapi</artifactId>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -139,6 +193,7 @@
             **/module-info.java
           </excludes>
           <consoleOutput>true</consoleOutput>
+          <propertyExpansion>checkstyle.violationSeverity=error</propertyExpansion>
         </configuration>
         <executions>
           <execution>

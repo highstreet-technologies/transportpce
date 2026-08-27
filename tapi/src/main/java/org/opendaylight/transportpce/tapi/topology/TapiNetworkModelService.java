@@ -7,7 +7,9 @@
  */
 package org.opendaylight.transportpce.tapi.topology;
 
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.network.Nodes;
+import org.opendaylight.transportpce.tapi.openroadm.topology.datastore.OpenRoadmTopologyRepository;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mapping.Mapping;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.network.Nodes;
 
 public interface TapiNetworkModelService {
 
@@ -16,12 +18,10 @@ public interface TapiNetworkModelService {
      *
      * @param orNodeId
      *     unique node ID of new OpenROADM node
-     * @param orNodeVersion
-     *     OpenROADM node version
      * @param node
      *     OpenRoadm node
      */
-    void createTapiNode(String orNodeId, int orNodeVersion, Nodes node);
+    void createTapiNode(String orNodeId, Nodes node, OpenRoadmTopologyRepository topologyRepository);
 
     /**
      * Delete TAPI node in topologies and update corresponding TAPI context objects.
@@ -31,4 +31,16 @@ public interface TapiNetworkModelService {
      *
      */
     void deleteTapinode(String nodeId);
+
+    /**
+     * Update termination point, and if need, be associated links, of
+     * openroadm-topology and otn-topology after a change on a given mapping.
+     *
+     * @param nodeId
+     *            unique node ID of OpenROADM node at the origin of the NETCONF
+     *            notification change.
+     * @param mapping
+     *            updated mapping following the device notification change.
+     */
+    void updateTapiTopology(String nodeId, Mapping mapping);
 }

@@ -5,30 +5,28 @@
  * terms of the Eclipse Public License v1.0 which accompanies this distribution,
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
-
 package org.opendaylight.transportpce.test.stub;
 
 import java.util.Optional;
-import javax.annotation.Nonnull;
+import org.eclipse.jdt.annotation.NonNull;
 import org.opendaylight.mdsal.binding.api.BindingService;
 import org.opendaylight.mdsal.binding.api.DataBroker;
 import org.opendaylight.mdsal.binding.api.MountPoint;
-import org.opendaylight.mdsal.binding.api.RpcConsumerRegistry;
-import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
+import org.opendaylight.mdsal.binding.api.RpcService;
+import org.opendaylight.yangtools.binding.DataObjectIdentifier;
 
 public class MountPointStub implements MountPoint {
 
     private DataBroker dataBroker;
 
-    private RpcConsumerRegistry rpcConsumerRegistry;
+    private RpcService rpcService;
 
     public MountPointStub(DataBroker dataBroker) {
         this.dataBroker = dataBroker;
     }
 
-    public void setRpcConsumerRegistry(
-            RpcConsumerRegistry rpcConsumerRegistry) {
-        this.rpcConsumerRegistry = rpcConsumerRegistry;
+    public void setRpcService(RpcService rpcService) {
+        this.rpcService = rpcService;
     }
 
     @Override
@@ -37,15 +35,15 @@ public class MountPointStub implements MountPoint {
         if (service.isInstance(dataBroker)) {
             return Optional.ofNullable((T) dataBroker);
         }
-        if (service.isInstance(rpcConsumerRegistry)) {
-            return Optional.ofNullable((T) rpcConsumerRegistry);
+        if (service.isInstance(rpcService)) {
+            return Optional.ofNullable((T) rpcService);
         }
         return Optional.empty();
     }
 
-    @Nonnull
     @Override
-    public InstanceIdentifier<?> getIdentifier() {
+    public @NonNull DataObjectIdentifier<?> getIdentifier() {
         throw new UnsupportedOperationException();
     }
+
 }

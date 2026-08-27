@@ -20,27 +20,27 @@ import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
 import org.opendaylight.transportpce.common.Timeouts;
 import org.opendaylight.transportpce.common.network.NetworkTransactionService;
 import org.opendaylight.transportpce.pce.constraints.PceConstraints.ResourcePair;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.PathComputationRequestInput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.PathComputationRequestInput;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.node.types.rev210528.NodeIdType;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.Constraints;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.constraints.CoRouting;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.constraints.Diversity;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.constraints.Exclude;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.constraints.Include;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.diversity.existing.service.constraints.ServiceIdentifierList;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.diversity.existing.service.constraints.ServiceIdentifierListKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.routing.constraints.HardConstraints;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.routing.constraints.SoftConstraints;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.service.applicability.g.ServiceApplicability;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.PathDescription;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.path.description.atoz.direction.AToZ;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.pce.resource.resource.resource.Link;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.pce.resource.resource.resource.Node;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.Constraints;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.constraints.CoRouting;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.constraints.Diversity;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.constraints.Exclude;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.constraints.Include;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.diversity.existing.service.constraints.ServiceIdentifierList;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.diversity.existing.service.constraints.ServiceIdentifierListKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.routing.constraints.HardConstraints;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.routing.constraints.SoftConstraints;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.service.applicability.g.ServiceApplicability;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.PathDescription;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.path.description.atoz.direction.AToZ;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.pce.resource.resource.resource.Link;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.pce.resource.resource.resource.Node;
 import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.PceMetric;
 import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.servicepath.rev171017.ServicePathList;
 import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.servicepath.rev171017.service.path.list.ServicePaths;
 import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.servicepath.rev171017.service.path.list.ServicePathsKey;
-import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
+import org.opendaylight.yangtools.binding.DataObjectIdentifier;
 import org.opendaylight.yangtools.yang.common.Uint32;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -111,25 +111,22 @@ public class PceConstraintsCalc {
     private void readExclude(Exclude exclude, PceConstraints constraints) {
         //TODO: Implement other exclude constraints: fiber-bundle, link-identifier
         // and supporting-service-name
-        List<NodeIdType> nodes = exclude.getNodeId();
-        if (nodes != null) {
+        if (exclude.getNodeId() != null) {
             List<String> elementsToExclude = new ArrayList<>();
-            for (NodeIdType node : nodes) {
+            for (NodeIdType node : exclude.getNodeId()) {
                 elementsToExclude.add(node.getValue());
             }
             constraints.setExcludeSupNodes(elementsToExclude);
         }
-        List<Uint32> srlgs = exclude.getSrlgId();
-        if (srlgs != null) {
+        if (exclude.getSrlgId() != null) {
             List<Long> elementsToExclude = new ArrayList<>();
-            for (Uint32 srlg : srlgs) {
+            for (Uint32 srlg : exclude.getSrlgId()) {
                 elementsToExclude.add(srlg.longValue());
             }
             constraints.setExcludeSRLG(elementsToExclude);
         }
-        List<String> sites = exclude.getSite();
-        if (sites != null) {
-            constraints.setExcludeCLLI(exclude.getSite());
+        if (exclude.getSite() != null) {
+            constraints.setExcludeCLLI(new ArrayList<>(exclude.getSite()));
         }
         if (exclude.getFiberBundle() != null || exclude.getLinkIdentifier() != null
             || exclude.getSupportingServiceName() != null) {
@@ -139,21 +136,18 @@ public class PceConstraintsCalc {
     }
 
     private void readInclude(Include include, PceConstraints constraints) {
-        List<NodeIdType> nodes = include.getNodeId();
-        if (nodes != null) {
-            for (NodeIdType node : nodes) {
+        if (include.getNodeId() != null) {
+            for (NodeIdType node : include.getNodeId()) {
                 constraints.setListToInclude(new ResourcePair(PceConstraints.ResourceType.NODE, node.getValue()));
             }
         }
-        List<Uint32> srlgs = include.getSrlgId();
-        if (srlgs != null) {
-            for (Uint32 srlg : srlgs) {
+        if (include.getSrlgId() != null) {
+            for (Uint32 srlg : include.getSrlgId()) {
                 constraints.setListToInclude(new ResourcePair(PceConstraints.ResourceType.SRLG, srlg.toString()));
             }
         }
-        List<String> sites = include.getSite();
-        if (sites != null) {
-            for (String site : sites) {
+        if (include.getSite() != null) {
+            for (String site : include.getSite()) {
                 constraints.setListToInclude(new ResourcePair(PceConstraints.ResourceType.CLLI, site));
             }
         }
@@ -172,15 +166,15 @@ public class PceConstraintsCalc {
         Map<ServiceIdentifierListKey, ServiceIdentifierList> serviceIdList = diversity.getServiceIdentifierList();
         Collection<ServiceIdentifierList> services = serviceIdList.values();
         for (ServiceIdentifierList serviceIdentifier : services) {
-            String serviceId = serviceIdentifier.getServiceIndentifier();
+            String serviceId = serviceIdentifier.getServiceIdentifier();
             ServiceApplicability serviceApplicability = serviceIdentifier.getServiceApplicability();
             Optional<PathDescription> serviceOpt = getPathDescriptionFromDatastore(serviceId);
             if (serviceOpt.isPresent()) {
-                List<String> serviceNodes = getAToZNodeList(serviceOpt.get());
+                List<String> serviceNodes = getAToZNodeList(serviceOpt.orElseThrow());
                 if (serviceApplicability.getNode() && !serviceNodes.isEmpty()) {
                     constraints.setExcludeNodes(serviceNodes);
                 }
-                List<String> serviceLinks = getSRLGList(serviceOpt.get());
+                List<String> serviceLinks = getSRLGList(serviceOpt.orElseThrow());
                 if (serviceApplicability.getLink() && !serviceLinks.isEmpty()) {
                     constraints.setExcludeSrlgLinks(serviceLinks);
                 }
@@ -235,13 +229,14 @@ public class PceConstraintsCalc {
 
     private Optional<PathDescription> getPathDescriptionFromDatastore(String serviceName) {
         Optional<PathDescription> result = Optional.empty();
-        InstanceIdentifier<ServicePaths> pathDescriptionIID = InstanceIdentifier.create(ServicePathList.class)
-                .child(ServicePaths.class, new ServicePathsKey(serviceName));
+        DataObjectIdentifier<ServicePaths> pathDescriptionIID = DataObjectIdentifier.builder(ServicePathList.class)
+                .child(ServicePaths.class, new ServicePathsKey(serviceName))
+                .build();
         try {
             LOG.info("PCE diversity constraints: Getting path description for service {}", serviceName);
             ServicePaths servicePaths =
                 networkTransactionService.read(LogicalDatastoreType.CONFIGURATION, pathDescriptionIID)
-                    .get(Timeouts.DATASTORE_READ, TimeUnit.MILLISECONDS).get();
+                    .get(Timeouts.DATASTORE_READ, TimeUnit.MILLISECONDS).orElseThrow();
             if (servicePaths != null) {
                 PathDescription path = servicePaths.getPathDescription();
                 if (path != null) {

@@ -15,8 +15,9 @@ if [ -z "$USE_ODL_ALT_KARAF_ENV" ]; then
     exit
 fi
 
+echo "build karaf in " $USE_ODL_ALT_KARAF_INSTALL_DIR "with " $USE_ODL_ALT_KARAF_ENV
 . $USE_ODL_ALT_KARAF_ENV
 . ./reflectwarn.sh
 cd  ../$USE_ODL_ALT_KARAF_INSTALL_DIR
-mvn clean install -B -q -s ../tests/odl_settings.xml -DskipTests -Dmaven.javadoc.skip=true
+mvn clean install -B -q -s ../tests/odl_settings.xml -Pq
 ./target/assembly/ressources/post_install_for_tests.sh

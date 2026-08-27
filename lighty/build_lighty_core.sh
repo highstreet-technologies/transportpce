@@ -2,9 +2,9 @@
 
 cd $(dirname "$0")
 cd ..
-git clone https://github.com/PantheonTechnologies/lighty-core.git
-cd lighty-core
-#git checkout master
-git checkout 15.1.x
+git clone https://github.com/PANTHEONtech/lighty.git lighty-repo
+cd lighty-repo
+git checkout main
+#git checkout 19.x
 export JDK_JAVA_OPTIONS="--add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.nio=ALL-UNNAMED"
-mvn clean install -B -U -DskipTests -Dmaven.javadoc.skip=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+mvn clean install -B -U -q -DskipTests -s ../tests/odl_settings.xml -Dmaven.javadoc.skip=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn

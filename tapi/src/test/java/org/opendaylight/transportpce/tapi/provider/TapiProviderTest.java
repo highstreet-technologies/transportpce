@@ -10,101 +10,89 @@ package org.opendaylight.transportpce.tapi.provider;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import com.google.common.util.concurrent.Futures;
+import java.util.Optional;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.opendaylight.mdsal.binding.api.DataBroker;
+import org.opendaylight.mdsal.binding.api.NotificationPublishService;
+import org.opendaylight.mdsal.binding.api.NotificationService;
 import org.opendaylight.mdsal.binding.api.RpcProviderService;
-import org.opendaylight.transportpce.common.network.NetworkTransactionImpl;
+import org.opendaylight.mdsal.binding.api.RpcService;
 import org.opendaylight.transportpce.common.network.NetworkTransactionService;
-import org.opendaylight.transportpce.common.network.RequestProcessor;
+import org.opendaylight.transportpce.networkmodel.service.NetworkModelService;
 import org.opendaylight.transportpce.servicehandler.service.ServiceDataStoreOperations;
 import org.opendaylight.transportpce.tapi.impl.TapiProvider;
-import org.opendaylight.transportpce.tapi.listeners.TapiPceListenerImpl;
-import org.opendaylight.transportpce.tapi.listeners.TapiRendererListenerImpl;
-import org.opendaylight.transportpce.tapi.listeners.TapiServiceHandlerListenerImpl;
-import org.opendaylight.transportpce.tapi.topology.TapiNetconfTopologyListener;
-import org.opendaylight.transportpce.tapi.topology.TapiOrLinkListener;
-import org.opendaylight.transportpce.tapi.topology.TapiPortMappingListener;
-import org.opendaylight.transportpce.tapi.utils.TapiListener;
-import org.opendaylight.transportpce.test.AbstractTest;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.tapinetworkutils.rev210408.TransportpceTapinetworkutilsService;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.OrgOpenroadmServiceService;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev181210.TapiCommonService;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev181210.TapiConnectivityService;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev181210.TapiTopologyService;
+import org.opendaylight.transportpce.tapi.impl.rpc.CreateConnectivityServiceImpl;
+import org.opendaylight.transportpce.tapi.impl.rpc.DeleteConnectivityServiceImpl;
+import org.opendaylight.transportpce.tapi.impl.rpc.GetConnectionDetailsImpl;
+import org.opendaylight.transportpce.tapi.impl.rpc.GetConnectivityServiceDetailsImpl;
+import org.opendaylight.transportpce.tapi.impl.rpc.GetConnectivityServiceListImpl;
+import org.opendaylight.transportpce.tapi.impl.rpc.GetLinkDetailsImpl;
+import org.opendaylight.transportpce.tapi.impl.rpc.GetNodeDetailsImpl;
+import org.opendaylight.transportpce.tapi.impl.rpc.GetNodeEdgePointDetailsImpl;
+import org.opendaylight.transportpce.tapi.impl.rpc.GetServiceInterfacePointDetailsImpl;
+import org.opendaylight.transportpce.tapi.impl.rpc.GetServiceInterfacePointListImpl;
+import org.opendaylight.transportpce.tapi.impl.rpc.GetTopologyDetailsImpl;
+import org.opendaylight.transportpce.tapi.impl.rpc.GetTopologyListImpl;
+import org.opendaylight.transportpce.tapi.listeners.TapiNetworkModelNotificationHandler;
+import org.opendaylight.transportpce.tapi.topology.TapiNetworkModelService;
+import org.opendaylight.transportpce.tapi.utils.TapiContext;
+import org.opendaylight.transportpce.tapi.utils.TapiLink;
 
-public class TapiProviderTest extends AbstractTest {
-    public static NetworkTransactionService networkTransactionService;
-
-    @Mock
-    RpcProviderService rpcProviderRegistry;
-
-    @Mock
-    OrgOpenroadmServiceService serviceHandler;
+@ExtendWith(MockitoExtension.class)
+public class TapiProviderTest {
 
     @Mock
-    ServiceDataStoreOperations serviceDataStoreOperations;
-
+    private DataBroker dataBroker;
     @Mock
-    TapiListener tapiListener;
-
+    private RpcProviderService rpcProviderService;
     @Mock
-    TransportpceTapinetworkutilsService tapiNetworkUtils;
-
+    private NotificationService notificationService;
     @Mock
-    TapiPortMappingListener tapiPortMappingListener;
-
+    private RpcService rpcService;
     @Mock
-    TapiNetconfTopologyListener topologyListener;
-
+    private NotificationPublishService notificationPublishService;
     @Mock
-    TapiOrLinkListener orLinkListener;
-
+    private NetworkTransactionService networkTransactionService;
     @Mock
-    TapiPceListenerImpl pceListenerImpl;
-
+    private ServiceDataStoreOperations serviceDataStoreOperations;
     @Mock
-    TapiRendererListenerImpl rendererListenerImpl;
-
+    private NetworkModelService networkModelService;
     @Mock
-    TapiServiceHandlerListenerImpl serviceHandlerListenerImpl;
-
-    private AutoCloseable closeable;
-
-    @Before
-    public void openMocks() {
-        closeable = MockitoAnnotations.openMocks(this);
-    }
-
-    @BeforeClass
-    public static void setUp() {
-        networkTransactionService = new NetworkTransactionImpl(
-            new RequestProcessor(getDataBroker()));
-    }
+    private TapiNetworkModelNotificationHandler tapiNetworkModelNotificationHandler;
+    @Mock
+    private TapiNetworkModelService tapiNetworkModelServiceImpl;
+    @Mock
+    private TapiLink tapilink;
+    @Mock
+    private TapiContext tapiContext;
 
     @Test
-    public void testInitRegisterTapiToRpcRegistry() {
-        TapiProvider provider =  new TapiProvider(getDataBroker(), rpcProviderRegistry, serviceHandler,
-            serviceDataStoreOperations, tapiListener, networkTransactionService, topologyListener,
-            tapiPortMappingListener, tapiNetworkUtils, pceListenerImpl, rendererListenerImpl,
-            serviceHandlerListenerImpl, getNotificationService(), orLinkListener);
+    void testInitRegisterTapiToRpcRegistry() {
+        when(networkTransactionService.read(any(), any())).thenReturn(Futures.immediateFuture(Optional.empty()));
+//        doReturn(emptyFluentFuture()).when(networkTransactionService).commit();
+        new TapiProvider(dataBroker, rpcProviderService, rpcService, notificationService, notificationPublishService,
+                networkTransactionService, serviceDataStoreOperations, networkModelService,
+                tapiNetworkModelNotificationHandler, tapiNetworkModelServiceImpl, tapilink, tapiContext);
 
-        provider.init();
-
-        verify(rpcProviderRegistry, times(1))
-            .registerRpcImplementation(any(), any(TapiConnectivityService.class));
-        verify(rpcProviderRegistry, times(2))
-            .registerRpcImplementation(any(), any(TapiTopologyService.class));
-        verify(rpcProviderRegistry, times(2))
-            .registerRpcImplementation(any(), any(TapiCommonService.class));
-    }
-
-    @After
-    public void releaseMocks() throws Exception {
-        closeable.close();
+        verify(rpcProviderService, times(1)).registerRpcImplementations(
+                any(CreateConnectivityServiceImpl.class),
+                any(GetConnectivityServiceDetailsImpl.class),
+                any(GetConnectionDetailsImpl.class),
+                any(DeleteConnectivityServiceImpl.class),
+                any(GetConnectivityServiceListImpl.class),
+                any(GetNodeDetailsImpl.class),
+                any(GetTopologyDetailsImpl.class),
+                any(GetNodeEdgePointDetailsImpl.class),
+                any(GetLinkDetailsImpl.class),
+                any(GetTopologyListImpl.class),
+                any(GetServiceInterfacePointDetailsImpl.class),
+                any(GetServiceInterfacePointListImpl.class));
+        verify(dataBroker, times(5)).registerTreeChangeListener(any(), any(), any());
     }
 }

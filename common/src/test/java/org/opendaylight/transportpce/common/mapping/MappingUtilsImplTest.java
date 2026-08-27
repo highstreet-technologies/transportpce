@@ -8,27 +8,28 @@
 
 package org.opendaylight.transportpce.common.mapping;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.concurrent.ExecutionException;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.opendaylight.mdsal.binding.api.WriteTransaction;
 import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
 import org.opendaylight.transportpce.common.StringConstants;
 import org.opendaylight.transportpce.test.AbstractTest;
 import org.opendaylight.transportpce.test.converter.DataObjectConverter;
 import org.opendaylight.transportpce.test.converter.JSONDataObjectConverter;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.Network;
-import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.Network;
+import org.opendaylight.yangtools.binding.DataObjectIdentifier;
 import org.opendaylight.yangtools.yang.data.api.YangInstanceIdentifier;
 import org.opendaylight.yangtools.yang.data.api.schema.NormalizedNode;
 import org.slf4j.Logger;
@@ -38,19 +39,23 @@ public class MappingUtilsImplTest extends AbstractTest {
     private static final Logger LOG = LoggerFactory.getLogger(MappingUtilsImplTest.class);
     private static MappingUtils mappingUtils;
 
-    @BeforeClass
-    public static void setUp() throws InterruptedException, ExecutionException, FileNotFoundException {
+    @BeforeAll
+    static void setUp() throws InterruptedException, ExecutionException {
         DataObjectConverter dataObjectConverter = JSONDataObjectConverter
                 .createWithDataStoreUtil(getDataStoreContextUtil());
-        try (Reader reader = new FileReader("src/test/resources/network.json", StandardCharsets.UTF_8)) {
+        try (Reader reader = Files.newBufferedReader(
+                Path.of("src/test/resources/network.json"),
+                StandardCharsets.UTF_8)) {
             NormalizedNode normalizedNode = dataObjectConverter
-                    .transformIntoNormalizedNode(reader).get();
+                    .transformIntoNormalizedNode(reader).orElseThrow();
             Network network = (Network) getDataStoreContextUtil()
                     .getBindingDOMCodecServices().fromNormalizedNode(YangInstanceIdentifier
                             .of(Network.QNAME), normalizedNode).getValue();
             WriteTransaction writeNetworkTransaction = getDataBroker().newWriteOnlyTransaction();
-            writeNetworkTransaction.put(LogicalDatastoreType.CONFIGURATION,
-                    InstanceIdentifier.builder(Network.class).build(), network);
+            writeNetworkTransaction.put(
+                    LogicalDatastoreType.CONFIGURATION,
+                    DataObjectIdentifier.builder(Network.class).build(),
+                    network);
             writeNetworkTransaction.commit().get();
         } catch (IOException e) {
             LOG.error("Cannot load network ", e);
@@ -60,23 +65,19 @@ public class MappingUtilsImplTest extends AbstractTest {
     }
 
     @Test
-    public void getOpenRoadmVersionTest() throws ExecutionException, InterruptedException {
-        assertEquals("NodeInfo with ROADM-C1 as id should be 1.2.1 version",
-                StringConstants.OPENROADM_DEVICE_VERSION_1_2_1,
-                mappingUtils.getOpenRoadmVersion("ROADM-C1"));
-        assertEquals("NodeInfo with ROADM-A1 as id should be 2.2.1 version",
-                StringConstants.OPENROADM_DEVICE_VERSION_2_2_1,
-                mappingUtils.getOpenRoadmVersion("ROADM-A1"));
-        assertNull("NodeInfo with nodes3 as id should not exist", mappingUtils.getOpenRoadmVersion("nodes3"));
+    void getOpenRoadmVersionTest() {
+        assertEquals(StringConstants.OPENROADM_DEVICE_VERSION_2_2_1, mappingUtils.getOpenRoadmVersion("ROADM-A1"),
+            "NodeInfo with ROADM-A1 as id should be 2.2.1 version");
+        assertEquals(StringConstants.OPENROADM_DEVICE_VERSION_7_1, mappingUtils.getOpenRoadmVersion("ROADM-C1"),
+                "NodeInfo with ROADM-C1 as id should be 7.1 version");
+        assertNull(mappingUtils.getOpenRoadmVersion("nodes3"), "NodeInfo with nodes3 as id should not exist");
     }
 
     @Test
-    public void getMcCapabilitiesForNodeTest() {
-        assertEquals("Mc capabilities list size should be 2", 2,
-                mappingUtils.getMcCapabilitiesForNode("ROADM-A1").size());
-        assertTrue("Mc capabilities list size should be empty",
-                mappingUtils.getMcCapabilitiesForNode("ROADM-A2").isEmpty());
+    void getMcCapabilitiesForNodeTest() {
+        assertEquals(2, mappingUtils.getMcCapabilitiesForNode("ROADM-A1").size(),
+            "Mc capabilities list size should be 2");
+        assertTrue(mappingUtils.getMcCapabilitiesForNode("ROADM-A2").isEmpty(),
+            "Mc capabilities list size should be empty");
     }
-
-
 }

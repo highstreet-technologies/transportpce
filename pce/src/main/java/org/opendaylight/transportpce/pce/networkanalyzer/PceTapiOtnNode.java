@@ -1,0 +1,1025 @@
+/*
+ * Copyright © 2023 Orange, Inc. and others.  All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v1.0 which accompanies this distribution,
+ * and is available at http://www.eclipse.org/legal/epl-v10.html
+ */
+package org.opendaylight.transportpce.pce.networkanalyzer;
+
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
+import org.opendaylight.transportpce.common.StringConstants;
+import org.opendaylight.transportpce.pce.spectrum.slot.McCapability;
+import org.opendaylight.transportpce.pce.spectrum.slot.UnconstrainedMcCapability;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.state.types.rev191129.State;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.equipment.states.types.rev191129.AdminStates;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.networks.network.node.termination.point.XpdrNetworkAttributes;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.OpenroadmNodeType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.OpenroadmTpType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.If100GEODU4;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.If10GEODU2e;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.If1GEODU0;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.IfOCH;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.IfOTUCnODUCn;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.SupportedIfCapability;
+import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.NodeId;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.AdministrativeState;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.LAYERPROTOCOLQUALIFIER;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.LayerProtocolName;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.OperationalState;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.Uuid;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev221121.OwnedNodeEdgePoint1;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev221121.cep.list.ConnectionEndPoint;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev221121.cep.list.ConnectionEndPointKey;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.digital.otn.rev221121.ODUTYPEODU0;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.digital.otn.rev221121.ODUTYPEODU2;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.digital.otn.rev221121.ODUTYPEODU2E;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.digital.otn.rev221121.ODUTYPEODU4;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.digital.otn.rev221121.ODUTYPEODUCN;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.digital.otn.rev221121.OTUTYPEOTU4;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.digital.otn.rev221121.OTUTYPEOTUCN;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.dsr.rev221121.DIGITALSIGNALTYPE100GigE;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.dsr.rev221121.DIGITALSIGNALTYPE10GigELAN;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.dsr.rev221121.DIGITALSIGNALTYPEGigE;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.photonic.media.rev221121.PHOTONICLAYERQUALIFIEROTS;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.photonic.media.rev221121.PHOTONICLAYERQUALIFIEROTSiMC;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev221121.FORWARDINGRULEMAYFORWARDACROSSGROUP;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev221121.FORWARDINGRULEMUSTFORWARDACROSSGROUP;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev221121.Node;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev221121.inter.rule.group.AssociatedNodeRuleGroup;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev221121.inter.rule.group.AssociatedNodeRuleGroupKey;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev221121.node.InterRuleGroup;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev221121.node.InterRuleGroupKey;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev221121.node.OwnedNodeEdgePoint;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev221121.node.OwnedNodeEdgePointKey;
+import org.opendaylight.yangtools.yang.common.Uint16;
+import org.opendaylight.yangtools.yang.common.Uint64;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
+public class PceTapiOtnNode implements PceNode {
+
+
+    private static final Logger LOG = LoggerFactory.getLogger(PceTapiOtnNode.class);
+    private static final List<String> SERVICE_TYPE_ODU_LIST = List.of(
+        StringConstants.SERVICE_TYPE_ODU4,
+        StringConstants.SERVICE_TYPE_ODUC4,
+        StringConstants.SERVICE_TYPE_ODUC3,
+        StringConstants.SERVICE_TYPE_ODUC2);
+    private static final List<OpenroadmNodeType> VALID_NODETYPES_LIST = List.of(
+        OpenroadmNodeType.XPONDER,
+        OpenroadmNodeType.MUXPDR,
+        OpenroadmNodeType.SWITCH,
+        OpenroadmNodeType.TPDR);
+    private static final Map<String, SupportedIfCapability> SERVICE_TYPE_ODU_CLASS_MAP = Map.of(
+        StringConstants.SERVICE_TYPE_ODU4, IfOCH.VALUE,
+        StringConstants.SERVICE_TYPE_ODUC4, IfOTUCnODUCn.VALUE,
+        StringConstants.SERVICE_TYPE_ODUC3, IfOTUCnODUCn.VALUE,
+        StringConstants.SERVICE_TYPE_ODUC2, IfOTUCnODUCn.VALUE);
+    private static final Map<String, SupportedIfCapability> SERVICE_TYPE_ETH_CLASS_MAP = Map.of(
+        StringConstants.SERVICE_TYPE_1GE, If1GEODU0.VALUE,
+        StringConstants.SERVICE_TYPE_10GE, If10GEODU2e.VALUE,
+        StringConstants.SERVICE_TYPE_100GE_M, If100GEODU4.VALUE,
+        StringConstants.SERVICE_TYPE_100GE_S, If100GEODU4.VALUE);
+    private static final Map<String, Integer> SERVICE_TYPE_ETH_TS_NB_MAP = Map.of(
+        StringConstants.SERVICE_TYPE_1GE, 1,
+        StringConstants.SERVICE_TYPE_10GE, 10,
+        StringConstants.SERVICE_TYPE_100GE_M, 20);
+    private static final Map<String, String> SERVICE_TYPE_ETH_ODU_STRING_MAP = Map.of(
+        StringConstants.SERVICE_TYPE_1GE, "ODU0",
+        StringConstants.SERVICE_TYPE_10GE, "ODU2e",
+        StringConstants.SERVICE_TYPE_100GE_M, "ODU4");
+    private static final Map<String, Map<String, Map<LAYERPROTOCOLQUALIFIER, Uint64>>> LPN_MAP;
+
+    static {
+        LPN_MAP = new HashMap<>(Map.of(
+            "ETH", new HashMap<>(Map.of(
+                "If1GEODU0", Map.of(
+                    ODUTYPEODU0.VALUE, Uint64.ONE, DIGITALSIGNALTYPEGigE.VALUE, Uint64.ONE),
+                "If10GEODU2e", Map.of(
+                    ODUTYPEODU2E.VALUE, Uint64.ONE, DIGITALSIGNALTYPE10GigELAN.VALUE, Uint64.ONE),
+                "If10GEODU2", Map.of(
+                    ODUTYPEODU2.VALUE, Uint64.ONE, DIGITALSIGNALTYPE10GigELAN.VALUE, Uint64.ONE),
+                "If10GE", Map.of(DIGITALSIGNALTYPE10GigELAN.VALUE, Uint64.ONE),
+                "If100GEODU4", Map.of(
+                    ODUTYPEODU4.VALUE, Uint64.ONE, DIGITALSIGNALTYPE100GigE.VALUE, Uint64.ONE),
+                "If100GE", Map.of(DIGITALSIGNALTYPE100GigE.VALUE, Uint64.ONE),
+                //"IfOCH", Map.of(ODUTYPEODU4.VALUE, Uint64.ONE))),
+                "IfOCH", Map.of(ODUTYPEODU4.VALUE, Uint64.ONE, OTUTYPEOTU4.VALUE, Uint64.ONE))),
+            "OTU", new HashMap<>(Map.of(
+                "IfOCHOTUCnODUCn",
+                    Map.of(OTUTYPEOTUCN.VALUE, Uint64.ONE),
+                "IfOCH",
+                    Map.of(OTUTYPEOTU4.VALUE, Uint64.ONE),
+                "IfOCHOTU4ODU4",
+                    Map.of(OTUTYPEOTU4.VALUE, Uint64.ONE))),
+            "ODU", new HashMap<>(Map.of(
+                "If1GEODU0", Map.of(ODUTYPEODU0.VALUE, Uint64.ONE),
+                "If10GEODU2e", Map.of(ODUTYPEODU2E.VALUE, Uint64.ONE),
+                "If10GEODU2", Map.of(ODUTYPEODU2.VALUE, Uint64.ONE),
+                "If100GEODU4", Map.of(ODUTYPEODU4.VALUE, Uint64.ONE),
+                "IfOCHOTUCnODUCn", Map.of(ODUTYPEODU4.VALUE, Uint64.valueOf(4), ODUTYPEODUCN.VALUE, Uint64.ONE),
+                "IfOCH", Map.of(ODUTYPEODU4.VALUE, Uint64.valueOf(4)),
+                "IfOCHOTU4ODU4", Map.of(ODUTYPEODU4.VALUE, Uint64.ONE))),
+            "DIGITAL_OTN", new HashMap<>(Map.of(
+                "If1GEODU0", Map.of(ODUTYPEODU0.VALUE, Uint64.ONE),
+                "If10GEODU2e", Map.of(ODUTYPEODU2E.VALUE, Uint64.ONE),
+                "If10GEODU2", Map.of(ODUTYPEODU2.VALUE, Uint64.ONE),
+                "If100GEODU4", Map.of(ODUTYPEODU4.VALUE, Uint64.ONE),
+                "IfOCHOTUCnODUCn",
+                    Map.of(ODUTYPEODU4.VALUE, Uint64.valueOf(4), ODUTYPEODUCN.VALUE, Uint64.ONE,
+                        OTUTYPEOTUCN.VALUE, Uint64.ONE),
+                "IfOCH",
+                    Map.of(ODUTYPEODU4.VALUE, Uint64.valueOf(4)),
+                "IfOCHOTU4ODU4",
+                    Map.of(ODUTYPEODU4.VALUE, Uint64.ONE, OTUTYPEOTU4.VALUE, Uint64.ONE))),
+            "PHOTONIC_MEDIA", new HashMap<>(Map.of(
+                "IfOCHOTUCnODUCn",
+                    Map.of(ODUTYPEODU4.VALUE, Uint64.valueOf(4), ODUTYPEODUCN.VALUE, Uint64.ONE,
+                        OTUTYPEOTUCN.VALUE, Uint64.ONE,
+                        PHOTONICLAYERQUALIFIEROTSiMC.VALUE, Uint64.ONE,
+                        PHOTONICLAYERQUALIFIEROTS.VALUE, Uint64.ONE),
+                "IfOCH",
+                    Map.of(ODUTYPEODU4.VALUE, Uint64.valueOf(4),
+                        PHOTONICLAYERQUALIFIEROTSiMC.VALUE, Uint64.ONE,
+                        PHOTONICLAYERQUALIFIEROTS.VALUE, Uint64.ONE),
+                "IfOCHOTU4ODU4",
+                    Map.of(ODUTYPEODU4.VALUE, Uint64.ONE, OTUTYPEOTU4.VALUE, Uint64.ONE,
+                        PHOTONICLAYERQUALIFIEROTSiMC.VALUE, Uint64.ONE,
+                        PHOTONICLAYERQUALIFIEROTS.VALUE, Uint64.ONE)
+             ))
+            ));
+        LPN_MAP.put("DSR", LPN_MAP.get("ETH"));
+        LPN_MAP.get("ODU").put("If10GE", LPN_MAP.get("ODU").get("If10GEODU2"));
+        LPN_MAP.get("ODU").put("If100GE", LPN_MAP.get("ODU").get("If100GEODU4"));
+        LPN_MAP.get("DIGITAL_OTN").put("If10GE", LPN_MAP.get("ODU").get("If10GEODU2"));
+        LPN_MAP.get("DIGITAL_OTN").put("If100GE", LPN_MAP.get("ODU").get("If100GEODU4"));
+        LPN_MAP.get("PHOTONIC_MEDIA").put("IfOtsiOtucnOducn", LPN_MAP.get("PHOTONIC_MEDIA").get("IfOCHOTUCnODUCn"));
+        LPN_MAP.get("PHOTONIC_MEDIA").put("IfOCHOTUCnODUCnRegen", LPN_MAP.get("PHOTONIC_MEDIA").get("IfOCHOTUCnODUCn"));
+        LPN_MAP
+            .get("PHOTONIC_MEDIA").put("IfOCHOTUCnODUCnUniregen", LPN_MAP.get("PHOTONIC_MEDIA").get("IfOCHOTUCnODUCn"));
+        LPN_MAP.get("PHOTONIC_MEDIA").put("IfOCHOTU4ODU4Regen", LPN_MAP.get("PHOTONIC_MEDIA").get("IfOCHOTU4ODU4"));
+        LPN_MAP.get("PHOTONIC_MEDIA").put("IfOCHOTU4ODU4Uniregen", LPN_MAP.get("PHOTONIC_MEDIA").get("IfOCHOTU4ODU4"));
+    }
+
+    private static final String SCL_ODU = "ODU";
+    private static final String SCL_OTU = "OTU";
+    private static final String INTERMEDIATE_MODETYPE = "intermediate";
+    private static final String AZ_MODETYPE = "AZ";
+
+    private boolean valid;
+
+    private final Node node;
+    private final String nodeId;
+    private final OpenroadmNodeType nodeType;
+    private final String otnServiceType;
+    private Uuid topoUuid;
+    private String modeType;
+    private AdministrativeState adminState;
+    private OperationalState operState;
+    private Uuid parentNodeUuid;
+
+    private Map<String, List<Uint16>> tpAvailableTribPort = new TreeMap<>();
+    private Map<String, List<Uint16>> tpAvailableTribSlot = new TreeMap<>();
+    private Map<String, OpenroadmTpType> availableXponderTp = new TreeMap<>();
+    private List<String> usedXpdrNWTps = new ArrayList<>();
+    private List<BasePceNep> availableXpdrNWTps;
+    private List<BasePceNep> usableXpdrNWTps;
+    private List<String> usedXpdrClientTps = new ArrayList<>();
+    private List<BasePceNep> availableXpdrClientTps;
+    private List<BasePceNep> usableXpdrClientTps;
+
+    private List<PceLink> outgoingLinks = new ArrayList<>();
+    private Uuid clientPortId;
+    private String supConLayer;
+    private TapiOpticalNode tapiON;
+    private final String pceNodeType;
+
+    /**
+     * PceTapiOtnNode is an abstracted Node in the OTN layer corresponding to a Graph Vertex for path computation.
+     *  Corresponds to the OTN/DSR part of a XPONDER.
+     * @param serviceType   The service type which for PceTapiOtnNodes is an OTN service : 1GE, 10GE, 100GEm, 100GEs,
+     *                      ODU4, ODUCN.
+     * @param node          The Associated node in Tapi-Topology DataStore from which the Pce Node is abstracted.
+     * @param nodeType      The Node Type as in OpenROADM topology layer. Currently handled : SRG, DEGREE, XPONDER.
+     * @param ton           The source TapiOpticalNode which instantiated this PceTapiOTnNode.
+     * @param clientPort    The Uuid of the node's port identified as one end of the current service.
+     * @param deviceNodeId  The node name
+     */
+    public PceTapiOtnNode(Node node, OpenroadmNodeType nodeType, String deviceNodeId, String serviceType,
+        Uuid clientPort, TapiOpticalNode ton) {
+        this.node = node;
+        this.tapiON = ton;
+        this.topoUuid = ton.getTopoUuid();
+        this.nodeId = deviceNodeId;
+        this.nodeType = nodeType;
+        this.pceNodeType = "otn";
+        this.otnServiceType = serviceType;
+        this.tpAvailableTribSlot.clear();
+        this.usedXpdrNWTps.clear();
+        this.availableXpdrNWTps = new ArrayList<>();
+        this.usableXpdrNWTps = new ArrayList<>();
+        this.usedXpdrClientTps.clear();
+        this.availableXpdrClientTps = new ArrayList<>();
+        this.usableXpdrClientTps = new ArrayList<>();
+        this.adminState = node.getAdministrativeState();
+        this.operState = node.getOperationalState();
+        this.modeType = null;
+        this.clientPortId = clientPort;
+        this.valid = checkXpdrisGoodCandidate(serviceType);
+
+    }
+
+    /**
+     * Checks for XPONDERS availability of NEPs/CEPs and class them into availableXpdrClientTps and availableXpdrNWTps.
+     *   NetworkNeps are filtered according to presence and the ability of NEPs in the supporting connection layer to
+     *   support the connections to be established on the upper layer.
+     *   List availableXpdrClientTps is filled only with Client NEPs that are in visibility of Network through valid
+     *   Network NEPs.
+     *   Both lists are purged from irrelevant NEPs. Internal connectivity is checked calling checkSwPool
+     * @param mode  Mode of operation that defines whether the XPonder is considered as an end node or an intermediate
+     *              node for path computation : AZ_MODETYPE/ INTERMEDIATE_MODETYPE.
+     */
+    public void initXndrTps(String mode) {
+        LOG.debug("PceTapiOtnNode: initXndrTps for node {}", this.nodeId);
+        this.availableXpdrClientTps.clear();
+        this.availableXpdrNWTps.clear();
+        this.availableXponderTp.clear();
+        this.modeType = mode;
+        this.valid = false;
+
+        if (SERVICE_TYPE_ODU_LIST.contains(otnServiceType)) {
+            // We put OduNep in clientDsr Nep the connection will between iODU NEP. It is an NW NEP but doesn't need
+            // to be identified as such (no pair of client-NW NEPs)
+            availableXpdrClientTps = tapiON.getOduCepAndNep().stream()
+                .filter(bpn -> bpn.getTpType().equals(OpenroadmTpType.XPONDERNETWORK))
+                .collect(Collectors.toList());
+            if (availableXpdrClientTps.isEmpty()) {
+                return;
+            }
+            supConLayer = SCL_OTU;
+            LOG.debug("PTON:initXndrTps :Supporting connection layer is {}", supConLayer);
+        } else if (SERVICE_TYPE_ETH_CLASS_MAP.containsKey(otnServiceType)) {
+            availableXpdrClientTps = tapiON.getOduCepAndNep().stream()
+                .filter(bpn -> bpn.getTpType().equals(OpenroadmTpType.XPONDERCLIENT))
+                .collect(Collectors.toList());
+            availableXpdrNWTps = tapiON.getOduCepAndNep().stream()
+                .filter(bpn -> bpn.getTpType().equals(OpenroadmTpType.XPONDERNETWORK))
+                .collect(Collectors.toList());
+            LOG.debug("PTON:initXndrTps : availableXpdrNWTps contains {}", availableXpdrNWTps.stream()
+                .map(BasePceNep::getName).collect(Collectors.toList()));
+            LOG.debug("PTON:initXndrTps : availableXpdrClientTps contains {}", availableXpdrClientTps.stream()
+                .map(BasePceNep::getName).collect(Collectors.toList()));
+            LOG.debug("PTON:initXndrTps : availableXpdrClientTps vertConnectedNep {}", availableXpdrClientTps.stream()
+                .map(BasePceNep::getVerticallyConnectedNep).collect(Collectors.toList()));
+            int clientListSize = availableXpdrClientTps.size();
+            if (availableXpdrClientTps.isEmpty()) {
+                LOG.debug("PTON:initXndrTps : XPONDER {} has no available eODU TP", nodeId);
+                return;
+            }
+            availableXpdrClientTps.addAll(tapiON.getClientDsrNep().stream().distinct()
+                .collect(Collectors.toList()));
+            if (availableXpdrClientTps.size() == clientListSize) {
+                LOG.debug("PTON:initXndrTps : XPONDER {} has no available DSR TP", nodeId);
+                return;
+            }
+            if (availableXpdrNWTps.isEmpty()) {
+                LOG.debug("PTON:initXndrTps : XPONDER {} has no available iODU TP", nodeId);
+                return;
+            }
+            supConLayer = SCL_ODU;
+        } else {
+            LOG.debug("PTON:initXndrTps : Unidentified Service Type {}", otnServiceType);
+        }
+        LOG.debug("PTON:initXndrTps : availableXpdrClientTps contains before purge {}", availableXpdrClientTps);
+        LOG.debug("PTON:initXndrTps : clientPortId is {}", clientPortId);
+        // Purge availableXpder-NW/Client-Tps from ports that are not directly or undirectly connected to clientPort
+        LOG.debug("PTON:initXndrTps : availableXpdrClientTps validbpn {}", availableXpdrClientTps.stream()
+            .filter(bpn -> isBpnGoodClientPortCandidate(bpn)).collect(Collectors.toList())
+            .stream().map(BasePceNep::getName).collect(Collectors.toList()));
+        LOG.debug("PTON:initXndrTps : availableXpdrClientTps vertNep is POrt {}", availableXpdrClientTps.stream()
+            .filter(bpn -> bpn.getVerticallyConnectedNep().contains(clientPortId)).collect(Collectors.toList())
+            .stream().map(BasePceNep::getName).collect(Collectors.toList()));
+        availableXpdrClientTps.removeAll(availableXpdrClientTps.stream()
+            .filter(bpn -> (!(isBpnGoodClientPortCandidate(bpn)
+                    || (bpn.getVerticallyConnectedNep().contains(clientPortId)))))
+            .collect(Collectors.toList()));
+        LOG.debug("PTON:initXndrTps : 1st purge step availableXpdrClientTps contains {}", availableXpdrClientTps
+            .stream().map(BasePceNep::getName).collect(Collectors.toList()));
+        if (!availableXpdrClientTps.isEmpty()) {
+            List<BasePceNep> bpnToRemove = new ArrayList<>();
+            for (BasePceNep bpn : availableXpdrClientTps) {
+                // In the case of an ODU4 service, the iODU (HighOrder) on the network side will be added to the
+                // Client TPs. We need to avoid it is removed from the list
+                boolean isDSR = bpn.getLpn().getName().contains("DSR");
+                LOG.debug("PTON:initXndrTps: 1st purge step->Analyzing bpn {}, LayerProtocolQualifier= {}, is DSR = {}",
+                    bpn.getName(), isDSR, bpn.getLpn());
+                if (!isValidTp(bpn, false, isDSR) && (bpn.getLpq() != null && !bpn.getLpq().equals(ODUTYPEODU4.VALUE))
+                        || !isValidTp(bpn, true, isDSR)
+                            && (bpn.getLpq() != null && bpn.getLpq().equals(ODUTYPEODU4.VALUE))) {
+                    bpnToRemove.add(bpn);
+                }
+            }
+            availableXpdrClientTps.removeAll(bpnToRemove);
+        }
+        LOG.debug("PTON:initXndrTps : availableXpdrClientTps contains {}", availableXpdrClientTps.stream()
+            .map(BasePceNep::getName).collect(Collectors.toList()));
+        if (availableXpdrNWTps != null && !availableXpdrNWTps.isEmpty()) {
+            LOG.debug("PTON:initXndrTps : availableXpdrNWTps contains {}", availableXpdrNWTps.stream()
+                .map(BasePceNep::getName).collect(Collectors.toList()));
+            availableXpdrNWTps.removeAll(availableXpdrNWTps.stream()
+                // We shall not remove tp that are not vertically connected to NW nep (more NRG aspects checked through
+                // checkSwPool -> only remove tp that are not valid
+                .filter(bpn -> !isValidTp(bpn, true, false))
+                .collect(Collectors.toList()));
+            LOG.debug("PTON:initXndrTps : availableXpdrNWTps contains {}", availableXpdrNWTps.stream()
+                .map(BasePceNep::getName).collect(Collectors.toList()));
+        }
+        LOG.debug("PTON:initXndrTps : before checking SW pool Valid is  {}", valid);
+        if (SERVICE_TYPE_ETH_CLASS_MAP.containsKey(otnServiceType)) {
+            this.valid = checkSwPool(availableXpdrNWTps, availableXpdrClientTps);
+        } else if (availableXpdrClientTps != null && !availableXpdrClientTps.isEmpty()) {
+            //This is a NW to NW case for ODU4 or ODUCN services, and Node is valid if NW ports are available
+            // but in this case the NW port is in the Client MAp
+            this.valid = true;
+        }
+        LOG.info("PTON:initXndrTps : after checking SW pool Valid is  {}", valid);
+
+    }
+
+    /**
+     * Checks the validity of a NEP/CEP, according to its LayerProtocolQualifier and its AvailablePayloadStructure.
+     * @param bpn           The input BasePceNep to check.
+     * @param isHighOrder   Boolean indicating whether the nEP/CEP is is of high or low Order.
+     * @param isDSR         Boolean indicating if a NEP/CEP is a Client DRS NEP.
+     * @return              Boolean : true if the NEP/CEP is valid.
+     */
+    private boolean isValidTp(BasePceNep bpn, boolean isHighOrder, boolean isDSR) {
+        // We find the Onep that either correspond to the bpn, or if the bpn is a cep, the Onep that contains in its
+        // cepList the Cep, and check that the Onep is valid. If the Onep is valid the associated CEP is also considered
+        // valid
+        OwnedNodeEdgePoint onep = node.getOwnedNodeEdgePoint().entrySet().stream()
+            .filter(nep -> nep.getKey().getUuid().equals(bpn.getNepCepUuid())
+                || (nep.getValue().augmentation(OwnedNodeEdgePoint1.class) != null
+                    && nep.getValue().augmentation(OwnedNodeEdgePoint1.class).getCepList() != null
+                    && nep.getValue().augmentation(OwnedNodeEdgePoint1.class).getCepList().getConnectionEndPoint()
+                        != null
+                    && nep.getValue().augmentation(OwnedNodeEdgePoint1.class).getCepList().getConnectionEndPoint()
+                        .containsKey(new ConnectionEndPointKey(bpn.getNepCepUuid()))))
+            .findFirst().orElseThrow().getValue();
+        if (SERVICE_TYPE_ODU_LIST.contains(otnServiceType)) {
+            //Service type = ODU4 or ODUC2/3/4...
+            LAYERPROTOCOLQUALIFIER expectedLpn;
+            if (otnServiceType.contains("ODUCN")) {
+                expectedLpn = ODUTYPEODUCN.VALUE;
+            } else {
+                expectedLpn = ODUTYPEODU4.VALUE;
+            }
+            if (onep.getAvailablePayloadStructure() == null || onep.getAvailablePayloadStructure().isEmpty()) {
+                // For ODU4/ODUCN, as far as the ODU4 service has not been created, the NEP is there but the
+                // available payload structure is not created
+                return true;
+            }
+            return onep.getAvailablePayloadStructure().get(0).getMultiplexingSequence().contains(expectedLpn)
+                && (onep.getAvailablePayloadStructure().get(0).getCapacity().getValue().doubleValue() > 0.0);
+        } else if (SERVICE_TYPE_ETH_CLASS_MAP.containsKey(otnServiceType)) {
+            LAYERPROTOCOLQUALIFIER expectedLpn = LPN_MAP.get("ETH")
+                .get(SERVICE_TYPE_ETH_CLASS_MAP.get(otnServiceType).implementedInterface().getSimpleName())
+                    .entrySet().stream()
+                        .filter(entry -> entry.getKey().toString().contains((isDSR && !isHighOrder) ? "GigE" : "ODU"))
+                        .findFirst().orElseThrow().getKey();
+            boolean result = isHighOrder ? true
+                : onep.getAvailablePayloadStructure().get(0).getMultiplexingSequence().contains(expectedLpn)
+                && (onep.getAvailablePayloadStructure().get(0).getCapacity().getValue().doubleValue() > 0.0);
+            LOG.debug("PTONisValidTp:isValidTp : ExpectedLPN is {} and is TP eligibilty = {}", expectedLpn,
+                result);
+            // If checked TP is a Nw TP of higher order that expected LPN (Multiplexing function)
+            // We don't check that the multiplexing sequence of the bpn includes expected lpn
+            // since the bpn is not of the same order
+            return result;
+        } else {
+            LOG.warn("in checkTp of TapiOTNNode, Unidentified service type {}", otnServiceType);
+        }
+
+        return false;
+    }
+
+    /**
+     * Validates/invalidates a XPONDER node calling initXndrTp() that checks the presence of required NEPs.
+     * @param endNodeId   NodeId of the service end potentially associated with the XPONDER (if the XPONDER is not used
+     *                    as a regenerator.
+     * @return            Boolean corresponding to the status of the validation.
+     */
+    public boolean validateXponder(String endNodeId) {
+        boolean validationStatus = true;
+        if (this.nodeId.equals(endNodeId)) {
+            LOG.debug("PTON:validateXponder : Initializing PCeTapiOTnNode Tps in AZ Mode for node {} for aNodeId {}",
+                this.nodeId, endNodeId);
+            initXndrTps(AZ_MODETYPE);
+        } else if (OpenroadmNodeType.SWITCH.equals(this.nodeType)) {
+            LOG.debug("PTON:validateXponder : Initializing PCeTapiOTnNode Tps in int-Mode for node {} & aNodeId {}",
+                this.nodeId, endNodeId);
+            initXndrTps(INTERMEDIATE_MODETYPE);
+        } else {
+            LOG.debug("PTON:validateXponder : XPONDER is ignored == {}", nodeId);
+            validationStatus = false;
+        }
+        return validationStatus;
+    }
+
+    /**
+     * Allows checking the validity of a NEP whether the service end correspond to the NEP or has kindred relationships.
+     * @param bpn   The BasePceNep to check.
+     * @return      Boolean : true if the NEP/CEP has some kindred relationship with the service end that could be
+     *              either a SIP, CEP or NEP.
+     */
+    private boolean isBpnGoodClientPortCandidate(BasePceNep bpn) {
+        // If ClientPort has not been specified in service creation request, potentially any client port is eligible
+        if (clientPortId == null) {
+            return true;
+        }
+        if (bpn.getSipUuid() == null) {
+            LOG.debug("PTON:isBpnGoodClientPortCandidate : null SIP for BPN {}", bpn.getName());
+        }
+        // Allows to qualify node validity whatever is the portId used : NEP Uuid, CEP Uuid or SIP Uuid. If CEP Uuid
+        // or SIP Uuid is used, Bpn that has CEP/SIP corresponding to the PortId provided in the request will be
+        // validated and PCE can later rely on NEP rather than CEP/SIP (Easier to handle notably since SIP model in
+        //  the context does not include any reference to the NEP it is attached to!
+        if (bpn.getNepCepUuid().equals(clientPortId)
+                || (bpn.getSipUuid() != null && bpn.getSipUuid().equals(clientPortId))
+                || (getCepUuidFromParentNepUuid(bpn.getNepCepUuid()) != null
+                    && getCepUuidFromParentNepUuid(bpn.getNepCepUuid()).equals(clientPortId))) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Provides the child CEP's Uuid of an input NEP.
+     * @param nepUuid  The NEP Uuid provided as an input.
+     * @return      Uuid of the CEP that corresponds to child of the input NEP.
+     */
+    private Uuid getCepUuidFromParentNepUuid(Uuid nepUuid) {
+        if (node.getOwnedNodeEdgePoint().entrySet().stream()
+            .filter(nep -> nep.getKey().getUuid().equals(nepUuid)).collect(Collectors.toList()).isEmpty()) {
+            return null;
+        }
+        OwnedNodeEdgePoint ownedNep = node.getOwnedNodeEdgePoint().entrySet().stream()
+            .filter(nep -> nep.getKey().getUuid().equals(nepUuid)).findFirst().orElseThrow().getValue();
+        if (ownedNep.augmentation(OwnedNodeEdgePoint1.class) != null
+                && ownedNep.augmentation(OwnedNodeEdgePoint1.class).getCepList() != null
+                && !ownedNep.augmentation(OwnedNodeEdgePoint1.class).getCepList()
+                .getConnectionEndPoint().isEmpty()) {
+            for (Map.Entry<ConnectionEndPointKey, ConnectionEndPoint> cep : ownedNep
+                .augmentation(OwnedNodeEdgePoint1.class).getCepList().getConnectionEndPoint()
+                .entrySet()) {
+                if (cep.getValue().getParentNodeEdgePoint() != null) {
+                    return cep.getValue().getParentNodeEdgePoint().getNodeEdgePointUuid();
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Provides the NEP Uuid that corresponds to a BasePceNep, whether it is the NEP itself or its parent NEP.
+     *  Checks whether it finds the Uuid provided as an input in the Node Map of OwnedNodeEdgePoint,
+     *  or if the Uuid corresponds to a CEP. In the last case returns the CEP's parent NEP Uuid.
+     * @param nepCepUuid  The Uuid of a BasePceNep.
+     * @return      Uuid of the NEP that corresponds to the parent of the BasePceNep or the NEP Uuid itself, if the
+     *              the BasePceNep is a NEP.
+     */
+    private Uuid getNepUuidFromNepCepUuid(Uuid nepCepUuid) {
+        if (!node.getOwnedNodeEdgePoint().entrySet().stream()
+            .filter(nep -> nep.getKey().getUuid().equals(nepCepUuid)).collect(Collectors.toList()).isEmpty()) {
+            return nepCepUuid;
+        }
+        for (Entry<OwnedNodeEdgePointKey, OwnedNodeEdgePoint> entry : node.getOwnedNodeEdgePoint().entrySet()) {
+            if (entry.getValue().augmentation(OwnedNodeEdgePoint1.class) != null
+                    && entry.getValue().augmentation(OwnedNodeEdgePoint1.class).getCepList() != null
+                    && !entry.getValue().augmentation(OwnedNodeEdgePoint1.class).getCepList()
+                    .getConnectionEndPoint().isEmpty()) {
+                if (!entry.getValue().augmentation(OwnedNodeEdgePoint1.class).getCepList().getConnectionEndPoint()
+                    .entrySet().stream()
+                    .filter(cep -> cep.getKey().getUuid().equals(nepCepUuid)
+                            && cep.getValue().getParentNodeEdgePoint() != null
+                            && cep.getValue().getParentNodeEdgePoint().getNodeEdgePointUuid()
+                                .equals(entry.getKey().getUuid()))
+                    .collect(Collectors.toList()).isEmpty()) {
+                    return entry.getKey().getUuid();
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Checks whether or not any of the ClientTp can be connected to any of the Network tps provided as input lists.
+     *   Analyze Node internal connectivity scanning NRGs and if needed IRGs and returns a boolean that reflect the
+     *   ability of the node to interconnect the client and network tps provided as input list.
+     *   Populates lists usableXpdrClientTps and usableXpdrNWTps.
+     * @param netwTps       A list of Network BasePceNeps
+     * @param clientTps     A list of Client BasePceNeps
+     * @return              Boolean set to true if the connectivity defined through the Node's NRGs and IRGs allows
+     *                      the interconnection of the clien tps to the network tps.
+     */
+    private boolean checkAZSwPool(List<BasePceNep> netwTps, List<BasePceNep> clientTps) {
+        // Check first if client Tps and Network tps have some common nrg with a Forwarding rule MAY/MUST
+        // meaning client are connected to Nw port
+        LOG.debug("PTON:checkAZSwPool : checkAZSwPool");
+        LOG.debug("PTON:checkAZSwPool : Client NEPs' associated NRG Uuid before filtering {}", clientTps.stream()
+            .map(BasePceNep::getNodeRuleGroupUuid).collect(Collectors.toList()));
+        LOG.debug("PTON:checkAZSwPool : Network NEPs' associated NRG Uuid before filtering {}", netwTps.stream()
+            .map(BasePceNep::getNodeRuleGroupUuid).collect(Collectors.toList()));
+        LOG.debug("PTON:checkAZSwPool : Network BasePceNep before filtering {}", netwTps.stream()
+            .map(BasePceNep::getName).collect(Collectors.toList()));
+        LOG.debug("PTON:checkAZSwPool : Client BasePceNep before filtering {}", clientTps.stream()
+            .map(BasePceNep::getName).collect(Collectors.toList()));
+        LOG.debug("PTON:checkAZSwPool : Client BasePceNep Layer Protocol Name before filtering {}", clientTps.stream()
+            .map(BasePceNep::getLpn).collect(Collectors.toList()));
+        List<BasePceNep> eoduBpnList = clientTps.stream()
+            .filter(bpn -> !bpn.getLpn().equals(LayerProtocolName.DSR)).collect(Collectors.toList());
+        List<Uuid> clientNrgList = new ArrayList<>();
+        for (BasePceNep bpn : eoduBpnList) {
+            clientNrgList.addAll(bpn.getNodeRuleGroupUuid());
+        }
+        LOG.debug("PTON:checkAZSwPool : clientNRGUuid are {}", clientNrgList);
+        clientNrgList = clientNrgList.stream().distinct().collect(Collectors.toList());
+        List<Uuid> nwNrgList = new ArrayList<>();
+        for (BasePceNep bpn : netwTps) {
+            nwNrgList.addAll(bpn.getNodeRuleGroupUuid());
+        }
+        nwNrgList = nwNrgList.stream().distinct().collect(Collectors.toList());
+        LOG.debug("PTON:checkAZSwPool : networkNRGUuid are {}", nwNrgList);
+        for (Uuid clientNrg : clientNrgList) {
+            if (nwNrgList.contains(clientNrg) && !node.getNodeRuleGroup().entrySet().stream()
+                    .filter(nrg -> nrg.getKey().getUuid().equals(clientNrg)).findFirst().orElseThrow().getValue()
+                        .getRule().entrySet().stream()
+                            .filter(rule -> rule.getValue().getForwardingRule() != null
+                                && (rule.getValue().getForwardingRule()
+                                    .equals(FORWARDINGRULEMAYFORWARDACROSSGROUP.VALUE)
+                                || rule.getValue().getForwardingRule()
+                                    .equals(FORWARDINGRULEMUSTFORWARDACROSSGROUP.VALUE)))
+                            .collect(Collectors.toList())
+                            .isEmpty()) {
+                //TODO: adjust following condition as soon as we can set correctly bandwidth of Nrgs for switchponders
+                // Condition from >=0 to >0
+                if (node.getNodeRuleGroup().entrySet().stream()
+                        .filter(nrg -> nrg.getKey().getUuid().equals(clientNrg)).findFirst().orElseThrow().getValue()
+                        .getAvailableCapacity().getTotalSize().getValue().doubleValue() >= 0.0) {
+                    // We found in NwNrgList a NRG that is shared with the client Tps, with Forwarding True, and a
+                    // a bandwidth that allows for further connections
+                    // We remove form availableXpdrNwTps any of the bpn that do not contain this SRG
+                    availableXpdrNWTps.stream()
+                        .filter(bpn -> !bpn.getNodeRuleGroupUuid().contains(clientNrg)).collect(Collectors.toList());
+                    // We add in relevant list usableXpdrClient/NWTps the bpn that have the NRG in their list
+                    usableXpdrClientTps.addAll(clientTps.stream()
+                        .filter(bpn -> bpn.getNodeRuleGroupUuid().contains(clientNrg)).collect(Collectors.toList()));
+                    usableXpdrNWTps.addAll(netwTps.stream()
+                        .filter(bpn -> bpn.getNodeRuleGroupUuid().contains(clientNrg)).collect(Collectors.toList()));
+                    return true;
+                }
+            }
+        }
+        LOG.debug("PTON:checkAZSwPool : did not find commonNRG to both Cl and NW with Rule can/must forward");
+        // Being there means we did not find a common nrg with both one of the eODU and one iODU
+        // Check if client Tps and Network tps have some nrgs that are interconnected through an IRG
+        // with a Forwarding rule MAY/MUST meaning client are connected to Nw port
+        if (node.getInterRuleGroup() == null || node.getInterRuleGroup().isEmpty()
+                || node.getInterRuleGroup().entrySet().size() < 2) {
+            LOG.debug("PTON:checkAZSwPool : did not find commonNRG to both Cl and NW with Rule can/must forward, "
+                + "and no usable IRG detected");
+            return false;
+        }
+        for (Map.Entry<InterRuleGroupKey, InterRuleGroup> irg :node.getInterRuleGroup().entrySet()) {
+            boolean nrgPresentInClient = false;
+            boolean nrgPresentInNw = false;
+            if (!irg.getValue().getRule().entrySet().stream()
+                    .filter(rule -> rule.getValue().getForwardingRule() != null
+                        && (rule.getValue().getForwardingRule()
+                            .equals(FORWARDINGRULEMAYFORWARDACROSSGROUP.VALUE)
+                        || rule.getValue().getForwardingRule()
+                            .equals(FORWARDINGRULEMUSTFORWARDACROSSGROUP.VALUE)))
+                    .collect(Collectors.toList()).isEmpty()) {
+                List<Uuid> clientIrgNrgUuidList = new ArrayList<>();
+                List<Uuid> nwIrgNrgUuidList = new ArrayList<>();
+                for (Map.Entry<AssociatedNodeRuleGroupKey, AssociatedNodeRuleGroup> anrg : irg.getValue()
+                        .getAssociatedNodeRuleGroup().entrySet()) {
+                    if (nwNrgList.contains(anrg.getKey().getNodeRuleGroupUuid())) {
+                        nrgPresentInNw = true;
+                        nwIrgNrgUuidList.add(anrg.getKey().getNodeRuleGroupUuid());
+                    }
+                    if (clientNrgList.contains(anrg.getKey().getNodeRuleGroupUuid())) {
+                        nrgPresentInClient = true;
+                        clientIrgNrgUuidList.add(anrg.getKey().getNodeRuleGroupUuid());
+                    }
+                }
+                if (nrgPresentInNw && nrgPresentInClient
+                        && irg.getValue().getAvailableCapacity().getTotalSize().getValue().doubleValue() > 0.0) {
+                    List<Uuid> uuidToKeep = new ArrayList<>();
+                    for (BasePceNep bpn : availableXpdrNWTps) {
+                        for (Uuid nrgUuid : bpn.getNodeRuleGroupUuid()) {
+                            if (nwIrgNrgUuidList.contains(nrgUuid)) {
+                                uuidToKeep.add(bpn.getNepCepUuid());
+                            }
+                        }
+                    }
+                    availableXpdrNWTps = availableXpdrNWTps.stream()
+                        .filter(bpn -> uuidToKeep.contains(bpn.getNepCepUuid()))
+                        .collect(Collectors.toList());
+                    usableXpdrNWTps.addAll(availableXpdrNWTps);
+                    uuidToKeep.clear();
+                    for (BasePceNep bpn : availableXpdrClientTps) {
+                        for (Uuid nrgUuid : bpn.getNodeRuleGroupUuid()) {
+                            if (clientIrgNrgUuidList.contains(nrgUuid)) {
+                                uuidToKeep.add(bpn.getNepCepUuid());
+                            }
+                        }
+                    }
+                    availableXpdrClientTps = availableXpdrClientTps.stream()
+                        .filter(bpn -> uuidToKeep.contains(bpn.getNepCepUuid()))
+                        .collect(Collectors.toList());
+                    usableXpdrClientTps.addAll(availableXpdrClientTps);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * According to the defined mode, verifies internal connectivity calling the appropriate method.
+     *   Check consistency of the request service Type, checks modeType that defines how the XPONDER shall be considered
+     *   and calls either checkIntermediateSwPool() (if the XPONDER is considered as a regenerator) or
+     *   checkAZSwPool() if it is considered as an end of the service.
+     * @param netwTps       List of BasePceNEp corresponding to Network ports
+     * @param clientTps     List of BasePceNEp corresponding to Client ports
+     * @return              True if node characteristics are consistent with the service request and the node provides
+     *                      adequate internal connectivity, false if the other case.
+     */
+    private boolean checkSwPool(List<BasePceNep> netwTps, List<BasePceNep> clientTps) {
+
+        if (SERVICE_TYPE_ODU_LIST.contains(this.otnServiceType)) {
+            return true;
+        }
+        if (!SERVICE_TYPE_ETH_CLASS_MAP.containsKey(this.otnServiceType)) {
+            return false;
+        }
+        if (netwTps == null) {
+            return false;
+        }
+        switch (modeType) {
+
+            case INTERMEDIATE_MODETYPE:
+                return checkIntermediateSwPool(netwTps);
+
+            case AZ_MODETYPE:
+                if (clientTps == null) {
+                    return false;
+                }
+                return checkAZSwPool(netwTps, clientTps);
+
+            default:
+                LOG.error("PTON:checkSwPool : Unsupported mode type {}", modeType);
+                return false;
+        }
+    }
+
+    /**
+     * Verifies that Node's internal connectivity allows cross-connecting the network ports provided in the input list.
+     *   Also populates list usableXpdrNWTps.
+     * @param netwTps       List of BasePceNEp corresponding to Network ports
+     * @return              True if the node provides adequate internal connectivity, false if the other case.
+     */
+    private boolean checkIntermediateSwPool(List<BasePceNep> netwTps) {
+        for (BasePceNep bpn1 : netwTps) {
+            for (BasePceNep bpn2 : netwTps) {
+                if (bpn2.getNepCepUuid().equals(bpn1.getNepCepUuid())) {
+                    continue;
+                }
+                for (Uuid nrgUuid : bpn2.getNodeRuleGroupUuid()) {
+                    if (bpn1.getNodeRuleGroupUuid().contains(nrgUuid) && !node.getNodeRuleGroup().entrySet().stream()
+                            .filter(nrg -> !nrg.getKey().getUuid().equals(nrgUuid)).findFirst().orElseThrow().getValue()
+                            .getRule().entrySet().stream()
+                                .filter(rule -> rule.getValue().getForwardingRule() != null
+                                    && (rule.getValue().getForwardingRule()
+                                        .equals(FORWARDINGRULEMAYFORWARDACROSSGROUP.VALUE)
+                                    || rule.getValue().getForwardingRule()
+                                        .equals(FORWARDINGRULEMUSTFORWARDACROSSGROUP.VALUE)))
+                            .collect(Collectors.toList())
+                            .isEmpty()) {
+                        usableXpdrNWTps = availableXpdrNWTps.stream()
+                            .filter(bpn -> bpn.getNepCepUuid().equals(bpn1.getNepCepUuid())
+                                || bpn.getNepCepUuid().equals(bpn2.getNepCepUuid()))
+                            .collect(Collectors.toList());
+                        return true;
+                    }
+                }
+            }
+        }
+
+        // Being there means we did not find a common nrg with both nw ports.
+        // Check if 2 Network tps have some nrgs that are interconnected through an IRG
+        // with a Forwarding rule MAY/MUST meaning client are connected to Nw port
+        for (BasePceNep bpn1 : netwTps) {
+            List<Uuid> nw1NrgList = bpn1.getNodeRuleGroupUuid();
+            for (BasePceNep bpn2 : netwTps) {
+                if (bpn2.getNepCepUuid().equals(bpn1.getNepCepUuid())) {
+                    continue;
+                }
+                List<Uuid> nw2NrgList = bpn2.getNodeRuleGroupUuid();
+                for (Map.Entry<InterRuleGroupKey, InterRuleGroup> irg :node.getInterRuleGroup().entrySet()) {
+                    boolean nrgPresentInNw1 = false;
+                    boolean nrgPresentInNw2 = false;
+                    if (!irg.getValue().getRule().entrySet().stream()
+                            .filter(rule -> rule.getValue().getForwardingRule() != null
+                                && (rule.getValue().getForwardingRule()
+                                    .equals(FORWARDINGRULEMAYFORWARDACROSSGROUP.VALUE)
+                                || rule.getValue().getForwardingRule()
+                                    .equals(FORWARDINGRULEMUSTFORWARDACROSSGROUP.VALUE)))
+                            .collect(Collectors.toList()).isEmpty()) {
+                        for (Map.Entry<AssociatedNodeRuleGroupKey, AssociatedNodeRuleGroup> anrg : irg.getValue()
+                                .getAssociatedNodeRuleGroup().entrySet()) {
+                            if (nw1NrgList.contains(anrg.getKey().getNodeRuleGroupUuid())) {
+                                nrgPresentInNw1 = true;
+                                //nw1IrgNrgUuidList.add(anrg.getKey().getNodeRuleGroupUuid());
+                            }
+                            if (nw2NrgList.contains(anrg.getKey().getNodeRuleGroupUuid())) {
+                                nrgPresentInNw2 = true;
+                                //nw2IrgNrgUuidList.add(anrg.getKey().getNodeRuleGroupUuid());
+                            }
+                        }
+                        if (nrgPresentInNw1 && nrgPresentInNw2 && irg.getValue().getAvailableCapacity()
+                                    .getTotalSize().getValue().doubleValue() > 0.0) {
+                            usableXpdrNWTps = availableXpdrNWTps.stream()
+                                .filter(bpn -> bpn.getNepCepUuid().equals(bpn1.getNepCepUuid())
+                                    || bpn.getNepCepUuid().equals(bpn2.getNepCepUuid()))
+                                .collect(Collectors.toList());
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Provides NEP available bandwidth if the relevant augmentation is present in the OwnedNodeEdgePoint of the topo.
+     * @param nepCepUuid    The Uuid of the NEP
+     * @return              Double value of the available bandwidth if present in the OwnedNodeEdgePoint.
+     */
+    public Double getAvailableCapacityFromUuid(Uuid nepCepUuid) {
+        Uuid nepUuid = getNepUuidFromNepCepUuid(nepCepUuid);
+        List<Entry<OwnedNodeEdgePointKey, OwnedNodeEdgePoint>> onepList = this.node.getOwnedNodeEdgePoint().entrySet()
+            .stream().filter(oonep -> oonep.getKey().getUuid().equals(nepUuid)).collect(Collectors.toList());
+        if (nepUuid == null) {
+            return null;
+        }
+        Double availableBandwidth = 0.0;
+        if (onepList != null && !onepList.isEmpty()) {
+            if (onepList.stream().findFirst().orElseThrow().getValue().getAvailablePayloadStructure() != null
+                    && !onepList.stream().findFirst().orElseThrow().getValue().getAvailablePayloadStructure()
+                    .isEmpty()) {
+                availableBandwidth = onepList.stream().findFirst().orElseThrow().getValue()
+                    .getAvailablePayloadStructure().stream().findFirst().orElseThrow()
+                    .getCapacity().getValue().doubleValue();
+            } else if (onepList.stream().findFirst().orElseThrow().getValue().getAvailableCapacity() != null) {
+                availableBandwidth = onepList.stream().findFirst().orElseThrow().getValue()
+                    .getAvailableCapacity().getTotalSize().getValue().doubleValue();
+            }
+            LOG.info("PTON:getAvailableCapacityFromUuid : -> available BW is {} with NepUuid = {} and"
+                + " input Uuid = {}", availableBandwidth, nepUuid, nepCepUuid);
+            return availableBandwidth;
+        }
+        return 0.0;
+    }
+
+    /**
+     * Checks basic parameter of a node (NodeType, presence of Supporting Node and Clli Node).
+     * @param serviceType The type of service which shall correspond to either a DSR or an OTN service type for the node
+     *                    to be declared as Valid
+     * @return Boolean set to true if the Node basic parameters are valid.
+     */
+    public boolean checkXpdrisGoodCandidate(String serviceType) {
+        boolean nodeIsValid = true;
+        if (node == null
+                || nodeId == null
+                || nodeType == null
+                || !VALID_NODETYPES_LIST.contains(nodeType)
+                || this.getSupNetworkNodeId() == null
+                || this.getSupClliNodeId() == null) {
+            LOG.debug("PTON:isValid : one of parameters is not populated : nodeId, node type, supporting nodeId");
+            nodeIsValid = false;
+        }
+        if (!SERVICE_TYPE_ETH_CLASS_MAP.containsKey(serviceType)
+                && !SERVICE_TYPE_ODU_LIST.contains(serviceType)) {
+            LOG.debug("PTON:isValid : unsupported OTN Service Type {}", serviceType);
+            nodeIsValid = false;
+        }
+        return nodeIsValid;
+    }
+
+    public List<BasePceNep> getTotalListOfNep() {
+        List<BasePceNep> listOfNep = new ArrayList<>();
+        listOfNep.addAll(this.tapiON.getClientDsrNep());
+        listOfNep.addAll(this.tapiON.getOduCepAndNep());
+        listOfNep.addAll(this.tapiON.getOtuCepAndNep());
+        listOfNep.addAll(this.tapiON.getnetOtsNep());
+        listOfNep = listOfNep.stream().distinct().collect(Collectors.toList());
+        return listOfNep;
+    }
+
+    public Uuid getTopology() {
+        return this.topoUuid;
+    }
+
+    @Override
+    public void addOutgoingLink(PceLink outLink) {
+        this.outgoingLinks.add(outLink);
+    }
+
+    @Override
+    public List<PceLink> getOutgoingLinks() {
+        return outgoingLinks;
+    }
+
+    @Override
+    public AdminStates getAdminStates() {
+        return null;
+    }
+
+    @Override
+    public State getState() {
+        return null;
+    }
+
+    @Override
+    public String getXpdrNWfromClient(String tp) {
+        return null;
+    }
+
+    @Override
+    public String toString() {
+        return "PceNode type=" + nodeType + " ID=" + nodeId + " CLLI=" + this.getSupClliNodeId();
+    }
+
+    public void printLinksOfNode() {
+        LOG.info(" outgoing links of node {} : {} ", nodeId, this.getOutgoingLinks());
+    }
+
+    @Override
+    public Map<String, List<Uint16>> getAvailableTribPorts() {
+        return tpAvailableTribPort;
+    }
+
+    @Override
+    public Map<String, List<Uint16>> getAvailableTribSlots() {
+        return tpAvailableTribSlot;
+    }
+
+    public List<BasePceNep> getUsableXpdrNWTps() {
+        return availableXpdrNWTps;
+    }
+
+    public List<BasePceNep> getUsableXpdrClientTps() {
+        return availableXpdrClientTps;
+    }
+
+    @Override
+    public String getPceNodeType() {
+        return this.pceNodeType;
+
+    }
+
+    @Override
+    public String getSupNetworkNodeId() {
+        return nodeId;
+    }
+
+    @Override
+    public String getSupClliNodeId() {
+        return nodeId;
+    }
+
+    @Override
+    public String getRdmSrgClient(String tp, String direction) {
+        return null;
+    }
+
+    @Override
+    public NodeId getNodeId() {
+        // return new NodeId(nodeId);
+        return new NodeId(node.getName().entrySet().stream()
+            .filter(name -> name.getKey().getValueName().equals("dsr/odu node name"))
+            .findFirst().orElseThrow().getValue().getValue());
+    }
+
+    @Override
+    public boolean checkTP(String tp) {
+        return false;
+    }
+
+    /*
+    * (non-Javadoc)
+    *
+    * @see org.opendaylight.transportpce.pce.networkanalyzer.PceNode#getVersion()
+    */
+    @Override
+    public String getVersion() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public BitSet getBitSetData() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public String getXponderOperationalMode(XpdrNetworkAttributes tp) {
+        return null;
+    }
+
+    @Override
+    public String getOperationalMode() {
+        return null;
+    }
+
+    @Override
+    public OpenroadmNodeType getORNodeType() {
+        return this.nodeType;
+    }
+
+    @Override
+    public McCapability mcCapabilities() {
+        return new UnconstrainedMcCapability();
+    }
+
+    /**
+     * Provides the Uuid of the topology the node belongs to.
+     * @return  Uuid of the nodes's topology.
+     */
+    public Uuid getTopoUuid() {
+        return topoUuid;
+    }
+
+    @Override
+    public boolean isContentionLessSrg() {
+        return false;
+    }
+
+    @Override
+    public AdministrativeState getAdminState() {
+        return adminState;
+    }
+
+    @Override
+    public OperationalState getOperationalState() {
+        return operState;
+    }
+
+    @Override
+    public  String getXpdrOperationalMode(Uuid nepUuid) {
+        return null;
+    }
+
+    @Override
+    public Uuid getNodeUuid() {
+        return node.getUuid();
+    }
+
+    @Override
+    public List<BasePceNep> getListOfNep() {
+        List<BasePceNep> listOfCepAndNep = new ArrayList<>();
+        listOfCepAndNep.addAll(this.tapiON.getOduCepAndNep());
+        listOfCepAndNep.addAll(this.tapiON.getOtuCepAndNep());
+        listOfCepAndNep = listOfCepAndNep.stream().distinct().collect(Collectors.toList());
+        return listOfCepAndNep;
+    }
+
+    @Override
+    public Uuid getParentNodeUuid() {
+        return this.parentNodeUuid;
+    }
+
+    public void setParentNodeUuid(Uuid pnodeUuid) {
+        this.parentNodeUuid = pnodeUuid;
+    }
+
+    public boolean isValid() {
+        return this.valid;
+    }
+
+}

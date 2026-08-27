@@ -7,30 +7,31 @@
  */
 package org.opendaylight.transportpce.nbinotifications.serialization;
 
-import static org.junit.Assert.assertEquals;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.Map;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.opendaylight.transportpce.common.converter.JsonStringConverter;
 import org.opendaylight.transportpce.test.AbstractTest;
-import org.opendaylight.yang.gen.v1.nbi.notifications.rev210813.NotificationProcessService;
-import org.opendaylight.yang.gen.v1.nbi.notifications.rev210813.get.notifications.process.service.output.NotificationsProcessService;
+import org.opendaylight.yang.gen.v1.nbi.notifications.rev230728.NotificationProcessService;
+import org.opendaylight.yang.gen.v1.nbi.notifications.rev230728.get.notifications.process.service.output.NotificationsProcessService;
 
 public class NotificationServiceDeserializerTest extends AbstractTest {
 
     @Test
-    public void deserializeTest() throws IOException {
+    void deserializeTest() throws IOException {
         JsonStringConverter<NotificationProcessService> converter = new JsonStringConverter<>(
                 getDataStoreContextUtil().getBindingDOMCodecServices());
         NotificationServiceDeserializer deserializer = new NotificationServiceDeserializer();
         Map<String, Object> configs = Map.of(ConfigConstants.CONVERTER, converter);
         deserializer.configure(configs, false);
         NotificationsProcessService readEvent = deserializer.deserialize("Test",
-                Files.readAllBytes(Paths.get("src/test/resources/event.json")));
+                Files.readAllBytes(Path.of("src/test/resources/event.json")));
         deserializer.close();
-        assertEquals("Service name should be service1", "service1", readEvent.getServiceName());
+        assertEquals("service1", readEvent.getServiceName(), "Service name should be service1");
     }
 }

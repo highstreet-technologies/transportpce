@@ -12,22 +12,30 @@ import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import org.opendaylight.mdsal.binding.api.DataBroker;
 import org.opendaylight.mdsal.binding.api.ReadTransaction;
+import org.opendaylight.mdsal.binding.api.RpcProviderService;
 import org.opendaylight.mdsal.binding.api.WriteTransaction;
 import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
-import org.opendaylight.transportpce.common.NetworkUtils;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev170818.DeleteLinkInput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev170818.DeleteLinkOutput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev170818.DeleteLinkOutputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev170818.InitRdmXpdrLinksInput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev170818.InitRdmXpdrLinksOutput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev170818.InitRdmXpdrLinksOutputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev170818.InitRoadmNodesInput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev170818.InitRoadmNodesOutput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev170818.InitRoadmNodesOutputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev170818.InitXpdrRdmLinksInput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev170818.InitXpdrRdmLinksOutput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev170818.InitXpdrRdmLinksOutputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev170818.TransportpceNetworkutilsService;
+import org.opendaylight.transportpce.common.StringConstants;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev250902.DeleteLink;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev250902.DeleteLinkInput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev250902.DeleteLinkOutput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev250902.DeleteLinkOutputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev250902.InitInterDomainLinks;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev250902.InitInterDomainLinksInput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev250902.InitInterDomainLinksOutput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev250902.InitInterDomainLinksOutputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev250902.InitRdmXpdrLinks;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev250902.InitRdmXpdrLinksInput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev250902.InitRdmXpdrLinksOutput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev250902.InitRdmXpdrLinksOutputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev250902.InitRoadmNodes;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev250902.InitRoadmNodesInput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev250902.InitRoadmNodesOutput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev250902.InitRoadmNodesOutputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev250902.InitXpdrRdmLinks;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev250902.InitXpdrRdmLinksInput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev250902.InitXpdrRdmLinksOutput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev250902.InitXpdrRdmLinksOutputBuilder;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.NetworkId;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.Networks;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.networks.Network;
@@ -36,87 +44,137 @@ import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.top
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.Network1;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.networks.network.Link;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.networks.network.LinkKey;
-import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
+import org.opendaylight.yangtools.binding.DataObjectIdentifier;
+import org.opendaylight.yangtools.concepts.Registration;
 import org.opendaylight.yangtools.yang.common.RpcResult;
 import org.opendaylight.yangtools.yang.common.RpcResultBuilder;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class NetworkUtilsImpl implements TransportpceNetworkutilsService {
+/**
+ * Utility class that allows to register TransportPCE internal RPC to complement the different topologies.
+ *
+ * @author gaet7295
+ */
+@Component
+public class NetworkUtilsImpl {
 
     private static final Logger LOG = LoggerFactory.getLogger(NetworkUtilsImpl.class);
     private final DataBroker dataBroker;
+    private final Registration rpcReg;
 
-    public NetworkUtilsImpl(DataBroker dataBroker) {
+    /**
+     * Instantiate the NetworkUtilsImpl object.
+     *
+     * @param dataBroker Provides access to the conceptual data tree store.
+     * @param rpcProvider Service that allows registering Remote Procedure Call (RPC) implementations.
+     */
+    @Activate
+    public NetworkUtilsImpl(@Reference DataBroker dataBroker, @Reference RpcProviderService rpcProvider) {
         this.dataBroker = dataBroker;
+        rpcReg = rpcProvider.registerRpcImplementations(
+                (DeleteLink) this::deleteLink,
+                (InitRoadmNodes) this::initRoadmNodes,
+                (InitXpdrRdmLinks) this::initXpdrRdmLinks,
+                (InitRdmXpdrLinks) this::initRdmXpdrLinks,
+                (InitInterDomainLinks) this::initInterDomainLinks);
+        LOG.info("NetworkUtilsImpl instanciated");
     }
 
-    @Override
-    public ListenableFuture<RpcResult<DeleteLinkOutput>> deleteLink(DeleteLinkInput input) {
+    /**
+     * Unregister RPC used in this network module when closing the network model service.
+     */
+    @Deactivate
+    public void close() {
+        rpcReg.close();
+        LOG.info("{} closed", getClass().getSimpleName());
+    }
+
+    private ListenableFuture<RpcResult<DeleteLinkOutput>> deleteLink(DeleteLinkInput input) {
 
         LinkId linkId = new LinkId(input.getLinkId());
         // Building link instance identifier
-        InstanceIdentifier.InstanceIdentifierBuilder<Link> linkIID = InstanceIdentifier.builder(Networks.class)
-            .child(Network.class, new NetworkKey(new NetworkId(NetworkUtils.OVERLAY_NETWORK_ID)))
-            .augmentation(Network1.class).child(Link.class, new LinkKey(linkId));
+        DataObjectIdentifier<Link> linkIID = DataObjectIdentifier.builder(Networks.class)
+            .child(Network.class, new NetworkKey(new NetworkId(StringConstants.OPENROADM_TOPOLOGY)))
+            .augmentation(Network1.class).child(Link.class, new LinkKey(linkId))
+            .build();
 
 
         //Check if link exists
         try {
             ReadTransaction readOnlyTransaction = dataBroker.newReadOnlyTransaction();
-            Optional<Link> linkOptional = readOnlyTransaction.read(LogicalDatastoreType.CONFIGURATION, linkIID.build())
-                .get();
+            Optional<Link> linkOptional = readOnlyTransaction.read(LogicalDatastoreType.CONFIGURATION, linkIID).get();
             if (!linkOptional.isPresent()) {
                 LOG.info("Link not present");
                 return RpcResultBuilder
-                    .success(new DeleteLinkOutputBuilder().setResult(
-                        "Fail"))
+                    .success(new DeleteLinkOutputBuilder().setResult("Fail").build())
                     .buildFuture();
             }
         } catch (ExecutionException | InterruptedException e) {
-            LOG.error("readMdSal: Error reading link {}", input.getLinkId());
+            LOG.error("readMdSal: Error reading link {}", input.getLinkId(), e);
             return RpcResultBuilder
-                .success(new DeleteLinkOutputBuilder().setResult(
-                    "Fail"))
+                .success(new DeleteLinkOutputBuilder().setResult("Fail").build())
                 .buildFuture();
         }
 
         WriteTransaction writeTransaction = dataBroker.newWriteOnlyTransaction();
-        writeTransaction.delete(LogicalDatastoreType.CONFIGURATION, linkIID.build());
+        writeTransaction.delete(LogicalDatastoreType.CONFIGURATION, linkIID);
         try {
             writeTransaction.commit().get();
             LOG.info("Link with linkId: {} deleted from {} layer.",
-                input.getLinkId(), NetworkUtils.OVERLAY_NETWORK_ID);
+                input.getLinkId(), StringConstants.OPENROADM_TOPOLOGY);
             return RpcResultBuilder
-                .success(new DeleteLinkOutputBuilder().setResult(
-                    "Link {} deleted successfully"))
+                .success(new DeleteLinkOutputBuilder().setResult("Link {} deleted successfully").build())
                 .buildFuture();
         } catch (InterruptedException | ExecutionException e) {
+            LOG.error("readMdSal: Error writing link {}", input.getLinkId(), e);
             return RpcResultBuilder.<DeleteLinkOutput>failed().buildFuture();
         }
     }
 
-    @Override
-    public ListenableFuture<RpcResult<InitRoadmNodesOutput>> initRoadmNodes(InitRoadmNodesInput input) {
+    private ListenableFuture<RpcResult<InitRoadmNodesOutput>> initRoadmNodes(InitRoadmNodesInput input) {
         boolean createRdmLinks = OrdLink.createRdm2RdmLinks(input, this.dataBroker);
         if (createRdmLinks) {
             return RpcResultBuilder
-                .success(new InitRoadmNodesOutputBuilder().setResult(
-                    "Unidirectional Roadm-to-Roadm Link created successfully"))
+                .success(new InitRoadmNodesOutputBuilder()
+                    .setResult("Unidirectional Roadm-to-Roadm Link created successfully")
+                    .build())
                 .buildFuture();
         } else {
             return RpcResultBuilder.<InitRoadmNodesOutput>failed().buildFuture();
         }
     }
 
-    @Override
-    public ListenableFuture<RpcResult<InitXpdrRdmLinksOutput>> initXpdrRdmLinks(InitXpdrRdmLinksInput input) {
+
+    private ListenableFuture<RpcResult<InitInterDomainLinksOutput>>
+            initInterDomainLinks(InitInterDomainLinksInput input) {
+        LOG.info("Roadm to Roadm inter-domain links rpc called");
+        boolean createRdmLinks = OrdLink.createInterDomainLinks(input, this.dataBroker);
+        if (createRdmLinks) {
+            return RpcResultBuilder
+                .success(new InitInterDomainLinksOutputBuilder()
+                    .setResult("Unidirectional Roadm-to-Roadm Inter-Domain Link created successfully")
+                    .build())
+                .buildFuture();
+        } else {
+            LOG.error("init-inter-domain-links rpc failed due to a bad input parameter");
+            return RpcResultBuilder.<InitInterDomainLinksOutput>failed().buildFuture();
+        }
+    }
+
+    private ListenableFuture<RpcResult<InitXpdrRdmLinksOutput>> initXpdrRdmLinks(InitXpdrRdmLinksInput input) {
         // Assigns user provided input in init-network-view RPC to nodeId
         LOG.info("Xpdr to Roadm links rpc called");
         boolean createXpdrRdmLinks = Rdm2XpdrLink.createXpdrRdmLinks(input.getLinksInput(), this.dataBroker);
         if (createXpdrRdmLinks) {
             return RpcResultBuilder
-                .success(new InitXpdrRdmLinksOutputBuilder().setResult("Xponder Roadm Link created successfully"))
+                .success(new InitXpdrRdmLinksOutputBuilder()
+                    .setResult("Xponder Roadm Link created successfully")
+                    .build())
                 .buildFuture();
         } else {
             LOG.error("init-xpdr-rdm-links rpc failed due to a bad input parameter");
@@ -124,13 +182,14 @@ public class NetworkUtilsImpl implements TransportpceNetworkutilsService {
         }
     }
 
-    @Override
-    public ListenableFuture<RpcResult<InitRdmXpdrLinksOutput>> initRdmXpdrLinks(InitRdmXpdrLinksInput input) {
+    private ListenableFuture<RpcResult<InitRdmXpdrLinksOutput>> initRdmXpdrLinks(InitRdmXpdrLinksInput input) {
         LOG.info("Roadm to Xpdr links rpc called");
         boolean createRdmXpdrLinks = Rdm2XpdrLink.createRdmXpdrLinks(input.getLinksInput(), this.dataBroker);
         if (createRdmXpdrLinks) {
             return RpcResultBuilder
-                .success(new InitRdmXpdrLinksOutputBuilder().setResult("Roadm Xponder links created successfully"))
+                .success(new InitRdmXpdrLinksOutputBuilder()
+                    .setResult("Roadm Xponder links created successfully")
+                    .build())
                 .buildFuture();
         } else {
             LOG.error("init-rdm-xpdr-links rpc failed due to a bad input parameter");

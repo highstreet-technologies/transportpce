@@ -7,7 +7,6 @@
  */
 package org.opendaylight.transportpce.networkmodel;
 
-import static org.opendaylight.transportpce.common.StringConstants.OPENROADM_DEVICE_VERSION_1_2_1;
 import static org.opendaylight.transportpce.common.StringConstants.OPENROADM_DEVICE_VERSION_2_2_1;
 import static org.opendaylight.transportpce.common.StringConstants.OPENROADM_DEVICE_VERSION_7_1;
 
@@ -16,7 +15,6 @@ import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.eclipse.jdt.annotation.Nullable;
 import org.opendaylight.mdsal.binding.api.DataBroker;
 import org.opendaylight.mdsal.binding.api.MountPoint;
 import org.opendaylight.mdsal.binding.api.ReadTransaction;
@@ -25,24 +23,22 @@ import org.opendaylight.transportpce.common.Timeouts;
 import org.opendaylight.transportpce.common.device.DeviceTransactionManager;
 import org.opendaylight.transportpce.common.network.NetworkTransactionService;
 import org.opendaylight.transportpce.networkmodel.util.TopologyUtils;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev170818.InitRoadmNodesInputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.Network;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.cp.to.degree.CpToDegree;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.mapping.Mapping;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.network.Nodes;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.network.NodesKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.types.rev170929.Direction;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev170206.org.openroadm.device.container.OrgOpenroadmDevice;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev170206.org.openroadm.device.container.org.openroadm.device.Protocols;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.lldp.rev161014.Protocols1;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.lldp.rev161014.lldp.container.lldp.NbrList;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.lldp.rev161014.lldp.container.lldp.nbr.list.IfName;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev250902.InitRoadmNodesInputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.Network;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.cp.to.degree.CpToDegree;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mapping.Mapping;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.network.Nodes;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.network.NodesKey;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.common.types.rev260707.Direction;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.NodeId;
-import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
+import org.opendaylight.yangtools.binding.DataObjectIdentifier;
 import org.opendaylight.yangtools.yang.common.Uint8;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Utility class that manages the WDM ROADM-to-ROADM links in the openroadm-topology.
+ */
 public class R2RLinkDiscovery {
 
     private static final Logger LOG = LoggerFactory.getLogger(R2RLinkDiscovery.class);
@@ -51,6 +47,13 @@ public class R2RLinkDiscovery {
     private final NetworkTransactionService networkTransactionService;
     private final DeviceTransactionManager deviceTransactionManager;
 
+    /**
+     * Instantiate the R2RLinkDiscovery object.
+     *
+     * @param dataBroker Provides access to the conceptual data tree store
+     * @param deviceTransactionManager Manages data transactions with the netconf devices
+     * @param networkTransactionService Service that eases the transaction operations with data-stores
+     */
     public R2RLinkDiscovery(final DataBroker dataBroker, DeviceTransactionManager deviceTransactionManager,
         NetworkTransactionService networkTransactionService) {
         this.dataBroker = dataBroker;
@@ -58,52 +61,123 @@ public class R2RLinkDiscovery {
         this.networkTransactionService = networkTransactionService;
     }
 
+    /**
+     * Depending on the org-openroadm-device version, get from the device relevant information concerning the node
+     * neighbors.
+     *
+     * @param nodeId Node name
+     * @param nodeVersion org-openroadm-device version
+     * @return True if the node has at least one neighbor. False otherwise.
+     */
     public boolean readLLDP(NodeId nodeId, String nodeVersion) {
         switch (nodeVersion) {
-            case OPENROADM_DEVICE_VERSION_1_2_1:
-                InstanceIdentifier<Protocols> protocols121IID = InstanceIdentifier.create(OrgOpenroadmDevice.class)
-                    .child(Protocols.class);
-                Optional<Protocols> protocol121Object = this.deviceTransactionManager.getDataFromDevice(
-                    nodeId.getValue(), LogicalDatastoreType.OPERATIONAL, protocols121IID, Timeouts.DEVICE_READ_TIMEOUT,
-                    Timeouts.DEVICE_READ_TIMEOUT_UNIT);
-                if (!protocol121Object.isPresent()
-                        || (protocol121Object.get().augmentation(Protocols1.class) == null)) {
-                    LOG.warn("LLDP subtree is missing : isolated openroadm device");
-                    return false;
-                }
-                // get neighbor list
-                NbrList nbr121List = protocol121Object.get().augmentation(Protocols1.class).getLldp().getNbrList();
-                LOG.info("LLDP subtree is present. Device has {} neighbours", nbr121List.getIfName().size());
-                // try to create rdm2rdm link
-                return rdm2rdmLinkCreatedv121(nodeId, nbr121List);
             case OPENROADM_DEVICE_VERSION_2_2_1:
-                InstanceIdentifier<org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.org.openroadm.device
-                    .container.org.openroadm.device.Protocols> protocols221IID =
-                        InstanceIdentifier.create(org.opendaylight.yang.gen.v1.http
-                            .org.openroadm.device.rev181019.org.openroadm.device.container.OrgOpenroadmDevice.class)
-                            .child(org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019
-                                .org.openroadm.device.container.org.openroadm.device.Protocols.class);
-                Optional<org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.org.openroadm.device
-                    .container.org.openroadm.device.Protocols> protocol221Object = this.deviceTransactionManager
+                DataObjectIdentifier<org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.org.openroadm
+                        .device.container.org.openroadm.device.Protocols> protocols221IID = DataObjectIdentifier
+                    .builderOfInherited(
+                        org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.OrgOpenroadmDeviceData.class,
+                        org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.org.openroadm.device.container
+                            .OrgOpenroadmDevice.class)
+                    .child(
+                        org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.org.openroadm.device.container
+                            .org.openroadm.device.Protocols.class)
+                    .build();
+                var protocol221Object = this.deviceTransactionManager
                     .getDataFromDevice(nodeId.getValue(), LogicalDatastoreType.OPERATIONAL, protocols221IID,
                         Timeouts.DEVICE_READ_TIMEOUT, Timeouts.DEVICE_READ_TIMEOUT_UNIT);
-                if (!protocol221Object.isPresent() || (protocol221Object.get().augmentation(
-                        org.opendaylight.yang.gen.v1.http.org.openroadm.lldp.rev181019.Protocols1.class) == null)) {
-                    LOG.warn("LLDP subtree is missing : isolated openroadm device");
+                if (hasNoNeighbor221(protocol221Object)) {
+                    LOG.warn("LLDP subtree is missing or incomplete: isolated openroadm device");
                     return false;
                 }
-                org.opendaylight.yang.gen.v1.http.org.openroadm.lldp.rev181019.lldp.container.lldp.@Nullable NbrList
-                    nbr221List = protocol221Object.get().augmentation(org.opendaylight.yang.gen.v1.http
-                        .org.openroadm.lldp.rev181019.Protocols1.class).getLldp().getNbrList();
+                var nbr221List = protocol221Object.orElseThrow().augmentation(
+                        org.opendaylight.yang.gen.v1.http.org.openroadm.lldp.rev181019.Protocols1.class)
+                    .getLldp().getNbrList();
                 LOG.info("LLDP subtree is present. Device has {} neighbours", nbr221List.getIfName().size());
                 return rdm2rdmLinkCreatedv221(nodeId, nbr221List);
             case OPENROADM_DEVICE_VERSION_7_1:
-                LOG.info("Not yet implemented?");
-                return false;
+                DataObjectIdentifier<org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529
+                        .org.openroadm.device.container.org.openroadm.device.Protocols> protocols71IID =
+                    DataObjectIdentifier.builderOfInherited(
+                        org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.OrgOpenroadmDeviceData.class,
+                        org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.org.openroadm.device.container
+                                .OrgOpenroadmDevice.class)
+                    .child(
+                        org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.org.openroadm.device.container
+                                .org.openroadm.device.Protocols.class)
+                    .build();
+                var protocols71Object = this.deviceTransactionManager
+                        .getDataFromDevice(nodeId.getValue(), LogicalDatastoreType.OPERATIONAL, protocols71IID,
+                                Timeouts.DEVICE_READ_TIMEOUT, Timeouts.DEVICE_READ_TIMEOUT_UNIT);
+                if (hasNoNeighbor71(protocols71Object)) {
+                    LOG.warn("LLDP subtree is missing or incomplete: isolated openroadm device");
+                    return false;
+                }
+                var nbr71List = protocols71Object.orElseThrow().augmentation(
+                                org.opendaylight.yang.gen.v1.http.org.openroadm.lldp.rev200529.Protocols1.class)
+                        .getLldp().getNbrList();
+                LOG.info("LLDP subtree is present. Device has {} neighbours", nbr71List.getIfName().size());
+                return rdm2rdmLinkCreatedv71(nodeId, nbr71List);
             default:
                 LOG.error("Unable to read LLDP data for unmanaged openroadm device version");
                 return false;
         }
+    }
+
+    private boolean hasNoNeighbor221(Optional<
+            org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.org.openroadm.device.container.org
+                    .openroadm.device.Protocols> protocol221Object) {
+        return protocol221Object.isEmpty()
+                || protocol221Object.orElseThrow().augmentation(
+                        org.opendaylight.yang.gen.v1.http.org.openroadm.lldp.rev181019.Protocols1.class) == null
+                || protocol221Object.orElseThrow().augmentation(
+                        org.opendaylight.yang.gen.v1.http.org.openroadm.lldp.rev181019.Protocols1.class)
+                    .getLldp() == null
+                || protocol221Object.orElseThrow().augmentation(
+                        org.opendaylight.yang.gen.v1.http.org.openroadm.lldp.rev181019.Protocols1.class)
+                    .getLldp().getNbrList() == null;
+    }
+
+    private boolean hasNoNeighbor71(Optional<
+            org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.org.openroadm.device.container.org
+                    .openroadm.device.Protocols> protocol71Object) {
+        return protocol71Object.isEmpty()
+                || protocol71Object.orElseThrow().augmentation(
+                org.opendaylight.yang.gen.v1.http.org.openroadm.lldp.rev200529.Protocols1.class) == null
+                || protocol71Object.orElseThrow().augmentation(
+                        org.opendaylight.yang.gen.v1.http.org.openroadm.lldp.rev200529.Protocols1.class)
+                .getLldp() == null
+                || protocol71Object.orElseThrow().augmentation(
+                        org.opendaylight.yang.gen.v1.http.org.openroadm.lldp.rev200529.Protocols1.class)
+                .getLldp().getNbrList() == null;
+    }
+
+    private boolean rdm2rdmLinkCreatedv71(NodeId nodeId,
+            org.opendaylight.yang.gen.v1.http.org.openroadm.lldp.rev200529.lldp.container.lldp.NbrList nbrList) {
+        boolean success = true;
+        for (org.opendaylight.yang.gen.v1.http.org.openroadm.lldp.rev200529.lldp.container.lldp.nbr.list.IfName
+                ifName : nbrList.nonnullIfName().values()) {
+            if (ifName.getRemoteSysName() == null) {
+                LOG.warn("LLDP subtree neighbour is empty for nodeId: {}, ifName: {}",
+                        nodeId.getValue(),ifName.getIfName());
+            } else {
+                Optional<MountPoint> mps = this.deviceTransactionManager.getDeviceMountPoint(ifName
+                        .getRemoteSysName());
+                if (!mps.isPresent()) {
+                    LOG.warn("Neighbouring nodeId: {} is not mounted yet", ifName.getRemoteSysName());
+                    // The controller raises a warning rather than an error because the first node to
+                    // mount cannot see its neighbors yet. The link will be detected when processing
+                    // the neighbor node.
+                } else {
+                    if (!createR2RLink(nodeId, ifName.getIfName(), ifName.getRemoteSysName(),
+                            ifName.getRemotePortId())) {
+                        LOG.error("Link Creation failed between {} and {} nodes.", nodeId, ifName
+                                .getRemoteSysName());
+                        success = false;
+                    }
+                }
+            }
+        }
+        return success;
     }
 
     private boolean rdm2rdmLinkCreatedv221(NodeId nodeId,
@@ -135,40 +209,21 @@ public class R2RLinkDiscovery {
         return success;
     }
 
-    private boolean rdm2rdmLinkCreatedv121(NodeId nodeId, NbrList nbrList) {
-        boolean success = true;
-        for (IfName ifName : nbrList.nonnullIfName().values()) {
-            if (ifName.getRemoteSysName() == null) {
-                LOG.warn("LLDP subtree neighbour is empty for nodeId: {}, ifName: {}",
-                    nodeId.getValue(),ifName.getIfName());
-            } else {
-                Optional<MountPoint> mps = this.deviceTransactionManager.getDeviceMountPoint(ifName
-                    .getRemoteSysName());
-                if (!mps.isPresent()) {
-                    LOG.warn("Neighbouring nodeId: {} is not mounted yet", ifName.getRemoteSysName());
-                    // The controller raises a warning rather than an error because the first node to
-                    // mount cannot see its neighbors yet. The link will be detected when processing
-                    // the neighbor node.
-                } else {
-                    if (!createR2RLink(nodeId, ifName.getIfName(), ifName.getRemoteSysName(),
-                        ifName.getRemotePortId())) {
-                        LOG.error("Link Creation failed between {} and {} nodes.", nodeId.getValue(),
-                            ifName.getRemoteSysName());
-                        success = false;
-                    }
-                }
-            }
-        }
-        return success;
-    }
-
+    /**
+     * Get the kind of WDM line interface of the node (Bidirectional or Unidirectional).
+     *
+     * @param degreeCounter Number of the degree
+     * @param nodeId Node name
+     * @return Direction
+     */
     public Direction getDegreeDirection(Integer degreeCounter, NodeId nodeId) {
-        InstanceIdentifier<Nodes> nodesIID = InstanceIdentifier.builder(Network.class)
-            .child(Nodes.class, new NodesKey(nodeId.getValue())).build();
+        DataObjectIdentifier<Nodes> nodesIID = DataObjectIdentifier.builder(Network.class)
+            .child(Nodes.class, new NodesKey(nodeId.getValue()))
+            .build();
         try (ReadTransaction readTx = this.dataBroker.newReadOnlyTransaction()) {
             Optional<Nodes> nodesObject = readTx.read(LogicalDatastoreType.CONFIGURATION, nodesIID).get();
-            if (nodesObject.isPresent() && (nodesObject.get().getMapping() != null)) {
-                Collection<Mapping> mappingList = nodesObject.get().nonnullMapping().values();
+            if (nodesObject.isPresent() && (nodesObject.orElseThrow().getMapping() != null)) {
+                Collection<Mapping> mappingList = nodesObject.orElseThrow().nonnullMapping().values();
                 mappingList = mappingList.stream().filter(mp -> mp.getLogicalConnectionPoint().contains("DEG"
                     + degreeCounter)).collect(Collectors.toList());
                 if (mappingList.size() == 1) {
@@ -185,12 +240,17 @@ public class R2RLinkDiscovery {
         return Direction.NotApplicable;
     }
 
+    /**
+     * Create a ROADM-to-ROADM link when a ROADM node has a neighbor declared in its configuration.
+     *
+     * @param nodeId Node name
+     * @param interfaceName Name of the WDM line interface
+     * @param remoteSystemName Name of the neighbor node
+     * @param remoteInterfaceName Name of the WDM line interface on the neighbor node
+     * @return True if the links are correctly created, False otherwise
+     */
     public boolean createR2RLink(NodeId nodeId, String interfaceName, String remoteSystemName,
                                  String remoteInterfaceName) {
-        String srcTpTx = null;
-        String srcTpRx = null;
-        String destTpTx = null;
-        String destTpRx = null;
         // Find which degree is associated with ethernet interface
         Integer srcDegId = getDegFromInterface(nodeId, interfaceName);
         if (srcDegId == null) {
@@ -200,6 +260,8 @@ public class R2RLinkDiscovery {
         // Check whether degree is Unidirectional or Bidirectional by counting
         // number of
         // circuit-packs under degree subtree
+        String srcTpTx = null;
+        String srcTpRx = null;
         Direction sourceDirection = getDegreeDirection(srcDegId, nodeId);
         if (Direction.NotApplicable == sourceDirection) {
             LOG.error("Couldnt find degree direction for nodeId: {} and degree: {}", nodeId, srcDegId);
@@ -221,6 +283,8 @@ public class R2RLinkDiscovery {
         // Check whether degree is Unidirectional or Bidirectional by counting
         // number of
         // circuit-packs under degree subtree
+        String destTpTx = null;
+        String destTpRx = null;
         Direction destinationDirection = getDegreeDirection(destDegId, destNodeId);
         if (Direction.NotApplicable == destinationDirection) {
             LOG.error("Couldnt find degree direction for nodeId: {} and degree: {}", destNodeId, destDegId);
@@ -266,12 +330,17 @@ public class R2RLinkDiscovery {
         return true;
     }
 
+    /**
+     * Delete a ROADM-to-ROADM link when a ROADM node is removed from the openroadm topology.
+     *
+     * @param nodeId Node name
+     * @param interfaceName Name of the WDM line interface
+     * @param remoteSystemName Name of the neighbor node
+     * @param remoteInterfaceName Name of the WDM line interface on the neighbor node
+     * @return True if the links are correctly created, False otherwise
+     */
     public boolean deleteR2RLink(NodeId nodeId, String interfaceName, String remoteSystemName,
                                  String remoteInterfaceName) {
-        String srcTpTx = null;
-        String srcTpRx = null;
-        String destTpTx = null;
-        String destTpRx = null;
         // Find which degree is associated with ethernet interface
         Integer srcDegId = getDegFromInterface(nodeId, interfaceName);
         if (srcDegId == null) {
@@ -280,6 +349,8 @@ public class R2RLinkDiscovery {
         }
         // Check whether degree is Unidirectional or Bidirectional by counting number of
         // circuit-packs under degree subtree
+        String srcTpTx = null;
+        String srcTpRx = null;
         Direction sourceDirection = getDegreeDirection(srcDegId, nodeId);
         if (Direction.NotApplicable == sourceDirection) {
             LOG.error("Couldnt find degree direction for nodeId: {} and degree: {}", nodeId, srcDegId);
@@ -300,6 +371,8 @@ public class R2RLinkDiscovery {
         }
         // Check whether degree is Unidirectional or Bidirectional by counting number of
         // circuit-packs under degree subtree
+        String destTpTx = null;
+        String destTpRx = null;
         Direction destinationDirection = getDegreeDirection(destDegId, destNodeId);
         if (Direction.NotApplicable == destinationDirection) {
             LOG.error("Couldnt find degree direction for nodeId: {} and degree: {}", destNodeId, destDegId);
@@ -318,19 +391,20 @@ public class R2RLinkDiscovery {
     }
 
     private Integer getDegFromInterface(NodeId nodeId, String interfaceName) {
-        InstanceIdentifier<Nodes> nodesIID = InstanceIdentifier.builder(Network.class)
-            .child(Nodes.class, new NodesKey(nodeId.getValue())).build();
+        DataObjectIdentifier<Nodes> nodesIID = DataObjectIdentifier.builder(Network.class)
+            .child(Nodes.class, new NodesKey(nodeId.getValue()))
+            .build();
         try (ReadTransaction readTx = this.dataBroker.newReadOnlyTransaction()) {
             Optional<Nodes> nodesObject = readTx.read(LogicalDatastoreType.CONFIGURATION, nodesIID).get();
-            if (nodesObject.isPresent() && (nodesObject.get().getCpToDegree() != null)) {
-                Collection<CpToDegree> cpToDeg = nodesObject.get().nonnullCpToDegree().values();
+            if (nodesObject.isPresent() && (nodesObject.orElseThrow().getCpToDegree() != null)) {
+                Collection<CpToDegree> cpToDeg = nodesObject.orElseThrow().nonnullCpToDegree().values();
                 Stream<CpToDegree> cpToDegStream = cpToDeg.stream().filter(cp -> cp.getInterfaceName() != null)
                     .filter(cp -> cp.getInterfaceName().equals(interfaceName));
                 if (cpToDegStream != null) {
-                    @SuppressWarnings("unchecked") Optional<CpToDegree> firstCpToDegree = cpToDegStream.findFirst();
+                    Optional<CpToDegree> firstCpToDegree = cpToDegStream.findFirst();
                     if (firstCpToDegree.isPresent() && (firstCpToDegree != null)) {
-                        LOG.debug("Found and returning {}",firstCpToDegree.get().getDegreeNumber().intValue());
-                        return firstCpToDegree.get().getDegreeNumber().intValue();
+                        LOG.debug("Found and returning {}",firstCpToDegree.orElseThrow().getDegreeNumber().intValue());
+                        return firstCpToDegree.orElseThrow().getDegreeNumber().intValue();
                     } else {
                         LOG.debug("Not found so returning nothing");
                         return null;

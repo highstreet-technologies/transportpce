@@ -12,21 +12,62 @@ and is available at http://www.eclipse.org/legal/epl-v10.html INTERNAL
   <parent>
     <groupId>org.opendaylight.odlparent</groupId>
     <artifactId>single-feature-parent</artifactId>
-    <version>9.0.13</version>
+    <version>14.3.1</version>
     <relativePath/>
   </parent>
 
   <groupId>org.opendaylight.transportpce</groupId>
   <artifactId>odl-transportpce-tapi</artifactId>
-  <version>5.0.0-SNAPSHOT</version>
+  <version>13.0.0-SNAPSHOT</version>
   <packaging>feature</packaging>
   <name>OpenDaylight :: transportpce :: tapi</name>
 
+  <properties>
+    <mdsal.version>16.0.3</mdsal.version>
+    <netconf.version>11.0.0</netconf.version>
+    <transportpce.models.version>24.0.1</transportpce.models.version>
+    <sft.skip>false</sft.skip>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.opendaylight.transportpce.models</groupId>
+        <artifactId>transportpce-models-artifacts</artifactId>
+        <version>${transportpce.models.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.opendaylight.mdsal</groupId>
+        <artifactId>mdsal-artifacts</artifactId>
+        <version>16.0.3</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
+      <dependency>
+        <groupId>org.opendaylight.netconf</groupId>
+        <artifactId>netconf-artifacts</artifactId>
+        <version>${netconf.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
   <dependencies>
     <dependency>
+      <groupId>org.opendaylight.transportpce.models</groupId>
+      <artifactId>odl-tapi-2.4.0-models</artifactId>
+      <classifier>features</classifier>
+      <type>xml</type>
+    </dependency>
+    <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>transportpce-tapimodels</artifactId>
+      <artifactId>odl-transportpce</artifactId>
       <version>${project.version}</version>
+      <classifier>features</classifier>
+      <type>xml</type>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
@@ -34,17 +75,4 @@ and is available at http://www.eclipse.org/legal/epl-v10.html INTERNAL
       <version>${project.version}</version>
     </dependency>
   </dependencies>
-
-  <!-- skipping test since this is an umbrella project / folder -->
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <configuration>
-          <skipTests>true</skipTests>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
 </project>

@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
-import javax.annotation.Nonnull;
+import org.eclipse.jdt.annotation.NonNull;
 import org.opendaylight.mdsal.binding.api.DataBroker;
 import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
 import org.opendaylight.mdsal.dom.api.DOMDataBroker;
@@ -91,8 +91,8 @@ public final class DeviceWrapper {
      * @param intialDataQName {@link QName} of initial data
      * @return device simulator
      */
-    public static DeviceWrapper createDeviceWrapper(@Nonnull String key, @Nonnull InputStream initialDataXmlInputStream,
-            @Nonnull QName intialDataQName) {
+    public static DeviceWrapper createDeviceWrapper(@NonNull String key, @NonNull InputStream initialDataXmlInputStream,
+            @NonNull QName intialDataQName) {
         requireNonNull(initialDataXmlInputStream, "Input stream cannot be null");
         requireNonNull(intialDataQName, "QName cannot be null");
         return createDeviceWrapper(key, Lists.newArrayList(
@@ -109,8 +109,8 @@ public final class DeviceWrapper {
      * @param initialData {@link List} of {@link Entry} values
      * @return created {@link DeviceWrapper} with all initial data provided by initial data
      */
-    public static DeviceWrapper createDeviceWrapper(@Nonnull String key,
-            @Nonnull List<Entry<QName, InputStream>> initialData) {
+    public static DeviceWrapper createDeviceWrapper(@NonNull String key,
+            @NonNull List<Entry<QName, InputStream>> initialData) {
         Preconditions.checkArgument(!Strings.isNullOrEmpty(key), "The provided key cannot be null or empty");
         Preconditions.checkArgument(initialData != null && !initialData.isEmpty(),
                 "Initial data cannot be null or empty");
@@ -131,13 +131,13 @@ public final class DeviceWrapper {
         LOG.debug("Input data converted into normalizedNodes");
 
         YangInstanceIdentifier initialDataIi = YangInstanceIdentifier.of(dataQName);
-        LOG.debug("Searching for {} inside {}", initialDataIi, initialDataNormalizedNodes.get());
+        LOG.debug("Searching for {} inside {}", initialDataIi, initialDataNormalizedNodes.orElseThrow());
         Optional<NormalizedNode> dataNormalizedNodes =
-                NormalizedNodes.findNode(initialDataNormalizedNodes.get(), initialDataIi);
+                NormalizedNodes.findNode(initialDataNormalizedNodes.orElseThrow(), initialDataIi);
         Preconditions.checkArgument(dataNormalizedNodes.isPresent());
         LOG.info("Initial data was successfully stored into ds");
         DOMDataTreeWriteTransaction writeOnlyTransaction = domDataBroker.newWriteOnlyTransaction();
-        writeOnlyTransaction.put(LogicalDatastoreType.OPERATIONAL, initialDataIi, dataNormalizedNodes.get());
+        writeOnlyTransaction.put(LogicalDatastoreType.OPERATIONAL, initialDataIi, dataNormalizedNodes.orElseThrow());
         try {
             writeOnlyTransaction.commit().get();
         } catch (InterruptedException | ExecutionException e) {

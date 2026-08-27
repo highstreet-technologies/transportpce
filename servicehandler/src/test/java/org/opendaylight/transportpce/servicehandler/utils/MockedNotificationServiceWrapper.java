@@ -7,7 +7,7 @@
  */
 package org.opendaylight.transportpce.servicehandler.utils;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -18,7 +18,7 @@ import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.renderer.
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.renderer.rev210915.renderer.rpc.result.sp.PathTopologyBuilder;
 import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.RpcStatusEx;
 import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.ServicePathNotificationTypes;
-import org.opendaylight.yangtools.yang.binding.Notification;
+import org.opendaylight.yangtools.binding.Notification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +47,8 @@ public final class MockedNotificationServiceWrapper {
                 MockedNotificationServiceWrapper.this.notificationPublishService.putNotification(serviceRpcResultSp);
                 this.rendererFailed = false;
             } else {
-                MockedNotificationServiceWrapper.this.notificationPublishService.putNotification((Notification) notif);
+                MockedNotificationServiceWrapper.this.notificationPublishService
+                    .putNotification((Notification<?>) notif);
             }
             return null;
         }).when(mockedNotificationService).putNotification(any(Notification.class));

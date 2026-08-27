@@ -8,10 +8,11 @@
 package org.opendaylight.transportpce.networkmodel.service;
 
 import java.util.List;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.mapping.Mapping;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev250902.OtnLinkType;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mapping.Mapping;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.renderer.rev210915.renderer.rpc.result.sp.Link;
-import org.opendaylight.yang.gen.v1.http.transportpce.topology.rev220123.OtnLinkType;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.netconf.node.topology.rev150114.NetconfNodeConnectionStatus;
+import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev130715.IpAddress;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.netconf.device.rev251205.ConnectionOper.ConnectionStatus;
 import org.opendaylight.yangtools.yang.common.Uint32;
 
 /**
@@ -34,10 +35,32 @@ public interface NetworkModelService {
      *
      * @param nodeId
      *     unique node ID of OpenROADM node.
-     *
      * @return result of node deletion from portmapping and topologies
      */
     boolean deleteOpenRoadmnode(String nodeId);
+
+    /**
+     * Delete OpenConfig node from portmapping.
+     *
+     * @param nodeId
+     *     unique node ID of OpenConfig node.
+     * @return result of node deletion from portmapping
+     * @since 11.0.0
+     */
+    boolean deleteOpenConfignode(String nodeId);
+
+    /**
+     * Create new OpenConfig node .
+     *
+     * @param nodeId
+     *     unique node ID
+     * @param openConfigVersion
+     *     OpenConfig  version
+     * @param ipAddress
+     *      ipaddress
+     * @since 11.0.0
+     */
+    void createOpenConfigNode(String nodeId, String openConfigVersion, IpAddress ipAddress);
 
     /**
      * Update termination point, and if need, be associated links, of
@@ -59,7 +82,7 @@ public interface NetworkModelService {
      * @param connectionStatus
      *     connection status of the node
      */
-    void setOpenRoadmNodeStatus(String nodeId, NetconfNodeConnectionStatus.ConnectionStatus connectionStatus);
+    void setOpenRoadmNodeStatus(String nodeId, ConnectionStatus connectionStatus);
 
     /**
      * create new otn link in otn-topology.
@@ -129,4 +152,19 @@ public interface NetworkModelService {
      *     True indicates if the low-order otn service must be deleted
      */
     void updateOtnLinks(List<String> supportedLinks, boolean isDeletion);
+
+    /**
+     * Create new OpenROADM TAPI-EXT node in all OpenROADM topologies.
+     *
+     * @since 11.0.0
+     */
+    void createTapiExtNodeAtInit();
+
+    /**
+     * delete the OpenROADM TAPI-EXT node in all OpenROADM topologies.
+     *
+     * @since 11.0.0
+     */
+    void deleteTapiExtNode();
+
 }

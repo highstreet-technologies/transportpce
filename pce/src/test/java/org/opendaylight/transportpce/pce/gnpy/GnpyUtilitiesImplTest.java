@@ -7,161 +7,169 @@
  */
 package org.opendaylight.transportpce.pce.gnpy;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.configureFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
-import com.google.gson.stream.JsonReader;
+import com.github.tomakehurst.wiremock.WireMockServer;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
-import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
-import org.glassfish.grizzly.http.server.HttpServer;
-import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.opendaylight.mdsal.binding.api.WriteTransaction;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
-import org.opendaylight.transportpce.common.NetworkUtils;
+import org.opendaylight.transportpce.common.StringConstants;
 import org.opendaylight.transportpce.common.network.NetworkTransactionImpl;
-import org.opendaylight.transportpce.common.network.RequestProcessor;
 import org.opendaylight.transportpce.pce.constraints.PceConstraints;
 import org.opendaylight.transportpce.pce.constraints.PceConstraintsCalc;
 import org.opendaylight.transportpce.pce.gnpy.consumer.GnpyConsumer;
 import org.opendaylight.transportpce.pce.gnpy.consumer.GnpyConsumerImpl;
-import org.opendaylight.transportpce.pce.gnpy.consumer.GnpyStub;
-import org.opendaylight.transportpce.pce.utils.JsonUtil;
 import org.opendaylight.transportpce.pce.utils.PceTestData;
 import org.opendaylight.transportpce.test.AbstractTest;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.path.description.AToZDirectionBuilder;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.path.description.ZToADirectionBuilder;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.path.description.atoz.direction.AToZ;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.path.description.atoz.direction.AToZBuilder;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.path.description.atoz.direction.AToZKey;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.path.description.ztoa.direction.ZToA;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.path.description.ztoa.direction.ZToABuilder;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.path.description.ztoa.direction.ZToAKey;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.pce.resource.Resource;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.pce.resource.ResourceBuilder;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.pce.resource.resource.resource.TerminationPoint;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.pce.resource.resource.resource.TerminationPointBuilder;
+import org.opendaylight.transportpce.test.converter.JsonDataConverter;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.path.description.AToZDirectionBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.path.description.ZToADirectionBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.path.description.atoz.direction.AToZ;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.path.description.atoz.direction.AToZBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.path.description.atoz.direction.AToZKey;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.path.description.ztoa.direction.ZToA;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.path.description.ztoa.direction.ZToABuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.path.description.ztoa.direction.ZToAKey;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.pce.resource.Resource;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.pce.resource.ResourceBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.pce.resource.resource.resource.TerminationPoint;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.pce.resource.resource.resource.TerminationPointBuilder;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.NetworkId;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.Networks;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.networks.Network;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.networks.NetworkKey;
-import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
-import org.opendaylight.yangtools.yang.common.QName;
+import org.opendaylight.yangtools.binding.DataObjectIdentifier;
 import org.opendaylight.yangtools.yang.common.Uint32;
+import org.opendaylight.yangtools.yang.parser.api.YangParserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class GnpyUtilitiesImplTest extends AbstractTest {
+class GnpyUtilitiesImplTest extends AbstractTest {
 
     private static final Logger LOG = LoggerFactory.getLogger(GnpyUtilitiesImplTest.class);
     private GnpyUtilitiesImpl gnpyUtilitiesImpl;
     private NetworkTransactionImpl networkTransaction;
-    private static HttpServer httpServer;
     private GnpyConsumer gnpyConsumer;
+    private final WireMockServer wireMockServer = new WireMockServer(9998);
 
-    public GnpyUtilitiesImplTest() throws IOException {
-        networkTransaction = new NetworkTransactionImpl(new RequestProcessor(getDataBroker()));
-        JsonReader networkReader = null;
-        JsonReader topoReader = null;
+    @BeforeEach
+    void setUp() throws IOException {
+        wireMockServer.start();
+        wireMockServer.resetAll();
+        configureFor("localhost", 9998);
+        stubFor(get(urlEqualTo("/api/v1/status"))
+                .willReturn(okJson(Files.readString(Path.of("src", "test", "resources", "gnpy", "gnpy_status.json")))));
+    }
 
+    @AfterEach
+    void tearDown() {
+        wireMockServer.stop();
+    }
+
+    GnpyUtilitiesImplTest() throws IOException {
+        networkTransaction = new NetworkTransactionImpl(getDataBroker());
         try {
             // load openroadm-network
-            Reader gnpyNetwork = new FileReader("src/test/resources/gnpy/gnpy_network.json",
+            Reader gnpyNetwork = Files.newBufferedReader(
+                    Path.of("src/test/resources/gnpy/gnpy_network.json"),
                     StandardCharsets.UTF_8);
-
-            networkReader = new JsonReader(gnpyNetwork);
-            Networks networks = (Networks) JsonUtil.getInstance().getDataObjectFromJson(networkReader,
-                    QName.create("urn:ietf:params:xml:ns:yang:ietf-network", "2018-02-26", "networks"));
-            saveOpenRoadmNetwork(networks.getNetwork().values().iterator().next(), NetworkUtils.UNDERLAY_NETWORK_ID);
+            Networks networks = (Networks) new JsonDataConverter(null).deserialize(gnpyNetwork, Networks.QNAME);
+            saveOpenRoadmNetwork(networks.getNetwork().values().iterator().next(), StringConstants.OPENROADM_NETWORK);
             // load openroadm-topology
-            Reader gnpyTopo = new FileReader("src/test/resources/gnpy/gnpy_topology.json",
+            Reader gnpyTopo = Files.newBufferedReader(
+                    Path.of("src/test/resources/gnpy/gnpy_topology.json"),
                     StandardCharsets.UTF_8);
-            topoReader = new JsonReader(gnpyTopo);
-            networks = (Networks) JsonUtil.getInstance().getDataObjectFromJson(topoReader,
-                    QName.create("urn:ietf:params:xml:ns:yang:ietf-network", "2018-02-26", "networks"));
-            saveOpenRoadmNetwork(networks.getNetwork().values().iterator().next(), NetworkUtils.OVERLAY_NETWORK_ID);
+            networks = (Networks) new JsonDataConverter(null).deserialize(gnpyTopo, Networks.QNAME);
+            saveOpenRoadmNetwork(networks.getNetwork().values().iterator().next(), StringConstants.OPENROADM_TOPOLOGY);
         } catch (FileNotFoundException | InterruptedException | ExecutionException e) {
             LOG.error("Cannot init test ", e);
             fail("Cannot init test ");
-
-        } finally {
-            try {
-                if (networkReader != null) {
-                    networkReader.close();
-                }
-                if (topoReader != null) {
-                    topoReader.close();
-                }
-            } catch (IOException e) {
-                LOG.warn("Cannot close reader ", e);
-            }
+        } catch (IOException e) {
+            LOG.warn("Cannot close reader ", e);
+        } catch (YangParserException e) {
+            LOG.error("Cannot parse input file ", e);
+            throw new RuntimeException(e);
         }
-
     }
 
-    @Before
-    public void initConsumer() {
+    @BeforeEach
+    void initConsumer() {
         gnpyConsumer = new GnpyConsumerImpl("http://localhost:9998", "mylogin", "mypassword",
                 getDataStoreContextUtil().getBindingDOMCodecServices());
     }
 
-    @BeforeClass
-    public static void init() {
-        // here we cannot use JerseyTest as we already extends AbstractTest
-        final ResourceConfig rc = new ResourceConfig(GnpyStub.class);
-        httpServer = GrizzlyHttpServerFactory.createHttpServer(URI.create("http://localhost:9998"), rc);
-    }
-
-    @AfterClass
-    public static void tearDown() {
-        httpServer.shutdownNow();
-    }
 
     private void saveOpenRoadmNetwork(Network network, String networkId)
             throws InterruptedException, ExecutionException {
-        InstanceIdentifier<Network> nwInstanceIdentifier = InstanceIdentifier.builder(Networks.class)
-                .child(Network.class, new NetworkKey(new NetworkId(networkId))).build();
-        WriteTransaction dataWriteTransaction = getDataBroker().newWriteOnlyTransaction();
-        dataWriteTransaction.put(LogicalDatastoreType.CONFIGURATION, nwInstanceIdentifier, network);
-        dataWriteTransaction.commit().get();
+        DataObjectIdentifier<Network> nwInstanceIdentifier = DataObjectIdentifier.builder(Networks.class)
+                .child(Network.class, new NetworkKey(new NetworkId(networkId)))
+                .build();
+        networkTransaction.put(LogicalDatastoreType.CONFIGURATION, nwInstanceIdentifier, network);
+        networkTransaction.commit().get();
     }
 
     @Test
-    public void askNewPathFromGnpyNullResultTest() throws Exception {
+    void askNewPathFromGnpyNullResultTest() throws Exception {
+        // GIVEN
+        stubFor(post(urlEqualTo("/api/v1/path-computation"))
+                .willReturn(aResponse()
+                        .withStatus(201)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(Files
+                                .readString(Path.of("src", "test", "resources", "gnpy", "gnpy_result_no_path.json")))));
+       // WHEN
         gnpyUtilitiesImpl = new GnpyUtilitiesImpl(networkTransaction,
                 PceTestData.getGnpyPCERequest("XPONDER-1", "XPONDER-2"),
                 gnpyConsumer);
-        assertNull("No hard constraints should be available", gnpyUtilitiesImpl.askNewPathFromGnpy(null));
-
+        // THEN
+        assertNull(gnpyUtilitiesImpl.askNewPathFromGnpy(null), "No hard constraints should be available");
     }
 
     @Test
-    public void askNewPathFromGnpyTest() throws Exception {
+    void askNewPathFromGnpyTest() throws Exception {
+        stubFor(post(urlEqualTo("/api/v1/path-computation"))
+                .willReturn(aResponse()
+                        .withStatus(201)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(Files
+                                .readString(
+                                        Path.of("src", "test", "resources", "gnpy", "gnpy_result_with_path.json")))));
         gnpyUtilitiesImpl = new GnpyUtilitiesImpl(networkTransaction,
                 PceTestData.getGnpyPCERequest("XPONDER-3", "XPONDER-4"),
                 gnpyConsumer);
         PceConstraintsCalc constraints = new PceConstraintsCalc(PceTestData.getPCE_simpletopology_test1_request(),
                 networkTransaction);
         PceConstraints pceHardConstraints = constraints.getPceHardConstraints();
-        assertNotNull("Hard constraints should be available", gnpyUtilitiesImpl.askNewPathFromGnpy(pceHardConstraints));
-
-
+        assertNotNull(gnpyUtilitiesImpl.askNewPathFromGnpy(pceHardConstraints), "Hard constraints should be available");
     }
 
     @Test
-    public void verifyComputationByGnpyTest() throws Exception {
+    void verifyComputationByGnpyTest() throws Exception {
+        stubFor(post(urlEqualTo("/api/v1/path-computation"))
+                .willReturn(aResponse()
+                        .withStatus(201)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(Files
+                                .readString(Path.of("src", "test", "resources", "gnpy", "gnpy_result_no_path.json")))));
         // build AtoZ
         AToZDirectionBuilder atoZDirectionBldr = buildAtZ();
         // build ZtoA
@@ -176,7 +184,7 @@ public class GnpyUtilitiesImplTest extends AbstractTest {
         boolean result = gnpyUtilitiesImpl.verifyComputationByGnpy(atoZDirectionBldr.build(),
                 ztoADirectionBldr.build(),
                 pceHardConstraints);
-        Assert.assertFalse("Gnpy Computation should be false",result);
+        assertFalse(result, "Gnpy Computation should be false");
     }
 
     private AToZDirectionBuilder buildAtZ() {
@@ -186,12 +194,10 @@ public class GnpyUtilitiesImplTest extends AbstractTest {
                 .build();
         Resource clientResource = new ResourceBuilder().setResource(stp).build();
         AToZ firstResource = new AToZBuilder().setId("tpName").withKey(clientKey).setResource(clientResource).build();
-
         return new AToZDirectionBuilder()
                 .setRate(Uint32.valueOf(100))
                 .setAToZ(Map.of(firstResource.key(),firstResource))
-                .setAToZWavelengthNumber(Uint32.valueOf(0));
-
+                .setAToZWavelengthNumber(Uint32.ZERO);
     }
 
     private ZToADirectionBuilder buildZtoA() {
@@ -204,7 +210,6 @@ public class GnpyUtilitiesImplTest extends AbstractTest {
         return new ZToADirectionBuilder()
                 .setRate(Uint32.valueOf(100))
                 .setZToA(Map.of(firstResource.key(),firstResource))
-                .setZToAWavelengthNumber(Uint32.valueOf(0));
-
+                .setZToAWavelengthNumber(Uint32.ZERO);
     }
 }

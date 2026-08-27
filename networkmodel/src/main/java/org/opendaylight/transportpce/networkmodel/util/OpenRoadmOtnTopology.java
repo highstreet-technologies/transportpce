@@ -11,53 +11,56 @@ package org.opendaylight.transportpce.networkmodel.util;
 import com.google.common.collect.ImmutableMap;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.eclipse.jdt.annotation.Nullable;
-import org.opendaylight.transportpce.common.NetworkUtils;
+import org.opendaylight.transportpce.common.StringConstants;
 import org.opendaylight.transportpce.networkmodel.dto.OtnTopoNode;
 import org.opendaylight.transportpce.networkmodel.dto.TopologyShard;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.mapping.Mapping;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.network.Nodes;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev250902.OtnLinkType;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mapping.Mapping;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.network.Nodes;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.switching.pool.lcp.SwitchingPoolLcp;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.switching.pool.lcp.SwitchingPoolLcpKey;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.state.types.rev191129.State;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.types.rev191129.XpdrNodeTypes;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.equipment.states.types.rev191129.AdminStates;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.types.rev201211.xpdr.odu.switching.pools.OduSwitchingPools;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.types.rev201211.xpdr.odu.switching.pools.OduSwitchingPoolsBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.types.rev201211.xpdr.odu.switching.pools.OduSwitchingPoolsKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.types.rev201211.xpdr.odu.switching.pools.odu.switching.pools.NonBlockingList;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.types.rev201211.xpdr.odu.switching.pools.odu.switching.pools.NonBlockingListBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.types.rev201211.xpdr.odu.switching.pools.odu.switching.pools.NonBlockingListKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev211210.OpenroadmLinkType;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev211210.OpenroadmNodeType;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev211210.OpenroadmTpType;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev211210.xpdr.tp.supported.interfaces.SupportedInterfaceCapability;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev211210.xpdr.tp.supported.interfaces.SupportedInterfaceCapabilityBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev211210.xpdr.tp.supported.interfaces.SupportedInterfaceCapabilityKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.common.types.rev210924.ODTU4TsAllocated;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.common.types.rev210924.ODTUCnTs;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.common.types.rev210924.ODU0;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.common.types.rev210924.ODU2;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.common.types.rev210924.ODU2e;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.common.types.rev210924.ODU4;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.common.types.rev210924.OdtuTypeIdentity;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.common.types.rev210924.OduRateIdentity;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.network.topology.rev211210.Link1;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.network.topology.rev211210.Link1Builder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.network.topology.rev211210.Node1Builder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.network.topology.rev211210.TerminationPoint1;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.network.topology.rev211210.TerminationPoint1Builder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.network.topology.rev211210.networks.network.node.SwitchingPoolsBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.network.topology.rev211210.networks.network.node.TpBandwidthSharingBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.network.topology.rev211210.networks.network.node.XpdrAttributesBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.network.topology.rev211210.networks.network.node.termination.point.TpSupportedInterfacesBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.network.topology.rev211210.networks.network.node.termination.point.XpdrTpPortConnectionAttributesBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev201211.SupportedIfCapability;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.switching.pool.types.rev191129.SwitchingPoolTypes;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.xponder.rev211210.xpdr.otn.tp.attributes.OdtuTpnPool;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.xponder.rev211210.xpdr.otn.tp.attributes.OdtuTpnPoolBuilder;
-import org.opendaylight.yang.gen.v1.http.transportpce.topology.rev220123.OtnLinkType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.types.rev250530.xpdr.odu.switching.pools.OduSwitchingPools;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.types.rev250530.xpdr.odu.switching.pools.OduSwitchingPoolsBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.types.rev250530.xpdr.odu.switching.pools.OduSwitchingPoolsKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.types.rev250530.xpdr.odu.switching.pools.odu.switching.pools.NonBlockingList;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.types.rev250530.xpdr.odu.switching.pools.odu.switching.pools.NonBlockingListBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.types.rev250530.xpdr.odu.switching.pools.odu.switching.pools.NonBlockingListKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.OpenroadmLinkType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.OpenroadmNodeType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.OpenroadmTpType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.xpdr.tp.supported.interfaces.SupportedInterfaceCapability;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.xpdr.tp.supported.interfaces.SupportedInterfaceCapabilityBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.xpdr.tp.supported.interfaces.SupportedInterfaceCapabilityKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.common.types.rev250530.ODTU4TsAllocated;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.common.types.rev250530.ODTUCnTs;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.common.types.rev250530.ODU0;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.common.types.rev250530.ODU2;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.common.types.rev250530.ODU2e;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.common.types.rev250530.ODU4;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.common.types.rev250530.ODUCn;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.common.types.rev250530.OdtuTypeIdentity;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.common.types.rev250530.OduRateIdentity;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.network.topology.rev250530.Link1;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.network.topology.rev250530.Link1Builder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.network.topology.rev250530.Node1Builder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.network.topology.rev250530.TerminationPoint1;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.network.topology.rev250530.TerminationPoint1Builder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.network.topology.rev250530.networks.network.node.SwitchingPoolsBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.network.topology.rev250530.networks.network.node.TpBandwidthSharingBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.network.topology.rev250530.networks.network.node.XpdrAttributesBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.network.topology.rev250530.networks.network.node.termination.point.TpSupportedInterfacesBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.network.topology.rev250530.networks.network.node.termination.point.XpdrTpPortConnectionAttributesBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.xponder.rev250530.xpdr.otn.tp.attributes.OdtuTpnPool;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.xponder.rev250530.xpdr.otn.tp.attributes.OdtuTpnPoolBuilder;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.NetworkId;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.NodeId;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.networks.network.Node;
@@ -80,6 +83,9 @@ import org.opendaylight.yangtools.yang.common.Uint32;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Utility class to implement the org-openroadm-otn-network-topology layer.
+ */
 public final class OpenRoadmOtnTopology {
 
     private static final Logger LOG = LoggerFactory.getLogger(OpenRoadmOtnTopology.class);
@@ -90,12 +96,13 @@ public final class OpenRoadmOtnTopology {
     private static final int NB_TRIB_PORTS = 80;
     private static final int NB_TRIB_SLOTS = 80;
 
-    private static final Map<String, Class<? extends OduRateIdentity>> RATE_MAP = Map.of(
-        "If100GEODU4", ODU4.class,
-        "IfOCHOTU4ODU4", ODU4.class,
-        "If1GEODU0", ODU0.class,
-        "If10GEODU2", ODU2.class,
-        "If10GEODU2e", ODU2e.class);
+    private static final Map<String, OduRateIdentity> RATE_MAP = Map.of(
+        "If100GEODU4", ODU4.VALUE,
+        "IfOCHOTU4ODU4", ODU4.VALUE,
+        "If1GEODU0", ODU0.VALUE,
+        "If10GEODU2", ODU2.VALUE,
+        "If10GEODU2e", ODU2e.VALUE,
+        "IfOTUCnODUCn", ODUCn.VALUE);
     private static final Map<OtnLinkType, Long> OTNLINKTYPE_BW_MAP = Map.of(
         OtnLinkType.ODTU4, 100000L,
         OtnLinkType.ODUC4, 400000L,
@@ -105,17 +112,23 @@ public final class OpenRoadmOtnTopology {
         OtnLinkType.OTU4, 100000L,
         OtnLinkType.OTUC4, 400000L);
     private static final Map<Uint32, Long> SERVICERATE_BWINCR_MAP = Map.of(
-        Uint32.valueOf(1), 1000L,
-        Uint32.valueOf(10), 10000L,
+        Uint32.ONE, 1000L,
+        Uint32.TEN, 10000L,
         Uint32.valueOf(100), 100000L);
-    private static final Map<Uint32, Class<? extends OdtuTypeIdentity>> SERVICERATE_ODTUTYPECLASS_MAP = Map.of(
-        Uint32.valueOf(1), ODTU4TsAllocated.class,
-        Uint32.valueOf(10), ODTU4TsAllocated.class,
-        Uint32.valueOf(100), ODTUCnTs.class);
+    private static final Map<Uint32, OdtuTypeIdentity> SERVICERATE_ODTUTYPECLASS_MAP = Map.of(
+        Uint32.ONE, ODTU4TsAllocated.VALUE,
+        Uint32.TEN, ODTU4TsAllocated.VALUE,
+        Uint32.valueOf(100), ODTUCnTs.VALUE);
 
     private OpenRoadmOtnTopology() {
     }
 
+    /**
+     * Create Nodes and Links in the OTN topology depending on the type of OTN device.
+     *
+     * @param mappingNode Abstracted view of the node retrieved from the portmapping data-store
+     * @return Subset of the topology
+     */
     public static TopologyShard createTopologyShard(Nodes mappingNode) {
         List<Node> nodes = new ArrayList<>();
         List<Link> links = new ArrayList<>();
@@ -126,10 +139,15 @@ public final class OpenRoadmOtnTopology {
                     nodes.add(createTpdr(node));
                     break;
                 case Mpdr:
-                    nodes.add(createMuxpdr(node));
+                    nodes.add(createMuxpdr(node, mappingNode.getSwitchingPoolLcp()));
                     break;
                 case Switch:
-                    nodes.add(createSwitch(node));
+                    nodes.add(createSwitch(node, mappingNode.getSwitchingPoolLcp()));
+                    break;
+                case Regen:
+                case RegenUni:
+                    // TODO: Need to revisit this method
+                    nodes.add(createRegen(node));
                     break;
                 default:
                     LOG.error("unknown otn node type {}", node.getNodeType().getName());
@@ -139,6 +157,16 @@ public final class OpenRoadmOtnTopology {
         return new TopologyShard(nodes, links);
     }
 
+    /**
+     * Create OTN links and initialize their bandwidth parameters during the creation of a service.
+     *
+     * @param nodeA Node name at one link end
+     * @param tpA Terminatin point id on nodeA
+     * @param nodeZ Node name at the other link end
+     * @param tpZ Termination point id on nodeZ
+     * @param linkType To distinguish the ODU link creation from the OTU link creation
+     * @return topology with otn links updated
+     */
     public static TopologyShard createOtnLinks(String nodeA, String tpA, String nodeZ, String tpZ,
             OtnLinkType linkType) {
 
@@ -149,6 +177,13 @@ public final class OpenRoadmOtnTopology {
                 : null);
     }
 
+    /**
+     * Create OTN links and initialize their bandwidth parameters during the creation of a service.
+     *
+     * @param notifLink List of links to create
+     * @param linkType To distinguish the ODU link creation from the OTU link creation
+     * @return topology with otn links updated
+     */
     public static TopologyShard createOtnLinks(
             org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.renderer.rev210915.renderer.rpc.result.sp
                 .Link notifLink,
@@ -163,6 +198,15 @@ public final class OpenRoadmOtnTopology {
             linkType));
     }
 
+    /**
+     * Create OTN links and initialize their bandwidth parameters during the creation of a service.
+     *
+     * @param notifLink List of links to create
+     * @param supportedOtu4links List of OTU links to update when they exist
+     * @param supportedTPs List of termination points to update
+     * @param linkType To distinguish the ODU link creation from the OTU link creation
+     * @return topology with otn links updated
+     */
     public static TopologyShard createOtnLinks(
             org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.renderer.rev210915.renderer.rpc.result.sp
                 .Link notifLink,
@@ -189,6 +233,14 @@ public final class OpenRoadmOtnTopology {
         }
     }
 
+    /**
+     * Update the available and used bandwidth parameters of OTN links during creation of a service.
+     *
+     * @param suppOtuLinks List of OTU links to create
+     * @param oldTps List of termination points to update
+     * @param linkType To distinguish the ODU link creation from the OTU link creation
+     * @return topology with otn links updated
+     */
     public static TopologyShard createOtnLinks(List<Link> suppOtuLinks, List<TerminationPoint> oldTps,
             OtnLinkType linkType) {
 
@@ -224,6 +276,18 @@ public final class OpenRoadmOtnTopology {
             :  new TopologyShard(null, null, null);
     }
 
+    /**
+     * Update the available and used bandwidth parameters of an OTN link during creation and deletion of a service.
+     *
+     * @param suppOduLinks List of ODU links to update
+     * @param oldTps List of ODU termination points to update
+     * @param serviceRate Rate of the service
+     * @param tribPortNb Trib port number
+     * @param minTribSlotNb Min tributary slot number
+     * @param maxTribSlotNb Max tributary slot number
+     * @param isDeletion Set when this is a deletion action
+     * @return topology with otn links and TPs updated
+     */
     public static TopologyShard updateOtnLinks(List<Link> suppOduLinks, List<TerminationPoint> oldTps,
             Uint32 serviceRate, Short tribPortNb, Short minTribSlotNb, Short maxTribSlotNb, boolean isDeletion) {
 
@@ -265,6 +329,13 @@ public final class OpenRoadmOtnTopology {
         }
     }
 
+    /**
+     * Update the available and used bandwidth parameters of an OTN link during creation and deletion of a service.
+     *
+     * @param suppOtuLinks List of OTU links to update
+     * @param isDeletion Set when this is a deletion action
+     * @return topology with otn links updated
+     */
     public static TopologyShard updateOtnLinks(List<Link> suppOtuLinks, boolean isDeletion) {
 
         List<Link> links = new ArrayList<>();
@@ -289,6 +360,14 @@ public final class OpenRoadmOtnTopology {
         }
     }
 
+    /**
+     * Update the available and used bandwidth parameters of OTN links during deletion of a service.
+     *
+     * @param suppOtuLinks List of OTU links to update
+     * @param oldTps List of termination points to update
+     * @param linkType To distinguish the ODU link deletion from the OTU link deletion
+     * @return topology with otn links updated
+     */
     public static TopologyShard deleteOtnLinks(List<Link> suppOtuLinks, List<TerminationPoint> oldTps,
             OtnLinkType linkType) {
 
@@ -296,12 +375,14 @@ public final class OpenRoadmOtnTopology {
         for (Link link : suppOtuLinks) {
             if (link.augmentation(Link1.class) == null
                     || link.augmentation(
-                        org.opendaylight.yang.gen.v1.http.transportpce.topology.rev220123.Link1.class) == null) {
+                            org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev250902
+                                    .Link1.class) == null) {
                 LOG.error(OTN_PARAMS_ERROR, link.getLinkId().getValue());
                 return new TopologyShard(null, null, null);
             }
             OtnLinkType otnLinkType = link.augmentation(
-                    org.opendaylight.yang.gen.v1.http.transportpce.topology.rev220123.Link1.class).getOtnLinkType();
+                    org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev250902.Link1.class)
+                    .getOtnLinkType();
             if (!OTNLINKTYPE_OTU_BW_MAP.containsKey(otnLinkType)) {
             //TODO shouldn't other link type listed in OTNLINKTYPE_BW_MAP be handled too ?
                 LOG.warn("Unexpected otn-link-type {} for link {}", otnLinkType, link.getLinkId());
@@ -325,11 +406,11 @@ public final class OpenRoadmOtnTopology {
         List<Link> links = new ArrayList<>();
         String nodeATopo = formatNodeName(nodeA, tpA);
         String nodeZTopo = formatNodeName(nodeZ, tpZ);
-        org.opendaylight.yang.gen.v1.http.transportpce.topology.rev220123.Link1 tpceLink1
-            = new org.opendaylight.yang.gen.v1.http.transportpce.topology.rev220123.Link1Builder()
+        org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev250902.Link1 tpceLink1
+            = new org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev250902.Link1Builder()
                 .setOtnLinkType(linkType).build();
         Link1Builder otnLink1Bldr = new Link1Builder()
-            .setUsedBandwidth(Uint32.valueOf(0));
+            .setUsedBandwidth(Uint32.ZERO);
         if (OTNLINKTYPE_OTU_BW_MAP.containsKey(linkType)) {
             otnLink1Bldr.setAvailableBandwidth(Uint32.valueOf(OTNLINKTYPE_OTU_BW_MAP.get(linkType)));
         } else if (OTNLINKTYPE_BW_MAP.containsKey(linkType)) {
@@ -343,9 +424,9 @@ public final class OpenRoadmOtnTopology {
             .addAugmentation(tpceLink1)
             .addAugmentation(otnLink1Bldr.build())
             .addAugmentation(
-                new org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev211210.Link1Builder(
+                new org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.Link1Builder(
                         ietfLinkAZBldr.augmentation(
-                            org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev211210.Link1.class))
+                            org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.Link1.class))
                     .setLinkType(OpenroadmLinkType.OTNLINK)
                     .setOperationalState(State.InService)
                     .setAdministrativeState(AdminStates.InService)
@@ -357,9 +438,9 @@ public final class OpenRoadmOtnTopology {
             .addAugmentation(tpceLink1)
             .addAugmentation(otnLink1Bldr.build())
             .addAugmentation(
-                new org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev211210.Link1Builder(
+                new org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.Link1Builder(
                         ietfLinkZABldr.augmentation(
-                            org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev211210.Link1.class))
+                            org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.Link1.class))
                     .setLinkType(OpenroadmLinkType.OTNLINK)
                     .setOperationalState(State.InService)
                     .setAdministrativeState(AdminStates.InService)
@@ -388,11 +469,11 @@ public final class OpenRoadmOtnTopology {
             updatedlinks.add(
                 new LinkBuilder(link)
                     .addAugmentation(new Link1Builder(link.augmentation(Link1.class))
-                        .setAvailableBandwidth(Uint32.valueOf(0))
+                        .setAvailableBandwidth(Uint32.ZERO)
                         .setUsedBandwidth(
                             OTNLINKTYPE_BW_MAP.containsKey(linkType)
                                 ? Uint32.valueOf(OTNLINKTYPE_BW_MAP.get(linkType))
-                                : Uint32.valueOf(0))
+                                : Uint32.ZERO)
                         .build())
                     .build());
         }
@@ -409,12 +490,12 @@ public final class OpenRoadmOtnTopology {
         XpdrTpPortConnectionAttributesBuilder xtpcaBldr =
             new XpdrTpPortConnectionAttributesBuilder(otnTp1Bldr.getXpdrTpPortConnectionAttributes());
         if (addingTsTpnPoolTermination) {
-            List<Uint16> tsPool = new ArrayList<>();
+            Set<Uint16> tsPool = new HashSet<>();
             for (int i = 1; i <= NB_TRIB_SLOTS; i++) {
                 tsPool.add(Uint16.valueOf(i));
             }
             xtpcaBldr.setTsPool(tsPool);
-            List<Uint16> tpnPool = new ArrayList<>();
+            Set<Uint16> tpnPool = new HashSet<>();
             int nbTribPort = NB_TRIB_PORTS;
             if (OtnLinkType.ODUC4.equals(linkType)) {
                 nbTribPort = 4;
@@ -423,7 +504,7 @@ public final class OpenRoadmOtnTopology {
                 tpnPool.add(Uint16.valueOf(i));
             }
             OdtuTpnPool oduTpnPool = new OdtuTpnPoolBuilder()
-                .setOdtuType(ODTU4TsAllocated.class)
+                .setOdtuType(ODTU4TsAllocated.VALUE)
                 .setTpnPool(tpnPool)
                 .build();
             xtpcaBldr.setOdtuTpnPool(ImmutableMap.of(oduTpnPool.key(),oduTpnPool));
@@ -443,30 +524,34 @@ public final class OpenRoadmOtnTopology {
         XpdrTpPortConnectionAttributesBuilder xtpcaBldr =
             new XpdrTpPortConnectionAttributesBuilder(
                 tpBldr.augmentation(TerminationPoint1.class).getXpdrTpPortConnectionAttributes());
-        List<Uint16> tsPool = new ArrayList<>(xtpcaBldr.getTsPool());
-        if (isDeletion) {
-            for (int i = minTribSlotNb; i <= maxTribSlotNb; i++) {
-                tsPool.add(Uint16.valueOf(i));
+        //adding this check as tspool will be null for OC devices.
+        if (xtpcaBldr.getTsPool() != null) {
+            Set<Uint16> tsPool = new HashSet<>(xtpcaBldr.getTsPool());
+            if (isDeletion) {
+                for (int i = minTribSlotNb; i <= maxTribSlotNb; i++) {
+                    tsPool.add(Uint16.valueOf(i));
+                }
+            } else {
+                for (int i = minTribSlotNb; i <= maxTribSlotNb; i++) {
+                    tsPool.remove(Uint16.valueOf(i));
+                }
             }
-        } else {
-            for (int i = minTribSlotNb; i <= maxTribSlotNb; i++) {
-                tsPool.remove(Uint16.valueOf(i));
-            }
+            xtpcaBldr.setTsPool(tsPool);
         }
-        xtpcaBldr.setTsPool(tsPool);
-        List<Uint16> tpnPool;
-        List<OdtuTpnPool> odtuTpnPoolValues = new ArrayList<>(xtpcaBldr.getOdtuTpnPool().values());
-        if (odtuTpnPoolValues.get(0).getTpnPool() == null) {
-            tpnPool = new ArrayList<>();
-        } else {
-            tpnPool = new ArrayList<>(odtuTpnPoolValues.get(0).getTpnPool());
+        Set<Uint16> tpnPool = new HashSet<>();
+        if (xtpcaBldr.getOdtuTpnPool() != null && !xtpcaBldr.getOdtuTpnPool().isEmpty()) {
+            List<OdtuTpnPool> odtuTpnPoolValues = new ArrayList<>(xtpcaBldr.getOdtuTpnPool().values());
+            Set<Uint16> existingTpnPool = odtuTpnPoolValues.get(0).getTpnPool();
+            if (existingTpnPool != null) {
+                tpnPool.addAll(existingTpnPool);
+            }
             if (isDeletion) {
                 tpnPool.add(Uint16.valueOf(tribPortNb));
             } else {
                 tpnPool.remove(Uint16.valueOf(tribPortNb));
             }
         }
-        Class<? extends OdtuTypeIdentity> odtuType;
+        OdtuTypeIdentity odtuType;
         if (SERVICERATE_ODTUTYPECLASS_MAP.containsKey(serviceRate)) {
             odtuType = SERVICERATE_ODTUTYPECLASS_MAP.get(serviceRate);
         } else {
@@ -512,9 +597,11 @@ public final class OpenRoadmOtnTopology {
                         mappingNode.getNodeId(),
                         mappingNode.getNodeInfo().getNodeClli(),
                         xpdrNb,
-                        mapping.getXponderType() == null
+                        mapping.getXpdrType() == null
                             ? XpdrNodeTypes.Tpdr
-                            : mapping.getXponderType(),
+                                // TODO: This needs to be updated to OpenROADM network models 17.1.0
+                            : org.opendaylight.yang.gen.v1.http.org.openroadm.device.types
+                                .rev191129.XpdrNodeTypes.forName(mapping.getXpdrType().getName()),
                         fillConnectionMapLcp(xpdrNetMaps),
                         fillConnectionMapLcp(xpdrClMaps),
                         xpdrNetMaps,
@@ -554,7 +641,7 @@ public final class OpenRoadmOtnTopology {
                             .build())
                     .build())
             .addAugmentation(
-                new org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev211210.Node1Builder()
+                new org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.Node1Builder()
                     .setNodeType(OpenroadmNodeType.TPDR)
                     .setOperationalState(State.InService)
                     .setAdministrativeState(AdminStates.InService)
@@ -567,28 +654,43 @@ public final class OpenRoadmOtnTopology {
             .build();
     }
 
-    private static Node createMuxpdr(OtnTopoNode node) {
+    // TODO: This is same as createTpdr. After Open ROADM network models are updated,
+    //    we will revisit this method to include regen based data.
+    private static Node createRegen(OtnTopoNode node) {
+        Map<TerminationPointKey,TerminationPoint> tpMap = new HashMap<>();
+        createTP(tpMap, node, OpenroadmTpType.XPONDERCLIENT, false);
+        createTP(tpMap, node, OpenroadmTpType.XPONDERNETWORK, true);
+        // return ietfNode
+        return new NodeBuilder()
+                .setNodeId(new NodeId(node.getNodeId() + XPDR + node.getXpdrNb()))
+                .withKey(new NodeKey(new NodeId(node.getNodeId() + XPDR + node.getXpdrNb())))
+                .setSupportingNode(createSupportingNodes(node))
+                .addAugmentation(
+                        new Node1Builder()
+                                .setXpdrAttributes(
+                                        new XpdrAttributesBuilder()
+                                                .setXpdrNumber(Uint16.valueOf(node.getXpdrNb()))
+                                                .build())
+                                .build())
+                .addAugmentation(
+                        new org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.Node1Builder()
+                                .setNodeType(OpenroadmNodeType.TPDR)
+                                .setOperationalState(State.InService)
+                                .setAdministrativeState(AdminStates.InService)
+                                .build())
+                .addAugmentation(
+                        new org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226
+                                .Node1Builder()
+                                .setTerminationPoint(tpMap)
+                                .build())
+                .build();
+    }
+
+    private static Node createMuxpdr(OtnTopoNode node, Map<SwitchingPoolLcpKey, SwitchingPoolLcp> oslpMap) {
 
         // prepare otn-topology node augmentation
         // TODO: will need to be completed
-        Map<NonBlockingListKey, NonBlockingList> nbMap = new HashMap<>();
-        for (int i = 1; i <= node.getNbTpClient(); i++) {
-            List<TpId> tpList = new ArrayList<>();
-            tpList.add(new TpId("XPDR" + node.getXpdrNb() + CLIENT + i));
-            tpList.add(new TpId("XPDR" + node.getXpdrNb() + "-NETWORK1"));
-            NonBlockingList nbl = new NonBlockingListBuilder()
-                .setNblNumber(Uint16.valueOf(i))
-                .setTpList(tpList)
-                .setAvailableInterconnectBandwidth(Uint32.valueOf(node.getNbTpNetwork() * 10L))
-                .setInterconnectBandwidthUnit(Uint32.valueOf(1000000000))
-                .build();
-            nbMap.put(nbl.key(),nbl);
-        }
-        OduSwitchingPools oduSwitchPool = new OduSwitchingPoolsBuilder()
-            .setSwitchingPoolNumber(Uint16.valueOf(1))
-            .setSwitchingPoolType(SwitchingPoolTypes.NonBlocking)
-            .setNonBlockingList(nbMap)
-            .build();
+        Map<OduSwitchingPoolsKey, OduSwitchingPools> oduSwPoolMap = createOduSwPoolFromSwitchingPoolLcp(oslpMap);
         Map<TerminationPointKey, TerminationPoint> tpMap = new HashMap<>();
         createTP(tpMap, node, OpenroadmTpType.XPONDERCLIENT, true);
         createTP(tpMap, node, OpenroadmTpType.XPONDERNETWORK, true);
@@ -606,11 +708,12 @@ public final class OpenRoadmOtnTopology {
                             .build())
                     .setSwitchingPools(
                         new SwitchingPoolsBuilder()
-                            .setOduSwitchingPools(Map.of(oduSwitchPool.key(),oduSwitchPool))
+//                            .setOduSwitchingPools(Map.of(oduSwitchPool.key(),oduSwitchPool))
+                            .setOduSwitchingPools(oduSwPoolMap)
                             .build())
                     .build())
             .addAugmentation(
-                new org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev211210.Node1Builder()
+                new org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.Node1Builder()
                     .setNodeType(OpenroadmNodeType.MUXPDR)
                     .setAdministrativeState(AdminStates.InService)
                     .setOperationalState(State.InService)
@@ -623,28 +726,9 @@ public final class OpenRoadmOtnTopology {
             .build();
     }
 
-    private static Node createSwitch(OtnTopoNode node) {
+    private static Node createSwitch(OtnTopoNode node, Map<SwitchingPoolLcpKey, SwitchingPoolLcp> oslpMap) {
 
-        List<TpId> tpl = new ArrayList<>();
-        for (int i = 1; i <= node.getNbTpClient(); i++) {
-            tpl.add(new TpId("XPDR" + node.getXpdrNb() + CLIENT + i));
-        }
-        for (int i = 1; i <= node.getNbTpNetwork(); i++) {
-            tpl.add(new TpId("XPDR" + node.getXpdrNb() + NETWORK + i));
-        }
-        Map<NonBlockingListKey, NonBlockingList> nbMap = new HashMap<>();
-        NonBlockingList nbl = new NonBlockingListBuilder()
-            .setNblNumber(Uint16.valueOf(1))
-            .setTpList(tpl)
-            .build();
-        nbMap.put(nbl.key(),nbl);
-        OduSwitchingPools oduSwitchPool = new OduSwitchingPoolsBuilder()
-            .setSwitchingPoolNumber(Uint16.valueOf(1))
-            .setSwitchingPoolType(SwitchingPoolTypes.NonBlocking)
-            .setNonBlockingList(nbMap)
-            .build();
-        Map<OduSwitchingPoolsKey, OduSwitchingPools> oduSwitchPoolList = new HashMap<>();
-        oduSwitchPoolList.put(oduSwitchPool.key(),oduSwitchPool);
+        Map<OduSwitchingPoolsKey, OduSwitchingPools> oduSwitchPoolMap = createOduSwPoolFromSwitchingPoolLcp(oslpMap);
         Map<TerminationPointKey, TerminationPoint> tpMap = new HashMap<>();
         createTP(tpMap, node, OpenroadmTpType.XPONDERCLIENT, true);
         createTP(tpMap, node, OpenroadmTpType.XPONDERNETWORK, true);
@@ -662,11 +746,11 @@ public final class OpenRoadmOtnTopology {
                             .build())
                     .setSwitchingPools(
                         new SwitchingPoolsBuilder()
-                            .setOduSwitchingPools(oduSwitchPoolList)
+                            .setOduSwitchingPools(oduSwitchPoolMap)
                             .build())
                     .build())
             .addAugmentation(
-                new org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev211210.Node1Builder()
+                new org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.Node1Builder()
                     .setNodeType(OpenroadmNodeType.SWITCH)
                     .setOperationalState(State.InService)
                     .setAdministrativeState(AdminStates.InService)
@@ -677,6 +761,40 @@ public final class OpenRoadmOtnTopology {
                         .setTerminationPoint(tpMap)
                         .build())
             .build();
+    }
+
+    private static Map<OduSwitchingPoolsKey, OduSwitchingPools> createOduSwPoolFromSwitchingPoolLcp(
+            Map<SwitchingPoolLcpKey, SwitchingPoolLcp> oslpMap) {
+        Map<OduSwitchingPoolsKey, OduSwitchingPools> oduSwPoolMap = new HashMap<>();
+        for (Map.Entry<SwitchingPoolLcpKey, SwitchingPoolLcp> oslp : oslpMap.entrySet()) {
+            Map<NonBlockingListKey, NonBlockingList> nblMap = new HashMap<>();
+            for (Map.Entry<org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612
+                    .switching.pool.lcp.switching.pool.lcp.NonBlockingListKey,
+                    org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612
+                        .switching.pool.lcp.switching.pool.lcp.NonBlockingList> nblEntry : oslp
+                            .getValue().getNonBlockingList().entrySet()) {
+                Set<TpId> tpList = new HashSet<>();
+                nblEntry.getValue().getLcpList().stream().forEach(lcp -> tpList.add(new TpId(lcp)));
+                NonBlockingList nbl = new NonBlockingListBuilder()
+                    .setNblNumber(nblEntry.getKey().getNblNumber())
+                    .setTpList(tpList)
+                    .setAvailableInterconnectBandwidth(
+                        nblEntry.getValue().getAvailableInterconnectBandwidth() == null
+                            ? nblEntry.getValue().getInterconnectBandwidth()
+                            : nblEntry.getValue().getAvailableInterconnectBandwidth())
+                    .setCapableInterconnectBandwidth(nblEntry.getValue().getInterconnectBandwidth())
+                    .setInterconnectBandwidthUnit(nblEntry.getValue().getInterconnectBandwidthUnit())
+                    .build();
+                nblMap.put(nbl.key(),nbl);
+            }
+            OduSwitchingPools oduSwitchPool = new OduSwitchingPoolsBuilder()
+                .setSwitchingPoolNumber(oslp.getValue().getSwitchingPoolNumber())
+                .setSwitchingPoolType(oslp.getValue().getSwitchingPoolType())
+                .setNonBlockingList(nblMap)
+                .build();
+            oduSwPoolMap.put(new OduSwitchingPoolsKey(oduSwitchPool.getSwitchingPoolNumber()), oduSwitchPool);
+        }
+        return oduSwPoolMap;
     }
 
     private static void createTP(Map<TerminationPointKey, TerminationPoint> tpMap,
@@ -709,7 +827,8 @@ public final class OpenRoadmOtnTopology {
                     mapping.getLogicalConnectionPoint(), node.getNodeId());
             } else {
                 XpdrTpPortConnectionAttributesBuilder xtpcaBldr = new XpdrTpPortConnectionAttributesBuilder();
-                for (Class<? extends SupportedIfCapability> supInterCapa : mapping.getSupportedInterfaceCapability()) {
+                for (org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.SupportedIfCapability
+                        supInterCapa : mapping.getSupportedInterfaceCapability()) {
                     SupportedInterfaceCapability supIfCapa = new SupportedInterfaceCapabilityBuilder()
                         .withKey(new SupportedInterfaceCapabilityKey(supInterCapa))
                         .setIfCapType(supInterCapa)
@@ -735,35 +854,36 @@ public final class OpenRoadmOtnTopology {
                 new TpId(mapping.getLogicalConnectionPoint()),
                 tpType,
                 otnTp1Bldr.build(),
-                new org.opendaylight.yang.gen.v1.http.transportpce.topology.rev220123.TerminationPoint1Builder(),
                 mapping);
         }
     }
 
     private static void setclientNwTpAttr(Map<TerminationPointKey, TerminationPoint> tpMap, OtnTopoNode node, TpId tpId,
-            OpenroadmTpType tpType, TerminationPoint1 otnTp1,
-            org.opendaylight.yang.gen.v1.http.transportpce.topology.rev220123.TerminationPoint1Builder tpceTp1Bldr,
-            Mapping mapping) {
-
+            OpenroadmTpType tpType, TerminationPoint1 otnTp1, Mapping mapping) {
+        org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.TerminationPoint1Builder cnTP1BLdr
+                = new org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530
+                    .TerminationPoint1Builder();
         switch (tpType) {
             case XPONDERNETWORK:
                 if (node.getXpdrNetConnectionMap().get(tpId.getValue()) != null) {
-                    tpceTp1Bldr.setAssociatedConnectionMapPort(node.getXpdrNetConnectionMap().get(tpId.getValue()));
+                    cnTP1BLdr.setAssociatedConnectionMapTp(Set.of(
+                            new TpId(node.getXpdrNetConnectionMap().get(tpId.getValue()))));
                 }
                 SupportingTerminationPoint stp = new SupportingTerminationPointBuilder()
-                    .setNetworkRef(new NetworkId(NetworkUtils.OVERLAY_NETWORK_ID))
+                    .setNetworkRef(new NetworkId(StringConstants.OPENROADM_TOPOLOGY))
                     .setNodeRef(new NodeId(node.getNodeId() + XPDR + node.getXpdrNb()))
                     .setTpRef(tpId)
                     .build();
                 TerminationPoint ietfTpNw =
-                    buildIetfTp(tpceTp1Bldr, otnTp1, tpType, tpId, Map.of(stp.key(), stp), mapping);
+                    buildIetfTp(cnTP1BLdr, otnTp1, tpType, tpId, Map.of(stp.key(), stp), mapping);
                 tpMap.put(ietfTpNw.key(),ietfTpNw);
                 break;
             case XPONDERCLIENT:
                 if (node.getXpdrCliConnectionMap().get(tpId.getValue()) != null) {
-                    tpceTp1Bldr.setAssociatedConnectionMapPort(node.getXpdrCliConnectionMap().get(tpId.getValue()));
+                    cnTP1BLdr.setAssociatedConnectionMapTp(Set.of(
+                            new TpId(node.getXpdrCliConnectionMap().get(tpId.getValue()))));
                 }
-                TerminationPoint ietfTpCl = buildIetfTp(tpceTp1Bldr, otnTp1, tpType, tpId, null, mapping);
+                TerminationPoint ietfTpCl = buildIetfTp(cnTP1BLdr, otnTp1, tpType, tpId, null, mapping);
                 tpMap.put(ietfTpCl.key(),ietfTpCl);
                 break;
             default:
@@ -772,11 +892,13 @@ public final class OpenRoadmOtnTopology {
         }
     }
 
-    private static Class<? extends OduRateIdentity> fixRate(List<Class<? extends SupportedIfCapability>> list) {
-
-        for (Class<? extends  SupportedIfCapability> class1 : list) {
-            if (RATE_MAP.containsKey(class1.getSimpleName())) {
-                return RATE_MAP.get(class1.getSimpleName());
+    private static OduRateIdentity fixRate(
+            Set<org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.SupportedIfCapability> list) {
+        for (org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.SupportedIfCapability
+                supIfCap: list) {
+            String simpleName = supIfCap.toString().split("\\{")[0];
+            if (RATE_MAP.containsKey(simpleName)) {
+                return RATE_MAP.get(simpleName);
             }
         }
         return null;
@@ -785,27 +907,27 @@ public final class OpenRoadmOtnTopology {
     private static Map<SupportingNodeKey,SupportingNode> createSupportingNodes(OtnTopoNode node) {
 
         SupportingNode suppNode1 = new SupportingNodeBuilder()
-            .setNetworkRef(new NetworkId(NetworkUtils.UNDERLAY_NETWORK_ID))
+            .setNetworkRef(new NetworkId(StringConstants.OPENROADM_NETWORK))
             .setNodeRef(new NodeId(node.getNodeId()))
             .withKey(
                 new SupportingNodeKey(
-                    new NetworkId(NetworkUtils.UNDERLAY_NETWORK_ID),
+                    new NetworkId(StringConstants.OPENROADM_NETWORK),
                     new NodeId(node.getNodeId())))
             .build();
         SupportingNode suppNode2 = new SupportingNodeBuilder()
-            .setNetworkRef(new NetworkId(NetworkUtils.OVERLAY_NETWORK_ID))
+            .setNetworkRef(new NetworkId(StringConstants.OPENROADM_TOPOLOGY))
             .setNodeRef(new NodeId(node.getNodeId() + XPDR + node.getXpdrNb()))
             .withKey(
                 new SupportingNodeKey(
-                    new NetworkId(NetworkUtils.OVERLAY_NETWORK_ID),
+                    new NetworkId(StringConstants.OPENROADM_TOPOLOGY),
                     new NodeId(node.getNodeId() + XPDR + node.getXpdrNb())))
             .build();
         SupportingNode suppNode3 = new SupportingNodeBuilder()
-            .setNetworkRef(new NetworkId(NetworkUtils.CLLI_NETWORK_ID))
+            .setNetworkRef(new NetworkId(StringConstants.CLLI_NETWORK))
             .setNodeRef(new NodeId(node.getClli()))
             .withKey(
                 new SupportingNodeKey(
-                    new NetworkId(NetworkUtils.CLLI_NETWORK_ID),
+                    new NetworkId(StringConstants.CLLI_NETWORK),
                     new NodeId(node.getClli())))
             .build();
         Map<SupportingNodeKey,SupportingNode> suppNodeMap = new HashMap<>();
@@ -816,14 +938,11 @@ public final class OpenRoadmOtnTopology {
     }
 
     private static TerminationPoint buildIetfTp(
-            org.opendaylight.yang.gen.v1.http.transportpce.topology.rev220123.TerminationPoint1Builder tpceTp1Bldr,
+            org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.TerminationPoint1Builder cnTP1BLdr,
             TerminationPoint1 otnTp1, OpenroadmTpType tpType, TpId tpId,
             Map<SupportingTerminationPointKey, SupportingTerminationPoint> supportTpMap, Mapping mapping) {
 
         TerminationPointBuilder ietfTpBldr = new TerminationPointBuilder();
-        if (tpceTp1Bldr.getAssociatedConnectionMapPort() != null) {
-            ietfTpBldr.addAugmentation(tpceTp1Bldr.build());
-        }
         if (supportTpMap != null) {
             ietfTpBldr.setSupportingTerminationPoint(supportTpMap);
         }
@@ -831,13 +950,11 @@ public final class OpenRoadmOtnTopology {
             .setTpId(tpId)
             .withKey(new TerminationPointKey(tpId))
             .addAugmentation(otnTp1)
-            .addAugmentation(
-                new org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev211210.TerminationPoint1Builder()
-                    .setTpType(tpType)
+            .addAugmentation(cnTP1BLdr.setTpType(tpType)
                     .setAdministrativeState(TopologyUtils.setNetworkAdminState(mapping.getPortAdminState()))
                     .setOperationalState(TopologyUtils.setNetworkOperState(mapping.getPortOperState()))
                     .build())
-            .build();
+                .build();
     }
 
     private static String formatNodeName(String nodeName, String tpName) {

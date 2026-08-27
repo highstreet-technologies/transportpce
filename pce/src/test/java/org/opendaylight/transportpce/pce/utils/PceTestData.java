@@ -7,39 +7,42 @@
  */
 package org.opendaylight.transportpce.pce.utils;
 
-import java.math.BigDecimal;
-import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.opendaylight.transportpce.common.ResponseCodes;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.PathComputationRequestInput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.PathComputationRequestInputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.PathComputationRequestOutput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.PathComputationRequestOutputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.path.computation.request.input.ServiceAEndBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.path.computation.request.input.ServiceZEndBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.PathComputationRequestInput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.PathComputationRequestInputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.PathComputationRequestOutput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.PathComputationRequestOutputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.PathComputationRerouteRequestInput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.PathComputationRerouteRequestInputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.path.computation.request.input.ServiceAEndBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.path.computation.request.input.ServiceZEndBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.path.computation.reroute.request.input.EndpointsBuilder;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.node.types.rev210528.NodeIdType;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.ConnectionType;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.configuration.response.common.ConfigurationResponseCommon;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.configuration.response.common.ConfigurationResponseCommonBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.sdnc.request.header.SdncRequestHeaderBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.service.endpoint.RxDirectionKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.service.endpoint.TxDirectionKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.service.port.PortBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.constraints.CoRoutingBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.constraints.DiversityBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.constraints.ExcludeBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.constraints.IncludeBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.constraints.LatencyBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.constraints.co.routing.ServiceIdentifierListBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.diversity.existing.service.constraints.ServiceIdentifierListKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.routing.constraints.HardConstraintsBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.routing.constraints.SoftConstraintsBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.service.applicability.g.ServiceApplicabilityBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.format.rev191129.ServiceFormat;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.ServiceCreateInput;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.ServiceCreateInputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.path.description.AToZDirectionBuilder;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.path.description.ZToADirectionBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.ConnectionType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.configuration.response.common.ConfigurationResponseCommon;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.configuration.response.common.ConfigurationResponseCommonBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.sdnc.request.header.SdncRequestHeaderBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.service.endpoint.RxDirectionKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.service.endpoint.TxDirectionKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.service.port.PortBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.constraints.CoRoutingBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.constraints.DiversityBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.constraints.ExcludeBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.constraints.IncludeBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.constraints.LatencyBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.constraints.co.routing.ServiceIdentifierListBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.diversity.existing.service.constraints.ServiceIdentifierListKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.routing.constraints.HardConstraintsBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.routing.constraints.SoftConstraintsBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.service.applicability.g.ServiceApplicabilityBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.format.rev250530.ServiceFormat;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.ServiceCreateInput;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.ServiceCreateInputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.path.description.AToZDirectionBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.path.description.ZToADirectionBuilder;
 import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.PceMetric;
 import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.response.parameters.sp.ResponseParametersBuilder;
 import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.response.parameters.sp.response.parameters.PathDescription;
@@ -47,6 +50,7 @@ import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service
 import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.service.endpoint.sp.RxDirectionBuilder;
 import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.service.endpoint.sp.TxDirectionBuilder;
 import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.service.handler.header.ServiceHandlerHeaderBuilder;
+import org.opendaylight.yangtools.yang.common.Decimal64;
 import org.opendaylight.yangtools.yang.common.Uint32;
 import org.opendaylight.yangtools.yang.common.Uint8;
 
@@ -119,7 +123,7 @@ public final class PceTestData {
                 .build())
             .setServiceZEnd(new ServiceZEndBuilder()
                 .setServiceFormat(ServiceFormat.ODU)
-                .setServiceRate(Uint32.valueOf(0))
+                .setServiceRate(Uint32.ZERO)
                 .setClli("Some clli11")
                 .setNodeId("XPONDER-1-2")
                 .setTxDirection(new TxDirectionBuilder()
@@ -146,20 +150,20 @@ public final class PceTestData {
                     .build())
                 .build())
             .setHardConstraints(new HardConstraintsBuilder()
-                .setCustomerCode(Arrays.asList("Some customer-code"))
+                .setCustomerCode(Set.of("Some customer-code"))
                 .setCoRouting(new CoRoutingBuilder()
                     .setServiceIdentifierList(Map.of(
-                        new org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.constraints.co
-                                .routing.ServiceIdentifierListKey("Some existing-service"),
+                        new org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329
+                                .constraints.co.routing.ServiceIdentifierListKey("Some existing-service"),
                         new ServiceIdentifierListBuilder().setServiceIdentifier("Some existing-service").build()))
                     .build())
                 .build())
             .setSoftConstraints(new SoftConstraintsBuilder()
-                .setCustomerCode(Arrays.asList("Some customer-code"))
+                .setCustomerCode(Set.of("Some customer-code"))
                 .setCoRouting(new CoRoutingBuilder()
                     .setServiceIdentifierList(Map.of(
-                        new org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.constraints.co
-                                .routing.ServiceIdentifierListKey("Some existing-service"),
+                        new org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329
+                                .constraints.co.routing.ServiceIdentifierListKey("Some existing-service"),
                         new ServiceIdentifierListBuilder().setServiceIdentifier("Some existing-service").build()))
                     .build())
                 .build())
@@ -204,7 +208,7 @@ public final class PceTestData {
                 .build())
             .setServiceZEnd(new ServiceZEndBuilder()
                 .setServiceFormat(ServiceFormat.Ethernet)
-                .setServiceRate(Uint32.valueOf(0))
+                .setServiceRate(Uint32.ZERO)
                 .setClli("Some clli11")
                 .setNodeId("XPONDER-1-2")
                 .setTxDirection(new TxDirectionBuilder()
@@ -231,20 +235,20 @@ public final class PceTestData {
                     .build())
                 .build())
             .setHardConstraints(new HardConstraintsBuilder()
-                .setCustomerCode(Arrays.asList("Some customer-code"))
+                .setCustomerCode(Set.of("Some customer-code"))
                 .setCoRouting(new CoRoutingBuilder()
                     .setServiceIdentifierList(Map.of(
-                        new org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.constraints.co
-                                .routing.ServiceIdentifierListKey("Some existing-service"),
+                        new org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329
+                                .constraints.co.routing.ServiceIdentifierListKey("Some existing-service"),
                         new ServiceIdentifierListBuilder().setServiceIdentifier("Some existing-service").build()))
                     .build())
                 .build())
             .setSoftConstraints(new SoftConstraintsBuilder()
-                .setCustomerCode(Arrays.asList("Some customer-code"))
+                .setCustomerCode(Set.of("Some customer-code"))
                 .setCoRouting(new CoRoutingBuilder()
                     .setServiceIdentifierList(Map.of(
-                        new org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.constraints.co
-                                .routing.ServiceIdentifierListKey("Some existing-service"),
+                        new org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329
+                                .constraints.co.routing.ServiceIdentifierListKey("Some existing-service"),
                         new ServiceIdentifierListBuilder().setServiceIdentifier("Some existing-service").build()))
                     .build())
                 .build())
@@ -289,7 +293,7 @@ public final class PceTestData {
                 .build())
             .setServiceZEnd(new ServiceZEndBuilder()
                 .setServiceFormat(ServiceFormat.Ethernet)
-                .setServiceRate(Uint32.valueOf(0))
+                .setServiceRate(Uint32.ZERO)
                 .setClli("Some clli11")
                 .setNodeId("XPONDER-1-2")
                 .setTxDirection(new TxDirectionBuilder()
@@ -316,24 +320,113 @@ public final class PceTestData {
                     .build())
                 .build())
             .setHardConstraints(new HardConstraintsBuilder()
-                .setCustomerCode(Arrays.asList("Some customer-code"))
+                .setCustomerCode(Set.of("Some customer-code"))
                 .setCoRouting(new CoRoutingBuilder()
                     .setServiceIdentifierList(Map.of(
-                        new org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.constraints.co
-                                .routing.ServiceIdentifierListKey("Some existing-service"),
+                        new org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329
+                                .constraints.co.routing.ServiceIdentifierListKey("Some existing-service"),
                         new ServiceIdentifierListBuilder().setServiceIdentifier("Some existing-service").build()))
                     .build())
                 .build())
             .setSoftConstraints(new SoftConstraintsBuilder()
-                .setCustomerCode(Arrays.asList("Some customer-code"))
+                .setCustomerCode(Set.of("Some customer-code"))
                 .setCoRouting(new CoRoutingBuilder()
                     .setServiceIdentifierList(Map.of(
-                        new org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.constraints.co
-                                .routing.ServiceIdentifierListKey("Some existing-service"),
+                        new org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329
+                                .constraints.co.routing.ServiceIdentifierListKey("Some existing-service"),
                         new ServiceIdentifierListBuilder().setServiceIdentifier("Some existing-service").build()))
                     .build())
                 .build())
             .build();
+    }
+
+    public static PathComputationRerouteRequestInput getPCERerouteRequest() {
+        return new PathComputationRerouteRequestInputBuilder()
+                .setPceRoutingMetric(PceMetric.HopCount)
+                .setServiceHandlerHeader(new ServiceHandlerHeaderBuilder()
+                        .setRequestId("request1")
+                        .build())
+                .setServiceAEnd(new org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205
+                        .path.computation.reroute.request.input.ServiceAEndBuilder()
+                    .setServiceFormat(ServiceFormat.Ethernet)
+                    .setServiceRate(Uint32.valueOf(100))
+                    .setClli("clli11")
+                    .setNodeId("XPONDER-2-2")
+                    .setTxDirection(new TxDirectionBuilder()
+                            .setPort(new PortBuilder()
+                                    .setPortDeviceName("Some port-device-name")
+                                    .setPortType("Some port-type")
+                                    .setPortName("Some port-name")
+                                    .setPortRack("Some port-rack")
+                                    .setPortShelf("Some port-shelf")
+                                    .setPortSlot("Some port-slot")
+                                    .setPortSubSlot("Some port-sub-slot")
+                                    .build())
+                            .build())
+                    .setRxDirection(new RxDirectionBuilder()
+                            .setPort(new PortBuilder()
+                                    .setPortDeviceName("Some port-device-name")
+                                    .setPortType("Some port-type")
+                                    .setPortName("Some port-name")
+                                    .setPortRack("Some port-rack")
+                                    .setPortShelf("Some port-shelf")
+                                    .setPortSlot("Some port-slot")
+                                    .setPortSubSlot("Some port-sub-slot")
+                                    .build())
+                            .build())
+                    .build())
+                .setServiceZEnd(new org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205
+                        .path.computation.reroute.request.input.ServiceZEndBuilder()
+                    .setServiceFormat(ServiceFormat.Ethernet)
+                    .setServiceRate(Uint32.ZERO)
+                    .setClli("Some clli11")
+                    .setNodeId("XPONDER-1-2")
+                    .setTxDirection(new TxDirectionBuilder()
+                            .setPort(new PortBuilder()
+                                    .setPortDeviceName("Some port-device-name")
+                                    .setPortType("Some port-type")
+                                    .setPortName("Some port-name")
+                                    .setPortRack("Some port-rack")
+                                    .setPortShelf("Some port-shelf")
+                                    .setPortSlot("Some port-slot")
+                                    .setPortSubSlot("Some port-sub-slot")
+                                    .build())
+                            .build())
+                    .setRxDirection(new RxDirectionBuilder()
+                            .setPort(new PortBuilder()
+                                    .setPortDeviceName("Some port-device-name")
+                                    .setPortType("Some port-type")
+                                    .setPortName("Some port-name")
+                                    .setPortRack("Some port-rack")
+                                    .setPortShelf("Some port-shelf")
+                                    .setPortSlot("Some port-slot")
+                                    .setPortSubSlot("Some port-sub-slot")
+                                    .build())
+                            .build())
+                    .build())
+                .setHardConstraints(new HardConstraintsBuilder()
+                    .setCustomerCode(Set.of("Some customer-code"))
+                    .setCoRouting(new CoRoutingBuilder()
+                        .setServiceIdentifierList(Map.of(
+                                new org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329
+                                        .constraints.co.routing.ServiceIdentifierListKey("test"),
+                                new ServiceIdentifierListBuilder().setServiceIdentifier("test").build()))
+                        .build())
+                    .build())
+                .setSoftConstraints(new SoftConstraintsBuilder()
+                    .setCustomerCode(Set.of("Some customer-code"))
+                    .setCoRouting(new CoRoutingBuilder()
+                        .setServiceIdentifierList(Map.of(
+                                new org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329
+                                        .constraints.co.routing.ServiceIdentifierListKey("test"),
+                                new ServiceIdentifierListBuilder().setServiceIdentifier("test").build()))
+                        .build())
+                    .build())
+                .setEndpoints(new EndpointsBuilder()
+                    .setAEndTp("AendTP")
+                    .setZEndTp("ZendTP")
+                    .build())
+                .build();
     }
 
     public static PathComputationRequestOutput getFailedPCEResultYes() {
@@ -390,11 +483,11 @@ public final class PceTestData {
             .setResourceReserve(true)
             .setPceRoutingMetric(PceMetric.HopCount)
             .setServiceAEnd(new ServiceAEndBuilder()
-                .setServiceRate(Uint32.valueOf(0))
+                .setServiceRate(Uint32.ZERO)
                 .setNodeId("XPONDER-1-2")
                 .build())
             .setServiceZEnd(new ServiceZEndBuilder()
-                .setServiceRate(Uint32.valueOf(0))
+                .setServiceRate(Uint32.ZERO)
                 .setNodeId("XPONDER-3-2")
                 .build())
             .build();
@@ -451,22 +544,22 @@ public final class PceTestData {
             .setResourceReserve(true)
             .setPceRoutingMetric(PceMetric.HopCount)
             .setServiceAEnd(new ServiceAEndBuilder()
-                .setServiceRate(Uint32.valueOf(0))
+                .setServiceRate(Uint32.ZERO)
                 .setNodeId("XPONDER-1-2")
                 .build())
             .setServiceZEnd(new ServiceZEndBuilder()
-                .setServiceRate(Uint32.valueOf(0))
+                .setServiceRate(Uint32.ZERO)
                 .setNodeId("XPONDER-3-2")
                 .build())
             .setHardConstraints(new HardConstraintsBuilder()
                 .setExclude(new ExcludeBuilder()
-                    .setNodeId(Arrays.asList(new NodeIdType("OpenROADM-2-2")))
+                    .setNodeId(List.of(new NodeIdType("OpenROADM-2-2")))
                     .build())
                 .setInclude(new IncludeBuilder()
-                    .setNodeId(Arrays.asList(new NodeIdType("XPONDER-1-2")))
+                    .setNodeId(List.of(new NodeIdType("XPONDER-1-2")))
                     .build())
                 .setLatency(new LatencyBuilder()
-                    .setMaxLatency(BigDecimal.valueOf(3223))
+                    .setMaxLatency(Decimal64.valueOf(3, 3223))
                     .build())
                 .build())
             .build();
@@ -484,6 +577,38 @@ public final class PceTestData {
                     .setPathDescription(createPathDescription(0L, 9L, 0L, 9L))
                     .build())
             .build();
+    }
+
+    public static PathComputationRerouteRequestInput getPCEReroute() {
+        return new PathComputationRerouteRequestInputBuilder()
+                .setServiceHandlerHeader(new ServiceHandlerHeaderBuilder()
+                        .setRequestId("request 1")
+                        .build())
+                .setPceRoutingMetric(PceMetric.HopCount)
+                .setServiceAEnd(new org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205
+                        .path.computation.reroute.request.input.ServiceAEndBuilder()
+                        .setServiceRate(Uint32.valueOf(100))
+                        .setServiceFormat(ServiceFormat.Ethernet)
+                        .setNodeId("XPONDER-1-2")
+                        .build())
+                .setServiceZEnd(new org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205
+                        .path.computation.reroute.request.input.ServiceZEndBuilder()
+                        .setServiceRate(Uint32.ZERO)
+                        .setServiceFormat(ServiceFormat.Ethernet)
+                        .setNodeId("XPONDER-3-2")
+                        .build())
+                .setHardConstraints(new HardConstraintsBuilder()
+                        .setExclude(new ExcludeBuilder()
+                                .setNodeId(List.of(
+                                        new NodeIdType("OpenROADM-2-1"),
+                                        new NodeIdType("OpenROADM-2-2")))
+                                .build())
+                        .build())
+                .setEndpoints(new EndpointsBuilder()
+                        .setAEndTp("AendTP")
+                        .setZEndTp("ZendTP")
+                        .build())
+                .build();
     }
 
     /**
@@ -527,13 +652,13 @@ public final class PceTestData {
                 .setNodeId("XPONDER-1-2")
                 .build())
             .setServiceZEnd(new ServiceZEndBuilder()
-                .setServiceRate(Uint32.valueOf(0))
+                .setServiceRate(Uint32.ZERO)
                 .setServiceFormat(ServiceFormat.Ethernet)
                 .setNodeId("XPONDER-3-2")
                 .build())
             .setHardConstraints(new HardConstraintsBuilder()
                 .setExclude(new ExcludeBuilder()
-                    .setNodeId(Arrays.asList(
+                    .setNodeId(List.of(
                         new NodeIdType("OpenROADM-2-1"),
                         new NodeIdType("OpenROADM-2-2")))
                     .build())
@@ -563,11 +688,11 @@ public final class PceTestData {
             .setResourceReserve(true)
             .setPceRoutingMetric(PceMetric.HopCount)
             .setServiceAEnd(new ServiceAEndBuilder()
-                .setServiceRate(Uint32.valueOf(0))
+                .setServiceRate(Uint32.ZERO)
                 .setNodeId("XPONDER-1-2")
                 .build())
             .setServiceZEnd(new ServiceZEndBuilder()
-                .setServiceRate(Uint32.valueOf(0))
+                .setServiceRate(Uint32.ZERO)
                 .setNodeId("XPONDER-3-2")
                 .build())
             .setHardConstraints(new HardConstraintsBuilder().build())
@@ -584,11 +709,11 @@ public final class PceTestData {
             .setResourceReserve(true)
             .setPceRoutingMetric(PceMetric.HopCount)
             .setServiceAEnd(new ServiceAEndBuilder()
-                .setServiceRate(Uint32.valueOf(0))
+                .setServiceRate(Uint32.ZERO)
                 .setNodeId("XPONDER-1-2")
                 .build())
             .setServiceZEnd(new ServiceZEndBuilder()
-                .setServiceRate(Uint32.valueOf(0))
+                .setServiceRate(Uint32.ZERO)
                 .setNodeId("XPONDER-3-2")
                 .build())
             .build();
@@ -661,23 +786,23 @@ public final class PceTestData {
         return new PathComputationRequestInputBuilder(base)
             .setServiceName("service 2")
             .setServiceAEnd(new ServiceAEndBuilder()
-                .setServiceRate(Uint32.valueOf(0))
+                .setServiceRate(Uint32.ZERO)
                 .setNodeId("XPONDER-1-1")
                 .build())
             .setServiceZEnd(new ServiceZEndBuilder()
-                .setServiceRate(Uint32.valueOf(0))
+                .setServiceRate(Uint32.ZERO)
                 .setNodeId("XPONDER-3-1")
                 .build())
             .setHardConstraints(new HardConstraintsBuilder()
                 .setLatency(new LatencyBuilder()
-                    .setMaxLatency(BigDecimal.valueOf(3223))
+                    .setMaxLatency(Decimal64.valueOf(3, 3223))
                     .build())
                 .setDiversity(new DiversityBuilder()
                     .setServiceIdentifierList(Map.of(
                         new ServiceIdentifierListKey(base.getServiceName()),
-                        new org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.diversity
-                                .existing.service.constraints.ServiceIdentifierListBuilder()
-                            .setServiceIndentifier(base.getServiceName())
+                        new org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329
+                                .diversity.existing.service.constraints.ServiceIdentifierListBuilder()
+                            .setServiceIdentifier(base.getServiceName())
                             .setServiceApplicability(new ServiceApplicabilityBuilder()
                                 .setNode(true)
                                 .build())
@@ -694,40 +819,40 @@ public final class PceTestData {
             .setCustomer("Customer")
             .setServiceName("service 1")
             .setServiceAEnd(
-                new org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.service.create.input
-                        .ServiceAEndBuilder()
+                new org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530
+                        .service.create.input.ServiceAEndBuilder()
                     .setClli("clli")
-                    .setServiceRate(Uint32.valueOf(0))
+                    .setServiceRate(Uint32.ZERO)
                     .setNodeId(new NodeIdType("XPONDER-1-2"))
                     .setTxDirection(Map.of(
                         new TxDirectionKey(Uint8.ZERO),
-                        new org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.service
-                                .endpoint.TxDirectionBuilder()
+                        new org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530
+                                .service.endpoint.TxDirectionBuilder()
                             .setPort(new PortBuilder().build())
                             .build()))
                     .setRxDirection(Map.of(
                         new RxDirectionKey(Uint8.ZERO),
-                        new org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.service
-                                .endpoint.RxDirectionBuilder()
+                        new org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530
+                                .service.endpoint.RxDirectionBuilder()
                             .setPort(new PortBuilder().build())
                             .build()))
                     .build())
             .setServiceZEnd(
-                new org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.service.create.input
-                        .ServiceZEndBuilder()
+                new org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530
+                        .service.create.input.ServiceZEndBuilder()
                     .setClli("clli")
-                    .setServiceRate(Uint32.valueOf(0))
+                    .setServiceRate(Uint32.ZERO)
                     .setNodeId(new NodeIdType("XPONDER-3-2"))
                     .setTxDirection(Map.of(
                         new TxDirectionKey(Uint8.ZERO),
-                        new org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.service
-                                .endpoint.TxDirectionBuilder()
+                        new org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530
+                                .service.endpoint.TxDirectionBuilder()
                             .setPort(new PortBuilder().build())
                             .build()))
                     .setRxDirection(Map.of(
                         new RxDirectionKey(Uint8.ZERO),
-                        new org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.service
-                                .endpoint.RxDirectionBuilder()
+                        new org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530
+                                .service.endpoint.RxDirectionBuilder()
                             .setPort(new PortBuilder().build())
                             .build()))
                     .build())
@@ -774,7 +899,7 @@ public final class PceTestData {
                 .build())
             .setServiceZEnd(new ServiceZEndBuilder()
                 .setServiceFormat(ServiceFormat.Ethernet)
-                .setServiceRate(Uint32.valueOf(0))
+                .setServiceRate(Uint32.ZERO)
                 .setClli("Some clli11")
                 .setNodeId(nodeZ)
                 .setTxDirection(new TxDirectionBuilder()
@@ -801,20 +926,20 @@ public final class PceTestData {
                     .build())
                 .build())
             .setHardConstraints(new HardConstraintsBuilder()
-                .setCustomerCode(Arrays.asList("Some customer-code"))
+                .setCustomerCode(Set.of("Some customer-code"))
                 .setCoRouting(new CoRoutingBuilder()
                     .setServiceIdentifierList(Map.of(
-                        new org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.constraints.co
-                                .routing.ServiceIdentifierListKey("Some existing-service"),
+                        new org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329
+                                .constraints.co.routing.ServiceIdentifierListKey("Some existing-service"),
                         new ServiceIdentifierListBuilder().setServiceIdentifier("Some existing-service").build()))
                     .build())
                 .build())
             .setSoftConstraints(new SoftConstraintsBuilder()
-                .setCustomerCode(Arrays.asList("Some customer-code"))
+                .setCustomerCode(Set.of("Some customer-code"))
                 .setCoRouting(new CoRoutingBuilder()
                     .setServiceIdentifierList(Map.of(
-                        new org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.constraints.co
-                                .routing.ServiceIdentifierListKey("Some existing-service"),
+                        new org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329
+                                .constraints.co.routing.ServiceIdentifierListKey("Some existing-service"),
                         new ServiceIdentifierListBuilder().setServiceIdentifier("Some existing-service").build()))
                     .build())
                 .build())

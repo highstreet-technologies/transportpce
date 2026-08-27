@@ -7,79 +7,74 @@
  */
 package org.opendaylight.transportpce.pce.service;
 
-import java.math.BigDecimal;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.mock;
+
 import java.util.Map;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.opendaylight.transportpce.common.network.NetworkTransactionService;
 import org.opendaylight.transportpce.pce.utils.PceTestData;
 import org.opendaylight.transportpce.test.AbstractTest;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220221.PathBandwidth;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220221.generic.path.properties.PathPropertiesBuilder;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220221.generic.path.properties.path.properties.PathMetric;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220221.generic.path.properties.path.properties.PathMetricBuilder;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220221.no.path.info.NoPathBuilder;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220221.result.Response;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220221.result.ResponseBuilder;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220221.result.ResponseKey;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220221.result.response.response.type.NoPathCaseBuilder;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220221.result.response.response.type.PathCaseBuilder;
+import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.PathBandwidth;
+import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.generic.path.properties.PathPropertiesBuilder;
+import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.generic.path.properties.path.properties.PathMetric;
+import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.generic.path.properties.path.properties.PathMetricBuilder;
+import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.no.path.info.NoPathBuilder;
+import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.result.Response;
+import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.result.ResponseBuilder;
+import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.result.ResponseKey;
+import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.result.response.response.type.NoPathCaseBuilder;
+import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.result.response.response.type.PathCaseBuilder;
+import org.opendaylight.yangtools.yang.common.Decimal64;
 
 public class PathComputationServiceImplTest extends AbstractTest {
 
     private PathComputationServiceImpl pathComputationServiceImpl;
     private static NetworkTransactionService networkTransactionService = null;
 
-    @Before
-    public void setUp() {
-        networkTransactionService = Mockito.mock(NetworkTransactionService.class);
+    @BeforeEach
+    void setUp() {
+        networkTransactionService = mock(NetworkTransactionService.class);
         pathComputationServiceImpl = new PathComputationServiceImpl(
                 networkTransactionService,
                 this.getNotificationPublishService(), null, null);
-        pathComputationServiceImpl.init();
     }
 
     @Test
-    public void pathComputationRequestTest() {
+    void pathComputationRequestTest() {
         pathComputationServiceImpl.generateGnpyResponse(null,"path");
-        Assert.assertNotNull(
-                pathComputationServiceImpl.pathComputationRequest(PceTestData.getPCE_simpletopology_test1_request()));
-
+        assertNotNull(
+            pathComputationServiceImpl.pathComputationRequest(PceTestData.getPCE_simpletopology_test1_request()));
     }
 
     @Test
-    public void testPathComputationRequestNoPath() {
+    void testPathComputationRequestNoPath() {
         Response response = new ResponseBuilder()
                 .withKey(new ResponseKey("responseId")).setResponseType(new NoPathCaseBuilder()
                 .setNoPath(new NoPathBuilder().setNoPath("no path").build()).build()).build();
 
         pathComputationServiceImpl.generateGnpyResponse(response,"path");
-        Assert.assertNotNull(
-                pathComputationServiceImpl.pathComputationRequest(PceTestData.getPCE_test3_request_54()));
-
+        assertNotNull(pathComputationServiceImpl.pathComputationRequest(PceTestData.getPCE_test3_request_54()));
     }
 
     @Test
-    public void testPathComputationRequestPathCase() {
+    void testPathComputationRequestPathCase() {
         PathMetric pathMetric = new PathMetricBuilder()
-                .setAccumulativeValue(new BigDecimal(21))
-                .setMetricType(PathBandwidth.class).build();
+                .setAccumulativeValue(Decimal64.valueOf(6, 21))
+                .setMetricType(PathBandwidth.VALUE).build();
         Response response = new ResponseBuilder()
                 .withKey(new ResponseKey("responseId")).setResponseType(new PathCaseBuilder()
                 .setPathProperties(new PathPropertiesBuilder().setPathMetric(Map.of(pathMetric.key(),pathMetric))
                 .build()).build()).build();
 
         pathComputationServiceImpl.generateGnpyResponse(response,"path");
-        Assert.assertNotNull(
-                pathComputationServiceImpl.pathComputationRequest(PceTestData.getPCE_test3_request_54()));
-
+        assertNotNull(pathComputationServiceImpl.pathComputationRequest(PceTestData.getPCE_test3_request_54()));
     }
 
-    @After
-    public void destroy() {
-        pathComputationServiceImpl.close();
+    @Test
+    void pathComputationRerouteRequestTest() {
+        pathComputationServiceImpl.generateGnpyResponse(null,"path");
+        assertNotNull(pathComputationServiceImpl.pathComputationRerouteRequest(PceTestData.getPCEReroute()));
     }
 }

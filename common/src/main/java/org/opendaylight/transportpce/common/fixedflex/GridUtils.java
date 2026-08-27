@@ -13,13 +13,14 @@ import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.device.renderer.rev211004.ServicePathInput;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.optical.channel.types.rev211210.FrequencyGHz;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.optical.channel.types.rev211210.FrequencyTHz;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.types.rev181019.ModulationFormat;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev211210.available.freq.map.AvailFreqMaps;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev211210.available.freq.map.AvailFreqMapsBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev211210.available.freq.map.AvailFreqMapsKey;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.device.renderer.rev260212.ServicePathInput;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.optical.channel.types.rev250328.FrequencyGHz;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.optical.channel.types.rev250328.FrequencyTHz;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.optical.channel.types.rev250328.ModulationFormat;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.available.freq.map.AvailFreqMaps;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.available.freq.map.AvailFreqMapsBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.available.freq.map.AvailFreqMapsKey;
+import org.opendaylight.yangtools.yang.common.Decimal64;
 import org.opendaylight.yangtools.yang.common.Uint16;
 import org.opendaylight.yangtools.yang.common.Uint32;
 import org.slf4j.Logger;
@@ -44,8 +45,11 @@ public final class GridUtils {
         Arrays.fill(byteArray, (byte) GridConstant.AVAILABLE_SLOT_VALUE);
         Map<AvailFreqMapsKey, AvailFreqMaps> waveMap = new HashMap<>();
         AvailFreqMaps availFreqMaps = new AvailFreqMapsBuilder().setMapName(GridConstant.C_BAND)
-                .setFreqMapGranularity(new FrequencyGHz(BigDecimal.valueOf(GridConstant.GRANULARITY)))
-                .setStartEdgeFreq(new FrequencyTHz(BigDecimal.valueOf(GridConstant.START_EDGE_FREQUENCY)))
+                .setFreqMapGranularity(
+                    new FrequencyGHz(Decimal64.valueOf(BigDecimal.valueOf(GridConstant.GRANULARITY)).scaleTo(5)))
+                .setStartEdgeFreq(
+                    new FrequencyTHz(Decimal64.valueOf(BigDecimal.valueOf(GridConstant.START_EDGE_FREQUENCY_THZ))
+                            .scaleTo(8)))
                 .setEffectiveBits(Uint16.valueOf(GridConstant.EFFECTIVE_BITS))
                 .setFreqMap(byteArray)
                 .build();
@@ -59,41 +63,54 @@ public final class GridUtils {
      * @param index int
      * @return the wavelength number.
      */
-    public static long getWaveLengthIndexFromSpectrumAssigment(int index) {
+    public static int getWaveLengthIndexFromSpectrumAssigment(int index) {
         return (GridConstant.EFFECTIVE_BITS - index) / GridConstant.NB_SLOTS_100G;
     }
 
     /**
-     * Compute the start frequency in TGz for the given index.
+     * Compute the start frequency in THz for the given index.
      * @param index int
      * @return the start frequency in THz for the provided index.
      */
     public static BigDecimal getStartFrequencyFromIndex(int index) {
         int nvalue = index - 284;
-        return BigDecimal.valueOf(GridConstant.CENTRAL_FREQUENCY + (nvalue * GridConstant.GRANULARITY / 1000));
+
+        return BigDecimal.valueOf(GridConstant.CENTRAL_FREQUENCY_THZ).add(
+                        BigDecimal.valueOf(GridConstant.GRANULARITY)
+                                .multiply(BigDecimal.valueOf(nvalue))
+                                .divide(BigDecimal.valueOf(1000))
+                );
     }
 
     /**
-     * Compute the stop frequency in TGz for the given index.
+     * Compute the stop frequency in THz for the given index.
      * @param index int
      * @return the stop frequency in THz for the provided index.
      */
     public static BigDecimal getStopFrequencyFromIndex(int index) {
-        return getStartFrequencyFromIndex(index).add(BigDecimal.valueOf(GridConstant.GRANULARITY / 1000));
+        return getStartFrequencyFromIndex(index)
+                .add(BigDecimal.valueOf(GridConstant.GRANULARITY).divide(BigDecimal.valueOf(1000)));
     }
 
     /**
      * Get the bit index for the frequency.
      *
-     * @param frequency BigDecimal
+     * @param atozMinFrequency BigDecimal
      * @return the bit index of the frequency. Throw IllegalArgumentException if
      *         index not in range of 0 GridConstant.EFFECTIVE_BITS
      */
-    public static int getIndexFromFrequency(BigDecimal frequency) {
-        double nvalue = (frequency.doubleValue() - GridConstant.CENTRAL_FREQUENCY) * (1000 / GridConstant.GRANULARITY);
-        int index =  (int) Math.round(nvalue + 284);
+    public static int getIndexFromFrequency(Decimal64 atozMinFrequency) {
+
+        BigDecimal nvalue = (BigDecimal.valueOf(atozMinFrequency.doubleValue())
+                                .subtract(BigDecimal.valueOf(GridConstant.CENTRAL_FREQUENCY_THZ))
+                            ).multiply(
+                                    BigDecimal.valueOf(1000)
+                                    .divide(BigDecimal.valueOf(GridConstant.GRANULARITY))
+                            );
+
+        int index = (int) Math.round(nvalue.add(BigDecimal.valueOf(284)).doubleValue());
         if (index < 0 || index > GridConstant.EFFECTIVE_BITS) {
-            throw new IllegalArgumentException("Frequency not in range " + frequency);
+            throw new IllegalArgumentException("Frequency not in range " + atozMinFrequency);
         }
         return index;
     }
@@ -102,9 +119,10 @@ public final class GridUtils {
      * Get the spectrum width for rate and modulation format.
      * @param rate Uint32
      * @param modulationFormat ModulationFormat
-     * @return spectrum width in GHz
+     * @return spectrum width in GHz compatible with models 10.1
      */
-    public static FrequencyGHz getWidthFromRateAndModulationFormat(Uint32 rate, ModulationFormat modulationFormat) {
+    public static FrequencyGHz getWidthFromRateAndModulationFormat(Uint32 rate,
+            ModulationFormat modulationFormat) {
         String width = GridConstant.FREQUENCY_WIDTH_TABLE.get(rate, modulationFormat);
         if (width == null) {
             LOG.warn("No width found for service rate {} and modulation format {}, set width to 40", rate,
@@ -118,11 +136,10 @@ public final class GridUtils {
      * Get central frequency of spectrum.
      * @param minFrequency BigDecimal
      * @param maxFrequency BigDecimal
-     * @return central frequency in THz
+     * @return central frequency in THz compatible with models 10.1
      */
     public static FrequencyTHz getCentralFrequency(BigDecimal minFrequency, BigDecimal maxFrequency) {
-        return new FrequencyTHz(computeCentralFrequency(minFrequency, maxFrequency));
-
+        return new FrequencyTHz(Decimal64.valueOf(computeCentralFrequency(minFrequency, maxFrequency)).scaleTo(8));
     }
 
     /**
@@ -136,8 +153,9 @@ public final class GridUtils {
         getCentralFrequencyWithPrecision(BigDecimal minFrequency,
             BigDecimal maxFrequency, int precision) {
         return new org.opendaylight.yang.gen.v1.http.org.openroadm.common.types.rev181019.FrequencyTHz(
-                computeCentralFrequency(minFrequency, maxFrequency).setScale(precision, RoundingMode.HALF_EVEN));
-
+                Decimal64.valueOf(
+                        computeCentralFrequency(minFrequency, maxFrequency).setScale(precision, RoundingMode.HALF_EVEN))
+                        .scaleTo(8));
     }
 
     /**
@@ -151,11 +169,36 @@ public final class GridUtils {
     }
 
     /**
+     * Get central frequency of spectrum with precision for open config models.
+     * @param minFrequency BigDecimal
+     * @param maxFrequency BigDecimal
+     * @param precision int
+     * @return central frequency in THz with precision
+     */
+    public static org.opendaylight.yang.gen.v1.http.org.openroadm.common.types.rev181019.FrequencyTHz
+        getCentralFrequencyWithPrecisionForOpenConfig(BigDecimal minFrequency, BigDecimal maxFrequency,
+                                                      int precision) {
+        return new org.opendaylight.yang.gen.v1.http.org.openroadm.common.types.rev181019.FrequencyTHz(
+                Decimal64.valueOf(computeCentralFrequencyForOpenConfig(minFrequency, maxFrequency)
+                        .setScale(precision, RoundingMode.HALF_EVEN)).scaleTo(8));
+    }
+
+    /**
+     * Compute central frequency from min and max frequency for open config models.
+     * @param minFrequency BigDecimal
+     * @param maxFrequency BigDecimal
+     * @return central frequency
+     */
+    public static BigDecimal computeCentralFrequencyForOpenConfig(BigDecimal minFrequency, BigDecimal maxFrequency) {
+        return minFrequency.add(maxFrequency).divide(BigDecimal.valueOf(2)).movePointRight(6);
+    }
+
+    /**
      * Get the lower spectral index for the frequency.
      * @param frequency BigDecimal
      * @return the lower spectral index
      */
-    public static int getLowerSpectralIndexFromFrequency(BigDecimal frequency) {
+    public static int getLowerSpectralIndexFromFrequency(Decimal64 frequency) {
         return getIndexFromFrequency(frequency) + 1;
     }
 
@@ -164,7 +207,7 @@ public final class GridUtils {
      * @param frequency BigDecimal
      * @return the lower spectral index
      */
-    public static int getHigherSpectralIndexFromFrequency(BigDecimal frequency) {
+    public static int getHigherSpectralIndexFromFrequency(Decimal64 frequency) {
         return getIndexFromFrequency(frequency);
     }
 
@@ -185,26 +228,28 @@ public final class GridUtils {
             spectrumInformation.setWaveLength(input.getWaveNumber());
         }
         if (input.getMinFreq() != null) {
-            spectrumInformation.setMinFrequency(input.getMinFreq().getValue());
+            spectrumInformation.setMinFrequency(input.getMinFreq().getValue().decimalValue());
         } else {
             spectrumInformation.setMinFrequency(
                     GridUtils.getStartFrequencyFromIndex(input.getLowerSpectralSlotNumber().intValue() - 1));
         }
         if (input.getMaxFreq() != null) {
-            spectrumInformation.setMaxFrequency(input.getMaxFreq().getValue());
+            spectrumInformation.setMaxFrequency(input.getMaxFreq().getValue().decimalValue());
         } else {
             spectrumInformation.setMaxFrequency(
                     GridUtils.getStopFrequencyFromIndex(input.getHigherSpectralSlotNumber().intValue() - 1));
         }
         if (input.getCenterFreq() != null) {
-            spectrumInformation.setCenterFrequency(input.getCenterFreq().getValue());
+            spectrumInformation.setCenterFrequency(input.getCenterFreq().getValue().decimalValue());
         } else {
-            spectrumInformation.setCenterFrequency(GridUtils
-                    .getCentralFrequency(spectrumInformation.getMinFrequency(),
-                            spectrumInformation.getMaxFrequency()).getValue());
+            spectrumInformation.setCenterFrequency(GridUtils.getCentralFrequency(
+                    spectrumInformation.getMinFrequency(),
+                    spectrumInformation.getMaxFrequency()).getValue().decimalValue());
         }
         if (input.getNmcWidth() != null) {
-            spectrumInformation.setWidth(input.getNmcWidth().getValue());
+            spectrumInformation.setWidth(new BigDecimal(
+                    input.getNmcWidth().getValue().decimalValue().stripTrailingZeros().toPlainString())
+            );
         }
         if (input.getModulationFormat() != null) {
             spectrumInformation.setModulationFormat(input.getModulationFormat());

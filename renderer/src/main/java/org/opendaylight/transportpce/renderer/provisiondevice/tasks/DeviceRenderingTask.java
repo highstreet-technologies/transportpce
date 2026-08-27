@@ -14,8 +14,9 @@ import org.opendaylight.transportpce.renderer.ServicePathInputData;
 import org.opendaylight.transportpce.renderer.provisiondevice.DeviceRendererService;
 import org.opendaylight.transportpce.renderer.provisiondevice.DeviceRenderingResult;
 import org.opendaylight.transportpce.renderer.provisiondevice.servicepath.ServicePathDirection;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.device.renderer.rev211004.ServicePathOutput;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.common.types.rev210930.optical.renderer.nodes.Nodes;
+import org.opendaylight.transportpce.renderer.provisiondevice.transaction.history.History;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.device.renderer.rev260212.ServicePathOutput;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.common.types.rev260707.optical.renderer.nodes.Nodes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,12 +27,14 @@ public class DeviceRenderingTask implements Callable<DeviceRenderingResult> {
     private final DeviceRendererService deviceRenderer;
     private final ServicePathInputData servicePathInputData;
     private final ServicePathDirection direction;
+    private final History transactionHistory;
 
     public DeviceRenderingTask(DeviceRendererService deviceRenderer, ServicePathInputData servicePathInputData,
-            ServicePathDirection direction) {
+            ServicePathDirection direction, History transactionHistory) {
         this.deviceRenderer = deviceRenderer;
         this.servicePathInputData = servicePathInputData;
         this.direction = direction;
+        this.transactionHistory = transactionHistory;
     }
 
     @Override
@@ -43,7 +46,7 @@ public class DeviceRenderingTask implements Callable<DeviceRenderingResult> {
             case Create:
                 operation = "setup";
                 output = this.deviceRenderer.setupServicePath(this.servicePathInputData.getServicePathInput(),
-                    this.direction);
+                    this.direction, transactionHistory);
                 olmList = this.servicePathInputData.getNodeLists().getOlmNodeList();
                 break;
             case Delete:
@@ -55,7 +58,7 @@ public class DeviceRenderingTask implements Callable<DeviceRenderingResult> {
         }
         if (!output.getSuccess()) {
             LOG.error("Device rendering {} service path failed.", operation);
-            return DeviceRenderingResult.failed("Operation Failed");
+            return DeviceRenderingResult.failed(output.getResult());
         }
         LOG.info("Device rendering {} service path finished successfully.", operation);
         return DeviceRenderingResult.ok(olmList, new ArrayList<>(output.nonnullNodeInterface().values()),

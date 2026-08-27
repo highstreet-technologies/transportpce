@@ -8,35 +8,42 @@
 package org.opendaylight.transportpce.dmaap.client.impl;
 
 import org.opendaylight.mdsal.binding.api.NotificationService;
-import org.opendaylight.transportpce.dmaap.client.listener.NbiNotificationsListenerImpl;
-import org.opendaylight.yang.gen.v1.nbi.notifications.rev210813.NbiNotificationsListener;
-import org.opendaylight.yangtools.concepts.ListenerRegistration;
+import org.opendaylight.transportpce.dmaap.client.listener.NbiNotificationsHandler;
+import org.opendaylight.yangtools.concepts.Registration;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.metatype.annotations.AttributeDefinition;
+import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Component(configurationPid = "org.opendaylight.transportpce.dmaap")
 public class DmaapClientProvider {
+
+    @ObjectClassDefinition
+    public @interface Configuration {
+        @AttributeDefinition
+        String dmaapBaseUrl() default "http://localhost:8080";
+        @AttributeDefinition
+        String dmaapUsername() default "";
+        @AttributeDefinition
+        String dmaapPassword() default "";
+    }
+
     private static final Logger LOG = LoggerFactory.getLogger(DmaapClientProvider.class);
-    private ListenerRegistration<NbiNotificationsListener> listenerRegistration;
-    private NotificationService notificationService;
-    private final String baseUrl;
-    private final String username;
-    private final String password;
+    private Registration listenerRegistration;
+
+    @Activate
+    public DmaapClientProvider(@Reference NotificationService notificationService, Configuration config) {
+        this(notificationService, config.dmaapBaseUrl(), config.dmaapUsername(), config.dmaapPassword());
+    }
 
     public DmaapClientProvider(NotificationService notificationService, String baseUrl,
             String username, String password) {
-        this.notificationService = notificationService;
-        this.baseUrl = baseUrl;
-        this.username = username;
-        this.password = password;
-    }
-
-    /**
-     * Method called when the blueprint container is created.
-     */
-    public void init() {
+        final var listener = new NbiNotificationsHandler(baseUrl, username, password);
+        listenerRegistration = notificationService.registerCompositeListener(listener.getCompositeListener());
         LOG.info("DmaapClientProvider Session Initiated");
-        listenerRegistration = notificationService.registerNotificationListener(
-                new NbiNotificationsListenerImpl(baseUrl, username, password));
     }
 
     /**
@@ -46,5 +53,4 @@ public class DmaapClientProvider {
         listenerRegistration.close();
         LOG.info("DmaapClientProvider Closed");
     }
-
 }

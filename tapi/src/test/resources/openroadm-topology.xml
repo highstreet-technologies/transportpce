@@ -65,28 +65,28 @@
     <administrative-state xmlns="http://org/openroadm/common/network">inService</administrative-state>
     <termination-point xmlns="urn:ietf:params:xml:ns:yang:ietf-network-topology">
       <tp-id>XPDR1-CLIENT1</tp-id>
-      <associated-connection-map-port xmlns="http://transportpce/topology">XPDR1-NETWORK1</associated-connection-map-port>
+      <associated-connection-map-tp xmlns="http://org/openroadm/common/network">XPDR1-NETWORK1</associated-connection-map-tp>
       <operational-state xmlns="http://org/openroadm/common/network">inService</operational-state>
       <administrative-state xmlns="http://org/openroadm/common/network">inService</administrative-state>
       <tp-type xmlns="http://org/openroadm/common/network">XPONDER-CLIENT</tp-type>
     </termination-point>
     <termination-point xmlns="urn:ietf:params:xml:ns:yang:ietf-network-topology">
       <tp-id>XPDR1-CLIENT2</tp-id>
-      <associated-connection-map-port xmlns="http://transportpce/topology">XPDR1-NETWORK2</associated-connection-map-port>
+      <associated-connection-map-tp xmlns="http://org/openroadm/common/network">XPDR1-NETWORK2</associated-connection-map-tp>
       <operational-state xmlns="http://org/openroadm/common/network">inService</operational-state>
       <administrative-state xmlns="http://org/openroadm/common/network">inService</administrative-state>
       <tp-type xmlns="http://org/openroadm/common/network">XPONDER-CLIENT</tp-type>
     </termination-point>
     <termination-point xmlns="urn:ietf:params:xml:ns:yang:ietf-network-topology">
       <tp-id>XPDR1-NETWORK2</tp-id>
-      <associated-connection-map-port xmlns="http://transportpce/topology">XPDR1-CLIENT2</associated-connection-map-port>
+      <associated-connection-map-tp xmlns="http://org/openroadm/common/network">XPDR1-CLIENT2</associated-connection-map-tp>
       <operational-state xmlns="http://org/openroadm/common/network">inService</operational-state>
       <administrative-state xmlns="http://org/openroadm/common/network">inService</administrative-state>
       <tp-type xmlns="http://org/openroadm/common/network">XPONDER-NETWORK</tp-type>
     </termination-point>
     <termination-point xmlns="urn:ietf:params:xml:ns:yang:ietf-network-topology">
       <tp-id>XPDR1-NETWORK1</tp-id>
-      <associated-connection-map-port xmlns="http://transportpce/topology">XPDR1-CLIENT1</associated-connection-map-port>
+      <associated-connection-map-tp xmlns="http://org/openroadm/common/network">XPDR1-CLIENT1</associated-connection-map-tp>
       <xpdr-network-attributes xmlns="http://org/openroadm/network/topology">
         <tail-equipment-id>ROADM-C1-SRG1--SRG1-PP1-TXRX</tail-equipment-id>
       </xpdr-network-attributes>
@@ -235,28 +235,28 @@
     <administrative-state xmlns="http://org/openroadm/common/network">inService</administrative-state>
     <termination-point xmlns="urn:ietf:params:xml:ns:yang:ietf-network-topology">
       <tp-id>XPDR1-CLIENT1</tp-id>
-      <associated-connection-map-port xmlns="http://transportpce/topology">XPDR1-NETWORK1</associated-connection-map-port>
+      <associated-connection-map-tp xmlns="http://org/openroadm/common/network">XPDR1-NETWORK1</associated-connection-map-tp>
       <operational-state xmlns="http://org/openroadm/common/network">inService</operational-state>
       <administrative-state xmlns="http://org/openroadm/common/network">inService</administrative-state>
       <tp-type xmlns="http://org/openroadm/common/network">XPONDER-CLIENT</tp-type>
     </termination-point>
     <termination-point xmlns="urn:ietf:params:xml:ns:yang:ietf-network-topology">
       <tp-id>XPDR1-CLIENT2</tp-id>
-      <associated-connection-map-port xmlns="http://transportpce/topology">XPDR1-NETWORK2</associated-connection-map-port>
+      <associated-connection-map-tp xmlns="http://org/openroadm/common/network">XPDR1-NETWORK2</associated-connection-map-tp>
       <operational-state xmlns="http://org/openroadm/common/network">inService</operational-state>
       <administrative-state xmlns="http://org/openroadm/common/network">inService</administrative-state>
       <tp-type xmlns="http://org/openroadm/common/network">XPONDER-CLIENT</tp-type>
     </termination-point>
     <termination-point xmlns="urn:ietf:params:xml:ns:yang:ietf-network-topology">
       <tp-id>XPDR1-NETWORK2</tp-id>
-      <associated-connection-map-port xmlns="http://transportpce/topology">XPDR1-CLIENT2</associated-connection-map-port>
+      <associated-connection-map-tp xmlns="http://org/openroadm/common/network">XPDR1-CLIENT2</associated-connection-map-tp>
       <operational-state xmlns="http://org/openroadm/common/network">inService</operational-state>
       <administrative-state xmlns="http://org/openroadm/common/network">inService</administrative-state>
       <tp-type xmlns="http://org/openroadm/common/network">XPONDER-NETWORK</tp-type>
     </termination-point>
     <termination-point xmlns="urn:ietf:params:xml:ns:yang:ietf-network-topology">
       <tp-id>XPDR1-NETWORK1</tp-id>
-      <associated-connection-map-port xmlns="http://transportpce/topology">XPDR1-CLIENT1</associated-connection-map-port>
+      <associated-connection-map-tp xmlns="http://org/openroadm/common/network">XPDR1-CLIENT1</associated-connection-map-tp>
       <operational-state xmlns="http://org/openroadm/common/network">inService</operational-state>
       <administrative-state xmlns="http://org/openroadm/common/network">inService</administrative-state>
       <tp-type xmlns="http://org/openroadm/common/network">XPONDER-NETWORK</tp-type>
@@ -286,6 +286,15 @@
       <operational-state xmlns="http://org/openroadm/common/network">inService</operational-state>
       <administrative-state xmlns="http://org/openroadm/common/network">inService</administrative-state>
       <tp-type xmlns="http://org/openroadm/common/network">SRG-TXRX-PP</tp-type>
+      <pp-attributes xmlns="http://org/openroadm/network/topology">
+        <avail-freq-maps>
+          <map-name>cband</map-name>
+          <freq-map-granularity>6.25</freq-map-granularity>
+          <start-edge-freq>191.325</start-edge-freq>
+          <effective-bits>768</effective-bits>
+          <freq-map>//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////8A</freq-map>
+        </avail-freq-maps>
+      </pp-attributes>
     </termination-point>
     <termination-point xmlns="urn:ietf:params:xml:ns:yang:ietf-network-topology">
       <tp-id>SRG1-PP2-TXRX</tp-id>

@@ -1,0 +1,112 @@
+/*
+ * Copyright © 2021 Nokia.  All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v1.0 which accompanies this distribution,
+ * and is available at http://www.eclipse.org/legal/epl-v10.html
+ */
+package org.opendaylight.transportpce.tapi;
+
+import java.nio.charset.Charset;
+import java.util.UUID;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.Context;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.Uuid;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev221121.Context1;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev221121.context.TopologyContext;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev221121.topology.context.Topology;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev221121.topology.context.TopologyKey;
+import org.opendaylight.yangtools.binding.DataObjectIdentifier;
+import org.opendaylight.yangtools.binding.DataObjectIdentifier.WithKey;
+
+
+public final class TapiConstants {
+
+    public static final String TRANSITIONAL_LINK = "tapi-transitional-link";
+    public static final String OMS_RDM_RDM_LINK = "tapi-rdm-rdm-link";
+    public static final String OTS_INTERDOMAIN_RDM_RDM_LINK = "tapi-interdomain-link";
+    public static final String OTS_XPDR_RDM_LINK = "xpdr-tapi-rdm-link";
+    public static final String OTS_RDM_XPDR_LINK = "tapi-xpdr-rdm-link";
+    public static final String OTN_XPDR_XPDR_LINK = "tapi-otn-xpdr-xpdr-link";
+    public static final String VALUE_NAME_OTN_XPDR_XPDR_LINK = "OTN link name";
+    public static final String VALUE_NAME_OTS_XPDR_RDM_LINK = "xpdr to roadm link name";
+    public static final String VALUE_NAME_OTS_RDM_XPDR_LINK = "roadm to xpdr link name";
+    public static final String VALUE_NAME_OMS_RDM_RDM_LINK = "OMS link name";
+    public static final String VALUE_NAME_TRANSITIONAL_LINK = "transitional-link name";
+    public static final String VALUE_NAME_OPPOSITE_LINK_UUID = "opposite link UUID";
+    public static final String VALUE_NAME_ROADM_NODE = "roadm node name";
+    public static final String VALUE_NAME_XPDR_NODE = "dsr/odu node name";
+    public static final String T0_MULTILAYER = "T0 - Multi-layer topology";
+    public static final String T0_TAPI_MULTILAYER = "T0 - Tapi-Multi-layer Abstracted topology";
+    public static final String T0_FULL_MULTILAYER = "T0 - Full Multi-layer topology";
+    public static final String SBI_TAPI_TOPOLOGY = "SBI - Multi-layer - TAPI topology";
+    public static final String ALIEN_XPDR_TAPI_TOPOLOGY = "Alien-Xponders - TAPI topology";
+    // T0_MULTILAYER_UUID = "747c670e-7a07-3dab-b379-5b1cd17402a3"
+    public static final Uuid T0_MULTILAYER_UUID = new Uuid(UUID.nameUUIDFromBytes(
+        TapiConstants.T0_MULTILAYER.getBytes(Charset.forName("UTF-8"))).toString());
+    // T0_TAPI_MULTILAYER_UUID = "a6c5aed1-dc75-333a-b3a3-b6b70534eae8"
+    public static final Uuid T0_TAPI_MULTILAYER_UUID = new Uuid(UUID.nameUUIDFromBytes(
+        TapiConstants.T0_TAPI_MULTILAYER.getBytes(Charset.forName("UTF-8"))).toString());
+    // T0_FULL_MULTILAYER_UUID = "393f09a4-0a0b-3d82-a4f6-1fbbc14ca1a7"
+    public static final Uuid T0_FULL_MULTILAYER_UUID = new Uuid(UUID.nameUUIDFromBytes(
+        TapiConstants.T0_FULL_MULTILAYER.getBytes(Charset.forName("UTF-8"))).toString());
+    // SBI_TAPI_TOPOLOGY_UUID = "a21e4756-4d70-3d40-95b6-f7f630b4a13b"
+    public static final Uuid SBI_TAPI_TOPOLOGY_UUID = new Uuid(UUID.nameUUIDFromBytes(
+        TapiConstants.SBI_TAPI_TOPOLOGY.getBytes(Charset.forName("UTF-8"))).toString());
+    // ALIEN_XPDR_TAPI_TOPOLOGY_UUID = "4aedacb6-f830-3b3d-983a-a2de06bc373b"
+    public static final Uuid ALIEN_XPDR_TAPI_TOPOLOGY_UUID = new Uuid(UUID.nameUUIDFromBytes(
+        TapiConstants.ALIEN_XPDR_TAPI_TOPOLOGY.getBytes(Charset.forName("UTF-8"))).toString());
+    public static final Uuid SBISERVICENOTIFICATIONUUID = new Uuid(UUID.nameUUIDFromBytes(
+        "SBIServiceNotificationUuid".getBytes(Charset.forName("UTF-8"))).toString());
+    public static final Uuid SBINETWORKNOTIFICATIONUUID = new Uuid(UUID.nameUUIDFromBytes(
+        "SBINetworkNotificationUuid".getBytes(Charset.forName("UTF-8"))).toString());
+
+    public static final String TPDR_100G = "Transponder 100GE";
+    public static final String DSR = "DSR";
+    public static final String ODU = "ODU";
+    public static final String OTU = "OTU";
+    public static final String I_ODU = "iODU";
+    public static final String I_OTU = "iOTU";
+    public static final String E_ODU = "eODU";
+    public static final String E_ODUCN = "eODUCN";
+    public static final String E_OTU = "eOTU";
+    public static final String OTSI = "OTSi";
+    public static final String E_OTSI = "eOTSi";
+    public static final String I_OTSI = "iOTSi";
+    public static final String PHTNC_MEDIA = "PHOTONIC_MEDIA";
+    public static final String PHTNC_MEDIA_OTS = "PHOTONIC_MEDIA_OTS";
+    public static final String PHTNC_MEDIA_OMS = "PHOTONIC_MEDIA_OMS";
+    public static final String MC = "MEDIA_CHANNEL";
+    public static final String OTSI_MC = "OTSi_MEDIA_CHANNEL";
+    public static final String RDM_INFRA = "ROADM-infra";
+    public static final String CLIENT = "-CLIENT";
+    public static final String NETWORK = "-NETWORK";
+    public static final String XPDR = "XPONDER";
+    public static final String XXPDR = "-XPDR";
+    public static final String TP = "TerminationPoint";
+    public static final String NODE = "Node";
+    public static final String LGX_PORT_NAME = "Some lgx-port-name";
+    public static final String PORT_TYPE = "some port type";
+    public static final String LGX_DEVICE_NAME = "Some lgx-device-name";
+    // TODO: static values until they are implemented
+    public static final String PORT_RACK_VALUE = "000000.00";
+    public static final String FIXED_LATENCY_VALUE = "12345678";
+    public static final String COST_HOP_VALUE = "12345678";
+    public static final String JITTER_VALUE = "12345678";
+    public static final String WANDER_VALUE = "12345678";
+    public static final String QUEING_LATENCY_VALUE = "12345678";
+    public static final String TAPI_CONNECTION_UPDATE_ERROR = "Could not update TAPI connections";
+    public static final String TAPI_CONNECTION_READ_ERROR = "Could not read TAPI connection data";
+
+    public static final DataObjectIdentifier<Context> TAPI_CONTEXT_II = DataObjectIdentifier.builder(Context.class)
+            .build();
+    public static final DataObjectIdentifier<TopologyContext> TAPI_TOPOLOGY_CONTEXT_II = DataObjectIdentifier.builder(
+            Context.class).augmentation(Context1.class).child(TopologyContext.class).build();
+    public static final WithKey<Topology, TopologyKey> TAPI_TOPOLOGY_T0_FULL_IID = DataObjectIdentifier
+        .builder(Context.class).augmentation(Context1.class).child(TopologyContext.class)
+        .child(Topology.class, new TopologyKey(T0_FULL_MULTILAYER_UUID))
+        .build();
+
+    private TapiConstants() {
+        // hiding the default constructor
+    }
+}

@@ -13,12 +13,16 @@ import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
-import org.opendaylight.mdsal.binding.dom.codec.spi.BindingDOMCodecServices;
-import org.opendaylight.yangtools.yang.binding.DataObject;
-import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
+import java.nio.charset.StandardCharsets;
+import org.opendaylight.yangtools.binding.DataObject;
+import org.opendaylight.yangtools.binding.DataObjectIdentifier;
+import org.opendaylight.yangtools.binding.data.codec.spi.BindingDOMCodecServices;
 import org.opendaylight.yangtools.yang.data.api.YangInstanceIdentifier;
 import org.opendaylight.yangtools.yang.data.api.schema.stream.NormalizedNodeStreamWriter;
 import org.opendaylight.yangtools.yang.data.api.schema.stream.NormalizedNodeWriter;
@@ -28,7 +32,7 @@ import org.opendaylight.yangtools.yang.data.codec.gson.JSONNormalizedNodeStreamW
 import org.opendaylight.yangtools.yang.data.codec.gson.JsonParserStream;
 import org.opendaylight.yangtools.yang.data.codec.gson.JsonWriterFactory;
 import org.opendaylight.yangtools.yang.data.impl.schema.ImmutableNormalizedNodeStreamWriter;
-import org.opendaylight.yangtools.yang.data.impl.schema.NormalizedNodeResult;
+import org.opendaylight.yangtools.yang.data.impl.schema.NormalizationResultHolder;
 import org.opendaylight.yangtools.yang.model.api.EffectiveModelContext;
 import org.opendaylight.yangtools.yang.model.api.EffectiveStatementInference;
 import org.opendaylight.yangtools.yang.model.util.SchemaInferenceStack;
@@ -52,7 +56,7 @@ public class JsonStringConverter<T extends DataObject> {
      * @return Json string representation of the object
      * @throws IOException if something went wrong.
      */
-    public String createJsonStringFromDataObject(final InstanceIdentifier<T> id, T dataObject,
+    public String createJsonStringFromDataObject(final DataObjectIdentifier<T> id, T dataObject,
             JSONCodecFactorySupplier supplier) throws IOException {
         /*
          * This function needs : - context - scPath.getParent() -
@@ -61,18 +65,17 @@ public class JsonStringConverter<T extends DataObject> {
          */
 
         JSONCodecFactory codecFactory = supplier
-                .getShared(bindingDOMCodecServices.getRuntimeContext().getEffectiveModelContext());
+                .getShared(bindingDOMCodecServices.getRuntimeContext().modelContext());
         try (Writer writer = new StringWriter();
-                JsonWriter jsonWriter = JsonWriterFactory.createJsonWriter(writer, 4);) {
+                JsonWriter jsonWriter = JsonWriterFactory.createJsonWriter(writer, 4)) {
             EffectiveStatementInference rootNode = SchemaInferenceStack
-                .of(bindingDOMCodecServices.getRuntimeContext().getEffectiveModelContext())
+                .of(bindingDOMCodecServices.getRuntimeContext().modelContext())
                 .toInference();
-            rootNode.getEffectiveModelContext();
-            rootNode.getEffectiveModelContext();
+            rootNode.modelContext();
             NormalizedNodeStreamWriter jsonStreamWriter = JSONNormalizedNodeStreamWriter
                 .createExclusiveWriter(codecFactory, rootNode, EffectiveModelContext.NAME.getNamespace(), jsonWriter);
             try (NormalizedNodeWriter nodeWriter = NormalizedNodeWriter.forStreamWriter(jsonStreamWriter)) {
-                nodeWriter.write(bindingDOMCodecServices.toNormalizedNode(id, dataObject).getValue());
+                nodeWriter.write(bindingDOMCodecServices.toNormalizedDataObject(id, dataObject).node());
                 nodeWriter.flush();
             }
             JsonObject asJsonObject = JsonParser.parseString(writer.toString()).getAsJsonObject();
@@ -90,20 +93,39 @@ public class JsonStringConverter<T extends DataObject> {
      * @param supplier RFC7951 or DRAFT_LHOTKA_NETMOD_YANG_JSON_02
      * @return T the created object.
      */
-    @SuppressWarnings("unchecked")
     public T createDataObjectFromJsonString(YangInstanceIdentifier path, String jsonString,
             JSONCodecFactorySupplier supplier) {
-        JsonReader reader = new JsonReader(new StringReader(jsonString));
-        NormalizedNodeResult result = new NormalizedNodeResult();
-        try (NormalizedNodeStreamWriter streamWriter = ImmutableNormalizedNodeStreamWriter.from(result);
-                JsonParserStream jsonParser = JsonParserStream
-                    .create(
-                        streamWriter,
-                        supplier.getShared(bindingDOMCodecServices.getRuntimeContext().getEffectiveModelContext()))) {
+        return createDataObjectFromReader(path, new StringReader(jsonString), supplier);
+    }
+
+    public T createDataObjectFromInputStream(YangInstanceIdentifier path, InputStream jsonStream,
+                                            JSONCodecFactorySupplier supplier) {
+        return createDataObjectFromReader(path, new InputStreamReader(jsonStream, StandardCharsets.UTF_8), supplier);
+    }
+
+    /**
+     * Create a dataObject of T type from Reader.
+     * @param path YangInstanceIdentifier
+     * @param inputReader Reader (could be all class implementing Reader) containing Json data.
+     * @param supplier RFC7951 or DRAFT_LHOTKA_NETMOD_YANG_JSON_02
+     * @return the created object.
+     */
+    @SuppressWarnings("unchecked")
+    private T createDataObjectFromReader(YangInstanceIdentifier path, Reader inputReader,
+                                         JSONCodecFactorySupplier supplier) {
+
+        NormalizationResultHolder result = new NormalizationResultHolder();
+        try (JsonReader reader = new JsonReader(inputReader);
+             NormalizedNodeStreamWriter streamWriter = ImmutableNormalizedNodeStreamWriter.from(result);
+             JsonParserStream jsonParser = JsonParserStream
+                     .create(
+                             streamWriter,
+                             supplier.getShared(bindingDOMCodecServices
+                                     .getRuntimeContext().modelContext()))) {
             jsonParser.parse(reader);
-            return (T) bindingDOMCodecServices.fromNormalizedNode(path, result.getResult()).getValue();
+            return (T) bindingDOMCodecServices.fromNormalizedNode(path, result.getResult().data()).getValue();
         } catch (IOException e) {
-            LOG.warn("An error occured during parsing Json input stream", e);
+            LOG.warn("An error occured during parsing input reader", e);
             return null;
         }
     }

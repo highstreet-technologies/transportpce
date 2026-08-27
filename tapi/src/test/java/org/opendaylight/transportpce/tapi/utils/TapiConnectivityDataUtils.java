@@ -12,54 +12,61 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.node.types.rev210528.NodeIdType;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.ConnectionType;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.RpcActions;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.sdnc.request.header.SdncRequestHeaderBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.service.endpoint.RxDirection;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.service.endpoint.RxDirectionBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.service.endpoint.RxDirectionKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.service.endpoint.TxDirection;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.service.endpoint.TxDirectionBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.service.endpoint.TxDirectionKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.service.lgx.LgxBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.service.port.PortBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.format.rev191129.ServiceFormat;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.ServiceCreateInput;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.ServiceCreateInputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.service.create.input.ServiceAEndBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.service.create.input.ServiceZEndBuilder;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev181210.AdministrativeState;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev181210.CapacityUnit;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev181210.ForwardingDirection;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev181210.LayerProtocolName;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev181210.LifecycleState;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev181210.OperationalState;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev181210.PortDirection;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev181210.PortRole;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev181210.Uuid;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev181210.capacity.TotalSizeBuilder;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev181210.local._class.Name;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev181210.local._class.NameBuilder;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev181210.CreateConnectivityServiceInput;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev181210.CreateConnectivityServiceInputBuilder;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev181210.DeleteConnectivityServiceInput;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev181210.DeleteConnectivityServiceInputBuilder;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev181210.ProtectionRole;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev181210.ServiceType;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev181210.connectivity.constraint.RequestedCapacityBuilder;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev181210.connectivity.context.ConnectivityService;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev181210.connectivity.context.ConnectivityServiceBuilder;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev181210.connectivity.context.ConnectivityServiceKey;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev181210.connectivity.service.Connection;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev181210.connectivity.service.ConnectionBuilder;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev181210.connectivity.service.ConnectionKey;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev181210.connectivity.service.end.point.ServiceInterfacePointBuilder;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev181210.create.connectivity.service.input.ConnectivityConstraintBuilder;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev181210.create.connectivity.service.input.EndPoint;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev181210.create.connectivity.service.input.EndPointBuilder;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev181210.create.connectivity.service.input.EndPointKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.ConnectionType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.RpcActions;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.sdnc.request.header.SdncRequestHeaderBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.service.endpoint.RxDirection;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.service.endpoint.RxDirectionBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.service.endpoint.RxDirectionKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.service.endpoint.TxDirection;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.service.endpoint.TxDirectionBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.service.endpoint.TxDirectionKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.service.lgx.LgxBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.service.port.PortBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.format.rev250530.ServiceFormat;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.ServiceCreateInput;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.ServiceCreateInputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.service.create.input.ServiceAEndBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.service.create.input.ServiceZEndBuilder;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.AdministrativeState;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.CAPACITYUNITGBPS;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.Direction;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.ForwardingDirection;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.LayerProtocolName;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.LifecycleState;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.OperationalState;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.PortRole;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.Uuid;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.capacity.TotalSizeBuilder;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.local._class.Name;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.local._class.NameBuilder;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev221121.CreateConnectivityServiceInput;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev221121.CreateConnectivityServiceInputBuilder;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev221121.DeleteConnectivityServiceInput;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev221121.DeleteConnectivityServiceInputBuilder;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev221121.ProtectionRole;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev221121.ServiceType;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev221121.connectivity.constraint.RequestedCapacityBuilder;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev221121.connectivity.context.ConnectivityService;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev221121.connectivity.context.ConnectivityServiceBuilder;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev221121.connectivity.context.ConnectivityServiceKey;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev221121.connectivity.service.Connection;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev221121.connectivity.service.ConnectionBuilder;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev221121.connectivity.service.ConnectionKey;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev221121.connectivity.service.ConnectivityConstraint;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev221121.connectivity.service.ConnectivityConstraintBuilder;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev221121.connectivity.service.end.point.ConnectionEndPoint;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev221121.connectivity.service.end.point.ConnectionEndPointBuilder;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev221121.connectivity.service.end.point.ConnectionEndPointKey;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev221121.connectivity.service.end.point.ServiceInterfacePointBuilder;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev221121.create.connectivity.service.input.EndPoint;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev221121.create.connectivity.service.input.EndPointBuilder;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev221121.create.connectivity.service.input.EndPointKey;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev221121.create.connectivity.service.input.TopologyConstraint;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev221121.create.connectivity.service.input.TopologyConstraintBuilder;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev221121.create.connectivity.service.input.TopologyConstraintKey;
+import org.opendaylight.yangtools.yang.common.Decimal64;
 import org.opendaylight.yangtools.yang.common.Uint32;
-import org.opendaylight.yangtools.yang.common.Uint64;
 import org.opendaylight.yangtools.yang.common.Uint8;
 
 public final class TapiConnectivityDataUtils {
@@ -73,30 +80,41 @@ public final class TapiConnectivityDataUtils {
 
         return new CreateConnectivityServiceInputBuilder()
             .setEndPoint(endPointMap)
-            .setConnectivityConstraint(new ConnectivityConstraintBuilder().setServiceLayer(LayerProtocolName.DSR)
-                .setServiceType(ServiceType.POINTTOPOINTCONNECTIVITY).setServiceLevel("some service-level")
-                .setRequestedCapacity(new RequestedCapacityBuilder()
-                    .setTotalSize(new TotalSizeBuilder().setUnit(CapacityUnit.GBPS)
-                        .setValue(Uint64.valueOf(10)).build()).build()).build())
-            .setState("some state")
+            .setLayerProtocolName(LayerProtocolName.DSR)
+            .setConnectivityConstraint(new org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev221121
+                        .create.connectivity.service.input.ConnectivityConstraintBuilder()
+                    .setServiceType(ServiceType.POINTTOPOINTCONNECTIVITY).setServiceLevel("some service-level")
+                    .setRequestedCapacity(new RequestedCapacityBuilder()
+                    .setTotalSize(new TotalSizeBuilder().setUnit(CAPACITYUNITGBPS.VALUE)
+                        .setValue(Decimal64.valueOf(7, 10)).build()).build()).build())
+            .setState(AdministrativeState.UNLOCKED)
+            .setTopologyConstraint(getTopoConstraintMap())
             .build();
     }
 
     public static DeleteConnectivityServiceInput buildConnServiceDeleteInput() {
         return new DeleteConnectivityServiceInputBuilder()
-            .setServiceIdOrName(UUID.nameUUIDFromBytes("service 1".getBytes(StandardCharsets.UTF_8)).toString())
+            .setUuid(new Uuid(UUID.nameUUIDFromBytes("service 1".getBytes(StandardCharsets.UTF_8)).toString()))
             .build();
     }
 
     private static EndPointBuilder getEndPoint2Builder() {
         Name name = new NameBuilder().setValueName("OpenROADM node id").setValue("SPDR-SC1-XPDR1").build();
+        ConnectionEndPointBuilder cepBld = new ConnectionEndPointBuilder()
+            .setTopologyUuid(new Uuid("393f09a4-0a0b-3d82-a4f6-1fbbc14ca1a7"))
+            .setNodeUuid(new Uuid("215ee18f-7869-3492-94d2-0f24ed0a3023"))
+            .setNodeEdgePointUuid(new Uuid("50b7521a-4a38-358f-9846-45c55813416a"))
+            .setConnectionEndPointUuid(new Uuid("a7ef6781-c149-394b-b21c-48b324f68c98"));
+        Map<ConnectionEndPointKey, ConnectionEndPoint> cepMap = new HashMap<>();
+        cepMap.put(cepBld.build().key(), cepBld.build());
         return new EndPointBuilder().setLayerProtocolName(LayerProtocolName.DSR)
             .setAdministrativeState(AdministrativeState.UNLOCKED)
             .setOperationalState(OperationalState.ENABLED)
-            .setDirection(PortDirection.BIDIRECTIONAL)
+            .setDirection(Direction.BIDIRECTIONAL)
             .setRole(PortRole.SYMMETRIC)
             .setProtectionRole(ProtectionRole.NA)
             .setLocalId("SPDR-SC1-XPDR1")
+            .setConnectionEndPoint(cepMap)
             .setName(Map.of(name.key(), name))
             .setServiceInterfacePoint(new ServiceInterfacePointBuilder().setServiceInterfacePointUuid(
                 new Uuid("25812ef2-625d-3bf8-af55-5e93946d1c22")).build());
@@ -104,20 +122,27 @@ public final class TapiConnectivityDataUtils {
 
     private static EndPointBuilder getEndPoint1Builder() {
         Name name = new NameBuilder().setValueName("OpenROADM node id").setValue("SPDR-SA1-XPDR1").build();
+        ConnectionEndPointBuilder cepBld = new ConnectionEndPointBuilder()
+            .setTopologyUuid(new Uuid("393f09a4-0a0b-3d82-a4f6-1fbbc14ca1a7"))
+            .setNodeUuid(new Uuid("4e44bcc5-08d3-3fee-8fac-f021489e5a61"))
+            .setNodeEdgePointUuid(new Uuid("c6cd334c-51a1-3995-bed3-5cf2b7445c04"))
+            .setConnectionEndPointUuid(new Uuid("12bc1201-bb84-3280-b4bf-df58b3cf057c"));
+        Map<ConnectionEndPointKey, ConnectionEndPoint> cepMap = new HashMap<>();
+        cepMap.put(cepBld.build().key(), cepBld.build());
         return new EndPointBuilder().setLayerProtocolName(LayerProtocolName.DSR)
             .setAdministrativeState(AdministrativeState.UNLOCKED)
             .setOperationalState(OperationalState.ENABLED)
-            .setDirection(PortDirection.BIDIRECTIONAL)
+            .setDirection(Direction.BIDIRECTIONAL)
             .setRole(PortRole.SYMMETRIC)
             .setProtectionRole(ProtectionRole.NA)
             .setLocalId("SPDR-SA1-XPDR1")
+            .setConnectionEndPoint(cepMap)
             .setName(Map.of(name.key(), name))
             .setServiceInterfacePoint(new ServiceInterfacePointBuilder().setServiceInterfacePointUuid(
                 new Uuid("c14797a0-adcc-3875-a1fe-df8949d1a2d7")).build());
     }
 
     public static ServiceCreateInput buildServiceCreateInput() {
-
         return new ServiceCreateInputBuilder()
             .setCommonId("commonId")
             .setConnectionType(ConnectionType.Service)
@@ -132,7 +157,7 @@ public final class TapiConnectivityDataUtils {
 
     public static ServiceAEndBuilder getServiceAEndBuild() {
         return new ServiceAEndBuilder()
-            .setClli("NodeSA").setServiceFormat(ServiceFormat.Ethernet).setServiceRate(Uint32.valueOf(10))
+            .setClli("NodeSA").setServiceFormat(ServiceFormat.Ethernet).setServiceRate(Uint32.TEN)
             .setNodeId(new NodeIdType("SPDR-SA1"))
             .setTxDirection(getTxDirection())
             .setRxDirection(getRxDirection());
@@ -140,7 +165,7 @@ public final class TapiConnectivityDataUtils {
 
     public static ServiceZEndBuilder getServiceZEndBuild() {
         return new ServiceZEndBuilder()
-            .setClli("NodeSC").setServiceFormat(ServiceFormat.Ethernet).setServiceRate(Uint32.valueOf(10))
+            .setClli("NodeSC").setServiceFormat(ServiceFormat.Ethernet).setServiceRate(Uint32.TEN)
             .setNodeId(new NodeIdType("SPDR-SC1"))
             .setTxDirection(getTxDirection())
             .setRxDirection(getRxDirection());
@@ -169,20 +194,28 @@ public final class TapiConnectivityDataUtils {
             .build());
     }
 
+    private static Map<TopologyConstraintKey, TopologyConstraint> getTopoConstraintMap() {
+        Map<TopologyConstraintKey, TopologyConstraint> topoConstraintMap = new HashMap<>();
+        TopologyConstraint topoConstraint = new TopologyConstraintBuilder()
+            .setLocalId("localIdTopoConstraint").build();
+        topoConstraintMap.put(topoConstraint.key(), topoConstraint);
+        return topoConstraintMap;
+    }
+
     public static Map<ConnectivityServiceKey, ConnectivityService> createConnService() {
         EndPoint endPoint1 = getEndPoint1Builder().build();
         EndPoint endPoint2 = getEndPoint2Builder().build();
 
-        org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev181210.connectivity.service.EndPoint
+        org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev221121.connectivity.service.EndPoint
             endPoint11 = new org.opendaylight.yang.gen.v1.urn
-                .onf.otcc.yang.tapi.connectivity.rev181210.connectivity.service.EndPointBuilder(endPoint1).build();
+                .onf.otcc.yang.tapi.connectivity.rev221121.connectivity.service.EndPointBuilder(endPoint1).build();
 
-        org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev181210.connectivity.service.EndPoint
+        org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev221121.connectivity.service.EndPoint
             endPoint12 = new org.opendaylight.yang.gen.v1.urn
-                .onf.otcc.yang.tapi.connectivity.rev181210.connectivity.service.EndPointBuilder(endPoint2).build();
+                .onf.otcc.yang.tapi.connectivity.rev221121.connectivity.service.EndPointBuilder(endPoint2).build();
 
-        Map<org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev181210.connectivity.service.EndPointKey,
-            org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev181210.connectivity.service.EndPoint>
+        Map<org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev221121.connectivity.service.EndPointKey,
+            org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev221121.connectivity.service.EndPoint>
                 endPointMap = new HashMap<>();
         endPointMap.put(endPoint11.key(), endPoint11);
         endPointMap.put(endPoint12.key(), endPoint12);
@@ -192,18 +225,22 @@ public final class TapiConnectivityDataUtils {
             .build();
         connectionMap.put(connection.key(), connection);
 
-        org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev181210.global._class.Name name =
-            new org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev181210.global._class.NameBuilder()
+        org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.global._class.Name name =
+            new org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.global._class.NameBuilder()
                 .setValueName("Connectivity Service Name").setValue("service 1")
                 .build();
+        ConnectivityConstraint conCons = new ConnectivityConstraintBuilder()
+            .setServiceLevel(null)
+            .setServiceType(ServiceType.POINTTOPOINTCONNECTIVITY)
+            .build();
         ConnectivityService connServ = new ConnectivityServiceBuilder()
             .setAdministrativeState(AdministrativeState.LOCKED)
             .setOperationalState(OperationalState.DISABLED)
             .setLifecycleState(LifecycleState.PLANNED)
             .setUuid(new Uuid(UUID.nameUUIDFromBytes("service 1".getBytes(StandardCharsets.UTF_8)).toString()))
-            .setServiceLayer(LayerProtocolName.DSR)
-            .setServiceType(ServiceType.POINTTOPOINTCONNECTIVITY)
-            .setConnectivityDirection(ForwardingDirection.BIDIRECTIONAL)
+            .setLayerProtocolName(LayerProtocolName.DSR)
+            .setConnectivityConstraint(conCons)
+            .setDirection(ForwardingDirection.BIDIRECTIONAL)
             .setName(Map.of(name.key(), name))
             .setConnection(connectionMap)
             .setEndPoint(endPointMap)
@@ -215,7 +252,8 @@ public final class TapiConnectivityDataUtils {
 
     public static DeleteConnectivityServiceInput buildConnServiceDeleteInput1() {
         return new DeleteConnectivityServiceInputBuilder()
-            .setServiceIdOrName("random-service").build();
+            .setUuid(new Uuid(UUID.nameUUIDFromBytes("service 1".getBytes(StandardCharsets.UTF_8)).toString()))
+            .build();
     }
 
     private TapiConnectivityDataUtils() {

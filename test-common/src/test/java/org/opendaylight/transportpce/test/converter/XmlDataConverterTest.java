@@ -1,0 +1,200 @@
+/*
+ * Copyright © 2025 Orange Innovation, Inc. and others.  All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v1.0 which accompanies this distribution,
+ * and is available at http://www.eclipse.org/legal/epl-v10.html
+ */
+package org.opendaylight.transportpce.test.converter;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.io.IOException;
+import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
+import org.opendaylight.transportpce.test.converter.util.ConverterTestUtil;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.OrgOpenroadmDeviceData;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.org.openroadm.device.container.OrgOpenroadmDevice;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.Context;
+import org.opendaylight.yangtools.binding.DataObjectIdentifier;
+import org.opendaylight.yangtools.yang.parser.api.YangParserException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+
+@TestInstance(Lifecycle.PER_CLASS)
+class XmlDataConverterTest {
+    private static final Logger LOG = LoggerFactory.getLogger(XmlDataConverterTest.class);
+    private OrgOpenroadmDevice device;
+    private Context context;
+
+    @BeforeAll
+    void setup() {
+        this.device = ConverterTestUtil.buildDevice();
+        this.context = ConverterTestUtil.buildContext();
+    }
+
+    @Test
+    void serializeOrgOpenroadmDeviceTest() throws IOException, YangParserException {
+        XmlDataConverter converter = new XmlDataConverter(null);
+        assertEquals(
+                Files.readString(Path.of("src/test/resources/device.xml")),
+                converter.serialize(
+                        DataObjectIdentifier
+                            .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
+                            .build(),
+                        device),
+                "OrgOpenroadmDevice should be as in the device.json file");
+    }
+
+    @Test
+    void serializeOrgOpenroadmDeviceToFileTest() throws IOException, YangParserException {
+        final Path filePath = Path.of("testSerializeDeviceToXmlFile.xml");
+        XmlDataConverter converter = new XmlDataConverter(null);
+        try {
+            converter.serializeToFile(
+                    DataObjectIdentifier
+                        .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
+                        .build(),
+                    device,
+                    filePath);
+            assertTrue(Files.exists(filePath));
+        } catch (ProcessingException e) {
+            fail("Cannot serialise object to json file");
+        } finally {
+            try {
+                Files.deleteIfExists(filePath);
+            } catch (IOException e) {
+                fail("Failed to delete the test file: " + e.getMessage());
+            }
+        }
+    }
+
+    @Test
+    void deserializeXmlToOrgOpenroadmDeviceTest() throws IOException, YangParserException {
+        XmlDataConverter converter = new XmlDataConverter(ModelsUtils.OPENROADM_MODEL_PATHS_71);
+        try {
+            OrgOpenroadmDevice deserializedDevice = (OrgOpenroadmDevice) converter.deserialize(
+                    Files.readString(Path.of("src/test/resources/device.xml")),
+                    OrgOpenroadmDevice.QNAME);
+            LOG.info("deserializedDevice = {}", deserializedDevice);
+            assertEquals(this.device, deserializedDevice);
+        } catch (ProcessingException e) {
+            fail("Error deserializing xml to OrgOpenroadmDevice object");
+        }
+    }
+
+    @Test
+    void deserializeXmlReaderToOrgOpenroadmDeviceTest() throws IOException, YangParserException {
+        XmlDataConverter converter = new XmlDataConverter(ModelsUtils.OPENROADM_MODEL_PATHS_71);
+        try {
+            OrgOpenroadmDevice deserializedDevice = (OrgOpenroadmDevice) converter.deserialize(
+                    Files.newBufferedReader(Path.of("src/test/resources/device.xml"), StandardCharsets.UTF_8),
+                    OrgOpenroadmDevice.QNAME);
+            LOG.info("deserializedDevice = {}", deserializedDevice);
+            assertEquals(this.device, deserializedDevice);
+        } catch (ProcessingException e) {
+            fail("Error deserializing xml to OrgOpenroadmDevice object");
+        }
+    }
+
+    @Test
+    void serializeContextTest() throws IOException, YangParserException {
+        XmlDataConverter converter = new XmlDataConverter(null);
+        String actualXml = converter.serialize(DataObjectIdentifier.builder(Context.class).build(), context);
+        String expectedXml = Files.readString(Path.of("src/test/resources/context.xml"));
+
+        // Parse XML to retrieve layer-protocol-name fragments
+        List<String> actualLpnList = extractLayerProtocolNames(actualXml);
+        List<String> expectedLpnList = extractLayerProtocolNames(expectedXml);
+        // Compare layer-protocol-name lists ignoring item order)
+        assertThat(new HashSet<>(actualLpnList)).isEqualTo(new HashSet<>(expectedLpnList));
+
+        // Remove list of "layer-protocol-name" given that their order may vary
+        String regex = "<layer-protocol-name>.*?</layer-protocol-name>";
+        actualXml = actualXml.replaceAll(regex, "");
+        expectedXml = expectedXml.replaceAll(regex, "");
+        assertThat(actualXml).isEqualToIgnoringWhitespace(expectedXml);
+    }
+
+    @Test
+    void serializeContextToFileTest() throws IOException, YangParserException {
+        final Path filePath = Path.of("testSerializeContextToXmlFile.xml");
+        XmlDataConverter converter = new XmlDataConverter(null);
+        try {
+            converter.serializeToFile(DataObjectIdentifier.builder(Context.class).build(), context, filePath);
+            assertTrue(Files.exists(filePath));
+        } catch (ProcessingException e) {
+            fail("Cannot serialise object to json file");
+        } finally {
+            try {
+                Files.deleteIfExists(filePath);
+            } catch (IOException e) {
+                fail("Failed to delete the test file: " + e.getMessage());
+            }
+        }
+    }
+
+    @Test
+    void deserializeXmlToContextTest() throws IOException, YangParserException {
+        XmlDataConverter converter = new XmlDataConverter(null);
+        try {
+            Context deserializedContext = (Context) converter.deserialize(
+                    Files.readString(Path.of("src/test/resources/context.xml")), Context.QNAME);
+            LOG.info("deserializedContext = {}", deserializedContext);
+            assertEquals(this.context, deserializedContext);
+        } catch (ProcessingException e) {
+            fail("Error deserializing xml to TAPI Context object");
+        }
+    }
+
+    @Test
+    void deserializeXmlReaderToContextTest() throws IOException, YangParserException {
+        XmlDataConverter converter = new XmlDataConverter(null);
+        try {
+            Context deserializedContext = (Context) converter.deserialize(
+                    Files.newBufferedReader(Path.of("src/test/resources/context.xml"), StandardCharsets.UTF_8),
+                    Context.QNAME);
+            LOG.info("deserializedContext = {}", deserializedContext);
+            assertEquals(this.context, deserializedContext);
+        } catch (ProcessingException e) {
+            fail("Error deserializing xml to TAPI Context object");
+        }
+    }
+
+    private static List<String> extractLayerProtocolNames(String xml) {
+        List<String> names = new ArrayList<>();
+        try {
+            DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
+            Document document = documentBuilder.parse(new InputSource(new StringReader(xml)));
+            NodeList nodeList = document.getElementsByTagName("layer-protocol-name");
+            for (int i = 0; i < nodeList.getLength(); i++) {
+                names.add(nodeList.item(i).getTextContent().trim());
+            }
+        } catch (ParserConfigurationException e) {
+            fail("Error configuring XML parser: " + e.getMessage());
+        } catch (IOException | SAXException | IllegalArgumentException e) {
+            fail("Error parsing XML: " + e.getMessage());
+        }
+        return names;
+    }
+}

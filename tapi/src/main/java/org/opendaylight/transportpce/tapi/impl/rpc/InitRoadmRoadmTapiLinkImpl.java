@@ -1,0 +1,105 @@
+/*
+ * Copyright © 2024 Orange, Inc. and others.  All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v1.0 which accompanies this distribution,
+ * and is available at http://www.eclipse.org/legal/epl-v10.html
+ */
+package org.opendaylight.transportpce.tapi.impl.rpc;
+
+import com.google.common.util.concurrent.ListenableFuture;
+import org.opendaylight.transportpce.common.InstanceIdentifiers;
+import org.opendaylight.transportpce.common.network.NetworkTransactionService;
+import org.opendaylight.transportpce.tapi.openroadm.topology.link.OpenRoadmLinkResolver;
+import org.opendaylight.transportpce.tapi.topology.AbstractTapiNetworkUtil;
+import org.opendaylight.transportpce.tapi.topology.TapiTopologyException;
+import org.opendaylight.transportpce.tapi.topology.TopologyUtils;
+import org.opendaylight.transportpce.tapi.utils.TapiLink;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.tapinetworkutils.rev230728.InitRoadmRoadmTapiLink;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.tapinetworkutils.rev230728.InitRoadmRoadmTapiLinkInput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.tapinetworkutils.rev230728.InitRoadmRoadmTapiLinkOutput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.tapinetworkutils.rev230728.InitRoadmRoadmTapiLinkOutputBuilder;
+import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.networks.Network;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev221121.topology.Link;
+import org.opendaylight.yangtools.yang.common.ErrorType;
+import org.opendaylight.yangtools.yang.common.RpcResult;
+import org.opendaylight.yangtools.yang.common.RpcResultBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
+public class InitRoadmRoadmTapiLinkImpl extends AbstractTapiNetworkUtil implements InitRoadmRoadmTapiLink {
+
+    private static final Logger LOG = LoggerFactory.getLogger(InitRoadmRoadmTapiLinkImpl.class);
+    private TapiLink tapiLink;
+    private final TopologyUtils topologyUtils;
+
+    public InitRoadmRoadmTapiLinkImpl(
+            TapiLink tapiLink,
+            NetworkTransactionService networkTransactionService,
+            TopologyUtils topologyUtils) {
+        super(networkTransactionService);
+        this.tapiLink = tapiLink;
+        this.topologyUtils = topologyUtils;
+    }
+
+    @Override
+    public ListenableFuture<RpcResult<InitRoadmRoadmTapiLinkOutput>> invoke(InitRoadmRoadmTapiLinkInput input) {
+        // TODO --> need to check if the nodes and neps exist in the topology
+        String sourceNode = input.getRdmANode();
+        String sourceTp = input.getDegATp();
+        String destNode = input.getRdmZNode();
+        String destTp = input.getDegZTp();
+        // TODO: Use topology/port-mapping data to resolve DEG/topology node IDs instead of parsing strings.
+        // Current approach depends on TP naming convention ("DEGx-...") and is fragile.
+        String sourceTopologyNode = sourceNode + "-" + sourceTp.split("-")[0];
+        String destTopologyNode = destNode + "-" + destTp.split("-")[0];
+
+        LOG.debug("Source: derived OpenROADM topology node id '{}' from node '{}' and TP '{}'",
+                sourceTopologyNode, sourceNode, sourceTp);
+
+        LOG.debug("Destination: derived OpenROADM topology node id '{}' from node '{}' and TP '{}'",
+                destTopologyNode, destNode, destTp);
+
+        Network network;
+        try {
+            network = topologyUtils.readTopology(InstanceIdentifiers.OPENROADM_TOPOLOGY_II);
+        } catch (TapiTopologyException e) {
+            LOG.error(
+                    "Failed to read topology '{}' from datastore."
+                            + " Cannot create TAPI link from {}:{} to {}:{}. Aborting.",
+                    InstanceIdentifiers.OPENROADM_TOPOLOGY_II,
+                    sourceTopologyNode,
+                    sourceTp,
+                    destTopologyNode,
+                    destTp,
+                    e
+            );
+            return RpcResultBuilder.<InitRoadmRoadmTapiLinkOutput>failed()
+                    .withError(ErrorType.RPC, "Failed to read topology from datastore; cannot create TAPI link")
+                    .buildFuture();
+        }
+        // Following is implementation proposed by SmartOptics (currently dis-activated)
+//        Link link = this.tapiLink.createTapiLink(sourceNode, sourceTopologyNode, destNode, destTopologyNode,
+//                network, tapiTopoUuid, new OpenRoadmLinkResolver());
+//        Link link2 = this.tapiLink.createTapiLink(destNode, destTopologyNode, sourceNode, sourceTopologyNode,
+//            network, tapiTopoUuid, new OpenRoadmLinkResolver());
+        // Following is regular implementation before modification by SmartOptics (currently activated)
+        // As implemented in Switching to UNIDIR Link (Change 121993)
+        Link link = this.tapiLink.createTapiLink(sourceNode, sourceTp, destTopologyNode, destTp,
+            network, tapiTopoUuid, new OpenRoadmLinkResolver());
+        Link link2 = this.tapiLink.createTapiLink(destTopologyNode, destTp, sourceNode, sourceTp,
+            network, tapiTopoUuid, new OpenRoadmLinkResolver());
+        if (link == null || link2 == null) {
+            LOG.error("Error creating link object");
+            return RpcResultBuilder.<InitRoadmRoadmTapiLinkOutput>failed()
+                .withError(ErrorType.RPC, "Failed to create link in topology")
+                .buildFuture();
+        }
+        InitRoadmRoadmTapiLinkOutputBuilder output = new InitRoadmRoadmTapiLinkOutputBuilder();
+        if (putLinkInTopology(link) && putLinkInTopology(link2)) {
+            output.setResult("Link created in tapi topology. Link-uuid = " + link.getUuid());
+        }
+        return RpcResultBuilder.success(output.build()).buildFuture();
+    }
+}

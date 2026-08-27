@@ -7,7 +7,12 @@
  */
 package org.opendaylight.transportpce.pce;
 
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.PathComputationRequestInput;
+import org.opendaylight.transportpce.common.fixedflex.GridConstant;
+import org.opendaylight.transportpce.pce.input.valid.Factory;
+import org.opendaylight.transportpce.pce.input.valid.Valid;
+import org.opendaylight.transportpce.pce.input.valid.ValidInputFactory;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.PathComputationRequestInput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.PathComputationRerouteRequestInput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,7 +58,39 @@ public final class PceComplianceCheck {
         } else {
             result = false;
         }
+        if (result) {
+
+            Factory inputValidationFactory = new ValidInputFactory();
+            Valid validInput = inputValidationFactory.instantiate(
+                    GridConstant.START_EDGE_FREQUENCY_THZ,
+                    GridConstant.CENTRAL_FREQUENCY_THZ,
+                    GridConstant.GRANULARITY,
+                    12.5,
+                    GridConstant.EFFECTIVE_BITS
+            );
+
+            if (!validInput.isValid(input)) {
+                result = false;
+                message = validInput.lastErrorMessage();
+                LOG.debug("PCEInput validation failed: {}", message);
+            }
+
+        }
         return new PceComplianceCheckResult(result, message);
+    }
+
+    public static PceComplianceCheckResult check(PathComputationRerouteRequestInput input) {
+        if (input == null) {
+            return new PceComplianceCheckResult(false, "");
+        }
+        if (input.getEndpoints() == null
+                || input.getEndpoints().getAEndTp() == null
+                || input.getEndpoints().getZEndTp() == null) {
+            String message = "At least one of the termination points is missing";
+            LOG.debug(message);
+            return new PceComplianceCheckResult(false, message);
+        }
+        return new PceComplianceCheckResult(true, "");
     }
 
 }

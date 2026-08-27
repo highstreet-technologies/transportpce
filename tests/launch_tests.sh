@@ -1,5 +1,4 @@
 #!/bin/sh
-
 if [ -n "$USE_ODL_ALT_KARAF_ENV" ]; then
     echo "using environment variables from $USE_ODL_ALT_KARAF_ENV"
     . $USE_ODL_ALT_KARAF_ENV
@@ -11,11 +10,13 @@ for arg in $@; do
     else
 # Tox reinterprets "olm" and "pce" by "../olm" "../pce" because of the
 # changedir directive and the presence of modules folders "olm" and pce"
-# at project root.
+# at project root.
         if [ "$arg" = "../olm" ]; then
             arglist=$arglist" olm"
         elif [ "$arg" = "../pce" ]; then
             arglist=$arglist" pce"
+        elif [ "$arg" = "../renderer" ]; then
+            arglist=$arglist" renderer"
         else
             arglist=$arglist" "$arg
         fi
@@ -26,12 +27,24 @@ scriptlist=""
 if [ -z "$arglist" ]; then
     scriptlist="transportpce_tests/$test_suite/test[0-9][0-9]_*.py"
 else
-    for test in $arglist; do
-        scriptlist=$scriptlist" transportpce_tests/$test_suite/test[0-9][0-9]_$test.py"
+    for test_name in $arglist; do
+        scriptlist=$scriptlist" transportpce_tests/$test_suite/test[0-9][0-9]_$test_name.py"
     done
 fi
 if [ -z "$LAUNCHER" ]; then
-    LAUNCHER="nosetests --with-xunit";
+    if [ `which pytest-3` ]; then
+            LAUNCHER="pytest-3"
+    else
+        if [ `which pytest` ]; then
+            LAUNCHER="pytest"
+        else
+            LAUNCHER="python3 -m pytest"
+        fi
+    fi
+    if [ -d "allure-report" ]; then
+        LAUNCHER="$LAUNCHER --alluredir=allure-report/"
+    fi
+    LAUNCHER="$LAUNCHER -q"
 fi
 
 for script in $scriptlist; do

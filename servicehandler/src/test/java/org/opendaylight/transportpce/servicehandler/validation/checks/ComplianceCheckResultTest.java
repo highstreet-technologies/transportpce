@@ -7,17 +7,19 @@
  */
 package org.opendaylight.transportpce.servicehandler.validation.checks;
 
-import org.junit.Assert;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.junit.jupiter.api.Test;
 
 public class ComplianceCheckResultTest {
 
     @Test
-    public void constructComplianceCheckResult() {
+    void constructComplianceCheckResult() {
         ComplianceCheckResult checkResult = new ComplianceCheckResult(true);
-        Assert.assertEquals(true, checkResult.hasPassed());
+        assertTrue(checkResult.hasPassed());
 
         checkResult = new ComplianceCheckResult(false);
-        Assert.assertEquals(false, checkResult.hasPassed());
+        assertFalse(checkResult.hasPassed());
     }
 }

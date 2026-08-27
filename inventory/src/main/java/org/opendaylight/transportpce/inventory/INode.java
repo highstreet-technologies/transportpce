@@ -8,39 +8,33 @@
 
 package org.opendaylight.transportpce.inventory;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import javax.sql.DataSource;
-import org.opendaylight.transportpce.common.device.DeviceTransactionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@edu.umd.cs.findbugs.annotations.SuppressFBWarnings(
+@SuppressFBWarnings(
     value = "SQL_PREPARED_STATEMENT_GENERATED_FROM_NONCONSTANT_STRING",
     justification = "TODO review the SQL statement generation process")
 public class INode {
     private static final Logger LOG = LoggerFactory.getLogger(INode.class);
 
     private final DataSource dataSource;
-    private final DeviceTransactionManager deviceTransactionManager;
-    //private final INode221 inode221;
-    private final INode121 inode121;
+    private final INode221 inode221;
 
-    public INode(DataSource dataSource, DeviceTransactionManager deviceTransactionManager,
-        INode121 inode121
-        //, INode221 inode221
+    public INode(DataSource dataSource, INode221 inode221
     ) {
         this.dataSource = dataSource;
-        this.deviceTransactionManager = deviceTransactionManager;
-        this.inode121 = inode121;
-        //this.inode221 = inode221;
+        this.inode221 = inode221;
     }
 
     public boolean addNode(String deviceId, String openROADMversion) {
         //boolean sqlResult = false;
-        return inode121.addNode(deviceId);
+        return inode221.addNode(deviceId);
 
     }
 

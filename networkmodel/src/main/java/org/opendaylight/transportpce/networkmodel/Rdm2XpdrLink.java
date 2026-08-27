@@ -18,17 +18,19 @@ import org.opendaylight.mdsal.binding.api.ReadTransaction;
 import org.opendaylight.mdsal.binding.api.WriteTransaction;
 import org.opendaylight.mdsal.common.api.CommitInfo;
 import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
-import org.opendaylight.transportpce.common.NetworkUtils;
+import org.opendaylight.transportpce.common.StringConstants;
 import org.opendaylight.transportpce.networkmodel.util.LinkIdUtil;
 import org.opendaylight.transportpce.networkmodel.util.TopologyUtils;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev170818.links.input.grouping.LinksInput;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev211210.Link1Builder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev250902.links.input.grouping.LinksInput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.or.network.augmentation.rev250902.DataModelEnum;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.or.network.augmentation.rev250902.LinkClassEnum;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.Link1Builder;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.state.types.rev191129.State;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.equipment.states.types.rev191129.AdminStates;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev211210.TerminationPoint1;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev211210.TerminationPoint1Builder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev211210.networks.network.node.termination.point.XpdrNetworkAttributesBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev211210.OpenroadmLinkType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.TerminationPoint1;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.TerminationPoint1Builder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.networks.network.node.termination.point.XpdrNetworkAttributesBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.OpenroadmLinkType;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.NetworkId;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.Networks;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.NodeId;
@@ -38,6 +40,7 @@ import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.networks.network.Node;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.networks.network.NodeBuilder;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.networks.network.NodeKey;
+import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.LinkId;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.Network1Builder;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.Node1Builder;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.TpId;
@@ -46,7 +49,7 @@ import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.top
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.networks.network.node.TerminationPoint;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.networks.network.node.TerminationPointBuilder;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.networks.network.node.TerminationPointKey;
-import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
+import org.opendaylight.yangtools.binding.DataObjectIdentifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,27 +58,52 @@ final class Rdm2XpdrLink {
 
     private static final Logger LOG = LoggerFactory.getLogger(Rdm2XpdrLink.class);
 
+    /**
+     * createXpdrRdmLinks.
+     *
+     * @param linksInput a {@link org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev250902
+     *      .links.input.grouping.LinksInput} object
+     * @param dataBroker a {@link org.opendaylight.mdsal.binding.api.DataBroker} object
+     * @return a boolean
+     */
     public static boolean createXpdrRdmLinks(LinksInput linksInput, DataBroker dataBroker) {
+        TerminationPoint rdmTp;
+        String destNode;
+        String destTp;
+        boolean isRdmTapiNode = false;
+        if (linksInput.getRdmTopologyUuid() != null) {
+            rdmTp = OrdLink.addTpsToTapiExtNode(linksInput.getTerminationPointNum(),
+                linksInput.getRdmNepUuid(), linksInput.getRdmNode(), linksInput.getRdmNodeUuid(),
+                linksInput.getRdmTopologyUuid(),
+                (linksInput.getXpdrNode() + "to" + "TAPI-SBI-ABS-NODE-" + linksInput.getTerminationPointNum()),
+                dataBroker);
+            destNode = linksInput.getRdmNode();
+            destTp = (linksInput.getTerminationPointNum());
+            isRdmTapiNode = true;
+        } else {
+            destNode =
+                new StringBuilder(linksInput.getRdmNode()).append("-SRG").append(linksInput.getSrgNum()).toString();
+            destTp = linksInput.getTerminationPointNum();
+            rdmTp = getTpofNode(destNode, destTp, dataBroker);
+        }
         String srcNode =
             new StringBuilder(linksInput.getXpdrNode()).append("-XPDR").append(linksInput.getXpdrNum()).toString();
         String srcTp = new StringBuilder("XPDR").append(linksInput.getXpdrNum()).append("-NETWORK")
             .append(linksInput.getNetworkNum()).toString();
-        String destNode =
-            new StringBuilder(linksInput.getRdmNode()).append("-SRG").append(linksInput.getSrgNum()).toString();
-        String destTp = linksInput.getTerminationPointNum();
         // update tail-equipment-id for tp of link
         TerminationPoint xpdrTp = getTpofNode(srcNode, srcTp, dataBroker);
-        TerminationPoint rdmTp = getTpofNode(destNode, destTp, dataBroker);
 
-        NetworkBuilder networkBldr = createNetworkBuilder(srcNode, srcTp, destNode, destTp, false, xpdrTp, rdmTp);
+        NetworkBuilder networkBldr = createNetworkBuilder(srcNode, srcTp, destNode, destTp, false, xpdrTp, rdmTp,
+            isRdmTapiNode, dataBroker);
         if (networkBldr == null) {
             return false;
         }
         Network network = networkBldr.build();
-        InstanceIdentifier.InstanceIdentifierBuilder<Network> nwIID = InstanceIdentifier.builder(Networks.class)
-            .child(Network.class, new NetworkKey(new NetworkId(NetworkUtils.OVERLAY_NETWORK_ID)));
+        DataObjectIdentifier<Network> nwIID = DataObjectIdentifier.builder(Networks.class)
+            .child(Network.class, new NetworkKey(new NetworkId(StringConstants.OPENROADM_TOPOLOGY)))
+            .build();
         WriteTransaction wrtx = dataBroker.newWriteOnlyTransaction();
-        wrtx.merge(LogicalDatastoreType.CONFIGURATION, nwIID.build(), network);
+        wrtx.merge(LogicalDatastoreType.CONFIGURATION, nwIID, network);
 
         FluentFuture<? extends @NonNull CommitInfo> commit = wrtx.commit();
 
@@ -84,32 +112,56 @@ final class Rdm2XpdrLink {
             LOG.info("Post successful");
             return true;
         } catch (InterruptedException | ExecutionException e) {
-            LOG.warn("Failed to create Xponder to Roadm link in the Topo layer ");
+            LOG.warn("Failed to create Xponder to Roadm link in the Topo layer", e);
             return false;
         }
     }
 
+    /**
+     * createRdmXpdrLinks.
+     *
+     * @param linksInput a {@link org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev250902
+     *      .links.input.grouping.LinksInput} object
+     * @param dataBroker a {@link org.opendaylight.mdsal.binding.api.DataBroker} object
+     * @return a boolean
+     */
     public static boolean createRdmXpdrLinks(LinksInput linksInput, DataBroker dataBroker) {
-        String srcNode =
-            new StringBuilder(linksInput.getRdmNode()).append("-SRG").append(linksInput.getSrgNum()).toString();
-        String srcTp = linksInput.getTerminationPointNum();
+        TerminationPoint rdmTp;
+        String srcNode;
+        String srcTp;
+        boolean isRdmTapiNode = false;
+        if (linksInput.getRdmTopologyUuid() != null) {
+            rdmTp = OrdLink.addTpsToTapiExtNode(linksInput.getTerminationPointNum(),
+                linksInput.getRdmNepUuid(), linksInput.getRdmNode(), linksInput.getRdmNodeUuid(),
+                linksInput.getRdmTopologyUuid(),
+                ("TAPI-SBI-ABS-NODE-" + linksInput.getTerminationPointNum() + "to" + linksInput.getXpdrNode()),
+                dataBroker);
+            srcNode = linksInput.getRdmNode();
+            srcTp = (linksInput.getTerminationPointNum());
+            isRdmTapiNode = true;
+        } else {
+            srcNode =
+                new StringBuilder(linksInput.getRdmNode()).append("-SRG").append(linksInput.getSrgNum()).toString();
+            srcTp = linksInput.getTerminationPointNum();
+            rdmTp = getTpofNode(srcNode, srcTp, dataBroker);
+        }
         String destNode =
             new StringBuilder(linksInput.getXpdrNode()).append("-XPDR").append(linksInput.getXpdrNum()).toString();
         String destTp = new StringBuilder("XPDR").append(linksInput.getXpdrNum()).append("-NETWORK")
             .append(linksInput.getNetworkNum()).toString();
         TerminationPoint xpdrTp = getTpofNode(destNode, destTp, dataBroker);
-        TerminationPoint rdmTp = getTpofNode(srcNode, srcTp, dataBroker);
 
-        NetworkBuilder networkBldr = createNetworkBuilder(srcNode, srcTp, destNode, destTp, true, xpdrTp, rdmTp);
+        NetworkBuilder networkBldr = createNetworkBuilder(srcNode, srcTp, destNode, destTp, true, xpdrTp, rdmTp,
+            isRdmTapiNode, dataBroker);
         if (networkBldr == null) {
             return false;
         }
         Network network = networkBldr.build();
-        InstanceIdentifier.InstanceIdentifierBuilder<Network> nwIID =
-            InstanceIdentifier.builder(Networks.class).child(Network.class,
-                new NetworkKey(new NetworkId(NetworkUtils.OVERLAY_NETWORK_ID)));
+        DataObjectIdentifier<Network> nwIID = DataObjectIdentifier.builder(Networks.class)
+                .child(Network.class, new NetworkKey(new NetworkId(StringConstants.OPENROADM_TOPOLOGY)))
+                .build();
         WriteTransaction wrtx = dataBroker.newWriteOnlyTransaction();
-        wrtx.merge(LogicalDatastoreType.CONFIGURATION, nwIID.build(), network);
+        wrtx.merge(LogicalDatastoreType.CONFIGURATION, nwIID, network);
         FluentFuture<? extends @NonNull CommitInfo> commit = wrtx.commit();
         try {
             commit.get();
@@ -117,13 +169,14 @@ final class Rdm2XpdrLink {
             return true;
 
         } catch (InterruptedException | ExecutionException e) {
-            LOG.warn("Failed to create Xponder to Roadm link in the Topo layer ");
+            LOG.warn("Failed to create Xponder to Roadm link in the Topo layer", e);
             return false;
         }
     }
 
     private static NetworkBuilder createNetworkBuilder(String srcNode, String srcTp, String destNode, String destTp,
-        boolean isXponderInput, TerminationPoint xpdrTp, TerminationPoint rdmTp) {
+            boolean isXponderInput, TerminationPoint xpdrTp, TerminationPoint rdmTp, boolean isRdmTapiNode,
+        DataBroker dataBroker) {
         if (xpdrTp == null || rdmTp == null) {
             return null;
         }
@@ -151,28 +204,59 @@ final class Rdm2XpdrLink {
         } else {
             nodeBldr.setNodeId(new NodeId(srcNode));
         }
+        LinkId oppositeLinkId;
+        if (isRdmTapiNode) {
+            if (isXponderInput) {
+                oppositeLinkId = LinkIdUtil.buildLinkId(destNode, destTp, "TAPI-SBI-ABS-NODE", srcTp);
+            } else {
+                oppositeLinkId = LinkIdUtil.buildLinkId("TAPI-SBI-ABS-NODE", destTp, srcNode, srcTp);
+            }
+        } else {
+            oppositeLinkId = LinkIdUtil.getOppositeLinkId(srcNode, srcTp, destNode, destTp);
+        }
 
         Link1Builder lnk2bldr
             = new Link1Builder()
                 .setLinkType(isXponderInput ? OpenroadmLinkType.XPONDERINPUT : OpenroadmLinkType.XPONDEROUTPUT)
-                .setOppositeLink(LinkIdUtil.getOppositeLinkId(srcNode, srcTp, destNode, destTp));
+                .setOppositeLink(oppositeLinkId);
+
         // If both TPs of the Xpdr2Rdm link are inService --> link inService. Otherwise outOfService
         if (State.InService.equals(xpdrTp.augmentation(org.opendaylight.yang.gen.v1.http
-                    .org.openroadm.common.network.rev211210.TerminationPoint1.class).getOperationalState())
+                    .org.openroadm.common.network.rev250530.TerminationPoint1.class).getOperationalState())
                 && State.InService.equals(rdmTp.augmentation(org.opendaylight.yang.gen.v1.http
-                    .org.openroadm.common.network.rev211210.TerminationPoint1.class).getOperationalState())) {
+                    .org.openroadm.common.network.rev250530.TerminationPoint1.class).getOperationalState())) {
             lnk2bldr.setOperationalState(State.InService).setAdministrativeState(AdminStates.InService);
         } else {
             lnk2bldr.setOperationalState(State.OutOfService).setAdministrativeState(AdminStates.OutOfService);
         }
-        LinkBuilder linkBuilder = TopologyUtils.createLink(srcNode, destNode, srcTp, destTp, null)
+        LinkBuilder linkBuilder = TopologyUtils.createLink(
+                isXponderInput && isRdmTapiNode ? "TAPI-SBI-ABS-NODE" : srcNode,
+                !isXponderInput && isRdmTapiNode ? "TAPI-SBI-ABS-NODE" : destNode,
+                srcTp, destTp, null)
             .addAugmentation(lnk2bldr.build());
+
+        org.opendaylight.yang.gen.v1.http.org.opendaylight
+                .transportpce.or.network.augmentation.rev250902.Link1Builder tpceAugmLink11Bd =
+            new org.opendaylight.yang.gen.v1.http.org.opendaylight
+                .transportpce.or.network.augmentation.rev250902.Link1Builder();
+        DataModelEnum nodeYangDataModel = getNodeModel(srcNode, srcTp, dataBroker);
+        if (isRdmTapiNode) {
+            tpceAugmLink11Bd.setLinkClass(LinkClassEnum.AlienToTapi);
+        } else if (nodeYangDataModel == null || nodeYangDataModel.equals(DataModelEnum.Openroadm)) {
+            tpceAugmLink11Bd.setLinkClass(LinkClassEnum.Openroadm);
+        } else if (nodeYangDataModel.equals(DataModelEnum.OpenconfigAlien)) {
+            tpceAugmLink11Bd.setLinkClass(LinkClassEnum.AlienOcToOpenroadm);
+        } else {
+            LOG.error("Undetermined Node YangDataModel for XPDR {}, cannot define Link class for {}", srcNode,
+                LinkIdUtil.buildLinkId(srcNode, srcTp, destNode, destTp));
+        }
+        linkBuilder.addAugmentation(tpceAugmLink11Bd.build());
 
         LOG.info("Creating Link with id {}", linkBuilder.getLinkId());
         Link link = linkBuilder.build();
         Network1Builder nwBldr1 = new Network1Builder().setLink(ImmutableMap.of(link.key(),link));
 
-        NetworkId nwId = new NetworkId(NetworkUtils.OVERLAY_NETWORK_ID);
+        NetworkId nwId = new NetworkId(StringConstants.OPENROADM_TOPOLOGY);
         Node node = nodeBldr.build();
         return new NetworkBuilder()
             .setNetworkId(nwId)
@@ -182,8 +266,8 @@ final class Rdm2XpdrLink {
     }
 
     private static TerminationPoint getTpofNode(String srcNode, String srcTp, DataBroker dataBroker) {
-        InstanceIdentifier<TerminationPoint> iiTp = InstanceIdentifier.builder(Networks.class)
-            .child(Network.class, new NetworkKey(new NetworkId(NetworkUtils.OVERLAY_NETWORK_ID)))
+        DataObjectIdentifier<TerminationPoint> iiTp = DataObjectIdentifier.builder(Networks.class)
+            .child(Network.class, new NetworkKey(new NetworkId(StringConstants.OPENROADM_TOPOLOGY)))
             .child(Node.class, new NodeKey(new NodeId(srcNode)))
             .augmentation(org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226
                 .Node1.class)
@@ -198,11 +282,40 @@ final class Rdm2XpdrLink {
                 Optional<TerminationPoint> tpOpt;
                 tpOpt = tpFf.get();
                 if (tpOpt.isPresent()) {
-                    return tpOpt.get();
+                    return tpOpt.orElseThrow();
                 }
             } catch (InterruptedException | ExecutionException e) {
                 LOG.error("Impossible to get tp-id {} of node {} from {}", srcTp, srcNode,
-                    NetworkUtils.OVERLAY_NETWORK_ID, e);
+                    StringConstants.OPENROADM_TOPOLOGY, e);
+            }
+        }
+        return null;
+    }
+
+    private static DataModelEnum getNodeModel(String srcNode, String srcTp, DataBroker dataBroker) {
+        DataObjectIdentifier<
+                org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.or.network.augmentation.rev250902.Node1>
+            nodeIID = DataObjectIdentifier.builder(Networks.class)
+                .child(Network.class, new NetworkKey(new NetworkId(StringConstants.OPENROADM_TOPOLOGY)))
+                .child(Node.class, new NodeKey(new NodeId(srcNode)))
+                .augmentation(org.opendaylight.yang.gen.v1.http.org.opendaylight
+                    .transportpce.or.network.augmentation.rev250902.Node1.class)
+                .build();
+        @NonNull
+        ReadTransaction readTransaction = dataBroker.newReadOnlyTransaction();
+        @NonNull
+        FluentFuture<Optional<org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.or.network.augmentation
+                .rev250902.Node1>> nodeFf = readTransaction.read(LogicalDatastoreType.CONFIGURATION, nodeIID);
+        if (nodeFf.isDone()) {
+            try {
+                Optional<org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.or.network.augmentation
+                    .rev250902.Node1> node;
+                node = nodeFf.get();
+                if (node.isPresent()) {
+                    return node.orElseThrow().getYangDataModel();
+                }
+            } catch (InterruptedException | ExecutionException e) {
+                LOG.error("Impossible to get the Node YangDataModel of node {} ", srcNode, e);
             }
         }
         return null;

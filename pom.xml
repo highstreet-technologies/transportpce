@@ -11,14 +11,14 @@ and is available at http://www.eclipse.org/legal/epl-v10.html INTERNAL
 
   <parent>
     <groupId>org.opendaylight.odlparent</groupId>
-    <artifactId>odlparent</artifactId>
-    <version>9.0.13</version>
+    <artifactId>odlparent-lite</artifactId>
+    <version>14.3.1</version>
     <relativePath/>
   </parent>
 
   <groupId>org.opendaylight.transportpce</groupId>
   <artifactId>transportpce-aggregator</artifactId>
-  <version>5.0.0-SNAPSHOT</version>
+  <version>13.0.0-SNAPSHOT</version>
   <name>transportpce</name>
   <packaging>pom</packaging>
 
@@ -30,8 +30,7 @@ and is available at http://www.eclipse.org/legal/epl-v10.html INTERNAL
   </scm>
 
   <modules>
-    <module>ordmodels</module>
-    <module>tapimodels</module>
+    <module>artifacts</module>
     <module>api</module>
     <module>common</module>
     <module>test-common</module>
@@ -42,6 +41,7 @@ and is available at http://www.eclipse.org/legal/epl-v10.html INTERNAL
     <module>pce</module>
     <module>servicehandler</module>
     <module>tapi</module>
+    <module>tapisbi</module>
     <module>nbinotifications</module>
     <module>dmaap-client</module>
     <module>features</module>
@@ -74,7 +74,6 @@ and is available at http://www.eclipse.org/legal/epl-v10.html INTERNAL
       </plugin>
     </plugins>
   </build>
-
 </project>
 
 

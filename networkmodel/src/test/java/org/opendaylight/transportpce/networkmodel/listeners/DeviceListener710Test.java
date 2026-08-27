@@ -10,20 +10,21 @@ package org.opendaylight.transportpce.networkmodel.listeners;
 
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableList;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.opendaylight.transportpce.common.mapping.PortMapping;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.mapping.Mapping;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mapping.Mapping;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.ChangeNotification;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.OrgOpenroadmDeviceData;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.change.notification.Edit;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.change.notification.EditBuilder;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.circuit.pack.Ports;
@@ -32,17 +33,22 @@ import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.circuit.
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.circuit.packs.CircuitPacksKey;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.org.openroadm.device.container.OrgOpenroadmDevice;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.netconf.base._1._0.rev110601.EditOperationType;
-import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
+import org.opendaylight.yangtools.binding.DataObjectIdentifier;
 
-@RunWith(MockitoJUnitRunner.StrictStubs.class)
+/**
+ * DeviceListener710Test class.
+ */
+@ExtendWith(MockitoExtension.class)
 public class DeviceListener710Test {
     @Mock
     private PortMapping portMapping;
+    @Mock
+    private Mapping oldMapping;
+    @Mock
+    private ChangeNotification notification;
 
     @Test
-    public void testOnChangeNotificationWhenPortUpdated() throws InterruptedException {
-        ChangeNotification notification = mock(ChangeNotification.class);
-        Mapping oldMapping = mock(Mapping.class);
+    void testOnChangeNotificationWhenPortUpdated() {
         ImmutableList<Edit> editList = createEditList();
         when(notification.getEdit()).thenReturn(editList);
         when(portMapping.getMapping("node1", "circuit-pack1", "port1")).thenReturn(oldMapping);
@@ -50,13 +56,11 @@ public class DeviceListener710Test {
         DeviceListener710 listener = new DeviceListener710("node1", portMapping);
         listener.onChangeNotification(notification);
         verify(portMapping, times(1)).getMapping("node1", "circuit-pack1", "port1");
-        Thread.sleep(3000);
-        verify(portMapping, times(1)).updateMapping("node1", oldMapping);
+        verify(portMapping, timeout(2000).times(1)).updateMapping("node1", oldMapping);
     }
 
     @Test
-    public void testOnChangeNotificationWhenNoEditList() {
-        ChangeNotification notification = mock(ChangeNotification.class);
+    void testOnChangeNotificationWhenNoEditList() {
         when(notification.getEdit()).thenReturn(null);
         DeviceListener710 listener = new DeviceListener710("node1", portMapping);
         listener.onChangeNotification(notification);
@@ -65,8 +69,7 @@ public class DeviceListener710Test {
     }
 
     @Test
-    public void testOnChangeNotificationWhenOtherthingUpdated() {
-        ChangeNotification notification = mock(ChangeNotification.class);
+    void testOnChangeNotificationWhenOtherthingUpdated() {
         ImmutableList<Edit> editList = createBadEditList();
         when(notification.getEdit()).thenReturn(editList);
         DeviceListener710 listener = new DeviceListener710("node1", portMapping);
@@ -76,9 +79,11 @@ public class DeviceListener710Test {
     }
 
     private ImmutableList<Edit> createEditList() {
-        InstanceIdentifier<Ports> portId = InstanceIdentifier.create(OrgOpenroadmDevice.class)
+        DataObjectIdentifier<Ports> portId = DataObjectIdentifier
+            .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
             .child(CircuitPacks.class, new CircuitPacksKey("circuit-pack1"))
-            .child(Ports.class, new PortsKey("port1"));
+            .child(Ports.class, new PortsKey("port1"))
+            .build();
         Edit edit = new EditBuilder()
             .setOperation(EditOperationType.Merge)
             .setTarget(portId)
@@ -88,8 +93,10 @@ public class DeviceListener710Test {
     }
 
     private ImmutableList<Edit> createBadEditList() {
-        InstanceIdentifier<CircuitPacks> cpId = InstanceIdentifier.create(OrgOpenroadmDevice.class)
-            .child(CircuitPacks.class, new CircuitPacksKey("circuit-pack1"));
+        DataObjectIdentifier<CircuitPacks> cpId = DataObjectIdentifier
+            .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
+            .child(CircuitPacks.class, new CircuitPacksKey("circuit-pack1"))
+            .build();
         Edit edit = new EditBuilder()
             .setOperation(EditOperationType.Merge)
             .setTarget(cpId)

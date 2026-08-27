@@ -8,43 +8,41 @@
 
 package org.opendaylight.transportpce.olm.util;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import org.opendaylight.mdsal.binding.api.DataBroker;
 import org.opendaylight.mdsal.binding.api.ReadWriteTransaction;
 import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
-import org.opendaylight.transportpce.common.NetworkUtils;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.Network;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.OpenroadmNodeVersion;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.cp.to.degree.CpToDegree;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.cp.to.degree.CpToDegreeBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.cp.to.degree.CpToDegreeKey;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.mapping.Mapping;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.mapping.MappingBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.mapping.MappingKey;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.network.Nodes;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.network.NodesBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.network.NodesKey;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.network.nodes.NodeInfoBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.link.types.rev191129.FiberPmd;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.link.types.rev191129.RatioDB;
+import org.opendaylight.transportpce.common.StringConstants;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.Network;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.OpenroadmNodeVersion;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.cp.to.degree.CpToDegree;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.cp.to.degree.CpToDegreeBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.cp.to.degree.CpToDegreeKey;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mapping.Mapping;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mapping.MappingBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mapping.MappingKey;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.network.Nodes;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.network.NodesBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.network.NodesKey;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.network.nodes.NodeInfoBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.link.types.rev241213.FiberPmd;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.link.types.rev241213.RatioDB;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.equipment.states.types.rev191129.AdminStates;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.link.rev211210.amplified.link.attributes.AmplifiedLink;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.link.rev211210.amplified.link.attributes.AmplifiedLinkKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.link.rev211210.amplified.link.attributes.amplified.link.SectionElementBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.link.rev211210.span.attributes.LinkConcatenation1.FiberType;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.link.rev211210.span.attributes.LinkConcatenation1Builder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev211210.Link1Builder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev211210.networks.network.link.OMSAttributesBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev211210.networks.network.link.oms.attributes.AmplifiedLinkBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev211210.networks.network.link.oms.attributes.SpanBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev211210.link.concatenation.LinkConcatenation;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev211210.link.concatenation.LinkConcatenationBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev211210.link.concatenation.LinkConcatenationKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.link.rev250530.amplified.link.attributes.AmplifiedLink;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.link.rev250530.amplified.link.attributes.AmplifiedLinkKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.link.rev250530.amplified.link.attributes.amplified.link.SectionElementBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.link.rev250530.span.attributes.LinkConcatenation1.FiberType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.link.rev250530.span.attributes.LinkConcatenation1Builder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.Link1Builder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.networks.network.link.OMSAttributesBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.networks.network.link.oms.attributes.AmplifiedLinkBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.networks.network.link.oms.attributes.SpanBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.link.concatenation.LinkConcatenation;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.link.concatenation.LinkConcatenationBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.link.concatenation.LinkConcatenationKey;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.NetworkId;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.NodeId;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.networks.network.Node;
@@ -64,9 +62,10 @@ import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.top
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.networks.network.link.SupportingLink;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.networks.network.link.SupportingLinkBuilder;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.networks.network.link.SupportingLinkKey;
-import org.opendaylight.yangtools.yang.binding.Augmentation;
-import org.opendaylight.yangtools.yang.binding.DataObject;
-import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
+import org.opendaylight.yangtools.binding.Augmentation;
+import org.opendaylight.yangtools.binding.DataObject;
+import org.opendaylight.yangtools.binding.DataObjectIdentifier;
+import org.opendaylight.yangtools.yang.common.Decimal64;
 import org.opendaylight.yangtools.yang.common.Uint16;
 import org.opendaylight.yangtools.yang.common.Uint32;
 
@@ -80,48 +79,22 @@ public final class TransactionUtils {
     // FIXME check if the InstanceIdentifier raw type can be avoided
     // Raw types use are discouraged since they lack type safety.
     // Resulting Problems are observed at run time and not at compile time
-    public static boolean writeTransaction(DataBroker dataBroker, InstanceIdentifier instanceIdentifier,
+    public static boolean writeTransaction(DataBroker dataBroker, DataObjectIdentifier instanceIdentifier,
         DataObject object) {
         ReadWriteTransaction transaction = dataBroker.newReadWriteTransaction();
         transaction.put(LogicalDatastoreType.CONFIGURATION, instanceIdentifier, object);
-        transaction.commit();// submit(Timeouts.DATASTORE_WRITE, Timeouts.DEVICE_WRITE_TIMEOUT_UNIT).get();
+        var unused = transaction.commit();// submit(Timeouts.DATASTORE_WRITE, Timeouts.DEVICE_WRITE_TIMEOUT_UNIT).get();
         return true;
     }
-
-//
-//    public static boolean writeTransaction(DataBroker dataBroker, LogicalDatastoreType logicalDatastoreType,
-//        InstanceIdentifier instanceIdentifier,
-//        DataObject object)
-
-//    public static DataObject readTransaction(DeviceTransactionManager deviceTransactionManager,
-//                                  String nodeId,
-//                                  LogicalDatastoreType logicalDatastoreType,
-//                                  InstanceIdentifier<? extends DataObject> instanceIdentifier)
-//            throws ExecutionException, InterruptedException {
-//        Future<Optional<DeviceTransaction>> deviceTxFuture =
-//                deviceTransactionManager.getDeviceTransaction(nodeId);
-//        if (!deviceTxFuture.get().isPresent()) {
-//            return null;
-//        }
-//        DeviceTransaction deviceTx = deviceTxFuture.get().get();
-//        com.google.common.base.Optional<? extends DataObject> readOpt
-//                = deviceTx.read(logicalDatastoreType, instanceIdentifier).get();
-//        if (!readOpt.isPresent()) {
-//            return null;
-//        }
-//        return readOpt.get();
-//    }
 
     public static Network1 getNullNetwork() {
         Map<LinkKey, Link> nullMap = null;
         Network1 network = new Network1Builder().setLink(nullMap).build();
-        Optional.of(network);
         return network;
     }
 
     public static Network1 getEmptyNetwork() {
         Network1 network = new Network1Builder().setLink(Map.of()).build();
-        Optional.of(network);
         return network;
     }
 
@@ -129,7 +102,7 @@ public final class TransactionUtils {
             .rev180226.networks.Network getOverLayNetwork() {
         SupportingNode supportingNode = new SupportingNodeBuilder()
                 .setNodeRef(new NodeId("node 1"))
-                .setNetworkRef(new NetworkId(NetworkUtils.UNDERLAY_NETWORK_ID))
+                .setNetworkRef(new NetworkId(StringConstants.OPENROADM_NETWORK))
             .build();
         NodeBuilder node1Builder = new NodeBuilder()
                 .setNodeId(new NodeId("node 1"))
@@ -140,7 +113,7 @@ public final class TransactionUtils {
         nodes.put(node1.key(),node1);
         SupportingNode supportingNode2 = new SupportingNodeBuilder()
             .setNodeRef(new NodeId("node 2"))
-            .setNetworkRef(new NetworkId(NetworkUtils.UNDERLAY_NETWORK_ID))
+            .setNetworkRef(new NetworkId(StringConstants.OPENROADM_NETWORK))
             .build();
         NodeBuilder node2Builder = new NodeBuilder()
                 .setNodeId(new NodeId("node 2"))
@@ -150,7 +123,7 @@ public final class TransactionUtils {
         nodes.put(node2.key(),node2);
         SupportingNode supportingNode3 = new SupportingNodeBuilder()
             .setNodeRef(new NodeId("node 3"))
-            .setNetworkRef(new NetworkId(NetworkUtils.UNDERLAY_NETWORK_ID))
+            .setNetworkRef(new NetworkId(StringConstants.OPENROADM_NETWORK))
             .build();
         NodeBuilder node3Builder = new NodeBuilder()
                 .setNodeId(new NodeId("node 3"))
@@ -160,7 +133,7 @@ public final class TransactionUtils {
         nodes.put(node3.key(),node3);
         SupportingNode supportingNode4 = new SupportingNodeBuilder()
             .setNodeRef(new NodeId("node 4"))
-            .setNetworkRef(new NetworkId(NetworkUtils.UNDERLAY_NETWORK_ID))
+            .setNetworkRef(new NetworkId(StringConstants.OPENROADM_NETWORK))
             .build();
         NodeBuilder node4Builder = new NodeBuilder()
                 .setNodeId(new NodeId("node 4"))
@@ -173,10 +146,9 @@ public final class TransactionUtils {
                 new org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.networks
                     .NetworkBuilder()
                 .setNode(nodes)
-                .setNetworkId(new NetworkId(NetworkUtils.OVERLAY_NETWORK_ID));
+                .setNetworkId(new NetworkId(StringConstants.OPENROADM_TOPOLOGY));
         org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.networks.Network network =
             networkBuilder.build();
-        Optional.of(network);
         return network;
     }
 
@@ -224,7 +196,6 @@ public final class TransactionUtils {
         links.put(link1.key(),link1);
         links.put(link2.key(),link2);
         Network1 network = new Network1Builder().setLink(links).build();
-        Optional.of(network);
         return network;
     }
 
@@ -233,57 +204,57 @@ public final class TransactionUtils {
         LinkConcatenation linkConcatenation = new LinkConcatenationBuilder()
             .addAugmentation(new LinkConcatenation1Builder()
                 .setFiberType(FiberType.Truewave)
-                .setPmd(new FiberPmd(BigDecimal.ONE))
+                .setPmd(new FiberPmd(Decimal64.valueOf(2, 1)))
                 .build())
-            .setSRLGId(Uint32.valueOf(1))
-            .setSRLGLength(BigDecimal.valueOf(1))
+            .setSRLGId(Uint32.ONE)
+            .setSRLGLength(Decimal64.valueOf(2, 1))
             .build();
         LinkConcatenation linkConcatenation2 = new LinkConcatenationBuilder()
             .addAugmentation(new LinkConcatenation1Builder()
                 .setFiberType(FiberType.Truewave)
-                .setPmd(new FiberPmd(BigDecimal.ONE))
+                .setPmd(new FiberPmd(Decimal64.valueOf(2, 1)))
                 .build())
-            .setSRLGId(Uint32.valueOf(1))
-            .setSRLGLength(BigDecimal.valueOf(1))
+            .setSRLGId(Uint32.ONE)
+            .setSRLGLength(Decimal64.valueOf(2, 1))
             .build();
         linkConcentationValues.put(linkConcatenation.key(),linkConcatenation);
         linkConcentationValues.put(linkConcatenation2.key(),linkConcatenation2);
         Map<AmplifiedLinkKey,AmplifiedLink>
             amplifiedLinkValues = new HashMap<>();
-        org.opendaylight.yang.gen.v1.http.org.openroadm.link.rev211210.amplified.link.attributes.AmplifiedLink al =
-            new org.opendaylight.yang.gen.v1.http.org.openroadm.link.rev211210.amplified.link.attributes
+        org.opendaylight.yang.gen.v1.http.org.openroadm.link.rev250530.amplified.link.attributes.AmplifiedLink al =
+            new org.opendaylight.yang.gen.v1.http.org.openroadm.link.rev250530.amplified.link.attributes
                     .AmplifiedLinkBuilder().setSectionElement(new SectionElementBuilder()
-                .setSectionElement(new org.opendaylight.yang.gen.v1.http.org.openroadm.link.rev211210.amplified.link
+                .setSectionElement(new org.opendaylight.yang.gen.v1.http.org.openroadm.link.rev250530.amplified.link
                     .attributes.amplified.link.section.element.section.element.SpanBuilder()
-                        .setSpan(new org.opendaylight.yang.gen.v1.http.org.openroadm.link.rev211210.amplified.link
+                        .setSpan(new org.opendaylight.yang.gen.v1.http.org.openroadm.link.rev250530.amplified.link
                                 .attributes.amplified.link.section.element.section.element.span.SpanBuilder()
                                     .setAdministrativeState(AdminStates.InService)
                                     .setAutoSpanloss(true)
-                                    .setEngineeredSpanloss(new RatioDB(BigDecimal.ONE))
+                                    .setEngineeredSpanloss(new RatioDB(Decimal64.valueOf(3, 1)))
                                     .setLinkConcatenation(linkConcentationValues)
-                                    .setSpanlossBase(new RatioDB(BigDecimal.ONE))
-                                    .setSpanlossCurrent(new RatioDB(BigDecimal.ONE))
+                                    .setSpanlossBase(new RatioDB(Decimal64.valueOf(3, 1)))
+                                    .setSpanlossCurrent(new RatioDB(Decimal64.valueOf(3, 1)))
                                     .build())
                     .build())
                 .build())
-            .setSectionEltNumber(Uint16.valueOf(1)).build();
-        org.opendaylight.yang.gen.v1.http.org.openroadm.link.rev211210.amplified.link.attributes.AmplifiedLink al2 = new
-            org.opendaylight.yang.gen.v1.http.org.openroadm.link.rev211210.amplified.link.attributes
-                .AmplifiedLinkBuilder().setSectionElement(new SectionElementBuilder()
-                .setSectionElement(new org.opendaylight.yang.gen.v1.http.org.openroadm.link.rev211210.amplified.link
+            .setSectionEltNumber(Uint16.ONE).build();
+        org.opendaylight.yang.gen.v1.http.org.openroadm.link.rev250530.amplified.link.attributes.AmplifiedLink al2 = new
+            org.opendaylight.yang.gen.v1.http.org.openroadm.link.rev250530.amplified.link.attributes
+                    .AmplifiedLinkBuilder().setSectionElement(new SectionElementBuilder()
+                .setSectionElement(new org.opendaylight.yang.gen.v1.http.org.openroadm.link.rev250530.amplified.link
                      .attributes.amplified.link.section.element.section.element.SpanBuilder()
-                        .setSpan(new org.opendaylight.yang.gen.v1.http.org.openroadm.link.rev211210.amplified.link
+                        .setSpan(new org.opendaylight.yang.gen.v1.http.org.openroadm.link.rev250530.amplified.link
                                 .attributes.amplified.link.section.element.section.element.span.SpanBuilder()
                                     .setAdministrativeState(AdminStates.InService)
                                     .setAutoSpanloss(true)
-                                    .setEngineeredSpanloss(new RatioDB(BigDecimal.ONE))
+                                    .setEngineeredSpanloss(new RatioDB(Decimal64.valueOf(3, 1)))
                                     .setLinkConcatenation(linkConcentationValues)
-                                    .setSpanlossBase(new RatioDB(BigDecimal.ONE))
-                                    .setSpanlossCurrent(new RatioDB(BigDecimal.ONE))
+                                    .setSpanlossBase(new RatioDB(Decimal64.valueOf(3, 1)))
+                                    .setSpanlossCurrent(new RatioDB(Decimal64.valueOf(3, 1)))
                                     .build())
                                     .build())
             .build())
-            .setSectionEltNumber(Uint16.valueOf(1)).build();
+            .setSectionEltNumber(Uint16.ONE).build();
         amplifiedLinkValues.put(al.key(),al);
         amplifiedLinkValues.put(al2.key(),al2);
         Augmentation<Link> aug1 = new Link1Builder()
@@ -327,7 +298,6 @@ public final class TransactionUtils {
         links.put(link1.key(),link1);
         links.put(link2.key(),link2);
         Network1 network = new Network1Builder().setLink(links).build();
-        Optional.of(network);
         return network;
     }
 
@@ -367,7 +337,7 @@ public final class TransactionUtils {
         return new NodesBuilder()
             .setNodeId(nodeId)
             .setNodeInfo(new NodeInfoBuilder()
-                .setNodeType(org.opendaylight.yang.gen.v1.http.org.openroadm.device.types.rev191129.NodeTypes.Xpdr)
+                .setNodeType(org.opendaylight.yang.gen.v1.http.org.openroadm.common.node.types.rev210528.NodeTypes.Xpdr)
                 .setOpenroadmVersion(OpenroadmNodeVersion._121)
                 .build())
             .setCpToDegree(cpList)
@@ -429,7 +399,8 @@ public final class TransactionUtils {
         return new NodesBuilder()
             .setNodeId(nodeId)
             .setNodeInfo(new NodeInfoBuilder()
-                .setNodeType(org.opendaylight.yang.gen.v1.http.org.openroadm.device.types.rev191129.NodeTypes.Rdm)
+                .setNodeType(
+                        org.opendaylight.yang.gen.v1.http.org.openroadm.common.node.types.rev210528.NodeTypes.Rdm)
                 .setOpenroadmVersion(OpenroadmNodeVersion._121)
                 .build())
             .setCpToDegree(cpList)
@@ -438,22 +409,25 @@ public final class TransactionUtils {
     }
 
     public static void writeNodeTransaction(String nodeId, DataBroker dataBroker, String mappingKey) {
-        InstanceIdentifier<Nodes> nodesIID = InstanceIdentifier.create(Network.class)
-            .child(Nodes.class, new NodesKey(nodeId));
+        DataObjectIdentifier<Nodes> nodesIID = DataObjectIdentifier.builder(Network.class)
+            .child(Nodes.class, new NodesKey(nodeId))
+            .build();
         Nodes nodes = getNodes(nodeId, mappingKey);
         writeTransaction(dataBroker, nodesIID, nodes);
     }
 
     public static void writeNodeTransaction2(String nodeId, DataBroker dataBroker, String mappingKey) {
-        InstanceIdentifier<Nodes> nodesIID = InstanceIdentifier.create(Network.class)
-            .child(Nodes.class, new NodesKey(nodeId));
+        DataObjectIdentifier<Nodes> nodesIID = DataObjectIdentifier.builder(Network.class)
+            .child(Nodes.class, new NodesKey(nodeId))
+            .build();
         Nodes nodes = getNodes2(nodeId, mappingKey);
         writeTransaction(dataBroker, nodesIID, nodes);
     }
 
     public static void writeNodeTransaction3(String nodeId, DataBroker dataBroker, String mappingKey) {
-        InstanceIdentifier<Nodes> nodesIID = InstanceIdentifier.create(Network.class)
-            .child(Nodes.class, new NodesKey(nodeId));
+        DataObjectIdentifier<Nodes> nodesIID = DataObjectIdentifier.builder(Network.class)
+            .child(Nodes.class, new NodesKey(nodeId))
+            .build();
         Nodes nodes = getNodes3(nodeId, mappingKey);
         writeTransaction(dataBroker, nodesIID, nodes);
     }

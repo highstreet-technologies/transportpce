@@ -14,30 +14,29 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.node.types.rev210528.NodeIdType;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.common.constraints.LinkIdentifier;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.common.constraints.LinkIdentifierKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.constraints.CoRouting;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.constraints.CoRoutingBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.constraints.Distance;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.constraints.DistanceBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.constraints.Diversity;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.constraints.DiversityBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.constraints.Exclude;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.constraints.ExcludeBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.constraints.HopCount;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.constraints.HopCountBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.constraints.Include;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.constraints.IncludeBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.constraints.Latency;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.constraints.LatencyBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.constraints.TEMetric;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.constraints.TEMetricBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.constraints.co.routing.ServiceIdentifierList;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.constraints.co.routing.ServiceIdentifierListKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.routing.constraints.HardConstraints;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.routing.constraints.HardConstraintsBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.routing.constraints.SoftConstraints;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.routing.constraints.SoftConstraintsBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.common.constraints.LinkIdentifier;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.constraints.CoRouting;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.constraints.CoRoutingBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.constraints.Distance;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.constraints.DistanceBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.constraints.Diversity;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.constraints.DiversityBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.constraints.Exclude;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.constraints.ExcludeBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.constraints.HopCount;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.constraints.HopCountBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.constraints.Include;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.constraints.IncludeBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.constraints.Latency;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.constraints.LatencyBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.constraints.TEMetric;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.constraints.TEMetricBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.constraints.co.routing.ServiceIdentifierList;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.constraints.co.routing.ServiceIdentifierListKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.routing.constraints.HardConstraints;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.routing.constraints.HardConstraintsBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.routing.constraints.SoftConstraints;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.routing.constraints.SoftConstraintsBuilder;
 import org.opendaylight.yangtools.yang.common.Uint32;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,7 +67,7 @@ public final class DowngradeConstraints {
                     || softConstraintsBuilder.getCustomerCode().isEmpty()) {
                 softConstraintsBuilder.setCustomerCode(hardConstraints.getCustomerCode());
             } else {
-                List<String> updatedCustomerCode = new ArrayList<>(softConstraintsBuilder.getCustomerCode());
+                Set<String> updatedCustomerCode = new HashSet<>(softConstraintsBuilder.getCustomerCode());
                 updatedCustomerCode.addAll(hardConstraints.getCustomerCode());
                 softConstraintsBuilder.setCustomerCode(updatedCustomerCode);
             }
@@ -78,7 +77,7 @@ public final class DowngradeConstraints {
                     || softConstraintsBuilder.getOperationalMode().isEmpty()) {
                 softConstraintsBuilder.setOperationalMode(hardConstraints.getOperationalMode());
             } else {
-                List<String> updatedOperationalMode = new ArrayList<>(softConstraintsBuilder.getOperationalMode());
+                Set<String> updatedOperationalMode = new HashSet<>(softConstraintsBuilder.getOperationalMode());
                 updatedOperationalMode.addAll(hardConstraints.getOperationalMode());
                 softConstraintsBuilder.setOperationalMode(updatedOperationalMode);
             }
@@ -135,7 +134,7 @@ public final class DowngradeConstraints {
             if (includeBldr.getNodeId() == null) {
                 includeBldr.setNodeId(hard.getNodeId());
             } else {
-                Set<NodeIdType> nodeIdList = new HashSet<>(includeBldr.getNodeId());
+                List<NodeIdType> nodeIdList = new ArrayList<>(includeBldr.getNodeId());
                 nodeIdList.addAll(hard.getNodeId());
                 includeBldr.setNodeId(new ArrayList<>(nodeIdList));
             }
@@ -144,7 +143,7 @@ public final class DowngradeConstraints {
             if (includeBldr.getSite() == null) {
                 includeBldr.setSite(hard.getSite());
             } else {
-                Set<String> siteList = new HashSet<>(includeBldr.getSite());
+                List<String> siteList = new ArrayList<>(includeBldr.getSite());
                 siteList.addAll(hard.getSite());
                 includeBldr.setSite(new ArrayList<>(siteList));
             }
@@ -153,7 +152,7 @@ public final class DowngradeConstraints {
             if (includeBldr.getSrlgId() == null) {
                 includeBldr.setSrlgId(hard.getSrlgId());
             } else {
-                Set<Uint32> srlgList = new HashSet<>(includeBldr.getSrlgId());
+                List<Uint32> srlgList = new ArrayList<>(includeBldr.getSrlgId());
                 srlgList.addAll(hard.getSrlgId());
                 includeBldr.setSrlgId(new ArrayList<>(srlgList));
             }
@@ -162,7 +161,7 @@ public final class DowngradeConstraints {
             if (includeBldr.getSupportingServiceName() == null) {
                 includeBldr.setSupportingServiceName(hard.getSupportingServiceName());
             } else {
-                Set<String> serviceList = new HashSet<>(includeBldr.getSupportingServiceName());
+                List<String> serviceList = new ArrayList<>(includeBldr.getSupportingServiceName());
                 serviceList.addAll(hard.getSupportingServiceName());
                 includeBldr.setSupportingServiceName(new ArrayList<>(serviceList));
             }
@@ -171,8 +170,8 @@ public final class DowngradeConstraints {
             if (includeBldr.getLinkIdentifier() == null) {
                 includeBldr.setLinkIdentifier(hard.getLinkIdentifier());
             } else {
-                Map<LinkIdentifierKey, LinkIdentifier> linkList = new HashMap<>(includeBldr.getLinkIdentifier());
-                linkList.putAll(hard.getLinkIdentifier());
+                List<LinkIdentifier> linkList = new ArrayList<>(includeBldr.getLinkIdentifier());
+                linkList.addAll(hard.getLinkIdentifier());
                 includeBldr.setLinkIdentifier(linkList);
             }
         }
@@ -195,7 +194,7 @@ public final class DowngradeConstraints {
             if (excludeBldr.getNodeId() == null) {
                 excludeBldr.setNodeId(hard.getNodeId());
             } else {
-                Set<NodeIdType> nodeIdList = new HashSet<>(excludeBldr.getNodeId());
+                List<NodeIdType> nodeIdList = new ArrayList<>(excludeBldr.getNodeId());
                 nodeIdList.addAll(hard.getNodeId());
                 excludeBldr.setNodeId(new ArrayList<>(nodeIdList));
             }
@@ -204,7 +203,7 @@ public final class DowngradeConstraints {
             if (excludeBldr.getSite() == null) {
                 excludeBldr.setSite(hard.getSite());
             } else {
-                Set<String> siteList = new HashSet<>(excludeBldr.getSite());
+                List<String> siteList = new ArrayList<>(excludeBldr.getSite());
                 siteList.addAll(hard.getSite());
                 excludeBldr.setSite(new ArrayList<>(siteList));
             }
@@ -213,7 +212,7 @@ public final class DowngradeConstraints {
             if (excludeBldr.getSrlgId() == null) {
                 excludeBldr.setSrlgId(hard.getSrlgId());
             } else {
-                Set<Uint32> srlgList = new HashSet<>(excludeBldr.getSrlgId());
+                List<Uint32> srlgList = new ArrayList<>(excludeBldr.getSrlgId());
                 srlgList.addAll(hard.getSrlgId());
                 excludeBldr.setSrlgId(new ArrayList<>(srlgList));
             }
@@ -222,7 +221,7 @@ public final class DowngradeConstraints {
             if (excludeBldr.getSupportingServiceName() == null) {
                 excludeBldr.setSupportingServiceName(hard.getSupportingServiceName());
             } else {
-                Set<String> serviceList = new HashSet<>(excludeBldr.getSupportingServiceName());
+                List<String> serviceList = new ArrayList<>(excludeBldr.getSupportingServiceName());
                 serviceList.addAll(hard.getSupportingServiceName());
                 excludeBldr.setSupportingServiceName(new ArrayList<>(serviceList));
             }
@@ -231,8 +230,8 @@ public final class DowngradeConstraints {
             if (excludeBldr.getLinkIdentifier() == null) {
                 excludeBldr.setLinkIdentifier(hard.getLinkIdentifier());
             } else {
-                Map<LinkIdentifierKey, LinkIdentifier> linkList = new HashMap<>(excludeBldr.getLinkIdentifier());
-                linkList.putAll(hard.getLinkIdentifier());
+                List<LinkIdentifier> linkList = new ArrayList<>(excludeBldr.getLinkIdentifier());
+                linkList.addAll(hard.getLinkIdentifier());
                 excludeBldr.setLinkIdentifier(linkList);
             }
         }
@@ -243,14 +242,14 @@ public final class DowngradeConstraints {
         DiversityBuilder diversityBldr = soft == null ? new DiversityBuilder() : new DiversityBuilder(soft);
 
         Map<
-            org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.diversity.existing.service
+            org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.diversity.existing.service
                     .constraints.ServiceIdentifierListKey,
-            org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.diversity.existing.service
+            org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.diversity.existing.service
                     .constraints.ServiceIdentifierList> sil =
                 diversityBldr.getServiceIdentifierList() == null
                     ? new HashMap<>()
                     : new HashMap<>(diversityBldr.getServiceIdentifierList());
-        if (!hard.getServiceIdentifierList().isEmpty()) {
+        if (!hard.nonnullServiceIdentifierList().isEmpty()) {
             sil.putAll(hard.getServiceIdentifierList());
             diversityBldr.setServiceIdentifierList(sil);
         }

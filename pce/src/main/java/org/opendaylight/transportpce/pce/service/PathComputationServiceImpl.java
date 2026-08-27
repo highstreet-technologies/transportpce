@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
+import java.util.regex.Pattern;
 import org.opendaylight.mdsal.binding.api.NotificationPublishService;
 import org.opendaylight.transportpce.common.mapping.PortMapping;
 import org.opendaylight.transportpce.common.network.NetworkTransactionService;
@@ -24,33 +24,45 @@ import org.opendaylight.transportpce.pce.PceComplianceCheckResult;
 import org.opendaylight.transportpce.pce.PceSendingPceRPCs;
 import org.opendaylight.transportpce.pce.gnpy.GnpyResult;
 import org.opendaylight.transportpce.pce.gnpy.consumer.GnpyConsumer;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220221.result.Response;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.CancelResourceReserveInput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.CancelResourceReserveOutput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.CancelResourceReserveOutputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.PathComputationRequestInput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.PathComputationRequestOutput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.PathComputationRequestOutputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.ServicePathRpcResult;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.ServicePathRpcResultBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.gnpy.GnpyResponse;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.gnpy.GnpyResponseBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.gnpy.gnpy.response.response.type.NoPathCaseBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.gnpy.gnpy.response.response.type.PathCaseBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.path.performance.PathPropertiesBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.path.performance.path.properties.PathMetric;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.path.performance.path.properties.PathMetricBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.service.path.rpc.result.PathDescription;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.service.path.rpc.result.PathDescriptionBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.configuration.response.common.ConfigurationResponseCommonBuilder;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.path.description.AToZDirection;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.path.description.ZToADirection;
+import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.result.Response;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.CancelResourceReserveInput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.CancelResourceReserveOutput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.CancelResourceReserveOutputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.PathComputationRequestInput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.PathComputationRequestInputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.PathComputationRequestOutput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.PathComputationRequestOutputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.PathComputationRerouteRequestInput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.PathComputationRerouteRequestOutput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.PathComputationRerouteRequestOutputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.ServicePathRpcResult;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.ServicePathRpcResultBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.gnpy.GnpyResponse;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.gnpy.GnpyResponseBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.gnpy.gnpy.response.response.type.NoPathCaseBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.gnpy.gnpy.response.response.type.PathCaseBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.path.computation.request.input.ServiceAEndBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.path.computation.request.input.ServiceZEndBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.path.performance.PathPropertiesBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.path.performance.path.properties.PathMetric;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.path.performance.path.properties.PathMetricBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.service.path.rpc.result.PathDescription;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.service.path.rpc.result.PathDescriptionBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.configuration.response.common.ConfigurationResponseCommonBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.path.description.AToZDirection;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.path.description.ZToADirection;
 import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.RpcStatusEx;
 import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.ServicePathNotificationTypes;
 import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.response.parameters.sp.ResponseParametersBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.service.handler.header.ServiceHandlerHeaderBuilder;
+import org.opendaylight.yangtools.binding.util.BindingMap;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Component(immediate = true)
 public class PathComputationServiceImpl implements PathComputationService {
 
     private static final Logger LOG = LoggerFactory.getLogger(PathComputationServiceImpl.class);
@@ -60,23 +72,21 @@ public class PathComputationServiceImpl implements PathComputationService {
     private ServicePathRpcResult notification = null;
     private final GnpyConsumer gnpyConsumer;
     private PortMapping portMapping;
+    private static String pceOperationalMode;
+    public static final String OR_PCE_OPER_MODE = "OpenROADM-PCE-Operation-Mode";
+    public static final String TAPI_PCE_OPER_MODE = "T-API-PCE-Operation-Mode";
 
-    public PathComputationServiceImpl(NetworkTransactionService networkTransactionService,
-                                      NotificationPublishService notificationPublishService,
-                                      GnpyConsumer gnpyConsumer, PortMapping portMapping) {
+    @Activate
+    public PathComputationServiceImpl(@Reference NetworkTransactionService networkTransactionService,
+            @Reference NotificationPublishService notificationPublishService,
+            @Reference GnpyConsumer gnpyConsumer,
+            @Reference PortMapping portMapping) {
         this.notificationPublishService = notificationPublishService;
         this.networkTransactionService = networkTransactionService;
         this.executor = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(5));
         this.gnpyConsumer = gnpyConsumer;
         this.portMapping = portMapping;
-    }
-
-    public void init() {
-        LOG.info("init ...");
-    }
-
-    public void close() {
-        LOG.info("close.");
+        LOG.info("PathComputationServiceImpl instantiated");
     }
 
     @SuppressFBWarnings(
@@ -105,9 +115,25 @@ public class PathComputationServiceImpl implements PathComputationService {
         }
     }
 
+    private void evaluatePceOperType(String serviceName) throws IllegalArgumentException {
+        //check whether service name corresponds to an Uuid or not
+        PathComputationServiceImpl.setPceOperationalMode(PathComputationServiceImpl.OR_PCE_OPER_MODE);
+        if (serviceName == null) {
+            LOG.info("serviceName null, PCE operational mode set as OpenROADM by default");
+            return;
+        }
+        Pattern uuidRegex =
+            Pattern.compile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
+        if (uuidRegex.matcher(serviceName).matches()) {
+            PathComputationServiceImpl.setPceOperationalMode(PathComputationServiceImpl.TAPI_PCE_OPER_MODE);
+            LOG.info("serviceName {} identified as an UUID, PCE operational mode set as TAPI", serviceName);
+        }
+    }
+
     @Override
     public ListenableFuture<CancelResourceReserveOutput> cancelResourceReserve(CancelResourceReserveInput input) {
         LOG.info("cancelResourceReserve");
+        evaluatePceOperType(input.getServiceName());
         return executor.submit(new Callable<CancelResourceReserveOutput>() {
 
             @Override
@@ -118,7 +144,7 @@ public class PathComputationServiceImpl implements PathComputationService {
                         RpcStatusEx.Pending,
                         "Service compliant, submitting cancelResourceReserve Request ...",
                         null);
-                PceSendingPceRPCs sendingPCE = new PceSendingPceRPCs(gnpyConsumer);
+                PceSendingPceRPCs sendingPCE = new PceSendingPceRPCs(gnpyConsumer, getPceOperationalMode());
                 sendingPCE.cancelResourceReserve();
                 LOG.info("in PathComputationServiceImpl : {}",
                         Boolean.TRUE.equals(sendingPCE.getSuccess())
@@ -145,7 +171,8 @@ public class PathComputationServiceImpl implements PathComputationService {
 
     @Override
     public ListenableFuture<PathComputationRequestOutput> pathComputationRequest(PathComputationRequestInput input) {
-        LOG.info("pathComputationRequest");
+        LOG.debug("input parameters are : input = {}", input.toString());
+        evaluatePceOperType(input.getServiceName());
         return executor.submit(new Callable<PathComputationRequestOutput>() {
 
             @Override
@@ -156,17 +183,21 @@ public class PathComputationServiceImpl implements PathComputationService {
                 PceComplianceCheckResult check = PceComplianceCheck.check(input);
                 if (!check.hasPassed()) {
                     LOG.error("Path not calculated, service not compliant : {}", check.getMessage());
+                    String errMessage = String.format(
+                        "Path not calculated, service not compliant : %s",
+                        check.getMessage()
+                    );
                     sendNotifications(
                         ServicePathNotificationTypes.PathComputationRequest,
                         input.getServiceName(),
                         RpcStatusEx.Failed,
-                        "Path not calculated, service not compliant",
+                        errMessage,
                         null);
                     configurationResponseCommon
                             .setAckFinalIndicator("Yes")
                             .setRequestId(input.getServiceHandlerHeader().getRequestId())
                             .setResponseCode("Path not calculated")
-                            .setResponseMessage(check.getMessage());
+                            .setResponseMessage(errMessage);
                     return output
                         .setConfigurationResponseCommon(configurationResponseCommon.build())
                         .setResponseParameters(null)
@@ -179,7 +210,8 @@ public class PathComputationServiceImpl implements PathComputationService {
                     "Service compliant, submitting pathComputation Request ...",
                     null);
                 PceSendingPceRPCs sendingPCE =
-                    new PceSendingPceRPCs(input, networkTransactionService, gnpyConsumer, portMapping);
+                    new PceSendingPceRPCs(input, networkTransactionService, gnpyConsumer, portMapping,
+                        getPceOperationalMode());
                 sendingPCE.pathComputation();
                 String message = sendingPCE.getMessage();
                 String responseCode = sendingPCE.getResponseCode();
@@ -200,7 +232,7 @@ public class PathComputationServiceImpl implements PathComputationService {
                 output
                     .setGnpyResponse(
                         listResponse.stream()
-                            .collect(Collectors.toMap(GnpyResponse::key, gnpyResponse -> gnpyResponse)));
+                            .collect(BindingMap.toMap()));
 
                 PathDescriptionBuilder path = sendingPCE.getPathDescription();
                 if (Boolean.FALSE.equals(sendingPCE.getSuccess()) || (path == null)) {
@@ -208,7 +240,7 @@ public class PathComputationServiceImpl implements PathComputationService {
                         ServicePathNotificationTypes.PathComputationRequest,
                         input.getServiceName(),
                         RpcStatusEx.Failed,
-                        "Path not calculated",
+                        message,
                         null);
                     return output
                         .setConfigurationResponseCommon(
@@ -222,8 +254,7 @@ public class PathComputationServiceImpl implements PathComputationService {
                 }
                 // Path calculator returned Success
                 PathDescription pathDescription =
-                    new org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118
-                            .service.path.rpc.result.PathDescriptionBuilder()
+                    new PathDescriptionBuilder()
                         .setAToZDirection(path.getAToZDirection())
                         .setZToADirection(path.getZToADirection())
                         .build();
@@ -254,7 +285,7 @@ public class PathComputationServiceImpl implements PathComputationService {
                 AToZDirection atoz = pathDescription.getAToZDirection();
                 if ((atoz != null) && (atoz.getAToZ() != null)) {
                     LOG.debug("Impl AtoZ Notification: [{}] elements in description", atoz.getAToZ().size());
-                    for (org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705
+                    for (org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422
                             .path.description.atoz.direction.AToZKey key : atoz.getAToZ().keySet()) {
                         LOG.debug("Impl AtoZ Notification: [{}] {}", key, atoz.getAToZ().get(key));
                     }
@@ -262,13 +293,60 @@ public class PathComputationServiceImpl implements PathComputationService {
                 ZToADirection ztoa = pathDescription.getZToADirection();
                 if ((ztoa != null) && (ztoa.getZToA() != null)) {
                     LOG.debug("Impl ZtoA Notification: [{}] elements in description", ztoa.getZToA().size());
-                    for (org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705
+                    for (org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422
                             .path.description.ztoa.direction.ZToAKey key : ztoa.getZToA().keySet()) {
                         LOG.debug("Impl ZtoA Notification: [{}] {}", key, ztoa.getZToA().get(key));
                     }
                 }
                 return output.build();
             }
+        });
+    }
+
+    @Override
+    public ListenableFuture<PathComputationRerouteRequestOutput> pathComputationRerouteRequest(
+            PathComputationRerouteRequestInput input) {
+        evaluatePceOperType("NotAUuid");
+        return executor.submit(() -> {
+            PathComputationRerouteRequestOutputBuilder output = new PathComputationRerouteRequestOutputBuilder();
+            ConfigurationResponseCommonBuilder configurationResponseCommon = new ConfigurationResponseCommonBuilder()
+                    .setRequestId("none");
+            PceComplianceCheckResult check = PceComplianceCheck.check(input);
+            if (!check.hasPassed()) {
+                LOG.error("Path not calculated, path computation reroute request not compliant : {}",
+                        check.getMessage());
+                configurationResponseCommon
+                        .setAckFinalIndicator("Yes")
+                        .setResponseCode("Path not calculated")
+                        .setResponseMessage(check.getMessage());
+                return output
+                        .setConfigurationResponseCommon(configurationResponseCommon.build())
+                        .build();
+            }
+            PathComputationRequestInput pathComputationInput = new PathComputationRequestInputBuilder()
+                    .setServiceName("no_name")
+                    .setServiceHandlerHeader(new ServiceHandlerHeaderBuilder().setRequestId("none").build())
+                    .setServiceAEnd(new ServiceAEndBuilder(input.getServiceAEnd()).build())
+                    .setServiceZEnd(new ServiceZEndBuilder(input.getServiceZEnd()).build())
+                    .setHardConstraints(input.getHardConstraints())
+                    .setPceRoutingMetric(input.getPceRoutingMetric())
+                    .setResourceReserve(false)
+                    .setSoftConstraints(input.getSoftConstraints())
+                    .setRoutingMetric(input.getRoutingMetric())
+                    .build();
+            PceSendingPceRPCs sendingPCE = new PceSendingPceRPCs(pathComputationInput, networkTransactionService,
+                    gnpyConsumer, portMapping, input.getEndpoints(), getPceOperationalMode());
+            sendingPCE.pathComputation();
+            String message = sendingPCE.getMessage();
+            String responseCode = sendingPCE.getResponseCode();
+            LOG.info("PCE response: {} {}", message, responseCode);
+            return output.setConfigurationResponseCommon(
+                    configurationResponseCommon
+                            .setAckFinalIndicator("Yes")
+                            .setResponseCode(responseCode)
+                            .setResponseMessage(message)
+                            .build())
+                    .build();
         });
     }
 
@@ -281,11 +359,11 @@ public class PathComputationServiceImpl implements PathComputationService {
                 .build();
         }
         if (responseGnpy.getResponseType()
-                instanceof org.opendaylight.yang.gen.v1.gnpy.path.rev220221.result.response.response.type.NoPathCase) {
+                instanceof org.opendaylight.yang.gen.v1.gnpy.path.rev220615.result.response.response.type.NoPathCase) {
             LOG.info("GNPy : path is not feasible");
-            org.opendaylight.yang.gen.v1.gnpy.path.rev220221.result.response.response.type.NoPathCase
+            org.opendaylight.yang.gen.v1.gnpy.path.rev220615.result.response.response.type.NoPathCase
                     noPathGnpy =
-                (org.opendaylight.yang.gen.v1.gnpy.path.rev220221.result.response.response.type.NoPathCase)
+                (org.opendaylight.yang.gen.v1.gnpy.path.rev220615.result.response.response.type.NoPathCase)
                     responseGnpy.getResponseType();
             return new GnpyResponseBuilder()
                 .setPathDir(pathDir)
@@ -297,17 +375,17 @@ public class PathComputationServiceImpl implements PathComputationService {
                 .build();
         }
         if (responseGnpy.getResponseType()
-                instanceof org.opendaylight.yang.gen.v1.gnpy.path.rev220221.result.response.response.type.PathCase) {
+                instanceof org.opendaylight.yang.gen.v1.gnpy.path.rev220615.result.response.response.type.PathCase) {
             LOG.info("GNPy : path is feasible");
-            org.opendaylight.yang.gen.v1.gnpy.path.rev220221.result.response.response.type.PathCase
+            org.opendaylight.yang.gen.v1.gnpy.path.rev220615.result.response.response.type.PathCase
                     pathCase =
-                (org.opendaylight.yang.gen.v1.gnpy.path.rev220221.result.response.response.type.PathCase)
+                (org.opendaylight.yang.gen.v1.gnpy.path.rev220615.result.response.response.type.PathCase)
                     responseGnpy.getResponseType();
-            List<org.opendaylight.yang.gen.v1.gnpy.path.rev220221.generic.path.properties.path.properties.PathMetric>
+            List<org.opendaylight.yang.gen.v1.gnpy.path.rev220615.generic.path.properties.path.properties.PathMetric>
                     pathMetricList =
                 new ArrayList<>(pathCase.getPathProperties().getPathMetric().values());
             List<PathMetric> gnpyPathMetricList = new ArrayList<>();
-            for (org.opendaylight.yang.gen.v1.gnpy.path.rev220221.generic.path.properties.path.properties.PathMetric
+            for (org.opendaylight.yang.gen.v1.gnpy.path.rev220615.generic.path.properties.path.properties.PathMetric
                     pathMetricGnpy : pathMetricList) {
                 gnpyPathMetricList.add(
                     new PathMetricBuilder()
@@ -321,8 +399,7 @@ public class PathComputationServiceImpl implements PathComputationService {
                     new PathCaseBuilder()
                         .setPathProperties(
                             new PathPropertiesBuilder()
-                                .setPathMetric(gnpyPathMetricList.stream()
-                                    .collect(Collectors.toMap(PathMetric::key, pathMetric -> pathMetric)))
+                                .setPathMetric(gnpyPathMetricList.stream().collect(BindingMap.toMap()))
                                 .build())
                         .build())
                 .setFeasibility(true)
@@ -333,6 +410,14 @@ public class PathComputationServiceImpl implements PathComputationService {
             .setResponseType(null)
             .setFeasibility(true)
             .build();
+    }
+
+    public static String getPceOperationalMode() {
+        return pceOperationalMode;
+    }
+
+    public static void setPceOperationalMode(String pceOperMode) {
+        PathComputationServiceImpl.pceOperationalMode = pceOperMode;
     }
 
 }

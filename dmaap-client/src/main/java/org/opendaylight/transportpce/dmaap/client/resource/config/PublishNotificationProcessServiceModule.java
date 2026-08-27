@@ -9,13 +9,13 @@ package org.opendaylight.transportpce.dmaap.client.resource.config;
 
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.PackageVersion;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.service.endpoint.RxDirection;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.service.endpoint.TxDirection;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.service.lgx.Lgx;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.service.port.Port;
-import org.opendaylight.yang.gen.v1.nbi.notifications.rev210813.PublishNotificationProcessService;
-import org.opendaylight.yang.gen.v1.nbi.notifications.rev210813.notification.process.service.ServiceAEnd;
-import org.opendaylight.yang.gen.v1.nbi.notifications.rev210813.notification.process.service.ServiceZEnd;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.service.endpoint.RxDirection;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.service.endpoint.TxDirection;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.service.lgx.Lgx;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.service.port.Port;
+import org.opendaylight.yang.gen.v1.nbi.notifications.rev230728.PublishNotificationProcessService;
+import org.opendaylight.yang.gen.v1.nbi.notifications.rev230728.notification.process.service.ServiceAEnd;
+import org.opendaylight.yang.gen.v1.nbi.notifications.rev230728.notification.process.service.ServiceZEnd;
 
 //This class is a temporary workaround while waiting jackson
 //support in yang tools https://git.opendaylight.org/gerrit/c/yangtools/+/94852

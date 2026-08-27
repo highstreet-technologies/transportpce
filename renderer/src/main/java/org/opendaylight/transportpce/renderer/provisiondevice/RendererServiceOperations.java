@@ -12,11 +12,12 @@ import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.renderer.
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.renderer.rev210915.ServiceDeleteOutput;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.renderer.rev210915.ServiceImplementationRequestInput;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.renderer.rev210915.ServiceImplementationRequestOutput;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.service.list.Services;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.service.list.Services;
 
 public interface RendererServiceOperations {
 
-    ListenableFuture<ServiceImplementationRequestOutput> serviceImplementation(ServiceImplementationRequestInput input);
+    ListenableFuture<ServiceImplementationRequestOutput> serviceImplementation(ServiceImplementationRequestInput input,
+                                                                               boolean isTempService);
 
     ListenableFuture<ServiceDeleteOutput> serviceDelete(ServiceDeleteInput input, Services service);
 }

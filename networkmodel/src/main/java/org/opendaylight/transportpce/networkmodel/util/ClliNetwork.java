@@ -8,7 +8,7 @@
 
 package org.opendaylight.transportpce.networkmodel.util;
 
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.network.nodes.NodeInfo;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.network.nodes.NodeInfo;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.clli.network.rev191129.Node1;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.clli.network.rev191129.Node1Builder;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.NodeId;
@@ -18,6 +18,9 @@ import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Utility class to implement the org-openroadm-clli-network topology layer.
+ */
 public final class ClliNetwork {
 
     private static final Logger LOG = LoggerFactory.getLogger(ClliNetwork.class);
@@ -30,7 +33,6 @@ public final class ClliNetwork {
      *
      * @param deviceId device ID
      * @param nodeInfo Some important and general data from device
-     *
      * @return node builder status
      */
     public static Node createNode(String deviceId, NodeInfo nodeInfo) {

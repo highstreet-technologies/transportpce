@@ -21,9 +21,9 @@ import org.eclipse.jdt.annotation.NonNull;
 import org.opendaylight.mdsal.binding.api.ReadWriteTransaction;
 import org.opendaylight.mdsal.common.api.CommitInfo;
 import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
+import org.opendaylight.yangtools.binding.DataObject;
+import org.opendaylight.yangtools.binding.DataObjectIdentifier;
 import org.opendaylight.yangtools.util.concurrent.FluentFutures;
-import org.opendaylight.yangtools.yang.binding.DataObject;
-import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,11 +31,9 @@ import org.slf4j.LoggerFactory;
  * Represents read-write transaction on netconf device.
  * This transaction can be obtained by {@link DeviceTransactionManager}.
  *
- * <p>
- * WARNING: Only one transaction can be opened at the same time on device!
+ * <p>WARNING: Only one transaction can be opened at the same time on device!
  * It's important to close (cancel/submit) transaction when work is done with it
  * (so others can access the device).
- * </p>
  */
 public class DeviceTransaction {
 
@@ -54,20 +52,20 @@ public class DeviceTransaction {
     }
 
     public <T extends DataObject> ListenableFuture<Optional<T>> read(LogicalDatastoreType store,
-            InstanceIdentifier<T> path) {
+            DataObjectIdentifier<T> path) {
         return rwTx.read(store, path);
     }
 
-    public <T extends DataObject> void put(LogicalDatastoreType store, InstanceIdentifier<T> path, T data) {
+    public <T extends DataObject> void put(LogicalDatastoreType store, DataObjectIdentifier<T> path, T data) {
         rwTx.put(store, path, data);
     }
 
-    public <T extends DataObject> void merge(LogicalDatastoreType store, InstanceIdentifier<T> path, T data) {
+    public <T extends DataObject> void merge(LogicalDatastoreType store, DataObjectIdentifier<T> path, T data) {
         rwTx.merge(store, path, data);
     }
 
 
-    public void delete(LogicalDatastoreType store, InstanceIdentifier<?> path) {
+    public void delete(LogicalDatastoreType store, DataObjectIdentifier<?> path) {
         rwTx.delete(store, path);
     }
 

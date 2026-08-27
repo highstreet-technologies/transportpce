@@ -7,35 +7,26 @@
  */
 package org.opendaylight.transportpce.dmaap.client.impl;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.opendaylight.mdsal.binding.api.NotificationService;
-import org.opendaylight.transportpce.dmaap.client.listener.NbiNotificationsListenerImpl;
 
-
+@ExtendWith(MockitoExtension.class)
 public class DmaapClientProviderTest {
 
     @Mock
     private NotificationService notificationService;
 
-    @Before
-    public void init() {
-        MockitoAnnotations.openMocks(this);
-
-    }
-
     @Test
-    public void testInitRegisterNbiNotificationsToRpcRegistry() {
-        DmaapClientProvider provider =  new DmaapClientProvider(notificationService, "http://localhost", "username", "password");
-        provider.init();
-        (verify(notificationService, times(1)))
-                .registerNotificationListener(Mockito.any(NbiNotificationsListenerImpl.class));
+    void testInitRegisterNbiNotificationsToRpcRegistry() {
+        new DmaapClientProvider(notificationService, "http://localhost", "username", "password");
+        verify(notificationService, times(1))
+            .registerCompositeListener(any(NotificationService.CompositeListener.class));
     }
-
 }

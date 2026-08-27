@@ -9,11 +9,14 @@
 package org.opendaylight.transportpce.common.mapping;
 
 import com.google.common.util.concurrent.FluentFuture;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -31,33 +34,40 @@ import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
 import org.opendaylight.transportpce.common.StringConstants;
 import org.opendaylight.transportpce.common.Timeouts;
 import org.opendaylight.transportpce.common.device.DeviceTransactionManager;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.Network;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.NetworkBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.OpenroadmNodeVersion;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.cp.to.degree.CpToDegree;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.cp.to.degree.CpToDegreeBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.cp.to.degree.CpToDegreeKey;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.mapping.Mapping;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.mapping.MappingBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.mapping.MappingKey;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.mc.capabilities.McCapabilities;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.mc.capabilities.McCapabilitiesBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.mc.capabilities.McCapabilitiesKey;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.mpdr.restrictions.grp.MpdrRestrictionsBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.network.Nodes;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.network.NodesBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.network.NodesKey;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.network.nodes.NodeInfo;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.network.nodes.NodeInfoBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.switching.pool.lcp.SwitchingPoolLcp;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.switching.pool.lcp.SwitchingPoolLcpBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.switching.pool.lcp.SwitchingPoolLcpKey;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.switching.pool.lcp.switching.pool.lcp.NonBlockingList;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.switching.pool.lcp.switching.pool.lcp.NonBlockingListBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.switching.pool.lcp.switching.pool.lcp.NonBlockingListKey;
+import org.opendaylight.transportpce.common.srg.revision.WaveLengthDuplication;
+import org.opendaylight.transportpce.common.srg.revision.WaveLengthDuplicationRev200529;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.Network;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.NetworkBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.OpenroadmNodeVersion;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.cp.to.degree.CpToDegree;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.cp.to.degree.CpToDegreeBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.cp.to.degree.CpToDegreeKey;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mapping.Mapping;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mapping.MappingBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mapping.MappingKey;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mc.capabilities.McCapabilities;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mc.capabilities.McCapabilitiesBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mc.capabilities.McCapabilitiesKey;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mpdr.restrictions.grp.MpdrRestrictionsBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.network.Nodes;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.network.NodesBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.network.NodesKey;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.network.nodes.NodeInfo;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.network.nodes.NodeInfoBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.regen.profiles.grp.RegenProfilesBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.switching.pool.lcp.SwitchingPoolLcp;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.switching.pool.lcp.SwitchingPoolLcpBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.switching.pool.lcp.SwitchingPoolLcpKey;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.switching.pool.lcp.switching.pool.lcp.NonBlockingList;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.switching.pool.lcp.switching.pool.lcp.NonBlockingListBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.switching.pool.lcp.switching.pool.lcp.NonBlockingListKey;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.alarm.pm.types.rev191129.Direction;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.optical.channel.types.rev200529.FrequencyGHz;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.node.types.rev210528.NodeTypes;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.node.types.rev210528.XpdrNodeTypes;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.optical.channel.types.rev250328.FrequencyGHz;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.optical.channel.types.rev250328.FrequencyTHz;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.CircuitPack;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.OrgOpenroadmDeviceData;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.circuit.pack.Ports;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.circuit.pack.PortsKey;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.circuit.packs.CircuitPacks;
@@ -83,9 +93,7 @@ import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.org.open
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.org.openroadm.device.container.org.openroadm.device.odu.switching.pools.non.blocking.list.PortList;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.port.Interfaces;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.xponder.XpdrPort;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.device.types.rev191129.NodeTypes;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.types.rev191129.PortQual;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.device.types.rev191129.XpdrNodeTypes;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.interfaces.rev191129.InterfaceType;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.interfaces.rev191129.OpenROADMOpticalMultiplex;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.interfaces.rev191129.OpticalTransport;
@@ -94,11 +102,11 @@ import org.opendaylight.yang.gen.v1.http.org.openroadm.interfaces.rev191129.OtnO
 import org.opendaylight.yang.gen.v1.http.org.openroadm.lldp.rev200529.Protocols1;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.lldp.rev200529.lldp.container.Lldp;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.lldp.rev200529.lldp.container.lldp.PortConfig;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.common.types.rev200327.OpucnTribSlotDef;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.common.types.rev250530.OpucnTribSlotDef;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.port.capability.rev200529.Ports1;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.port.capability.rev200529.port.capability.grp.port.capabilities.SupportedInterfaceCapability;
-import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
-import org.opendaylight.yangtools.yang.binding.KeyedInstanceIdentifier;
+import org.opendaylight.yangtools.binding.DataObjectIdentifier;
+import org.opendaylight.yangtools.binding.DataObjectIdentifier.WithKey;
 import org.opendaylight.yangtools.yang.common.Uint16;
 import org.opendaylight.yangtools.yang.common.Uint32;
 import org.slf4j.Logger;
@@ -107,7 +115,6 @@ import org.slf4j.LoggerFactory;
 
 // FIXME: many common pieces of code between PortMapping Versions 121 and 221 and 710
 // some mutualization would be helpful
-@SuppressWarnings("CPD-START")
 public class PortMappingVersion710 {
 
     private static final Logger LOG = LoggerFactory.getLogger(PortMappingVersion710.class);
@@ -131,9 +138,10 @@ public class PortMappingVersion710 {
 
     public boolean createMappingData(String nodeId) {
         LOG.info(PortMappingUtils.CREATE_MAPPING_DATA_LOGMSG, nodeId, "7.1");
-        List<Mapping> portMapList = new ArrayList<>();
-        Map<McCapabilitiesKey, McCapabilities> mcCapabilities = new HashMap<>();
-        InstanceIdentifier<Info> infoIID = InstanceIdentifier.create(OrgOpenroadmDevice.class).child(Info.class);
+        DataObjectIdentifier<Info> infoIID = DataObjectIdentifier
+            .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
+            .child(Info.class)
+            .build();
         Optional<Info> deviceInfoOptional = this.deviceTransactionManager.getDataFromDevice(
                 nodeId, LogicalDatastoreType.OPERATIONAL, infoIID,
                 Timeouts.DEVICE_READ_TIMEOUT, Timeouts.DEVICE_READ_TIMEOUT_UNIT);
@@ -141,13 +149,16 @@ public class PortMappingVersion710 {
             LOG.warn(PortMappingUtils.DEVICE_HAS_LOGMSG, nodeId, "no info", "subtree");
             return false;
         }
-        Info deviceInfo = deviceInfoOptional.get();
+        Info deviceInfo = deviceInfoOptional.orElseThrow();
         NodeInfo nodeInfo = createNodeInfo(deviceInfo);
         if (nodeInfo == null) {
             return false;
         }
-        postPortMapping(nodeId, nodeInfo, null, null, null, null);
+        postPortMapping(nodeId, nodeInfo, null, null, null, null, null);
 
+        List<Mapping> portMapList = new ArrayList<>();
+        Map<McCapabilitiesKey, McCapabilities> mcCapabilities = new HashMap<>();
+        WaveLengthDuplication wld = null;
         switch (deviceInfo.getNodeType()) {
 
             case Rdm:
@@ -165,11 +176,14 @@ public class PortMappingVersion710 {
                     return false;
                 }
                 // Get MC capabilities
-                if (!createMcCapabilitiesList(nodeId, deviceInfo, mcCapabilities)) {
+                List<SharedRiskGroup> srgs = getSrgs(nodeId, deviceInfo);
+                if (!createMcCapabilitiesList(nodeId, deviceInfo, mcCapabilities, srgs)) {
                     // return false if MC capabilites failed
                     LOG.warn(PortMappingUtils.UNABLE_MC_CAPA_LOGMSG, nodeId);
                     return false;
                 }
+                // Wavelength duplication
+                wld = WaveLengthDuplicationRev200529.instantiate(srgs);
                 break;
             case Xpdr:
                 if (!createXpdrPortMapping(nodeId, portMapList)) {
@@ -179,7 +193,7 @@ public class PortMappingVersion710 {
                 // In the case of 7.1 models, even XPDR advertizes mc-capabilities,
                 // hence we need to populate this information into the port-mapping data
                 // Get MC capabilities
-                if (!createMcCapabilitiesList(nodeId, deviceInfo, mcCapabilities)) {
+                if (!createMcCapabilitiesList(nodeId, deviceInfo, mcCapabilities, new ArrayList<>())) {
                     // return false if MC capabilites failed
                     LOG.warn(PortMappingUtils.UNABLE_MC_CAPA_LOGMSG, nodeId);
                     return false;
@@ -191,7 +205,7 @@ public class PortMappingVersion710 {
                 break;
 
         }
-        return postPortMapping(nodeId, nodeInfo, portMapList, null, null, mcCapabilities);
+        return postPortMapping(nodeId, nodeInfo, portMapList, null, null, mcCapabilities, wld);
     }
 
     public boolean updateMapping(String nodeId, Mapping oldMapping) {
@@ -203,19 +217,22 @@ public class PortMappingVersion710 {
             LOG.error(PortMappingUtils.UNABLE_MAPPING_LOGMSG, nodeId, PortMappingUtils.UPDATE, "a null value");
             return false;
         }
-        InstanceIdentifier<Ports> portId = InstanceIdentifier.create(OrgOpenroadmDevice.class)
+        DataObjectIdentifier<Ports> portId = DataObjectIdentifier
+            .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
             .child(CircuitPacks.class, new CircuitPacksKey(oldMapping.getSupportingCircuitPackName()))
-            .child(Ports.class, new PortsKey(oldMapping.getSupportingPort()));
+            .child(Ports.class, new PortsKey(oldMapping.getSupportingPort()))
+            .build();
         try {
             Ports port = deviceTransactionManager.getDataFromDevice(nodeId, LogicalDatastoreType.OPERATIONAL,
-                portId, Timeouts.DEVICE_READ_TIMEOUT, Timeouts.DEVICE_READ_TIMEOUT_UNIT).get();
+                portId, Timeouts.DEVICE_READ_TIMEOUT, Timeouts.DEVICE_READ_TIMEOUT_UNIT).orElseThrow();
             Mapping newMapping = updateMappingObject(nodeId, port, oldMapping);
             LOG.debug(PortMappingUtils.UPDATE_MAPPING_LOGMSG,
                 nodeId, oldMapping, oldMapping.getLogicalConnectionPoint(), newMapping);
             final WriteTransaction writeTransaction = this.dataBroker.newWriteOnlyTransaction();
-            InstanceIdentifier<Mapping> mapIID = InstanceIdentifier.create(Network.class)
+            DataObjectIdentifier<Mapping> mapIID = DataObjectIdentifier.builder(Network.class)
                 .child(Nodes.class, new NodesKey(nodeId))
-                .child(Mapping.class, new MappingKey(oldMapping.getLogicalConnectionPoint()));
+                .child(Mapping.class, new MappingKey(oldMapping.getLogicalConnectionPoint()))
+                .build();
             writeTransaction.merge(LogicalDatastoreType.CONFIGURATION, mapIID, newMapping);
             FluentFuture<? extends @NonNull CommitInfo> commit = writeTransaction.commit();
             commit.get();
@@ -227,14 +244,15 @@ public class PortMappingVersion710 {
         }
     }
 
-    public boolean updatePortMappingWithOduSwitchingPools(String nodeId, InstanceIdentifier<OduSwitchingPools> ospIID,
-            Map<Uint16, List<InstanceIdentifier<PortList>>> nbliidMap) {
+    public boolean updatePortMappingWithOduSwitchingPools(String nodeId, DataObjectIdentifier<OduSwitchingPools> ospIID,
+            Map<Uint16, List<DataObjectIdentifier<PortList>>> nbliidMap) {
 
-        KeyedInstanceIdentifier<Nodes, NodesKey> portMappingNodeIID =
-            InstanceIdentifier.create(Network.class).child(Nodes.class, new NodesKey(nodeId));
+        WithKey<Nodes, NodesKey> portMappingNodeIID = DataObjectIdentifier.builder(Network.class)
+                .child(Nodes.class, new NodesKey(nodeId))
+                .build();
         Nodes portmappingNode = null;
         try (ReadTransaction readTx = this.dataBroker.newReadOnlyTransaction()) {
-            portmappingNode = readTx.read(LogicalDatastoreType.CONFIGURATION, portMappingNodeIID).get().get();
+            portmappingNode = readTx.read(LogicalDatastoreType.CONFIGURATION, portMappingNodeIID).get().orElseThrow();
         } catch (InterruptedException | ExecutionException ex) {
             LOG.error("Unable to read the port-mapping for nodeId {}", nodeId, ex);
         }
@@ -243,7 +261,7 @@ public class PortMappingVersion710 {
         }
 
         OduSwitchingPools osp = deviceTransactionManager.getDataFromDevice(nodeId, LogicalDatastoreType.OPERATIONAL,
-            ospIID, Timeouts.DEVICE_READ_TIMEOUT, Timeouts.DEVICE_READ_TIMEOUT_UNIT).get();
+            ospIID, Timeouts.DEVICE_READ_TIMEOUT, Timeouts.DEVICE_READ_TIMEOUT_UNIT).orElseThrow();
         Uint16 ospNumber = osp.getSwitchingPoolNumber();
         Map<SwitchingPoolLcpKey, SwitchingPoolLcp> splMap =
             new HashMap<SwitchingPoolLcpKey, SwitchingPoolLcp>(portmappingNode.nonnullSwitchingPoolLcp());
@@ -252,7 +270,7 @@ public class PortMappingVersion710 {
             : new SwitchingPoolLcpBuilder().setSwitchingPoolNumber(ospNumber)
                 .setSwitchingPoolType(osp.getSwitchingPoolType());
         Map<NonBlockingListKey, NonBlockingList> nblMap = new HashMap<>();
-        for (Entry<Uint16, List<InstanceIdentifier<PortList>>> entry : nbliidMap.entrySet()) {
+        for (Entry<Uint16, List<DataObjectIdentifier<PortList>>> entry : nbliidMap.entrySet()) {
             NonBlockingList nbl = createNonBlockingList(
                 splBldr,
                 osp.getNonBlockingList()
@@ -270,20 +288,21 @@ public class PortMappingVersion710 {
         }
         SwitchingPoolLcp switchingPoolLcp = splBldr.setNonBlockingList(nblMap).build();
         splMap.put(switchingPoolLcp.key(), switchingPoolLcp);
-        postPortMapping(nodeId, null, null, null, new ArrayList<SwitchingPoolLcp>(splMap.values()), null);
+        postPortMapping(nodeId, null, null, null, new ArrayList<SwitchingPoolLcp>(splMap.values()), null, null);
         return true;
     }
 
     private NonBlockingList createNonBlockingList(SwitchingPoolLcpBuilder splBldr, Uint32 interconnectBw,
-            Entry<Uint16, List<InstanceIdentifier<PortList>>> entry, Map<MappingKey, Mapping> mappings, String nodeId) {
+            Entry<Uint16, List<DataObjectIdentifier<PortList>>> entry, Map<MappingKey, Mapping> mappings,
+            String nodeId) {
         NonBlockingListBuilder nblBldr = splBldr.getNonBlockingList() == null
             || !splBldr.getNonBlockingList().containsKey(new NonBlockingListKey(entry.getKey()))
                 ? new NonBlockingListBuilder().setNblNumber(entry.getKey()).setInterconnectBandwidth(interconnectBw)
                 : new NonBlockingListBuilder(splBldr.getNonBlockingList().get(new NonBlockingListKey(entry.getKey())));
-        List<String> lcpList = nblBldr.getLcpList() != null ? nblBldr.getLcpList() : new ArrayList<>();
-        for (InstanceIdentifier<PortList> id : entry.getValue()) {
+        Set<String> lcpList = nblBldr.getLcpList() != null ? nblBldr.getLcpList() : new HashSet<>();
+        for (DataObjectIdentifier<PortList> id : entry.getValue()) {
             PortList portList = deviceTransactionManager.getDataFromDevice(nodeId, LogicalDatastoreType.OPERATIONAL,
-                id, Timeouts.DEVICE_READ_TIMEOUT, Timeouts.DEVICE_READ_TIMEOUT_UNIT).get();
+                id, Timeouts.DEVICE_READ_TIMEOUT, Timeouts.DEVICE_READ_TIMEOUT_UNIT).orElseThrow();
             String lcp = getLcpFromCpAndPort(mappings, portList.getCircuitPackName(), portList.getPortName());
             if (lcp == null || lcpList.contains(lcp)) {
                 return null;
@@ -323,14 +342,16 @@ public class PortMappingVersion710 {
             }
         }
         if (device.getOduSwitchingPools() != null) {
-            postPortMapping(nodeId, null, null, null, getSwitchingPoolList(device, lcpMap, nodeId), null);
+            postPortMapping(nodeId, null, null, null, getSwitchingPoolList(device, lcpMap, nodeId), null, null);
         }
         mappingMap.forEach((k,v) -> portMapList.add(v));
         return true;
     }
 
     private OrgOpenroadmDevice getXpdrDevice(String nodeId) {
-        InstanceIdentifier<OrgOpenroadmDevice> deviceIID = InstanceIdentifier.create(OrgOpenroadmDevice.class);
+        DataObjectIdentifier<OrgOpenroadmDevice> deviceIID = DataObjectIdentifier
+            .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
+            .build();
         Optional<OrgOpenroadmDevice> deviceObject = deviceTransactionManager.getDataFromDevice(nodeId,
             LogicalDatastoreType.OPERATIONAL, deviceIID,
             Timeouts.DEVICE_READ_TIMEOUT, Timeouts.DEVICE_READ_TIMEOUT_UNIT);
@@ -338,7 +359,7 @@ public class PortMappingVersion710 {
             LOG.error(PortMappingUtils.CANNOT_GET_DEV_CONF_LOGMSG, nodeId);
             return null;
         }
-        OrgOpenroadmDevice device = deviceObject.get();
+        OrgOpenroadmDevice device = deviceObject.orElseThrow();
         if (device.getCircuitPacks() == null) {
             LOG.warn(PortMappingUtils.MISSING_CP_LOGMSG, nodeId, PortMappingUtils.FOUND);
             return null;
@@ -380,7 +401,7 @@ public class PortMappingVersion710 {
                 int line = 1;
                 int client = 1;
                 Integer xponderNb = xponder.getXpdrNumber().toJava();
-                XpdrNodeTypes xponderType = xponder.getXpdrType();
+                XpdrNodeTypes xponderType = XpdrNodeTypes.forName(xponder.getXpdrType().getName());
                 for (XpdrPort xpdrPort : xponder.nonnullXpdrPort().values().stream()
                         .sorted((xp1, xp2) -> xp1.getIndex().compareTo(xp2.getIndex())).collect(Collectors.toList())) {
                     Ports port = getXpdrPorts(device, xpdrPort, nodeId);
@@ -409,14 +430,14 @@ public class PortMappingVersion710 {
                 nodeId, circuitPackName);
             return null;
         }
-        Optional<Ports> portsList = cpList.get().nonnullPorts().values().stream()
+        Optional<Ports> portsList = cpList.orElseThrow().nonnullPorts().values().stream()
                 .filter(p -> p.getPortName().equals(portName)).findFirst();
         if (portsList.isEmpty()) {
             LOG.warn(PortMappingUtils.NO_ASSOC_FOUND_LOGMSG + PortMappingUtils.PORTMAPPING_IGNORE_LOGMSG,
                 nodeId, portName, circuitPackName, "in the device");
             return null;
         }
-        return portsList.get();
+        return portsList.orElseThrow();
     }
 
     private List<SwitchingPoolLcp> getSwitchingPoolList(OrgOpenroadmDevice device,
@@ -429,7 +450,7 @@ public class PortMappingVersion710 {
                 if (nbl.getPortList() == null) {
                     continue;
                 }
-                List<String> lcpList = new ArrayList<>();
+                Set<String> lcpList = new HashSet<>();
                 for (PortList item : nbl.nonnullPortList().values()) {
                     String key = item.getCircuitPackName() + "+" + item.getPortName();
                     if (!lcpMap.containsKey(key)) {
@@ -488,14 +509,16 @@ public class PortMappingVersion710 {
             List<org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.srg.CircuitPacks> srgCps
                 = new ArrayList<>();
             LOG.debug(PortMappingUtils.GETTING_CP_LOGMSG, deviceId, srgCounter);
-            InstanceIdentifier<SharedRiskGroup> srgIID = InstanceIdentifier.create(OrgOpenroadmDevice.class)
-                .child(SharedRiskGroup.class, new SharedRiskGroupKey(Uint16.valueOf(srgCounter)));
+            DataObjectIdentifier<SharedRiskGroup> srgIID = DataObjectIdentifier
+                .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
+                .child(SharedRiskGroup.class, new SharedRiskGroupKey(Uint16.valueOf(srgCounter)))
+                .build();
             Optional<SharedRiskGroup> ordmSrgObject = this.deviceTransactionManager.getDataFromDevice(deviceId,
                 LogicalDatastoreType.OPERATIONAL, srgIID,
                 Timeouts.DEVICE_READ_TIMEOUT, Timeouts.DEVICE_READ_TIMEOUT_UNIT);
             if (ordmSrgObject.isPresent()) {
-                srgCps.addAll(ordmSrgObject.get().nonnullCircuitPacks().values());
-                cpPerSrg.put(ordmSrgObject.get().getSrgNumber().toJava(), srgCps);
+                srgCps.addAll(ordmSrgObject.orElseThrow().nonnullCircuitPacks().values());
+                cpPerSrg.put(ordmSrgObject.orElseThrow().getSrgNumber().toJava(), srgCps);
             }
         }
         LOG.info(PortMappingUtils.DEVICE_HAS_LOGMSG, deviceId, cpPerSrg.size(), "SRG");
@@ -567,20 +590,22 @@ public class PortMappingVersion710 {
                 nodeId, port.getPortName(), circuitPackName);
             return null;
         }
-        InstanceIdentifier<Ports> port2ID = InstanceIdentifier.create(OrgOpenroadmDevice.class)
+        DataObjectIdentifier<Ports> port2ID = DataObjectIdentifier
+            .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
             .child(CircuitPacks.class, new CircuitPacksKey(port.getPartnerPort().getCircuitPackName()))
-            .child(Ports.class, new PortsKey(port.getPartnerPort().getPortName()));
+            .child(Ports.class, new PortsKey(port.getPartnerPort().getPortName()))
+            .build();
         Optional<Ports> port2Object = this.deviceTransactionManager
             .getDataFromDevice(nodeId, LogicalDatastoreType.OPERATIONAL, port2ID,
                 Timeouts.DEVICE_READ_TIMEOUT, Timeouts.DEVICE_READ_TIMEOUT_UNIT);
         if (port2Object.isEmpty()
-                || port2Object.get().getPortQual().getIntValue() != PortQual.RoadmExternal.getIntValue()) {
+                || port2Object.orElseThrow().getPortQual().getIntValue() != PortQual.RoadmExternal.getIntValue()) {
             LOG.error(PortMappingUtils.NOT_CORRECT_PARTNERPORT_LOGMSG + PortMappingUtils.PARTNERPORT_GET_ERROR_LOGMSG,
                 nodeId, port.getPartnerPort().getPortName(), port.getPartnerPort().getCircuitPackName(),
                 port.getPortName(), circuitPackName);
             return null;
         }
-        Ports port2 = port2Object.get();
+        Ports port2 = port2Object.orElseThrow();
         if (!checkPartnerPort(circuitPackName, port, port2)) {
             LOG.error(PortMappingUtils.NOT_CORRECT_PARTNERPORT_LOGMSG + PortMappingUtils.PARTNERPORT_CONF_ERROR_LOGMSG,
                 nodeId, port2.getPortName(), port.getPartnerPort().getCircuitPackName(),
@@ -593,8 +618,10 @@ public class PortMappingVersion710 {
     }
 
     private List<Ports> getPortList(String circuitPackName, String nodeId) {
-        InstanceIdentifier<CircuitPacks> cpIID = InstanceIdentifier.create(OrgOpenroadmDevice.class)
-            .child(CircuitPacks.class, new CircuitPacksKey(circuitPackName));
+        DataObjectIdentifier<CircuitPacks> cpIID = DataObjectIdentifier
+            .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
+            .child(CircuitPacks.class, new CircuitPacksKey(circuitPackName))
+            .build();
         Optional<CircuitPacks> circuitPackObject = this.deviceTransactionManager.getDataFromDevice(nodeId,
              LogicalDatastoreType.OPERATIONAL, cpIID,
              Timeouts.DEVICE_READ_TIMEOUT, Timeouts.DEVICE_READ_TIMEOUT_UNIT);
@@ -603,11 +630,11 @@ public class PortMappingVersion710 {
                 nodeId, circuitPackName);
             return new ArrayList<>();
         }
-        if (circuitPackObject.get().getPorts() == null) {
+        if (circuitPackObject.orElseThrow().getPorts() == null) {
             LOG.warn(PortMappingUtils.NO_PORT_ON_CP_LOGMSG, nodeId, PortMappingUtils.FOUND, circuitPackName);
             return new ArrayList<>();
         }
-        return new ArrayList<>(circuitPackObject.get().nonnullPorts().values());
+        return new ArrayList<>(circuitPackObject.orElseThrow().nonnullPorts().values());
     }
 
     private String createLogicalConnectionPort(Ports port, int index, int portIndex) {
@@ -621,7 +648,9 @@ public class PortMappingVersion710 {
 
     private Map<McCapabilityProfileKey, McCapabilityProfile> getMcCapabilityProfiles(String deviceId, Info ordmInfo) {
         Map<McCapabilityProfileKey, McCapabilityProfile>  mcCapabilityProfiles = new HashMap<>();
-        InstanceIdentifier<OrgOpenroadmDevice> deviceIID = InstanceIdentifier.create(OrgOpenroadmDevice.class);
+        DataObjectIdentifier<OrgOpenroadmDevice> deviceIID = DataObjectIdentifier
+            .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
+            .build();
         Optional<OrgOpenroadmDevice> deviceObject = deviceTransactionManager.getDataFromDevice(deviceId,
             LogicalDatastoreType.OPERATIONAL, deviceIID,
             Timeouts.DEVICE_READ_TIMEOUT, Timeouts.DEVICE_READ_TIMEOUT_UNIT);
@@ -631,11 +660,14 @@ public class PortMappingVersion710 {
             LOG.warn("MC-capabilities profile will be empty for node {}", deviceId);
             return mcCapabilityProfiles;
         }
-        device = deviceObject.get();
+        device = deviceObject.orElseThrow();
         mcCapabilityProfiles = device.getMcCapabilityProfile();
         return mcCapabilityProfiles;
     }
 
+    @SuppressFBWarnings(
+        value = "SLF4J_UNKNOWN_ARRAY",
+        justification = "False positive")
     private Map<Integer, Degree> getDegreesMap(String deviceId, Info ordmInfo) {
         Map<Integer, Degree> degrees = new HashMap<>();
 
@@ -645,13 +677,15 @@ public class PortMappingVersion710 {
 
         for (int degreeCounter = 1; degreeCounter <= maxDegree; degreeCounter++) {
             LOG.debug(PortMappingUtils.GETTING_CONPORT_LOGMSG, deviceId, degreeCounter);
-            InstanceIdentifier<Degree> deviceIID = InstanceIdentifier.create(OrgOpenroadmDevice.class)
-                .child(Degree.class, new DegreeKey(Uint16.valueOf(degreeCounter)));
+            DataObjectIdentifier<Degree> deviceIID = DataObjectIdentifier
+                .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
+                .child(Degree.class, new DegreeKey(Uint16.valueOf(degreeCounter)))
+                .build();
             Optional<Degree> ordmDegreeObject = this.deviceTransactionManager.getDataFromDevice(deviceId,
                 LogicalDatastoreType.OPERATIONAL, deviceIID,
                 Timeouts.DEVICE_READ_TIMEOUT, Timeouts.DEVICE_READ_TIMEOUT_UNIT);
             if (ordmDegreeObject.isPresent()) {
-                degrees.put(degreeCounter, ordmDegreeObject.get());
+                degrees.put(degreeCounter, ordmDegreeObject.orElseThrow());
             }
         }
         LOG.info(PortMappingUtils.DEVICE_HAS_LOGMSG,
@@ -673,13 +707,15 @@ public class PortMappingVersion710 {
         // if not present assume to be 20 (temporary)
         Integer maxSrg = ordmInfo.getMaxSrgs() == null ? 20 : ordmInfo.getMaxSrgs().toJava();
         for (int srgCounter = 1; srgCounter <= maxSrg; srgCounter++) {
-            InstanceIdentifier<SharedRiskGroup> srgIID = InstanceIdentifier.create(OrgOpenroadmDevice.class)
-                .child(SharedRiskGroup.class, new SharedRiskGroupKey(Uint16.valueOf(srgCounter)));
+            DataObjectIdentifier<SharedRiskGroup> srgIID = DataObjectIdentifier
+                .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
+                .child(SharedRiskGroup.class, new SharedRiskGroupKey(Uint16.valueOf(srgCounter)))
+                .build();
             Optional<SharedRiskGroup> ordmSrgObject = this.deviceTransactionManager.getDataFromDevice(deviceId,
                 LogicalDatastoreType.OPERATIONAL, srgIID,
                 Timeouts.DEVICE_READ_TIMEOUT, Timeouts.DEVICE_READ_TIMEOUT_UNIT);
             if (ordmSrgObject.isPresent()) {
-                srgs.add(ordmSrgObject.get());
+                srgs.add(ordmSrgObject.orElseThrow());
 
             }
         }
@@ -688,40 +724,46 @@ public class PortMappingVersion710 {
 
     private Map<String, String> getEthInterfaceList(String nodeId) {
         LOG.info(PortMappingUtils.GETTING_ETH_LIST_LOGMSG, nodeId);
-        InstanceIdentifier<Protocols> protocoliid = InstanceIdentifier.create(OrgOpenroadmDevice.class)
-            .child(Protocols.class);
+        DataObjectIdentifier<Protocols> protocoliid = DataObjectIdentifier
+            .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
+            .child(Protocols.class)
+            .build();
         Optional<Protocols> protocolObject = this.deviceTransactionManager.getDataFromDevice(nodeId,
             LogicalDatastoreType.OPERATIONAL, protocoliid, Timeouts.DEVICE_READ_TIMEOUT,
             Timeouts.DEVICE_READ_TIMEOUT_UNIT);
-        if (protocolObject.isEmpty() || protocolObject.get().augmentation(Protocols1.class).getLldp() == null) {
+        if (protocolObject.isEmpty() || protocolObject.orElseThrow().augmentation(Protocols1.class).getLldp() == null) {
             LOG.warn(PortMappingUtils.PROCESSING_DONE_LOGMSG, nodeId, PortMappingUtils.CANNOT_GET_LLDP_CONF_LOGMSG);
             return new HashMap<>();
         }
         Map<String, String> cpToInterfaceMap = new HashMap<>();
-        Lldp lldp = protocolObject.get().augmentation(Protocols1.class).getLldp();
+        Lldp lldp = protocolObject.orElseThrow().augmentation(Protocols1.class).getLldp();
         for (PortConfig portConfig : lldp.nonnullPortConfig().values()) {
             if (!portConfig.getAdminStatus().equals(PortConfig.AdminStatus.Txandrx)) {
                 continue;
             }
-            InstanceIdentifier<Interface> interfaceIID = InstanceIdentifier.create(OrgOpenroadmDevice.class)
-                .child(Interface.class, new InterfaceKey(portConfig.getIfName()));
+            DataObjectIdentifier<Interface> interfaceIID = DataObjectIdentifier
+                .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
+                .child(Interface.class, new InterfaceKey(portConfig.getIfName()))
+                .build();
             Optional<Interface> interfaceObject = this.deviceTransactionManager.getDataFromDevice(nodeId,
                 LogicalDatastoreType.OPERATIONAL, interfaceIID, Timeouts.DEVICE_READ_TIMEOUT,
                 Timeouts.DEVICE_READ_TIMEOUT_UNIT);
-            if (interfaceObject.isEmpty() || interfaceObject.get().getSupportingCircuitPackName() == null) {
+            if (interfaceObject.isEmpty() || interfaceObject.orElseThrow().getSupportingCircuitPackName() == null) {
                 continue;
             }
-            String supportingCircuitPackName = interfaceObject.get().getSupportingCircuitPackName();
+            String supportingCircuitPackName = interfaceObject.orElseThrow().getSupportingCircuitPackName();
             cpToInterfaceMap.put(supportingCircuitPackName, portConfig.getIfName());
-            InstanceIdentifier<CircuitPacks> circuitPacksIID = InstanceIdentifier.create(OrgOpenroadmDevice.class)
-                .child(CircuitPacks.class, new CircuitPacksKey(supportingCircuitPackName));
+            DataObjectIdentifier<CircuitPacks> circuitPacksIID = DataObjectIdentifier
+                .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
+                .child(CircuitPacks.class, new CircuitPacksKey(supportingCircuitPackName))
+                .build();
             Optional<CircuitPacks> circuitPackObject = this.deviceTransactionManager.getDataFromDevice(
                 nodeId, LogicalDatastoreType.OPERATIONAL, circuitPacksIID, Timeouts.DEVICE_READ_TIMEOUT,
                 Timeouts.DEVICE_READ_TIMEOUT_UNIT);
-            if (circuitPackObject.isEmpty() || circuitPackObject.get().getParentCircuitPack() == null) {
+            if (circuitPackObject.isEmpty() || circuitPackObject.orElseThrow().getParentCircuitPack() == null) {
                 continue;
             }
-            cpToInterfaceMap.put(circuitPackObject.get().getParentCircuitPack().getCircuitPackName(),
+            cpToInterfaceMap.put(circuitPackObject.orElseThrow().getParentCircuitPack().getCircuitPackName(),
                 portConfig.getIfName());
         }
         LOG.info(PortMappingUtils.PROCESSING_DONE_LOGMSG, nodeId, " - success");
@@ -757,7 +799,7 @@ public class PortMappingVersion710 {
 
     private boolean postPortMapping(String nodeId, NodeInfo nodeInfo, List<Mapping> portMapList,
             List<CpToDegree> cp2DegreeList, List<SwitchingPoolLcp> splList,
-            Map<McCapabilitiesKey, McCapabilities> mcCapMap) {
+            Map<McCapabilitiesKey, McCapabilities> mcCapMap, WaveLengthDuplication wld) {
         NodesBuilder nodesBldr = new NodesBuilder().withKey(new NodesKey(nodeId)).setNodeId(nodeId);
         if (nodeInfo != null) {
             nodesBldr.setNodeInfo(nodeInfo);
@@ -790,6 +832,9 @@ public class PortMappingVersion710 {
         if (mcCapMap != null) {
             nodesBldr.setMcCapabilities(mcCapMap);
         }
+        if (wld != null) {
+            nodesBldr.setSharedRiskGroup(wld.srg());
+        }
         Map<NodesKey,Nodes> nodesList = new HashMap<>();
         Nodes nodes = nodesBldr.build();
         nodesList.put(nodes.key(),nodes);
@@ -797,7 +842,7 @@ public class PortMappingVersion710 {
         Network network = new NetworkBuilder().setNodes(nodesList).build();
 
         final WriteTransaction writeTransaction = dataBroker.newWriteOnlyTransaction();
-        InstanceIdentifier<Network> nodesIID = InstanceIdentifier.builder(Network.class).build();
+        DataObjectIdentifier<Network> nodesIID = DataObjectIdentifier.builder(Network.class).build();
         writeTransaction.merge(LogicalDatastoreType.CONFIGURATION, nodesIID, network);
         FluentFuture<? extends @NonNull CommitInfo> commit = writeTransaction.commit();
         try {
@@ -818,7 +863,7 @@ public class PortMappingVersion710 {
             .setInterfaceName(interfaceList.get(circuitPackName)).build();
     }
 
-    private Map<McCapabilitiesKey, McCapabilities> createMcCapDegreeObject(Map<Integer, Degree> degrees,
+    public Map<McCapabilitiesKey, McCapabilities> createMcCapDegreeObject(Map<Integer, Degree> degrees,
             Map<McCapabilityProfileKey, McCapabilityProfile> mcCapabilityProfileMap, String nodeId) {
         //TODO some divergences here with 2.2.1
         Map<McCapabilitiesKey, McCapabilities> mcCapabilitiesMap = new HashMap<>();
@@ -834,7 +879,9 @@ public class PortMappingVersion710 {
                     .setMcNodeName(mcNodeName);
                 mcCapabilitiesBuilder
                     .setCenterFreqGranularity(FrequencyGHz.getDefaultInstance("50"))
-                    .setSlotWidthGranularity(FrequencyGHz.getDefaultInstance("50"));
+                    .setSlotWidthGranularity(FrequencyGHz.getDefaultInstance("50"))
+                    .setMinSlots(Uint32.valueOf(1))
+                    .setMaxSlots(Uint32.valueOf(1));
                 mcCapabilitiesMap.put(mcCapabilitiesBuilder.key(), mcCapabilitiesBuilder.build());
                 continue;
             }
@@ -848,8 +895,39 @@ public class PortMappingVersion710 {
                     .withKey(new McCapabilitiesKey(mcNodeName))
                     .setMcNodeName(mcNodeName);
                 mcCapabilitiesBuilder
-                    .setCenterFreqGranularity(mcCapabilityProfile.getCenterFreqGranularity())
-                    .setSlotWidthGranularity(mcCapabilityProfile.getSlotWidthGranularity());
+                    .setMinSlots(mcCapabilityProfile.getMinSlots())
+                    .setMaxSlots(mcCapabilityProfile.getMaxSlots());
+                var centerFreqGranularity = mcCapabilityProfile.getCenterFreqGranularity();
+                FrequencyGHz cfg = null;
+                if (centerFreqGranularity != null) {
+                    cfg = FrequencyGHz.getDefaultInstance(centerFreqGranularity.getValue().toString());
+                }
+
+                var slotWidthGranularity = mcCapabilityProfile.getSlotWidthGranularity();
+                FrequencyGHz swg = null;
+                if (slotWidthGranularity != null) {
+                    swg = FrequencyGHz.getDefaultInstance(slotWidthGranularity.getValue().toString());
+                }
+
+                mcCapabilitiesBuilder
+                        .setCenterFreqGranularity(cfg)
+                        .setSlotWidthGranularity(swg);
+                // Sometimes edge frequencies are not advertised in the cap profile for degrees
+                if (mcCapabilityProfile.getMinEdgeFreq() != null) {
+                    mcCapabilitiesBuilder.setMinEdgeFreq(
+                            FrequencyTHz.getDefaultInstance(mcCapabilityProfile.getMinEdgeFreq()
+                                    .getValue().toString()));
+                }
+                if (mcCapabilityProfile.getMaxEdgeFreq() != null) {
+                    mcCapabilitiesBuilder.setMaxEdgeFreq(
+                            FrequencyTHz.getDefaultInstance(mcCapabilityProfile.getMaxEdgeFreq()
+                                    .getValue().toString()));
+                }
+                if (!usableMc(mcCapabilitiesBuilder)) {
+                    LOG.warn(PortMappingUtils.NO_USABLE_MC, nodeId, "degree", degree.getDegreeNumber(),
+                            mcCapabilitiesBuilder.getSlotWidthGranularity().getValue().doubleValue(),
+                            mcCapabilitiesBuilder.getMaxSlots().intValue());
+                }
                 mcCapabilitiesMap.put(mcCapabilitiesBuilder.key(), mcCapabilitiesBuilder.build());
             }
 
@@ -872,7 +950,9 @@ public class PortMappingVersion710 {
                     .setMcNodeName(mcNodeName);
                 mcCapabilitiesBuilder
                     .setCenterFreqGranularity(FrequencyGHz.getDefaultInstance("50"))
-                    .setSlotWidthGranularity(FrequencyGHz.getDefaultInstance("50"));
+                    .setSlotWidthGranularity(FrequencyGHz.getDefaultInstance("50"))
+                    .setMinSlots(Uint32.valueOf(1))
+                    .setMaxSlots(Uint32.valueOf(1));
                 mcCapabilitiesMap.put(mcCapabilitiesBuilder.key(), mcCapabilitiesBuilder.build());
                 continue;
             }
@@ -885,8 +965,28 @@ public class PortMappingVersion710 {
                     .withKey(new McCapabilitiesKey(mcNodeName))
                     .setMcNodeName(mcNodeName);
                 mcCapabilitiesBuilder
-                    .setCenterFreqGranularity(mcCapabilityProfile.getCenterFreqGranularity())
-                    .setSlotWidthGranularity(mcCapabilityProfile.getSlotWidthGranularity());
+                    .setMinSlots(mcCapabilityProfile.getMinSlots())
+                    .setMaxSlots(mcCapabilityProfile.getMaxSlots());
+                var centerFreqGranularity = mcCapabilityProfile.getCenterFreqGranularity();
+                FrequencyGHz cfg = null;
+                if (centerFreqGranularity != null) {
+                    cfg = FrequencyGHz.getDefaultInstance(centerFreqGranularity.getValue().toString());
+                }
+
+                var slotWidthGranularity = mcCapabilityProfile.getSlotWidthGranularity();
+                FrequencyGHz swg = null;
+                if (slotWidthGranularity != null) {
+                    swg = FrequencyGHz.getDefaultInstance(slotWidthGranularity.getValue().toString());
+                }
+
+                mcCapabilitiesBuilder
+                        .setCenterFreqGranularity(cfg)
+                        .setSlotWidthGranularity(swg);
+                if (!usableMc(mcCapabilitiesBuilder)) {
+                    LOG.warn(PortMappingUtils.NO_USABLE_MC, nodeId, "SRG", srg.getSrgNumber(),
+                            mcCapabilitiesBuilder.getSlotWidthGranularity().getValue().doubleValue(),
+                            mcCapabilitiesBuilder.getMaxSlots().intValue());
+                }
                 mcCapabilitiesMap.put(mcCapabilitiesBuilder.key(), mcCapabilitiesBuilder.build());
             }
         }
@@ -953,37 +1053,34 @@ public class PortMappingVersion710 {
                     nodeId, interfaces.getInterfaceName() + "- empty interface");
                 continue;
             }
-            LOG.debug(PortMappingUtils.GOT_INTF_LOGMSG,
-                nodeId, openRoadmInterface.get().getName(), openRoadmInterface.get().getType());
-            Class<? extends InterfaceType> interfaceType
-                = (Class<? extends InterfaceType>) openRoadmInterface.get().getType();
+            InterfaceType interfaceType = openRoadmInterface.orElseThrow().getType();
+            LOG.debug(PortMappingUtils.GOT_INTF_LOGMSG, nodeId, openRoadmInterface.orElseThrow().getName(),
+                    interfaceType);
             // Check if interface type is OMS or OTS
-            if (interfaceType.equals(OpenROADMOpticalMultiplex.class)) {
+            // Switch/Case might be more indicated here but is not possible in jdk17 w/o enable-preview
+            if (interfaceType.equals(OpenROADMOpticalMultiplex.VALUE)) {
                 mpBldr.setSupportingOms(interfaces.getInterfaceName());
-            }
-            if (interfaceType.equals(OpticalTransport.class)) {
+            } else if (interfaceType.equals(OpticalTransport.VALUE)) {
                 mpBldr.setSupportingOts(interfaces.getInterfaceName());
-            }
-            String interfaceName = interfaces.getInterfaceName();
-            if (interfaceType.equals(OtnOtu.class)
-                && (interfaceName.substring(interfaceName.lastIndexOf("-") + 1)
-                .equals("OTU4"))) {
-                mpBldr.setSupportingOtu4(interfaces.getInterfaceName());
-            }
-            if ((interfaceType.equals(OtnOtu.class))
-                && (interfaceName.substring(interfaceName.lastIndexOf("-") + 1)
-                .contains("OTUC"))) {
-                mpBldr.setSupportingOtucn(interfaces.getInterfaceName());
-            }
-            if (interfaceType.equals(OtnOdu.class)
-                && (interfaceName.substring(interfaceName.lastIndexOf("-") + 1)
-                .equals("ODU4"))) {
-                mpBldr.setSupportingOdu4(interfaces.getInterfaceName());
-            }
-            if ((interfaceType.equals(OtnOdu.class))
-                && (interfaceName.substring(interfaceName.lastIndexOf("-") + 1)
-                .contains("ODUC"))) {
-                mpBldr.setSupportingOducn(interfaces.getInterfaceName());
+            //TODO check if the following lines for Eth CSMACD present in 1.2.1 and 2.2.1 were not forgotten in 7.1
+            //} else if(interfaceType.equals(EthernetCsmacd.VALUE)) {
+            //    mpBldr.setSupportingEthernet(interfaces.getInterfaceName());
+            } else if (interfaceType.equals(OtnOtu.VALUE)) {
+                String interfaceName = interfaces.getInterfaceName();
+                String suffix = interfaceName.substring(interfaceName.lastIndexOf("-") + 1);
+                if (suffix.equals("OTU4")) {
+                    mpBldr.setSupportingOtu4(interfaces.getInterfaceName());
+                } else if (suffix.contains("OTUC")) {
+                    mpBldr.setSupportingOtucn(interfaces.getInterfaceName());
+                }
+            } else if (interfaceType.equals(OtnOdu.VALUE)) {
+                String interfaceName = interfaces.getInterfaceName();
+                String suffix = interfaceName.substring(interfaceName.lastIndexOf("-") + 1);
+                if (suffix.equals("ODU4")) {
+                    mpBldr.setSupportingOdu4(interfaces.getInterfaceName());
+                } else if (suffix.contains("ODUC")) {
+                    mpBldr.setSupportingOducn(interfaces.getInterfaceName());
+                }
             }
         }
         return mpBldr;
@@ -1014,37 +1111,86 @@ public class PortMappingVersion710 {
             mpBldr.setPortQual(port.getPortQual().getName());
         }
         if (xpdrNodeType != null) {
-            mpBldr.setXponderType(xpdrNodeType);
+            mpBldr.setXpdrType(xpdrNodeType);
         }
         if (partnerLcp != null) {
             mpBldr.setPartnerLcp(partnerLcp);
         }
         Collection<SupportedInterfaceCapability> supIntfCapaList = getSupIntfCapaList(port);
+        int maxRate = 0;
+        Integer rate;
+        int maxOpModeRate = 0;
+        int opModeRate;
         if (supIntfCapaList != null) {
-            List<Class<? extends org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev201211
-                .SupportedIfCapability>> supportedIntf = new ArrayList<>();
-            SupportedInterfaceCapability sic1 = null;
+            Set<org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.SupportedIfCapability>
+                    supportedIntf = new HashSet<>();
+            Set<String> regenProfiles = new HashSet<>();
+            rate = 0;
+            LOG.debug("PORTMapping710 line1061, SupportedInterfaceCapa {}", supIntfCapaList);
             for (SupportedInterfaceCapability sic : supIntfCapaList) {
-                supportedIntf.add(MappingUtilsImpl.convertSupIfCapa(sic.getIfCapType().getSimpleName()));
-                sic1 = sic;
+                // Here it could add null values and cause a null pointer exception
+                // Especially when the MappingUtilsImpl does not contain required supported-if-cap
+                LOG.debug("PORTMapping710 line1065, Scanning SupportedInterfaceCap, Interface {}", sic);
+                if (MappingUtilsImpl.convertSupIfCapa(sic.getIfCapType().toString()) != null) {
+                    LOG.debug("PORTMapping710 line1067, Converted IfCapType,  {}",
+                        MappingUtilsImpl.convertSupIfCapa(sic.getIfCapType().toString()));
+                    supportedIntf.add(MappingUtilsImpl.convertSupIfCapa(sic.getIfCapType().toString()));
+                    var rateFromMap = PortMappingUtils.INTERFACE_RATE_MAP
+                        .get(MappingUtilsImpl.convertSupIfCapa(sic.getIfCapType().toString())
+                            .implementedInterface().getSimpleName());
+                    rate = rateFromMap == null ? Integer.valueOf(0) : Integer.valueOf(rateFromMap);
+                }
+                maxRate = (rate > maxRate) ? rate : maxRate;
+                LOG.debug("This the xpdr-type {}", xpdrNodeType.getName());
+                // Here we use both types of Regen (bi/uni). Though initial support is only for bi-directional regen
+                if (xpdrNodeType == XpdrNodeTypes.Regen || xpdrNodeType == XpdrNodeTypes.RegenUni) {
+                    if (sic.getOtsigroupCapabilityProfileName().isEmpty()) {
+                        LOG.error("Otsigroup-capability-profile-name is not found for regen port {}",
+                                port.getPortName());
+                    }
+                    LOG.info("Regen-profiles {}", sic.getOtsigroupCapabilityProfileName());
+                    regenProfiles.addAll(sic.getOtsigroupCapabilityProfileName());
+                }
+                if (port.getPortQual() == PortQual.SwitchClient
+                        && sic.getOtnCapability() != null) {
+                    // Here we assume all the supported-interfaces has the support same rates, and the
+                    // trib-slot numbers are assumed to be the same
+                    String mxpProfileName = sic.getOtnCapability().getMpdrClientRestriction().get(0)
+                            .getMuxpProfileName().stream().findFirst().orElseThrow();
+                    // From this muxponder-profile get the min-trib-slot and the max-trib-slot
+                    LOG.info("{}: Muxp-profile used for trib information {}", nodeId, mxpProfileName);
+                    // This provides the tribSlot information from muxProfile
+                    List<OpucnTribSlotDef> minMaxOpucnTribSlots = getOpucnTribSlots(nodeId, mxpProfileName);
+                    mpBldr.setMpdrRestrictions(
+                            new MpdrRestrictionsBuilder()
+                                    .setMinTribSlot(OpucnTribSlotDef.getDefaultInstance(minMaxOpucnTribSlots
+                                            .get(0).getValue()))
+                                    .setMaxTribSlot(OpucnTribSlotDef.getDefaultInstance(minMaxOpucnTribSlots
+                                            .get(1).getValue()))
+                                    .build());
+                }
+                opModeRate = 0;
+                Set<String> opModeList = sic.getOpticalOperationalModeProfileName();
+                if (opModeList != null && !opModeList.isEmpty()) {
+                    mpBldr.setSupportedOperationalMode(sic.getOpticalOperationalModeProfileName());
+                    for (String opMode : opModeList) {
+                        //Extracting Max rate (from 100Gps to 1.6 Tbps) from Operational-modes
+                        for (int subRateMultiplier = 1 ; subRateMultiplier < 17; subRateMultiplier++) {
+                            if (opMode.contains(String.valueOf(subRateMultiplier * 100))) {
+                                opModeRate = subRateMultiplier * 100;
+                            }
+                        }
+                        maxOpModeRate = (opModeRate > maxOpModeRate) ? opModeRate : maxOpModeRate;
+                    }
+                }
             }
-            mpBldr.setSupportedInterfaceCapability(supportedIntf);
-            if (port.getPortQual() == PortQual.SwitchClient
-                && !sic1.getOtnCapability().getMpdrClientRestriction().isEmpty()) {
-                // Here we assume all the supported-interfaces has the support same rates, and the
-                // trib-slot numbers are assumed to be the same
-                String mxpProfileName =
-                    sic1.getOtnCapability().getMpdrClientRestriction().get(0).getMuxpProfileName().get(0);
-                // From this muxponder-profile get the min-trib-slot and the max-trib-slot
-                LOG.info("{}: Muxp-profile used for trib information {}", nodeId, mxpProfileName);
-                // This provides the tribSlot information from muxProfile
-                List<OpucnTribSlotDef> minMaxOpucnTribSlots = getOpucnTribSlots(nodeId, mxpProfileName);
-                mpBldr.setMpdrRestrictions(
-                    new MpdrRestrictionsBuilder()
-                        .setMinTribSlot(minMaxOpucnTribSlots.get(0))
-                        .setMaxTribSlot(minMaxOpucnTribSlots.get(1))
-                        .build());
-            }
+            // maxRate is calculated from the type of supported interfaces. However for ODUCN and OTUCN, a default
+            // value of 400G is used. If Supported Operational Mode is populated, the real maximum rate shall be
+            // extrapolated from the operational mode that contains the rate rather than from default value of 400(G)
+            maxRate = (maxOpModeRate > 0) ? maxOpModeRate : maxRate;
+            mpBldr.setRegenProfiles(new RegenProfilesBuilder().setRegenProfile(regenProfiles).build())
+                    .setSupportedInterfaceCapability(supportedIntf);
+            mpBldr.setRate(String.valueOf(maxRate));
         }
         if (port.getAdministrativeState() != null) {
             mpBldr.setPortAdminState(port.getAdministrativeState().name());
@@ -1066,21 +1212,26 @@ public class PortMappingVersion710 {
         ArrayList<OpucnTribSlotDef> minMaxOpucnTribSlots = new ArrayList<>(2);
 
         LOG.info("{} : Getting Min/Max Trib-slots from {}", deviceId, mxpProfileName);
-        InstanceIdentifier<MuxpProfile> deviceIID = InstanceIdentifier.create(OrgOpenroadmDevice.class)
-            .child(MuxpProfile.class, new MuxpProfileKey(mxpProfileName));
+        DataObjectIdentifier<MuxpProfile> deviceIID = DataObjectIdentifier
+            .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
+            .child(MuxpProfile.class, new MuxpProfileKey(mxpProfileName))
+            .build();
 
         Optional<MuxpProfile> muxpProfileObject = this.deviceTransactionManager.getDataFromDevice(deviceId,
             LogicalDatastoreType.OPERATIONAL, deviceIID,
             Timeouts.DEVICE_READ_TIMEOUT, Timeouts.DEVICE_READ_TIMEOUT_UNIT);
 
-        List<OpucnTribSlotDef> ntwHoOduOpucnTribSlots = muxpProfileObject.get().getNetworkHoOduOpucnTribSlots();
+        Set<org.opendaylight.yang.gen.v1.http.org.openroadm.otn.common.types.rev200327.OpucnTribSlotDef>
+                ntwHoOduOpucnTribSlots = muxpProfileObject.orElseThrow().getNetworkHoOduOpucnTribSlots();
         // Sort the tib-slots in ascending order and pick min and max
-        List<OpucnTribSlotDef> sortedNtwHoOduOpucnTribSlots = ntwHoOduOpucnTribSlots.stream().sorted(
+        List<org.opendaylight.yang.gen.v1.http.org.openroadm.otn.common.types.rev200327.OpucnTribSlotDef>
+                sortedNtwHoOduOpucnTribSlots = ntwHoOduOpucnTribSlots.stream().sorted(
             Comparator.comparingDouble(x -> Double.parseDouble(
                 x.getValue().substring(x.getValue().lastIndexOf('.') + 1))))
             .collect(Collectors.toList());
-        minMaxOpucnTribSlots.add(sortedNtwHoOduOpucnTribSlots.get(0));
-        minMaxOpucnTribSlots.add(sortedNtwHoOduOpucnTribSlots.get(sortedNtwHoOduOpucnTribSlots.size() - 1));
+        minMaxOpucnTribSlots.add(OpucnTribSlotDef.getDefaultInstance(sortedNtwHoOduOpucnTribSlots.get(0).getValue()));
+        minMaxOpucnTribSlots.add(OpucnTribSlotDef.getDefaultInstance(sortedNtwHoOduOpucnTribSlots
+                .get(sortedNtwHoOduOpucnTribSlots.size() - 1).getValue()));
         LOG.debug("Min, Max trib slot list {}", minMaxOpucnTribSlots);
         return minMaxOpucnTribSlots;
     }
@@ -1103,7 +1254,7 @@ public class PortMappingVersion710 {
             LOG.error(PortMappingUtils.MISSING_CP_LOGMSG, nodeId, port.getPartnerPort().getCircuitPackName());
             return null;
         }
-        Optional<Ports> poOpt = cpOpt.get().nonnullPorts().values().stream()
+        Optional<Ports> poOpt = cpOpt.orElseThrow().nonnullPorts().values().stream()
             .filter(p -> p.getPortName().equals(port.getPartnerPort().getPortName()))
             .findFirst();
         if (poOpt.isEmpty()) {
@@ -1111,8 +1262,8 @@ public class PortMappingVersion710 {
                 nodeId, port.getPartnerPort().getPortName(), port.getPartnerPort().getCircuitPackName());
             return null;
         }
-        Ports port2 = poOpt.get();
-        circuitPackName2.append(cpOpt.get().getCircuitPackName());
+        Ports port2 = poOpt.orElseThrow();
+        circuitPackName2.append(cpOpt.orElseThrow().getCircuitPackName());
         if (!checkPartnerPort(circuitPackName, port, port2)) {
             LOG.error(PortMappingUtils.NOT_CORRECT_PARTNERPORT_LOGMSG,
                 nodeId, port2.getPortName(), circuitPackName2, port.getPortName(), circuitPackName);
@@ -1226,12 +1377,11 @@ public class PortMappingVersion710 {
     }
 
     private boolean createMcCapabilitiesList(String nodeId, Info deviceInfo,
-            Map<McCapabilitiesKey, McCapabilities> mcCapabilitiesMap) {
-        if (deviceInfo.getNodeType() == NodeTypes.Rdm) {
+            Map<McCapabilitiesKey, McCapabilities> mcCapabilitiesMap, List<SharedRiskGroup> srgs) {
+        if (deviceInfo.getNodeType().getName().equals(NodeTypes.Rdm.getName())) {
             Map<Integer, Degree> degrees = getDegreesMap(nodeId, deviceInfo);
-            List<SharedRiskGroup> srgs = getSrgs(nodeId, deviceInfo);
             mcCapabilitiesMap.putAll(getMcCapabilities(degrees, srgs, deviceInfo, nodeId));
-        } else if ((deviceInfo.getNodeType() == NodeTypes.Xpdr)) {
+        } else if (deviceInfo.getNodeType().getName().equals(NodeTypes.Xpdr.getName())) {
             Map<McCapabilityProfileKey, McCapabilityProfile> mcProfileXpdr = getMcCapabilityProfiles(nodeId,
                 deviceInfo);
             if (mcProfileXpdr.size() > 1) {
@@ -1243,9 +1393,11 @@ public class PortMappingVersion710 {
                 McCapabilitiesBuilder mcCapabilitiesBuilder = new McCapabilitiesBuilder()
                     .withKey(new McCapabilitiesKey(mcNodeName))
                     .setMcNodeName(mcNodeName);
+                McCapabilityProfile mcCapabilityProfile = mcCapProfile.getValue();
                 mcCapabilitiesBuilder
-                    .setCenterFreqGranularity(mcCapProfile.getValue().getCenterFreqGranularity())
-                    .setSlotWidthGranularity(mcCapProfile.getValue().getSlotWidthGranularity());
+                    .setCenterFreqGranularity(FrequencyGHz.getDefaultInstance(mcCapabilityProfile
+                            .getCenterFreqGranularity().getValue().toString()));
+
                 // Build and add to the Map
                 mcCapabilitiesMap.put(mcCapabilitiesBuilder.key(), mcCapabilitiesBuilder.build());
                 LOG.info("Finished building mc-capability profile for XPDR {}", nodeId);
@@ -1257,13 +1409,18 @@ public class PortMappingVersion710 {
         return true;
     }
 
+    private boolean usableMc(McCapabilitiesBuilder mcCapabilitiesBuilder) {
+        return BigDecimal.valueOf(mcCapabilitiesBuilder.getSlotWidthGranularity().getValue().doubleValue())
+                .multiply(BigDecimal.valueOf(mcCapabilitiesBuilder.getMaxSlots().intValue())).doubleValue() >= 37.5;
+    }
+
     private boolean createTtpPortMapping(String nodeId, Info deviceInfo, List<Mapping> portMapList) {
         // Creating mapping data for degree TTP's
         Map<Integer, Degree> degrees = getDegreesMap(nodeId, deviceInfo);
         Map<String, String> interfaceList = getEthInterfaceList(nodeId);
         List<CpToDegree> cpToDegreeList = getCpToDegreeList(degrees, interfaceList);
         LOG.info(PortMappingUtils.MAP_LOOKS_LOGMSG, nodeId, interfaceList);
-        postPortMapping(nodeId, null, null, cpToDegreeList, null, null);
+        postPortMapping(nodeId, null, null, cpToDegreeList, null, null, null);
 
         for (Entry<Integer, List<ConnectionPorts>> cpMapEntry : getPerDegreePorts(nodeId, deviceInfo).entrySet()) {
             List<ConnectionPorts> cpMapValue = cpMapEntry.getValue();
@@ -1321,9 +1478,11 @@ public class PortMappingVersion710 {
     }
 
     private Ports getTtpPort(ConnectionPorts cp, String cpName, String nodeId) {
-        InstanceIdentifier<Ports> portID = InstanceIdentifier.create(OrgOpenroadmDevice.class)
+        DataObjectIdentifier<Ports> portID = DataObjectIdentifier
+            .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
             .child(CircuitPacks.class, new CircuitPacksKey(cpName))
-            .child(Ports.class, new PortsKey(cp.getPortName()));
+            .child(Ports.class, new PortsKey(cp.getPortName()))
+            .build();
         LOG.debug(PortMappingUtils.FETCH_CONNECTIONPORT_LOGMSG, nodeId, cp.getPortName(), cpName);
         Optional<Ports> portObject = this.deviceTransactionManager.getDataFromDevice(nodeId,
             LogicalDatastoreType.OPERATIONAL, portID, Timeouts.DEVICE_READ_TIMEOUT,
@@ -1332,7 +1491,7 @@ public class PortMappingVersion710 {
             LOG.error(PortMappingUtils.NO_PORT_ON_CP_LOGMSG, nodeId, cp.getPortName(), cpName);
             return null;
         }
-        return portObject.get();
+        return portObject.orElseThrow();
     }
 
     private boolean checkPortQual(Ports port, String cpName, String nodeId) {
@@ -1394,7 +1553,7 @@ public class PortMappingVersion710 {
                     deviceInfo.getClli() == null || deviceInfo.getClli().isEmpty()
                         ? "defaultCLLI"
                         : deviceInfo.getClli())
-                .setNodeType(deviceInfo.getNodeType());
+                .setNodeType(NodeTypes.forName(deviceInfo.getNodeType().getName()));
         // TODO: 221 versions expects an int value - need to check whether it is bug or an evolution here
         if (deviceInfo.getModel() != null) {
             nodeInfoBldr.setNodeModel(deviceInfo.getModel());
@@ -1419,8 +1578,10 @@ public class PortMappingVersion710 {
     }
 
     private Optional<Interface> getInterfaceFromDevice(String nodeId, String interfaceName) {
-        InstanceIdentifier<Interface> interfacesIID = InstanceIdentifier.create(OrgOpenroadmDevice.class)
-            .child(Interface.class, new InterfaceKey(interfaceName));
+        DataObjectIdentifier<Interface> interfacesIID = DataObjectIdentifier
+            .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
+            .child(Interface.class, new InterfaceKey(interfaceName))
+            .build();
         return deviceTransactionManager.getDataFromDevice(nodeId, LogicalDatastoreType.CONFIGURATION,
             interfacesIID, Timeouts.DEVICE_READ_TIMEOUT, Timeouts.DEVICE_READ_TIMEOUT_UNIT);
     }

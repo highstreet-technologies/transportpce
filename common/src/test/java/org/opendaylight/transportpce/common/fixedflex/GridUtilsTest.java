@@ -8,194 +8,237 @@
 
 package org.opendaylight.transportpce.common.fixedflex;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Map;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.opendaylight.transportpce.common.ServiceRateConstant;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.device.renderer.rev211004.ServicePathInput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.device.renderer.rev211004.ServicePathInputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.optical.channel.types.rev211210.FrequencyGHz;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.optical.channel.types.rev211210.FrequencyTHz;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.types.rev181019.ModulationFormat;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev211210.available.freq.map.AvailFreqMaps;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev211210.available.freq.map.AvailFreqMapsKey;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.device.renderer.rev260212.ServicePathInput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.device.renderer.rev260212.ServicePathInputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.optical.channel.types.rev250328.FrequencyGHz;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.optical.channel.types.rev250328.FrequencyTHz;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.optical.channel.types.rev250328.ModulationFormat;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.available.freq.map.AvailFreqMaps;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.available.freq.map.AvailFreqMapsKey;
+import org.opendaylight.yangtools.yang.common.Decimal64;
 import org.opendaylight.yangtools.yang.common.Uint32;
 
 public class GridUtilsTest {
 
     @Test
-    public void getWaveLengthIndexFromSpectrumAssigmentTest() {
-        assertEquals("Wavelength index should be 15", 15, GridUtils.getWaveLengthIndexFromSpectrumAssigment(647));
+    void getWaveLengthIndexFromSpectrumAssigmentTest() {
+        assertEquals(15, GridUtils.getWaveLengthIndexFromSpectrumAssigment(647), "Wavelength index should be 15");
     }
 
     @Test
-    public void getFrequencyFromIndexTest() {
+    void getFrequencyFromIndexTest() {
         BigDecimal[] expectedFrequencies = new BigDecimal[768];
         BigDecimal frequency = BigDecimal.valueOf(191.325);
         for (int i = 0; i < expectedFrequencies.length; i++) {
             expectedFrequencies[i] = frequency;
             frequency = frequency.add(BigDecimal.valueOf(0.00625));
         }
-        assertEquals("Frequency should be 191.325", 0, expectedFrequencies[0]
-                .compareTo(GridUtils.getStartFrequencyFromIndex(0)));
-        assertEquals("Frequency should be 193.1", 0, expectedFrequencies[284]
-                .compareTo(GridUtils.getStartFrequencyFromIndex(284)));
-        assertEquals("Frequency should be 196.1188", 0, expectedFrequencies[767]
-                .compareTo(GridUtils.getStartFrequencyFromIndex(767)));
+        assertEquals(0, expectedFrequencies[0].compareTo(GridUtils.getStartFrequencyFromIndex(0)),
+            "Frequency should be 191.325");
+        assertEquals(0, expectedFrequencies[284].compareTo(GridUtils.getStartFrequencyFromIndex(284)),
+            "Frequency should be 193.1");
+        assertEquals(0, expectedFrequencies[767].compareTo(GridUtils.getStartFrequencyFromIndex(767)),
+            "Frequency should be 196.1188");
     }
 
     @Test
-    public void initFreqMaps4FixedGrid2AvailableTest() {
+    void initFreqMaps4FixedGrid2AvailableTest() {
         AvailFreqMapsKey key = new AvailFreqMapsKey(GridConstant.C_BAND);
         byte[] byteArray = new byte[GridConstant.NB_OCTECTS];
         Arrays.fill(byteArray, (byte) GridConstant.AVAILABLE_SLOT_VALUE);
         Map<AvailFreqMapsKey, AvailFreqMaps> availFreqMaps = GridUtils.initFreqMaps4FixedGrid2Available();
-        assertEquals("Should contains 1 element", 1, availFreqMaps.size());
-        assertTrue("should contains cband key", availFreqMaps.containsKey(key));
-        assertTrue("Should have available freq map", Arrays.equals(byteArray, availFreqMaps.get(key).getFreqMap()));
+        assertEquals(1, availFreqMaps.size(), "Should contains 1 element");
+        assertTrue(availFreqMaps.containsKey(key), "should contains cband key");
+        assertTrue(Arrays.equals(byteArray, availFreqMaps.get(key).getFreqMap()), "Should have available freq map");
     }
 
     @Test
-    public void getIndexFromFrequencyTest() {
-        assertEquals("Index should be 693", 693, GridUtils.getIndexFromFrequency(BigDecimal.valueOf(195.65625)));
-        assertEquals("Index should be 0", 0, GridUtils.getIndexFromFrequency(BigDecimal.valueOf(191.325)));
-        assertEquals("Index should be 767", 767, GridUtils.getIndexFromFrequency(BigDecimal.valueOf(196.11875)));
-        assertEquals("Index should be 8", 8, GridUtils.getIndexFromFrequency(BigDecimal.valueOf(191.375)));
-        assertEquals("Index should be 15", 15, GridUtils.getIndexFromFrequency(BigDecimal.valueOf(191.41875)));
-        assertEquals("Index should be 768", 768, GridUtils.getIndexFromFrequency(BigDecimal.valueOf(196.125)));
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void getIndexFromFrequencyExceptionTest() {
-        GridUtils.getIndexFromFrequency(BigDecimal.valueOf(196.13125));
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void getIndexFromFrequencyException2Test() {
-        GridUtils.getIndexFromFrequency(BigDecimal.valueOf(191.31875));
+    void getIndexFromFrequencyTest() {
+        assertEquals(693, GridUtils.getIndexFromFrequency(Decimal64.valueOf("195.65625")), "Index should be 693");
+        assertEquals(0, GridUtils.getIndexFromFrequency(Decimal64.valueOf("191.325")), "Index should be 0");
+        assertEquals(767, GridUtils.getIndexFromFrequency(Decimal64.valueOf("196.11875")), "Index should be 767");
+        assertEquals(8, GridUtils.getIndexFromFrequency(Decimal64.valueOf("191.375")), "Index should be 8");
+        assertEquals(15, GridUtils.getIndexFromFrequency(Decimal64.valueOf("191.41875")), "Index should be 15");
+        assertEquals(768, GridUtils.getIndexFromFrequency(Decimal64.valueOf("196.125")), "Index should be 768");
     }
 
     @Test
-    public void getWidthFromRateAndModulationFormatTest() {
-        assertEquals("Width should be 75", new FrequencyGHz(GridConstant.WIDTH_75),
-                GridUtils.getWidthFromRateAndModulationFormat(ServiceRateConstant.RATE_400,
-                        ModulationFormat.DpQam16));
+    void getIndexFromFrequencyExceptionTest() {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            GridUtils.getIndexFromFrequency(Decimal64.valueOf("196.13125"));
+        });
+        assertEquals("Frequency not in range 196.13125", exception.getMessage());
     }
 
     @Test
-    public void getWidthFromRateAndModulationFormatNotFoundTest() {
-        assertEquals("As not found width should be 40", new FrequencyGHz(GridConstant.WIDTH_40),
-                GridUtils.getWidthFromRateAndModulationFormat(ServiceRateConstant.RATE_100,
-                        ModulationFormat.DpQam16));
+    void getIndexFromFrequencyException2Test() {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            GridUtils.getIndexFromFrequency(Decimal64.valueOf("191.31875"));
+        });
+        assertEquals("Frequency not in range 191.31875", exception.getMessage());
     }
 
     @Test
-    public void getCentralFrequencyTest() {
-        assertEquals("Central frequency should be 191.350",
-                new FrequencyTHz(BigDecimal.valueOf(191.35).setScale(3)),
-                GridUtils.getCentralFrequency(BigDecimal.valueOf(191.325), BigDecimal.valueOf(191.375)));
+    void getWidthFromRateAndModulationFormatTest() {
+        assertEquals(
+            new FrequencyGHz(Decimal64.valueOf(GridConstant.WIDTH_75).scaleTo(5)),
+            GridUtils.getWidthFromRateAndModulationFormat(ServiceRateConstant.RATE_400, ModulationFormat.DpQam16),
+            "Width should be 75");
     }
 
     @Test
-    public void getCentralFrequencyWithPrecisionTest() {
-        assertEquals("Central frequency should be 191.3500",
-                new org.opendaylight.yang.gen.v1.http.org.openroadm.common.types.rev181019.FrequencyTHz(
-                        BigDecimal.valueOf(191.35).setScale(4)),
-                GridUtils.getCentralFrequencyWithPrecision(BigDecimal.valueOf(191.325),
-                        BigDecimal.valueOf(191.375), 4));
+    void getWidthFromRateAndModulationFormatNotFoundTest() {
+        assertEquals(
+            new FrequencyGHz(Decimal64.valueOf(GridConstant.WIDTH_40).scaleTo(5)),
+            GridUtils.getWidthFromRateAndModulationFormat(ServiceRateConstant.RATE_100, ModulationFormat.DpQam16),
+            "As not found width should be 40");
     }
 
     @Test
-    public void getCentralFrequencyWithPrecisionAndRoundTest() {
-        assertEquals("Central frequency should be 191.3499",
-                new org.opendaylight.yang.gen.v1.http.org.openroadm.common.types.rev181019.FrequencyTHz(
-                        BigDecimal.valueOf(191.3499)),
-                GridUtils.getCentralFrequencyWithPrecision(BigDecimal.valueOf(191.3244445),
-                        BigDecimal.valueOf(191.3754457788), 4));
+    void getCentralFrequencyTest() {
+        assertEquals(
+            new FrequencyTHz(Decimal64.valueOf("191.35").scaleTo(8)),
+            GridUtils.getCentralFrequency(BigDecimal.valueOf(191.325), BigDecimal.valueOf(191.375)),
+            "Central frequency should be 191.350");
     }
 
     @Test
-    public void initSpectrumInformationFromServicePathInputTest() {
+    void getCentralFrequencyWithPrecisionTest() {
+        assertEquals(
+            new org.opendaylight.yang.gen.v1.http.org.openroadm.common.types.rev181019.FrequencyTHz(
+                    Decimal64.valueOf("191.35").scaleTo(8)),
+            GridUtils.getCentralFrequencyWithPrecision(BigDecimal.valueOf(191.325), BigDecimal.valueOf(191.375), 4),
+            "Central frequency should be 191.3500");
+    }
+
+    @Test
+    void getCentralFrequencyWithPrecisionAndRoundTest() {
+        assertEquals(
+            new org.opendaylight.yang.gen.v1.http.org.openroadm.common.types.rev181019.FrequencyTHz(
+                    Decimal64.valueOf("191.3499").scaleTo(8)),
+            GridUtils.getCentralFrequencyWithPrecision(
+                    BigDecimal.valueOf(191.3244445), BigDecimal.valueOf(191.3754457788), 4),
+            "Central frequency should be 191.3499");
+    }
+
+    @Test
+    void initSpectrumInformationFromServicePathInputTest() {
         ServicePathInput input = new ServicePathInputBuilder()
-                .setWaveNumber(Uint32.valueOf(1))
+                .setWaveNumber(Uint32.ONE)
                 .setCenterFreq(new org.opendaylight.yang.gen.v1.http.org.openroadm.common.types.rev181019
-                        .FrequencyTHz(BigDecimal.valueOf(196.1)))
+                        .FrequencyTHz(Decimal64.valueOf("196.1").scaleTo(8)))
                 .setHigherSpectralSlotNumber(Uint32.valueOf(768))
                 .setLowerSpectralSlotNumber(Uint32.valueOf(761))
                 .setMaxFreq(new org.opendaylight.yang.gen.v1.http.org.openroadm.common.types.rev181019
-                        .FrequencyTHz(BigDecimal.valueOf(196.125)))
+                        .FrequencyTHz(Decimal64.valueOf("196.125").scaleTo(8)))
                 .setMinFreq(new org.opendaylight.yang.gen.v1.http.org.openroadm.common.types.rev181019
-                        .FrequencyTHz(BigDecimal.valueOf(196.075)))
+                        .FrequencyTHz(Decimal64.valueOf("196.075").scaleTo(8)))
                 .setNmcWidth(new org.opendaylight.yang.gen.v1.http.org.openroadm.common.types.rev181019
-                        .FrequencyGHz(GridConstant.WIDTH_40))
+                        .FrequencyGHz(Decimal64.valueOf(GridConstant.WIDTH_40).scaleTo(5)))
                 .build();
         SpectrumInformation spectrumInformation = GridUtils.initSpectrumInformationFromServicePathInput(input);
-        assertEquals("Width should be 40", BigDecimal.valueOf(40), spectrumInformation.getWidth());
-        assertEquals("Wavelength should be 1", Uint32.valueOf(1), spectrumInformation.getWaveLength());
-        assertEquals("Center freq should be 196.1", BigDecimal.valueOf(196.1).setScale(4),
-                spectrumInformation.getCenterFrequency());
-        assertEquals("Lower slot number should be 761", 761, spectrumInformation.getLowerSpectralSlotNumber());
-        assertEquals("Higher slot number should be 768", 768, spectrumInformation.getHigherSpectralSlotNumber());
-        assertEquals("Min freq should be 196.075", BigDecimal.valueOf(196.075).setScale(4),
-                spectrumInformation.getMinFrequency());
-        assertEquals("Max freq should be 196.125", BigDecimal.valueOf(196.125).setScale(4),
-                spectrumInformation.getMaxFrequency());
+        assertEquals(BigDecimal.valueOf(40), spectrumInformation.getWidth(), "Width should be 40");
+        assertEquals(Uint32.ONE, spectrumInformation.getWaveLength(), "Wavelength should be 1");
+        assertEquals(BigDecimal.valueOf(196.1).setScale(4), spectrumInformation.getCenterFrequency(),
+            "Center freq should be 196.1");
+        assertEquals(761, spectrumInformation.getLowerSpectralSlotNumber(), "Lower slot number should be 761");
+        assertEquals(768, spectrumInformation.getHigherSpectralSlotNumber(), "Higher slot number should be 768");
+        assertEquals(BigDecimal.valueOf(196.075).setScale(4), spectrumInformation.getMinFrequency(),
+            "Min freq should be 196.075");
+        assertEquals(BigDecimal.valueOf(196.125).setScale(4), spectrumInformation.getMaxFrequency(),
+            "Max freq should be 196.125");
     }
 
     @Test
-    public void initSpectrumInformationFromServicePathInputNoCenterFreqTest() {
+    void initSpectrumInformationFromServicePathInputNoCenterFreqTest() {
         ServicePathInput input = new ServicePathInputBuilder()
-                .setWaveNumber(Uint32.valueOf(1))
+                .setWaveNumber(Uint32.ONE)
                 .setHigherSpectralSlotNumber(Uint32.valueOf(768))
                 .setLowerSpectralSlotNumber(Uint32.valueOf(761))
                 .setMaxFreq(new org.opendaylight.yang.gen.v1.http.org.openroadm.common.types.rev181019
-                        .FrequencyTHz(BigDecimal.valueOf(196.125)))
+                        .FrequencyTHz(Decimal64.valueOf("196.125").scaleTo(8)))
                 .setMinFreq(new org.opendaylight.yang.gen.v1.http.org.openroadm.common.types.rev181019
-                        .FrequencyTHz(BigDecimal.valueOf(196.075)))
+                        .FrequencyTHz(Decimal64.valueOf("196.075").scaleTo(8)))
                 .setNmcWidth(new org.opendaylight.yang.gen.v1.http.org.openroadm.common.types.rev181019
-                        .FrequencyGHz(GridConstant.WIDTH_40))
+                        .FrequencyGHz(Decimal64.valueOf(GridConstant.WIDTH_40).scaleTo(5)))
                 .build();
         SpectrumInformation spectrumInformation = GridUtils.initSpectrumInformationFromServicePathInput(input);
-        assertEquals("Width should be 40", BigDecimal.valueOf(40), spectrumInformation.getWidth());
-        assertEquals("Wavelength should be 1", Uint32.valueOf(1), spectrumInformation.getWaveLength());
-        assertEquals("Center freq should be 196.1", BigDecimal.valueOf(196.1).setScale(4),
-                spectrumInformation.getCenterFrequency());
-        assertEquals("Lower slot number should be 761", 761, spectrumInformation.getLowerSpectralSlotNumber());
-        assertEquals("Higher slot number should be 768", 768, spectrumInformation.getHigherSpectralSlotNumber());
-        assertEquals("Min freq should be 196.075", BigDecimal.valueOf(196.075).setScale(4),
-                spectrumInformation.getMinFrequency());
-        assertEquals("Max freq should be 196.125", BigDecimal.valueOf(196.125).setScale(4),
-                spectrumInformation.getMaxFrequency());
+        assertEquals(BigDecimal.valueOf(40), spectrumInformation.getWidth(), "Width should be 40");
+        assertEquals(Uint32.ONE, spectrumInformation.getWaveLength(), "Wavelength should be 1");
+        assertEquals(BigDecimal.valueOf(196.1).setScale(4), spectrumInformation.getCenterFrequency(),
+            "Center freq should be 196.1");
+        assertEquals(761, spectrumInformation.getLowerSpectralSlotNumber(), "Lower slot number should be 761");
+        assertEquals(768, spectrumInformation.getHigherSpectralSlotNumber(), "Higher slot number should be 768");
+        assertEquals(BigDecimal.valueOf(196.075).setScale(4), spectrumInformation.getMinFrequency(),
+            "Min freq should be 196.075");
+        assertEquals(BigDecimal.valueOf(196.125).setScale(4), spectrumInformation.getMaxFrequency(),
+            "Max freq should be 196.125");
     }
 
     @Test
-    public void initSpectrumInformationFromServicePathInputNoFreqTest() {
+    void initSpectrumInformationFromServicePathInputNoFreqTest() {
         ServicePathInput input = new ServicePathInputBuilder()
-                .setWaveNumber(Uint32.valueOf(1))
+                .setWaveNumber(Uint32.ONE)
                 .setHigherSpectralSlotNumber(Uint32.valueOf(768))
                 .setLowerSpectralSlotNumber(Uint32.valueOf(761))
                 .setNmcWidth(new org.opendaylight.yang.gen.v1.http.org.openroadm.common.types.rev181019
-                        .FrequencyGHz(GridConstant.WIDTH_40))
+                        .FrequencyGHz(Decimal64.valueOf(GridConstant.WIDTH_40).scaleTo(5)))
                 .build();
         SpectrumInformation spectrumInformation = GridUtils.initSpectrumInformationFromServicePathInput(input);
-        assertEquals("Width should be 40", BigDecimal.valueOf(40), spectrumInformation.getWidth());
-        assertEquals("Wavelength should be 1", Uint32.valueOf(1), spectrumInformation.getWaveLength());
-        assertEquals("Center freq should be 196.1", BigDecimal.valueOf(196.1).setScale(4),
-                spectrumInformation.getCenterFrequency());
-        assertEquals("Lower slot number should be 761", 761, spectrumInformation.getLowerSpectralSlotNumber());
-        assertEquals("Higher slot number should be 768", 768, spectrumInformation.getHigherSpectralSlotNumber());
-        assertEquals("Min freq should be 196.075", BigDecimal.valueOf(196.075).setScale(4),
-                spectrumInformation.getMinFrequency());
-        assertEquals("Max freq should be 196.125", BigDecimal.valueOf(196.125).setScale(4),
-                spectrumInformation.getMaxFrequency());
+        assertEquals(BigDecimal.valueOf(40), spectrumInformation.getWidth(), "Width should be 40");
+        assertEquals(Uint32.ONE, spectrumInformation.getWaveLength(), "Wavelength should be 1");
+        assertEquals(BigDecimal.valueOf(196.1).setScale(4), spectrumInformation.getCenterFrequency(),
+            "Center freq should be 196.1");
+        assertEquals(761, spectrumInformation.getLowerSpectralSlotNumber(), "Lower slot number should be 761");
+        assertEquals(768, spectrumInformation.getHigherSpectralSlotNumber(), "Higher slot number should be 768");
+        assertEquals(BigDecimal.valueOf(196.075).setScale(4), spectrumInformation.getMinFrequency(),
+            "Min freq should be 196.075");
+        assertEquals(BigDecimal.valueOf(196.125).setScale(4), spectrumInformation.getMaxFrequency(),
+            "Max freq should be 196.125");
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void initSpectrumInformationFromServicePathInputNoSlotTest() {
-        GridUtils.initSpectrumInformationFromServicePathInput(new ServicePathInputBuilder().build());
+    @Test
+    void initSpectrumInformationFromServicePathInputNoSlotTest() {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            GridUtils.initSpectrumInformationFromServicePathInput(new ServicePathInputBuilder().build());
+        });
+        assertEquals("low and higher spectral slot numbers cannot be null", exception.getMessage());
+    }
+
+
+    @Test
+    void startFrequencyTest() {
+        BigDecimal startFrequency = BigDecimal.valueOf(191.325);
+        BigDecimal granularity = BigDecimal.valueOf(0.00625);
+
+        for (int i = 0; i < 768; i++) {
+            BigDecimal index = BigDecimal.valueOf(i);
+            BigDecimal expected = startFrequency.add(granularity.multiply(index));
+            BigDecimal found = GridUtils.getStartFrequencyFromIndex(i);
+            assertTrue(expected.compareTo(found) == 0, "Expected frequency " + expected + " but found " + found);
+        }
+    }
+
+    @Test
+    void stopFrequencyTest() {
+        BigDecimal startFrequency = BigDecimal.valueOf(191.325);
+        BigDecimal granularity = BigDecimal.valueOf(0.00625);
+
+        for (int i = 0; i < 768; i++) {
+            BigDecimal index = BigDecimal.valueOf(i + 1);
+            BigDecimal expected = startFrequency.add(granularity.multiply(index));
+            BigDecimal found = GridUtils.getStopFrequencyFromIndex(i);
+            assertTrue(expected.compareTo(found) == 0, "Expected frequency " + expected + " but found " + found);
+        }
     }
 }

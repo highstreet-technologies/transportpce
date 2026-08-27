@@ -10,7 +10,7 @@ package org.opendaylight.transportpce.pce.graph;
 
 import org.jgrapht.GraphPath;
 import org.jgrapht.alg.shortestpath.PathValidator;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev211210.OpenroadmLinkType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.OpenroadmLinkType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,13 +29,11 @@ public class InAlgoPathValidator implements PathValidator<String, PceGraphEdge> 
         if (size == 0) {
             return true;
         }
-        LOG.debug("InAlgoPathValidator: partialPath size: {} prev edge {} new edge {}",
+        LOG.info("InAlgoPathValidator: partialPath size: {} new edge {} previous edge {}",
             size, edge.link().getlinkType(), partialPath.getEdgeList().get(size - 1).link().getlinkType());
-
         return (checkTurn(partialPath.getEdgeList().get(size - 1).link().getlinkType(), edge.link().getlinkType()));
     }
 
-    @SuppressWarnings("java:S1541")
     //sonar issue The Cyclomatic Complexity of this method "checkTurn" is 13 which is greater than 10 authorized.
     //here we have clear conditional, so for the moment no need to manage this issue
     private boolean checkTurn(OpenroadmLinkType prevType, OpenroadmLinkType nextType) {
@@ -69,8 +67,6 @@ public class InAlgoPathValidator implements PathValidator<String, PceGraphEdge> 
             LOG.debug(IN_CHECK_PATH_DROPPED_MSG, prevType, nextType);
             return false;
         }
-
         return true;
     }
 }
-

@@ -11,40 +11,49 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import java.util.Arrays;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.opendaylight.mdsal.binding.api.NotificationService;
 import org.opendaylight.mdsal.binding.api.RpcProviderService;
-import org.opendaylight.transportpce.nbinotifications.listener.NbiNotificationsListenerImpl;
+import org.opendaylight.transportpce.common.network.NetworkTransactionImpl;
+import org.opendaylight.transportpce.common.network.NetworkTransactionService;
+import org.opendaylight.transportpce.nbinotifications.impl.rpc.CreateNotificationSubscriptionServiceImpl;
+import org.opendaylight.transportpce.nbinotifications.impl.rpc.DeleteNotificationSubscriptionServiceImpl;
+import org.opendaylight.transportpce.nbinotifications.impl.rpc.GetNotificationListImpl;
+import org.opendaylight.transportpce.nbinotifications.impl.rpc.GetNotificationSubscriptionServiceDetailsImpl;
+import org.opendaylight.transportpce.nbinotifications.impl.rpc.GetNotificationSubscriptionServiceListImpl;
+import org.opendaylight.transportpce.nbinotifications.impl.rpc.GetNotificationsAlarmServiceImpl;
+import org.opendaylight.transportpce.nbinotifications.impl.rpc.GetNotificationsProcessServiceImpl;
+import org.opendaylight.transportpce.nbinotifications.impl.rpc.GetSupportedNotificationTypesImpl;
 import org.opendaylight.transportpce.test.AbstractTest;
 
+@ExtendWith(MockitoExtension.class)
 public class NbiNotificationsProviderTest  extends AbstractTest {
+    public static NetworkTransactionService networkTransactionService;
 
     @Mock
     RpcProviderService rpcProviderRegistry;
-
     @Mock
     private NotificationService notificationService;
 
-    @Before
-    public void init() {
-        MockitoAnnotations.openMocks(this);
-
-    }
-
     @Test
-    public void initTest() {
-        NbiNotificationsProvider provider = new NbiNotificationsProvider(
-                Arrays.asList("topic1", "topic2"), Arrays.asList("topic1", "topic2"), "localhost:8080",
-                "localhost:8080", rpcProviderRegistry, notificationService,
-                getDataStoreContextUtil().getBindingDOMCodecServices());
-        provider.init();
-        verify(rpcProviderRegistry, times(1))
-                .registerRpcImplementation(any(), any(NbiNotificationsImpl.class));
+    void initTest() {
+        networkTransactionService = new NetworkTransactionImpl(getDataBroker());
+        new NbiNotificationsProvider("localhost:8080", "localhost:8080",
+                rpcProviderRegistry, notificationService, getDataStoreContextUtil().getBindingDOMCodecServices(),
+                networkTransactionService);
+        verify(rpcProviderRegistry, times(1)).registerRpcImplementations(
+                any(GetNotificationsProcessServiceImpl.class),
+                any(GetNotificationsAlarmServiceImpl.class),
+                any(GetSupportedNotificationTypesImpl.class),
+                any(CreateNotificationSubscriptionServiceImpl.class),
+                any(DeleteNotificationSubscriptionServiceImpl.class),
+                any(GetNotificationSubscriptionServiceDetailsImpl.class),
+                any(GetNotificationSubscriptionServiceListImpl.class),
+                any(GetNotificationListImpl.class));
         verify(notificationService, times(1))
-                .registerNotificationListener(any(NbiNotificationsListenerImpl.class));
+                .registerCompositeListener(any(NotificationService.CompositeListener.class));
     }
 }

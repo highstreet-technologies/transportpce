@@ -7,99 +7,121 @@
  */
 package org.opendaylight.transportpce.networkmodel;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.opendaylight.mdsal.binding.api.DataBroker;
-import org.opendaylight.mdsal.binding.api.DataTreeIdentifier;
 import org.opendaylight.mdsal.binding.api.NotificationService;
-import org.opendaylight.mdsal.binding.api.RpcProviderService;
 import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
-import org.opendaylight.transportpce.common.InstanceIdentifiers;
-import org.opendaylight.transportpce.common.NetworkUtils;
+import org.opendaylight.transportpce.common.StringConstants;
+import org.opendaylight.transportpce.common.device.DeviceTransactionManager;
+import org.opendaylight.transportpce.common.mapping.PortMapping;
 import org.opendaylight.transportpce.common.network.NetworkTransactionService;
 import org.opendaylight.transportpce.networkmodel.listeners.PortMappingListener;
 import org.opendaylight.transportpce.networkmodel.listeners.ServiceHandlerListener;
 import org.opendaylight.transportpce.networkmodel.service.FrequenciesService;
+import org.opendaylight.transportpce.networkmodel.service.NetworkModelService;
 import org.opendaylight.transportpce.networkmodel.util.TpceNetwork;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev170818.TransportpceNetworkutilsService;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.Network;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.mapping.Mapping;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.servicehandler.rev201125.TransportpceServicehandlerListener;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.Network;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mapping.Mapping;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.netconf.node.topology.rev251205.network.topology.topology.topology.types.TopologyNetconf;
+import org.opendaylight.yang.gen.v1.urn.tbd.params.xml.ns.yang.network.topology.rev131021.NetworkTopology;
+import org.opendaylight.yang.gen.v1.urn.tbd.params.xml.ns.yang.network.topology.rev131021.TopologyId;
+import org.opendaylight.yang.gen.v1.urn.tbd.params.xml.ns.yang.network.topology.rev131021.network.topology.Topology;
+import org.opendaylight.yang.gen.v1.urn.tbd.params.xml.ns.yang.network.topology.rev131021.network.topology.TopologyKey;
 import org.opendaylight.yang.gen.v1.urn.tbd.params.xml.ns.yang.network.topology.rev131021.network.topology.topology.Node;
-import org.opendaylight.yangtools.concepts.ListenerRegistration;
-import org.opendaylight.yangtools.concepts.ObjectRegistration;
-import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
+import org.opendaylight.yangtools.binding.DataObjectReference;
+import org.opendaylight.yangtools.concepts.Registration;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * This class is the starting point of the networkmodel module. It starts the different objects and initialize the
+ * different topology layer instances.
+ */
+@Component
 public class NetworkModelProvider {
 
     private static final Logger LOG = LoggerFactory.getLogger(NetworkModelProvider.class);
-    private static final InstanceIdentifier<Mapping> MAPPING_II = InstanceIdentifier.create(Network.class)
-        .child(org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.network
-                .Nodes.class)
-        .child(Mapping.class);
+    private static final DataObjectReference<Node> NETCONF_NODE_II = DataObjectReference
+            .builder(NetworkTopology.class)
+            .child(Topology.class, new TopologyKey(new TopologyId(TopologyNetconf.QNAME.getLocalName())))
+            .child(Node.class)
+            .build();
+    private static final DataObjectReference<Mapping> MAPPING_II = DataObjectReference
+            .builder(Network.class)
+            .child(org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.network
+                    .Nodes.class)
+            .child(Mapping.class)
+            .build();
 
     private final DataBroker dataBroker;
-    private final RpcProviderService rpcProviderService;
-    private final TransportpceNetworkutilsService networkutilsService;
     private final NetConfTopologyListener topologyListener;
-    private ListenerRegistration<NetConfTopologyListener> dataTreeChangeListenerRegistration;
-    private ListenerRegistration<PortMappingListener> mappingListenerRegistration;
-    private ObjectRegistration<TransportpceNetworkutilsService> networkutilsServiceRpcRegistration;
+    private List<Registration> listeners;
     private TpceNetwork tpceNetwork;
-    private ListenerRegistration<TransportpceServicehandlerListener> serviceHandlerListenerRegistration;
+    private Registration serviceHandlerListenerRegistration;
     private NotificationService notificationService;
     private FrequenciesService frequenciesService;
     private PortMappingListener portMappingListener;
 
-    public NetworkModelProvider(NetworkTransactionService networkTransactionService, final DataBroker dataBroker,
-        final RpcProviderService rpcProviderService, final TransportpceNetworkutilsService networkutilsService,
-        final NetConfTopologyListener topologyListener, NotificationService notificationService,
-        FrequenciesService frequenciesService, PortMappingListener portMappingListener) {
+    /**
+     * Instantiate the NetworkModelProvider.
+     *
+     * @param networkTransactionService Service that eases the transaction operations with data-stores
+     * @param dataBroker Provides access to the conceptual data tree store in order to register data change listeners
+     * @param networkModelService Service that eases data handling in topology datastores
+     * @param deviceTransactionManager Manages data transactions with the netconf devices
+     * @param portMapping Store the abstraction view of the netconf device
+     * @param notificationService Notification broker which allows to subscribe for notifications
+     * @param frequenciesService Object that ease WDM spectrum handling
+     */
+    @Activate
+    public NetworkModelProvider(@Reference NetworkTransactionService networkTransactionService,
+            @Reference final DataBroker dataBroker,
+            @Reference final NetworkModelService networkModelService,
+            @Reference DeviceTransactionManager deviceTransactionManager,
+            @Reference PortMapping portMapping,
+            @Reference NotificationService notificationService,
+            @Reference FrequenciesService frequenciesService) {
         this.dataBroker = dataBroker;
-        this.rpcProviderService = rpcProviderService;
-        this.networkutilsService = networkutilsService;
-        this.topologyListener = topologyListener;
-        this.tpceNetwork = new TpceNetwork(networkTransactionService);
         this.notificationService = notificationService;
         this.frequenciesService = frequenciesService;
-        this.portMappingListener = portMappingListener;
+        this.listeners = new ArrayList<>();
+        this.topologyListener = new NetConfTopologyListener(networkModelService, dataBroker, deviceTransactionManager,
+            portMapping);
+        this.tpceNetwork = new TpceNetwork(networkTransactionService);
+        this.portMappingListener = new PortMappingListener(networkModelService);
+        this.init();
     }
 
     /**
-     * Method called when the blueprint container is created.
+     * Method called when OSGi service is created.
      */
-    public void init() {
+    private void init() {
         LOG.info("NetworkModelProvider Session Initiated");
-        tpceNetwork.createLayer(NetworkUtils.CLLI_NETWORK_ID);
-        tpceNetwork.createLayer(NetworkUtils.UNDERLAY_NETWORK_ID);
-        tpceNetwork.createLayer(NetworkUtils.OVERLAY_NETWORK_ID);
-        tpceNetwork.createLayer(NetworkUtils.OTN_NETWORK_ID);
-        dataTreeChangeListenerRegistration = dataBroker.registerDataTreeChangeListener(
-                DataTreeIdentifier.create(LogicalDatastoreType.OPERATIONAL,
-                InstanceIdentifiers.NETCONF_TOPOLOGY_II.child(Node.class)), topologyListener);
-        mappingListenerRegistration = dataBroker.registerDataTreeChangeListener(
-                DataTreeIdentifier.create(LogicalDatastoreType.CONFIGURATION, MAPPING_II), portMappingListener);
-        networkutilsServiceRpcRegistration =
-            rpcProviderService.registerRpcImplementation(TransportpceNetworkutilsService.class, networkutilsService);
-        TransportpceServicehandlerListener serviceHandlerListner =
-                new ServiceHandlerListener(frequenciesService);
-        serviceHandlerListenerRegistration = notificationService.registerNotificationListener(serviceHandlerListner);
+        tpceNetwork.createLayer(StringConstants.CLLI_NETWORK);
+        tpceNetwork.createLayer(StringConstants.OPENROADM_NETWORK);
+        tpceNetwork.createLayer(StringConstants.OPENROADM_TOPOLOGY);
+        tpceNetwork.createLayer(StringConstants.OTN_NETWORK);
+        listeners.add(dataBroker.registerTreeChangeListener(LogicalDatastoreType.OPERATIONAL, NETCONF_NODE_II,
+                topologyListener));
+        listeners.add(dataBroker.registerTreeChangeListener(LogicalDatastoreType.CONFIGURATION, MAPPING_II,
+                portMappingListener));
+        serviceHandlerListenerRegistration = notificationService.registerCompositeListener(
+            new ServiceHandlerListener(frequenciesService).getCompositeListener());
     }
 
-        /**
-         * Method called when the blueprint container is destroyed.
-         */
+    /**
+     * Method called when the OSGi service is destroyed.
+     */
+    @Deactivate
     public void close() {
         LOG.info("NetworkModelProvider Closed");
-        if (dataTreeChangeListenerRegistration != null) {
-            dataTreeChangeListenerRegistration.close();
-        }
-        if (mappingListenerRegistration != null) {
-            mappingListenerRegistration.close();
-        }
-        if (networkutilsServiceRpcRegistration != null) {
-            networkutilsServiceRpcRegistration.close();
-        }
+        listeners.forEach(lis -> lis.close());
+        listeners.clear();
         serviceHandlerListenerRegistration.close();
     }
 }

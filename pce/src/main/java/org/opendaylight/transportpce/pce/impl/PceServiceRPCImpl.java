@@ -7,55 +7,41 @@
  */
 package org.opendaylight.transportpce.pce.impl;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import java.util.concurrent.ExecutionException;
+import org.opendaylight.mdsal.binding.api.RpcProviderService;
 import org.opendaylight.transportpce.pce.service.PathComputationService;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.CancelResourceReserveInput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.CancelResourceReserveOutput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.PathComputationRequestInput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.PathComputationRequestOutput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.TransportpcePceService;
-import org.opendaylight.yangtools.yang.common.RpcResult;
-import org.opendaylight.yangtools.yang.common.RpcResultBuilder;
+import org.opendaylight.yangtools.concepts.Registration;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * PceService implementation.
  */
-public class PceServiceRPCImpl implements TransportpcePceService {
-
+@Component(immediate = true)
+public class PceServiceRPCImpl {
     private static final Logger LOG = LoggerFactory.getLogger(PceServiceRPCImpl.class);
+    private Registration reg;
 
-    private final PathComputationService pathComputationService;
-
-    public PceServiceRPCImpl(PathComputationService pathComputationService) {
-        this.pathComputationService = pathComputationService;
+    @Activate
+    public PceServiceRPCImpl(@Reference RpcProviderService rpcProviderService,
+            @Reference PathComputationService pathComputationService) {
+        this.reg = rpcProviderService.registerRpcImplementations(
+                new CancelResourceReserveImpl(pathComputationService),
+                new PathComputationRequestImpl(pathComputationService),
+                new PathComputationRerouteRequestImpl(pathComputationService));
+        LOG.info("PceServiceRPCImpl instantiated");
     }
 
-    @Override
-    public ListenableFuture<RpcResult<CancelResourceReserveOutput>>
-            cancelResourceReserve(CancelResourceReserveInput input) {
-        LOG.info("RPC cancelResourceReserve request received");
-        CancelResourceReserveOutput output = null;
-        try {
-            output = this.pathComputationService.cancelResourceReserve(input).get();
-        } catch (InterruptedException | ExecutionException e) {
-            LOG.error("RPC cancelResourceReserve failed !", e);
-        }
-        return RpcResultBuilder.success(output).buildFuture();
+    @Deactivate
+    public void close() {
+        this.reg.close();
+        LOG.info("PceServiceRPCImpl Closed");
     }
 
-    @Override
-    public ListenableFuture<RpcResult<PathComputationRequestOutput>>
-            pathComputationRequest(PathComputationRequestInput input) {
-        LOG.info("RPC path computation request received");
-        PathComputationRequestOutput output = null;
-        try {
-            output = this.pathComputationService.pathComputationRequest(input).get();
-        } catch (InterruptedException | ExecutionException e) {
-            LOG.error("RPC path computation request failed !", e);
-        }
-        return RpcResultBuilder.success(output).buildFuture();
+    public Registration getRegisteredRpc() {
+        return reg;
     }
 }

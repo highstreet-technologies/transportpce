@@ -10,14 +10,15 @@ package org.opendaylight.transportpce.networkmodel.listeners;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import org.eclipse.jdt.annotation.NonNull;
+import org.opendaylight.mdsal.binding.api.NotificationService.CompositeListener;
 import org.opendaylight.transportpce.common.mapping.PortMapping;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.mapping.Mapping;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mapping.Mapping;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.ChangeNotification;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.CreateTechInfoNotification;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.OrgOpenroadmDeviceListener;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.OtdrScanResult;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.change.notification.Edit;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.circuit.pack.Ports;
@@ -25,22 +26,46 @@ import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.circuit.
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.org.openroadm.device.container.org.openroadm.device.OduSwitchingPools;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.org.openroadm.device.container.org.openroadm.device.odu.switching.pools.NonBlockingList;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.org.openroadm.device.container.org.openroadm.device.odu.switching.pools.non.blocking.list.PortList;
-import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
-import org.opendaylight.yangtools.yang.binding.InstanceIdentifier.PathArgument;
+import org.opendaylight.yangtools.binding.DataObjectIdentifier;
+import org.opendaylight.yangtools.binding.ExactDataObjectStep;
 import org.opendaylight.yangtools.yang.common.Uint16;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DeviceListener710 implements OrgOpenroadmDeviceListener {
+/**
+ * Implementation of the org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.ChangeNotification
+ * notification.
+ * This implementation is dedicated to yang model 7.1 revision.
+ */
+public class DeviceListener710 {
 
     private static final Logger LOG = LoggerFactory.getLogger(DeviceListener710.class);
     private final String nodeId;
     private final PortMapping portMapping;
 
+    /**
+     * Create instance of the device listener.
+     *
+     * @param nodeId Node name
+     * @param portMapping Node abstractions stored
+     */
     public DeviceListener710(String nodeId, PortMapping portMapping) {
         super();
         this.nodeId = nodeId;
         this.portMapping = portMapping;
+    }
+
+    /**
+     * Get instances of a CompositeListener that could be used to unregister listeners.
+     *
+     * @return a Composite listener containing listener implementations that will receive notifications
+     */
+    public CompositeListener getCompositeListener() {
+        return new CompositeListener(Set.of(
+            new CompositeListener.Component<>(ChangeNotification.class, this::onChangeNotification),
+            new CompositeListener.Component<>(CreateTechInfoNotification.class, this::onCreateTechInfoNotification),
+            new CompositeListener.Component<>(OtdrScanResult.class, this::onOtdrScanResult)
+        ));
     }
 
     /**
@@ -49,32 +74,27 @@ public class DeviceListener710 implements OrgOpenroadmDeviceListener {
      * @param notification
      *            ChangeNotification object
      */
-    @Override
     @SuppressWarnings("unchecked")
-    public void onChangeNotification(ChangeNotification notification) {
+    void onChangeNotification(ChangeNotification notification) {
         LOG.debug("device71 notification received = {}", notification);
         if (notification.getEdit() == null) {
             LOG.warn("unable to handle {} notificatin received - list of edit is null", ChangeNotification.QNAME);
             return;
         }
-        Map<Uint16, List<InstanceIdentifier<PortList>>> nbliidMap = new HashMap<>();
-        InstanceIdentifier<OduSwitchingPools> ospIID = null;
+        Map<Uint16, List<DataObjectIdentifier<PortList>>> nbliidMap = new HashMap<>();
+        DataObjectIdentifier<OduSwitchingPools> ospIID = null;
         for (Edit edit : notification.getEdit()) {
             if (edit.getTarget() == null) {
                 continue;
             }
             // 1. Detect the org-openroadm-device object modified
-            LinkedList<PathArgument> path = new LinkedList<>();
-            switch (edit.getTarget().getTargetType().getSimpleName()) {
+            DataObjectIdentifier<?> path = DataObjectIdentifier.ofUnsafeSteps(
+                    (Iterable<? extends @NonNull ExactDataObjectStep<?>>) edit.getTarget().steps());
+            LOG.debug("Instance Identifier received = {} from node {}", path.toString(), nodeId);
+            switch (path.lastStep().type().getSimpleName()) {
                 case "Ports":
-                    edit.getTarget().getPathArguments().forEach(p -> path.add(p));
-                    InstanceIdentifier<Ports> portIID = (InstanceIdentifier<Ports>) InstanceIdentifier
-                        .create(path);
-                    String portName = InstanceIdentifier.keyOf(portIID).getPortName();
-                    path.removeLast();
-                    InstanceIdentifier<CircuitPacks> cpIID = (InstanceIdentifier<CircuitPacks>) InstanceIdentifier
-                        .create(path);
-                    String cpName = InstanceIdentifier.keyOf(cpIID).getCircuitPackName();
+                    String portName = path.firstKeyOf(Ports.class).getPortName();
+                    String cpName = path.firstKeyOf(CircuitPacks.class).getCircuitPackName();
                     LOG.info("port {} of circruit-pack {} modified on device {}", portName, cpName, this.nodeId);
                     Mapping oldMapping = portMapping.getMapping(nodeId, cpName, portName);
                     if (oldMapping == null) {
@@ -93,28 +113,22 @@ public class DeviceListener710 implements OrgOpenroadmDeviceListener {
                     break;
                 case "OduSwitchingPools":
                     LOG.info("odu-switching-pools modified on device {}", nodeId);
-                    edit.getTarget().getPathArguments().forEach(p -> path.add(p));
-                    ospIID = (InstanceIdentifier<OduSwitchingPools>) InstanceIdentifier.create(path);
+                    ospIID = (DataObjectIdentifier<OduSwitchingPools>) path;
                     break;
                 case "PortList":
-                    edit.getTarget().getPathArguments().forEach(p -> path.add(p));
-                    InstanceIdentifier<PortList> plIID = (InstanceIdentifier<PortList>) InstanceIdentifier.create(path);
-                    path.removeLast();
-                    InstanceIdentifier<NonBlockingList> nblIID =
-                        (InstanceIdentifier<NonBlockingList>) InstanceIdentifier.create(path);
-                    Uint16 nblNb = InstanceIdentifier.keyOf(nblIID).getNblNumber();
-                    List<InstanceIdentifier<PortList>> iidList = nbliidMap.containsKey(nblNb)
+                    Uint16 nblNb = path.firstKeyOf(NonBlockingList.class).getNblNumber();
+                    List<DataObjectIdentifier<PortList>> iidList = nbliidMap.containsKey(nblNb)
                         ? nbliidMap.get(nblNb) : new ArrayList<>();
-                    iidList.add(plIID);
+                    iidList.add((DataObjectIdentifier<PortList>) path);
                     nbliidMap.put(nblNb, iidList);
                     break;
                 default:
-                    LOG.debug("modification of type {} not managed yet", edit.getTarget().getTargetType());
+                    LOG.debug("modification of type {} not managed yet", edit.getTarget().getClass());
                     break;
             }
         }
         if (!nbliidMap.isEmpty() && ospIID != null) {
-            InstanceIdentifier<OduSwitchingPools> id = ospIID;
+            DataObjectIdentifier<OduSwitchingPools> id = ospIID;
             Runnable handleNetconfEvent = new Runnable() {
                 @Override
                 public void run() {
@@ -127,8 +141,7 @@ public class DeviceListener710 implements OrgOpenroadmDeviceListener {
         }
     }
 
-    @Override
-    public void onCreateTechInfoNotification(CreateTechInfoNotification notification) {
+    private void onCreateTechInfoNotification(CreateTechInfoNotification notification) {
     }
 
     /**
@@ -137,8 +150,7 @@ public class DeviceListener710 implements OrgOpenroadmDeviceListener {
      * @param notification
      *            OtdrScanResult object
      */
-    @Override
-    public void onOtdrScanResult(OtdrScanResult notification) {
+    private void onOtdrScanResult(OtdrScanResult notification) {
         LOG.info("Notification {} received {}", OtdrScanResult.QNAME, notification);
     }
 

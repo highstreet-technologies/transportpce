@@ -7,37 +7,38 @@
  */
 package org.opendaylight.transportpce.pce.networkanalyzer;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import java.util.concurrent.ExecutionException;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.opendaylight.transportpce.common.StringConstants;
 import org.opendaylight.transportpce.common.mapping.PortMapping;
 import org.opendaylight.transportpce.common.network.NetworkTransactionImpl;
-import org.opendaylight.transportpce.common.network.RequestProcessor;
 import org.opendaylight.transportpce.pce.constraints.PceConstraintsCalc;
 import org.opendaylight.transportpce.pce.utils.PceTestData;
 import org.opendaylight.transportpce.pce.utils.PceTestUtils;
 import org.opendaylight.transportpce.pce.utils.TransactionUtils;
 import org.opendaylight.transportpce.test.AbstractTest;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.PathComputationRequestInput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.mapping.Mapping;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.mapping.MappingBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.network.Nodes;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.network.NodesBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.network.NodesKey;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.network.nodes.NodeInfo;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.network.nodes.NodeInfoBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.device.types.rev191129.NodeTypes;
-//import org.opendaylight.yang.gen.v1.http.org.openroadm.device.types.rev191129.NodeTypes;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.PathComputationRequestInput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mapping.Mapping;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mapping.MappingBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.network.Nodes;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.network.NodesBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.network.NodesKey;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.network.nodes.NodeInfo;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.network.nodes.NodeInfoBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.node.types.rev210528.NodeTypes;
 
-@RunWith(MockitoJUnitRunner.StrictStubs.class)
+@ExtendWith(MockitoExtension.class)
 public class PceCalculationTest extends AbstractTest {
 
     private PceCalculation pceCalculation;
@@ -48,71 +49,67 @@ public class PceCalculationTest extends AbstractTest {
     @Mock
     private PortMapping portMapping;
 
-    // setup object
-    @Before
-    public void setUp() throws ExecutionException, InterruptedException {
-        pceResult.setRC("200");
+    @BeforeEach
+    void setUp() throws ExecutionException, InterruptedException {
+        pceResult.success();
         PceTestUtils.writeNetworkIntoDataStore(getDataBroker(), getDataStoreContextUtil(),
                 TransactionUtils.getNetworkForSpanLoss());
         pceConstraintsCalc = new PceConstraintsCalc(PceTestData.getPCERequest(),
-                new NetworkTransactionImpl(new RequestProcessor(getDataBroker())));
+                new NetworkTransactionImpl(getDataBroker()));
         mapping = new MappingBuilder().setLogicalConnectionPoint("logicalConnectionPoint").setPortQual("xpdr-client")
             .build();
         NodeInfo info = new NodeInfoBuilder().setNodeType(NodeTypes.Xpdr).build();
         Nodes node = new NodesBuilder().withKey(new NodesKey("node")).setNodeId("node").setNodeInfo(info).build();
-        when(portMapping.getMapping(anyString(), anyString())).thenReturn(mapping);
+        lenient().when(portMapping.getMapping(anyString(), anyString())).thenReturn(mapping);
         when(portMapping.getNode(anyString())).thenReturn(node);
     }
 
     @Test
-    public void testPceCalculationValues() {
+    void testPceCalculationValues() {
         pceCalculation = new PceCalculation(
             PceTestData.getPCERequest(),
-            new NetworkTransactionImpl(new RequestProcessor(getDataBroker())),
+            new NetworkTransactionImpl(getDataBroker()),
             pceConstraintsCalc.getPceHardConstraints(),
             pceConstraintsCalc.getPceSoftConstraints(),
             pceResult,
             portMapping);
         pceCalculation.retrievePceNetwork();
-        Assert.assertEquals(StringConstants.SERVICE_TYPE_100GE_T, pceCalculation.getServiceType());
-        Assert.assertNotNull(pceCalculation.getReturnStructure());
-
-        Assert.assertNull(pceCalculation.getaendPceNode());
-        Assert.assertNull(pceCalculation.getzendPceNode());
+        assertEquals(StringConstants.SERVICE_TYPE_100GE_T, pceCalculation.getServiceType());
+        assertNotNull(pceCalculation.getReturnStructure());
+        assertNull(pceCalculation.getaendPceNode());
+        assertNull(pceCalculation.getzendPceNode());
     }
 
     @Test
-    public void testPceCalculationValues2() {
+    void testPceCalculationValues2() {
         pceCalculation = new PceCalculation(
                 PceTestData.getPathComputationRequestInputWithCoRoutingOrGeneral(),
-                new NetworkTransactionImpl(new RequestProcessor(getDataBroker())),
+                new NetworkTransactionImpl(getDataBroker()),
                 pceConstraintsCalc.getPceHardConstraints(),
                 pceConstraintsCalc.getPceSoftConstraints(),
                 pceResult, portMapping);
         pceCalculation.retrievePceNetwork();
-        Assert.assertEquals(StringConstants.SERVICE_TYPE_100GE_T, pceCalculation.getServiceType());
-        Assert.assertNotNull(pceCalculation.getReturnStructure());
-
-        Assert.assertNull(pceCalculation.getaendPceNode());
-        Assert.assertNull(pceCalculation.getzendPceNode());
+        assertEquals(StringConstants.SERVICE_TYPE_100GE_T, pceCalculation.getServiceType());
+        assertNotNull(pceCalculation.getReturnStructure());
+        assertNull(pceCalculation.getaendPceNode());
+        assertNull(pceCalculation.getzendPceNode());
     }
 
     @Test
-    public void testPceCalculationValues42() {
+    void testPceCalculationValues42() {
         PathComputationRequestInput input = PceTestData.getPathComputationRequestInputWithCoRoutingOrGeneral2();
         pceConstraintsCalc = new PceConstraintsCalc(input,
-                new NetworkTransactionImpl(new RequestProcessor(getDataBroker())));
+                new NetworkTransactionImpl(getDataBroker()));
         pceCalculation = new PceCalculation(
                 PceTestData.getPCE_test3_request_54(),
-                new NetworkTransactionImpl(new RequestProcessor(getDataBroker())),
+                new NetworkTransactionImpl(getDataBroker()),
                 pceConstraintsCalc.getPceHardConstraints(),
                 pceConstraintsCalc.getPceSoftConstraints(),
                 pceResult, portMapping);
         pceCalculation.retrievePceNetwork();
-        Assert.assertEquals(StringConstants.SERVICE_TYPE_100GE_T, pceCalculation.getServiceType());
-        Assert.assertNotNull(pceCalculation.getReturnStructure());
-
-        Assert.assertNull(pceCalculation.getaendPceNode());
-        Assert.assertNull(pceCalculation.getzendPceNode());
+        assertEquals(StringConstants.SERVICE_TYPE_100GE_T, pceCalculation.getServiceType());
+        assertNotNull(pceCalculation.getReturnStructure());
+        assertNull(pceCalculation.getaendPceNode());
+        assertNull(pceCalculation.getzendPceNode());
     }
 }

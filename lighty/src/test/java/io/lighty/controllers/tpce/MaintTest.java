@@ -10,7 +10,8 @@ package io.lighty.controllers.tpce;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.junit.After;
@@ -48,16 +49,16 @@ public class MaintTest {
 
     @Test
     public void startNoConfigFileTest() throws Exception {
-        main.start(null, false, "3000", "2000", true);
-        ContentResponse response = client.GET("http://localhost:8181/restconf/config/ietf-network:networks/network/openroadm-topology");
+        main.start(null, false, false, "3000", "2000", true);
+        ContentResponse response = client.GET("http://localhost:8181/restconf/data/ietf-network:networks/network=openroadm-topology");
         assertEquals("Response code should be 200", 200, response.getStatus());
     }
 
     @Test
     public void startConfigFileTest() throws Exception {
-        File configFile = new File("src/test/resources/config.json");
-        main.start(configFile.getAbsolutePath(), false, "3000", "2000", true);
-        ContentResponse response = client.GET("http://localhost:8888/restconfCustom/config/ietf-network:networks/network/openroadm-topology");
+        Path configFilePath = Paths.get("src/test/resources/config.json");
+        main.start(configFilePath.toAbsolutePath().toString(), false, false, "3000", "2000", true);
+        ContentResponse response = client.GET("http://localhost:8888/restconfCustom/data/ietf-network:networks/network=openroadm-topology");
         assertEquals("Response code should be 200", 200, response.getStatus());
     }
 }

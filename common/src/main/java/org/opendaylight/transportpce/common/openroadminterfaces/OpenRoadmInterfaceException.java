@@ -8,8 +8,10 @@
 
 package org.opendaylight.transportpce.common.openroadminterfaces;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 @SuppressWarnings("serial")
-@edu.umd.cs.findbugs.annotations.SuppressFBWarnings(
+@SuppressFBWarnings(
     value = "SE_NO_SERIALVERSIONID",
     justification = "https://github.com/rzwitserloot/lombok/wiki/WHY-NOT:-serialVersionUID")
 public class OpenRoadmInterfaceException extends Exception {
@@ -20,5 +22,15 @@ public class OpenRoadmInterfaceException extends Exception {
 
     public OpenRoadmInterfaceException(String message, Throwable cause) {
         super(message, cause);
+    }
+
+    public static final String mapping_msg_err(String node, String port) {
+        return String.format(
+            "Unable to get mapping from PortMapping for node %s and logical connection port %s", node, port);
+    }
+
+    public static final String mapping_xpdrtype_err(String node, String port) {
+        return String.format(
+                "Unable to get XpdrType from PortMapping for node %s and logical connection port %s", node, port);
     }
 }

@@ -8,22 +8,42 @@
 
 package org.opendaylight.transportpce.networkmodel.listeners;
 
-import org.opendaylight.yang.gen.v1.http.org.openroadm.de.operations.rev200529.OrgOpenroadmDeOperationsListener;
+import java.util.Set;
+import org.opendaylight.mdsal.binding.api.NotificationService.CompositeListener;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.de.operations.rev200529.RestartNotification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DeOperationsListener710 implements OrgOpenroadmDeOperationsListener {
+/**
+ * Implementation of the org-openroadm-de-operations notification.
+ * This implementation is dedicated to yang model 7.1 revision.
+ */
+public class DeOperationsListener710 {
+
+    /**
+     * Default constructor.
+     */
+    public DeOperationsListener710() {
+    }
 
     private static final Logger LOG = LoggerFactory.getLogger(DeOperationsListener710.class);
+
+    /**
+     * Get instances of a CompositeListener that could be used to unregister listeners.
+     *
+     * @return a Composite listener containing listener implementations that will receive notifications
+     */
+    public CompositeListener getCompositeListener() {
+        return new CompositeListener(Set.of(
+            new CompositeListener.Component<>(RestartNotification.class, this::onRestartNotification)));
+    }
 
     /**
      * Callback for restart-notification.
      *
      * @param notification RestartNotification object
      */
-    @Override
-    public void onRestartNotification(RestartNotification notification) {
+    private void onRestartNotification(RestartNotification notification) {
         LOG.info("Notification {} received {}", RestartNotification.QNAME, notification);
     }
 

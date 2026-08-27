@@ -12,9 +12,7 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.net.URISyntaxException;
 import java.util.Optional;
-import javax.annotation.Nonnull;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.FactoryConfigurationError;
 import javax.xml.stream.XMLInputFactory;
@@ -22,9 +20,10 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
-import org.opendaylight.mdsal.binding.dom.codec.api.BindingNormalizedNodeSerializer;
+import org.eclipse.jdt.annotation.NonNull;
 import org.opendaylight.transportpce.test.DataStoreContext;
-import org.opendaylight.yangtools.yang.binding.DataObject;
+import org.opendaylight.yangtools.binding.DataObject;
+import org.opendaylight.yangtools.binding.data.codec.api.BindingNormalizedNodeSerializer;
 import org.opendaylight.yangtools.yang.common.QName;
 import org.opendaylight.yangtools.yang.data.api.schema.ContainerNode;
 import org.opendaylight.yangtools.yang.data.api.schema.NormalizedNode;
@@ -33,7 +32,7 @@ import org.opendaylight.yangtools.yang.data.api.schema.stream.NormalizedNodeWrit
 import org.opendaylight.yangtools.yang.data.codec.xml.XMLStreamNormalizedNodeStreamWriter;
 import org.opendaylight.yangtools.yang.data.codec.xml.XmlParserStream;
 import org.opendaylight.yangtools.yang.data.impl.schema.ImmutableNormalizedNodeStreamWriter;
-import org.opendaylight.yangtools.yang.data.impl.schema.NormalizedNodeResult;
+import org.opendaylight.yangtools.yang.data.impl.schema.NormalizationResultHolder;
 import org.opendaylight.yangtools.yang.model.api.EffectiveModelContext;
 import org.opendaylight.yangtools.yang.model.api.EffectiveStatementInference;
 import org.opendaylight.yangtools.yang.model.api.SchemaNode;
@@ -41,7 +40,6 @@ import org.opendaylight.yangtools.yang.model.util.SchemaInferenceStack;
 import org.opendaylight.yangtools.yang.model.util.SchemaInferenceStack.Inference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xml.sax.SAXException;
 
 public final class XMLDataObjectConverter extends AbstractDataObjectConverter {
 
@@ -70,7 +68,7 @@ public final class XMLDataObjectConverter extends AbstractDataObjectConverter {
      * @param dataStoreContextUtil datastore context util used to extract codec and schema context
      * @return {@link AbstractDataObjectConverter}
      */
-    public static XMLDataObjectConverter createWithDataStoreUtil(@Nonnull DataStoreContext dataStoreContextUtil) {
+    public static XMLDataObjectConverter createWithDataStoreUtil(@NonNull DataStoreContext dataStoreContextUtil) {
         BindingNormalizedNodeSerializer bindingToNormalizedNodeCodec =
                 dataStoreContextUtil.getBindingDOMCodecServices();
         return new XMLDataObjectConverter(dataStoreContextUtil.getSchemaContext(), bindingToNormalizedNodeCodec);
@@ -83,8 +81,8 @@ public final class XMLDataObjectConverter extends AbstractDataObjectConverter {
      * @param codecRegistry codec registry used for converting
      * @return new {@link XMLDataObjectConverter}
      */
-    public static XMLDataObjectConverter createWithSchemaContext(@Nonnull EffectiveModelContext schemaContext,
-            @Nonnull BindingNormalizedNodeSerializer codecRegistry) {
+    public static XMLDataObjectConverter createWithSchemaContext(@NonNull EffectiveModelContext schemaContext,
+            @NonNull BindingNormalizedNodeSerializer codecRegistry) {
         return new XMLDataObjectConverter(schemaContext, codecRegistry);
     }
 
@@ -95,7 +93,7 @@ public final class XMLDataObjectConverter extends AbstractDataObjectConverter {
      * @return {@link Optional} instance of {@link NormalizedNode}.
      */
     @Override
-    public Optional<NormalizedNode> transformIntoNormalizedNode(@Nonnull InputStream inputStream) {
+    public Optional<NormalizedNode> transformIntoNormalizedNode(@NonNull InputStream inputStream) {
         try {
             XMLStreamReader reader = this.xmlInputFactory.createXMLStreamReader(inputStream);
             return parseInputXML(reader);
@@ -106,7 +104,7 @@ public final class XMLDataObjectConverter extends AbstractDataObjectConverter {
     }
 
     @Override
-    public Optional<NormalizedNode> transformIntoNormalizedNode(@Nonnull Reader inputReader) {
+    public Optional<NormalizedNode> transformIntoNormalizedNode(@NonNull Reader inputReader) {
         try {
             XMLStreamReader reader = this.xmlInputFactory.createXMLStreamReader(inputReader);
             return parseInputXML(reader);
@@ -127,7 +125,7 @@ public final class XMLDataObjectConverter extends AbstractDataObjectConverter {
      * @param inputReader of the given XML
      * @return {@link Optional} instance of {@link NormalizedNode}.
      */
-    public Optional<NormalizedNode> transformInschemaContexttoNormalizedNode(@Nonnull Reader inputReader) {
+    public Optional<NormalizedNode> transformInschemaContexttoNormalizedNode(@NonNull Reader inputReader) {
         try {
             XMLStreamReader reader = this.xmlInputFactory.createXMLStreamReader(inputReader);
             return parseInputXML(reader);
@@ -138,7 +136,7 @@ public final class XMLDataObjectConverter extends AbstractDataObjectConverter {
     }
 
     @Override
-    public <T extends DataObject> Writer writerFromRpcDataObject(@Nonnull DataObject object, Class<T> dataObjectClass,
+    public <T extends DataObject> Writer writerFromRpcDataObject(@NonNull DataObject object, Class<T> dataObjectClass,
             ConvertType<T> convertType, QName rpcOutputQName, String rpcName) {
         Writer writer = new StringWriter();
         XMLStreamWriter xmlStreamWriter = createXmlStreamWriter(writer);
@@ -146,8 +144,8 @@ public final class XMLDataObjectConverter extends AbstractDataObjectConverter {
             xmlStreamWriter.writeStartElement(XMLConstants.DEFAULT_NS_PREFIX,
                     rpcOutputQName.getLocalName(), rpcOutputQName.getNamespace().toString());
             xmlStreamWriter.writeDefaultNamespace(rpcOutputQName.getNamespace().toString());
-            NormalizedNode rpcOutputNormalizedNode = convertType.toNormalizedNodes(dataObjectClass.cast(object),
-                    dataObjectClass).get();
+            NormalizedNode rpcOutputNormalizedNode =
+                convertType.toNormalizedNodes(dataObjectClass.cast(object), dataObjectClass).orElseThrow();
             for (final NormalizedNode child : ((ContainerNode)rpcOutputNormalizedNode).body()) {
                 normalizedNodeWriter.write(child);
             }
@@ -169,7 +167,7 @@ public final class XMLDataObjectConverter extends AbstractDataObjectConverter {
      *
      */
     @Override
-    public <T extends DataObject> Writer writerFromDataObject(@Nonnull DataObject object, Class<T> dataObjectClass,
+    public <T extends DataObject> Writer writerFromDataObject(@NonNull DataObject object, Class<T> dataObjectClass,
             ConvertType<T> convertType) {
 
         Writer writer = new StringWriter();
@@ -181,7 +179,7 @@ public final class XMLDataObjectConverter extends AbstractDataObjectConverter {
         }
 
         try (NormalizedNodeWriter normalizedNodeWriter = createWriterBackedNormalizedNodeWriter(writer)) {
-            normalizedNodeWriter.write(normalizedNode.get());
+            normalizedNodeWriter.write(normalizedNode.orElseThrow());
             normalizedNodeWriter.flush();
         } catch (IOException ioe) {
             throw new IllegalStateException(ioe);
@@ -194,17 +192,17 @@ public final class XMLDataObjectConverter extends AbstractDataObjectConverter {
     }
 
     private Optional<NormalizedNode> parseInputXML(XMLStreamReader reader, SchemaNode parentSchemaNode) {
-        NormalizedNodeResult result = new NormalizedNodeResult();
+        NormalizationResultHolder result = new NormalizationResultHolder();
         EffectiveStatementInference schema = SchemaInferenceStack.of(getSchemaContext()).toInference();
         try (NormalizedNodeStreamWriter streamWriter = ImmutableNormalizedNodeStreamWriter.from(result);
                 XmlParserStream xmlParser = XmlParserStream
                     .create(streamWriter, schema)) {
             xmlParser.parse(reader);
-        } catch (XMLStreamException | URISyntaxException | IOException | SAXException e) {
+        } catch (XMLStreamException | IOException e) {
             LOG.warn("An error occured during parsing XML input stream", e);
             return Optional.empty();
         }
-        return Optional.ofNullable(result.getResult());
+        return Optional.ofNullable(result.getResult().data());
     }
 
     private NormalizedNodeWriter createWriterBackedNormalizedNodeWriter(Writer backingWriter) {

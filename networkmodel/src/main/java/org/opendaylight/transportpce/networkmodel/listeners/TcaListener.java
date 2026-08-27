@@ -8,22 +8,42 @@
 
 package org.opendaylight.transportpce.networkmodel.listeners;
 
-import org.opendaylight.yang.gen.v1.http.org.openroadm.tca.rev161014.OrgOpenroadmTcaListener;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.tca.rev161014.TcaNotification;
+import java.util.Set;
+import org.opendaylight.mdsal.binding.api.NotificationService.CompositeListener;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.tca.rev181019.TcaNotification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TcaListener implements OrgOpenroadmTcaListener {
+/**
+ * Implementation of the org.opendaylight.yang.gen.v1.http.org.openroadm.tca.rev181019.TcaNotification
+ * notification.
+ * This implementation is dedicated to yang model 2.2.1 revision.
+ */
+public final class TcaListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(TcaListener.class);
+
+    /**
+     * Default constructor for TcaListener.
+     */
+    public TcaListener() {
+    }
+
+    /**
+     * Get instances of a CompositeListener that could be used to unregister listeners.
+     *
+     * @return a Composite listener containing listener implementations that will receive notifications
+     */
+    public CompositeListener getCompositeListener() {
+        return new CompositeListener(Set.of(
+            new CompositeListener.Component<>(TcaNotification.class, this::onTcaNotification)));
+    }
 
     /**
      * Callback for tca-notification.
      * @param notification TcaNotification object
      */
-    @Override
-    public void onTcaNotification(TcaNotification notification) {
+    private void onTcaNotification(TcaNotification notification) {
         LOG.info("Notification {} received {}", TcaNotification.QNAME, notification);
     }
-
 }

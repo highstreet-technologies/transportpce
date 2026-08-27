@@ -8,10 +8,13 @@
 
 package org.opendaylight.transportpce.networkmodel.util;
 
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev170818.InitRoadmNodesInput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev250902.InitRoadmNodesInput;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.LinkId;
 
 
+/**
+ * Utility class that eases the generation of different ID and their handling.
+ */
 public final class LinkIdUtil {
 
     private static final String NETWORK = "-NETWORK";
@@ -19,34 +22,62 @@ public final class LinkIdUtil {
     private static final String RECEIVE = "-RX";
     private static final String BIDIRECTIONAL = "-TXRX";
     private static final String LINK_ID_FORMAT = "%1$s-%2$sto%3$s-%4$s";
+    private static final String INTERDOMAIN_LINK_ID_FORMAT_TAPI_ABS_NODE_SRC = "%1$sto%2$s-%3$s";
+    private static final String INTERDOMAIN_LINK_ID_FORMAT_TAPI_ABS_NODE_DST = "%1$s-%2$sto%3$s";
     private static final String OTN_LINK_ID_FORMAT = "%5$s-%1$s-%2$sto%3$s-%4$s";
 
     private LinkIdUtil() {
-        // utility class
     }
 
     /**
-     * Builds the Link id in format {@link LinkIdUtil#LINK_ID_FORMAT}.
+     * Builds the Link id in format {@link org.opendaylight.transportpce.networkmodel.util.LinkIdUtil#LINK_ID_FORMAT}.
      *
      * @param srcNode source node id string
      * @param srcTp source termination point
      * @param destNode destination node id
      * @param destTp destination termination point
-     * @return {@link LinkId}
+     * @return {@link org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.LinkId}
      */
     public static LinkId buildLinkId(String srcNode, String srcTp, String destNode, String destTp) {
         return new LinkId(String.format(LINK_ID_FORMAT, srcNode, srcTp, destNode, destTp));
     }
 
     /**
-     * Builds the OTN Link id in format {@link LinkIdUtil#OTN_LINK_ID_FORMAT}.
+     * Builds the Link id for inter-domain Link in format {@link org.opendaylight.transportpce.networkmodel
+     *      .util.LinkIdUtil#INTERDOMAIN_LINK_ID_FORMAT_TAPI_ABS_NODE_SRC}.
+     *
+     * @param srcTp source termination point
+     * @param destNode destination node id
+     * @param destTp destination termination point
+     * @return {@link org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.LinkId}
+     */
+    public static LinkId buildInterDomainLinkIdwABSnodeAsSource(String srcTp, String destNode, String destTp) {
+        return new LinkId(String.format(INTERDOMAIN_LINK_ID_FORMAT_TAPI_ABS_NODE_SRC, srcTp, destNode, destTp));
+    }
+
+    /**
+     * Builds the Link id for inter-domain Link in format {@link org.opendaylight.transportpce.networkmodel
+     *      .util.LinkIdUtil#INTERDOMAIN_LINK_ID_FORMAT_TAPI_ABS_NODE_DST}.
+     *
+     * @param srcNode source node id string
+     * @param srcTp source termination point
+     * @param destTp destination termination point
+     * @return {@link org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.LinkId}
+     */
+    public static LinkId buildInterDomainLinkIdwABSnodeAsDest(String srcNode, String srcTp, String destTp) {
+        return new LinkId(String.format(INTERDOMAIN_LINK_ID_FORMAT_TAPI_ABS_NODE_DST, srcNode, srcTp, destTp));
+    }
+
+    /**
+     * Builds the OTN Link id in format
+     *      {@link org.opendaylight.transportpce.networkmodel.util.LinkIdUtil#OTN_LINK_ID_FORMAT}.
      *
      * @param srcNode source node id string
      * @param srcTp source termination point
      * @param destNode destination node id
      * @param destTp destination termination point
      * @param otnPrefix otn link type prefix
-     * @return {@link LinkId}
+     * @return {@link org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.LinkId}
      */
     public static LinkId buildOtnLinkId(String srcNode, String srcTp, String destNode, String destTp,
         String otnPrefix) {
@@ -54,10 +85,14 @@ public final class LinkIdUtil {
     }
 
     /**
-     * Builds the opposite {@link LinkId} from the {@link InitRoadmNodesInput}.
+     * Builds the opposite
+     *      {@link org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.LinkId}
+     *      from the {@link org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev250902
+     *      .InitRoadmNodesInput}.
      *
      * @param input an init link for ROADM nodes
-     * @return opposite {@link LinkId}
+     * @return opposite {@link org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226
+     *          .LinkId}
      */
     public static LinkId getRdm2RdmOppositeLinkId(InitRoadmNodesInput input) {
         String srcNode = new StringBuilder(input.getRdmANode()).append("-DEG").append(input.getDegANum()).toString();
@@ -71,7 +106,8 @@ public final class LinkIdUtil {
     }
 
     /**
-     * Builds the opposite {@link LinkId} from string descriptors.
+     * Builds the opposite {@link org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology
+     *      .rev180226.LinkId} from string descriptors.
      *
      * @param srcNode a source node
      * @param srcTp a source termination point
@@ -84,14 +120,15 @@ public final class LinkIdUtil {
     }
 
     /**
-     * Builds the opposite {@link LinkId} from string descriptors.
+     * Builds the opposite
+     * {@link org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.LinkId}
+     * from string descriptors.
      *
      * @param srcNode a source node
      * @param srcTp a source termination point
      * @param destNode a destination node
      * @param destTp a destination termination point
      * @param checkNode boolean to check node
-     *
      * @return LinkId a link identifier
      */
     public static LinkId getOppositeLinkId(String srcNode, String srcTp, String destNode, String destTp,

@@ -7,13 +7,13 @@
  */
 package org.opendaylight.transportpce.renderer.openroadminterface;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.IntStream;
 import org.opendaylight.transportpce.common.mapping.PortMapping;
 import org.opendaylight.transportpce.common.openroadminterfaces.OpenRoadmInterfaceException;
 import org.opendaylight.transportpce.common.openroadminterfaces.OpenRoadmInterfaces;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.mapping.Mapping;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mapping.Mapping;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.attributes.rev200327.parent.odu.allocation.ParentOduAllocationBuilder;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.attributes.rev200327.parent.odu.allocation.parent.odu.allocation.trib.slots.choice.OpucnBuilder;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.types.rev200529.Off;
@@ -28,8 +28,8 @@ import org.opendaylight.yang.gen.v1.http.org.openroadm.interfaces.rev191129.OtnO
 import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.common.types.rev200327.ODU4;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.common.types.rev200327.ODUCTP;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.common.types.rev200327.ODUTTPCTP;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.common.types.rev200327.OpucnTribSlotDef;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.common.types.rev200327.PayloadTypeDef;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.common.types.rev250530.OpucnTribSlotDef;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.odu.interfaces.rev200529.OduAttributes.MonitoringMode;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.odu.interfaces.rev200529.odu.container.OduBuilder;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.odu.interfaces.rev200529.opu.OpuBuilder;
@@ -60,10 +60,9 @@ public class OpenRoadmOtnInterface710 {
 
         // Ethernet interface specific data
         EthernetBuilder ethIfBuilder = new EthernetBuilder()
-            .setFec(Off.class)
+            .setFec(Off.VALUE)
             .setSpeed(Uint32.valueOf(100000));
-        InterfaceBuilder ethInterfaceBldr = createGenericInterfaceBuilder(
-            portMap, EthernetCsmacd.class,
+        InterfaceBuilder ethInterfaceBldr = createGenericInterfaceBuilder(portMap, EthernetCsmacd.VALUE,
             logicalConnPoint + "-ETHERNET-100G");
         // Create Interface1 type object required for adding as augmentation
         Interface1Builder ethIf1Builder = new Interface1Builder();
@@ -83,19 +82,18 @@ public class OpenRoadmOtnInterface710 {
         throws OpenRoadmInterfaceException {
 
         throw new OpenRoadmInterfaceException(String.format(
-            "Unable to get mapping from PortMapping for node % and logical connection port %s",
+            "Unable to get mapping from PortMapping for node %s and logical connection port %s",
             nodeId, logicalConnPoint));
     }
 
-    public String createOpenRoadmOdu4Interface(String nodeId, String logicalConnPoint,
-        String serviceName, String payLoad,
-        boolean isNetworkPort, OpucnTribSlotDef minTribSlotNumber, OpucnTribSlotDef maxTribSlotNumber)
+    public String createOpenRoadmOdu4Interface(String nodeId, String logicalConnPoint, String serviceName,
+        String payLoad, boolean isNetworkPort, OpucnTribSlotDef minTribSlotNumber, OpucnTribSlotDef maxTribSlotNumber)
         throws OpenRoadmInterfaceException {
         Mapping portMap = this.portMapping.getMapping(nodeId, logicalConnPoint);
         if (portMap == null) {
             throwException(nodeId, logicalConnPoint);
         }
-        List<String> supportingInterfaceList = new ArrayList<>();
+        Set<String> supportingInterfaceList = new HashSet<>();
         String supportingInterface = null;
         if (isNetworkPort) {
             supportingInterface = portMap.getSupportingOducn();
@@ -114,31 +112,33 @@ public class OpenRoadmOtnInterface710 {
         supportingInterfaceList.add(supportingInterface);
 
         InterfaceBuilder oduIfBuilder = createGenericInterfaceBuilder(
-            portMap, OtnOdu.class, logicalConnPoint + "-ODU4-" + serviceName)
+            portMap, OtnOdu.VALUE, logicalConnPoint + "-ODU4" + ":" + serviceName)
             .setSupportingInterfaceList(supportingInterfaceList);
         // Agument ODU4 specific interface data
-        OduBuilder oduBuilder = new OduBuilder().setRate(ODU4.class)
-            .setOduFunction(ODUTTPCTP.class)
+        OduBuilder oduBuilder = new OduBuilder().setRate(ODU4.VALUE)
+            .setOduFunction(ODUTTPCTP.VALUE)
             .setMonitoringMode(MonitoringMode.Terminated);
         LOG.debug("Inside the ODU4 creation {} {} {}", isNetworkPort, minTribSlotNumber.getValue(),
             maxTribSlotNumber.getValue());
         // If it is a network port we have fill the required trib-slots and trib-ports
         if (isNetworkPort) {
-            List<OpucnTribSlotDef> opucnTribSlotDefList = new ArrayList<>();
+            Set<org.opendaylight.yang.gen.v1.http.org.openroadm.otn.common.types.rev200327.OpucnTribSlotDef>
+                opucnTribSlotDefList = new HashSet<>();
             // Escape characters are used to here to take the literal dot
             Uint16 tribPortNumber = Uint16.valueOf(minTribSlotNumber.getValue().split("\\.")[0]);
             Uint16 startTribSlot = Uint16.valueOf(minTribSlotNumber.getValue().split("\\.")[1]);
             Uint16 endTribSlot = Uint16.valueOf(maxTribSlotNumber.getValue().split("\\.")[1]);
 
             IntStream.range(startTribSlot.intValue(), endTribSlot.intValue() + 1)
-                .forEach(
-                    nbr -> opucnTribSlotDefList.add(OpucnTribSlotDef.getDefaultInstance(tribPortNumber + "." + nbr))
+                .forEach(nbr -> opucnTribSlotDefList.add(
+                    org.opendaylight.yang.gen.v1.http.org.openroadm.otn.common.types.rev200327.OpucnTribSlotDef
+                    .getDefaultInstance(tribPortNumber + "." + nbr))
                 );
             ParentOduAllocationBuilder parentOduAllocationBuilder = new ParentOduAllocationBuilder()
                 .setTribPortNumber(tribPortNumber)
                 .setTribSlotsChoice(new OpucnBuilder().setOpucnTribSlots(opucnTribSlotDefList).build());
             // reset the ODU function as ODUCTP and the monitoring moode
-            oduBuilder.setOduFunction(ODUCTP.class)
+            oduBuilder.setOduFunction(ODUCTP.VALUE)
                 .setMonitoringMode(MonitoringMode.NotTerminated)
                 .setParentOduAllocation(parentOduAllocationBuilder.build());
         }
@@ -161,8 +161,7 @@ public class OpenRoadmOtnInterface710 {
         return oduIfBuilder.getName();
     }
 
-    private InterfaceBuilder createGenericInterfaceBuilder(Mapping portMap,
-        Class<? extends InterfaceType> type, String key) {
+    private InterfaceBuilder createGenericInterfaceBuilder(Mapping portMap, InterfaceType type, String key) {
         return new InterfaceBuilder()
             // .setDescription(" TBD ")
             // .setCircuitId(" TBD ")

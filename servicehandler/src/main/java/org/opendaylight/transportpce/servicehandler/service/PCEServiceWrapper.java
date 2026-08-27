@@ -12,31 +12,45 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import org.opendaylight.mdsal.binding.api.NotificationPublishService;
 import org.opendaylight.transportpce.common.ResponseCodes;
 import org.opendaylight.transportpce.pce.service.PathComputationService;
 import org.opendaylight.transportpce.servicehandler.ModelMappingUtils;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.CancelResourceReserveInput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.CancelResourceReserveInputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.CancelResourceReserveOutput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.CancelResourceReserveOutputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.PathComputationRequestInput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.PathComputationRequestInputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.PathComputationRequestOutput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.PathComputationRequestOutputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.CancelResourceReserveInput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.CancelResourceReserveInputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.CancelResourceReserveOutput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.CancelResourceReserveOutputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.PathComputationRequestInput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.PathComputationRequestInputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.PathComputationRequestOutput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.PathComputationRequestOutputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.PathComputationRerouteRequestInput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.PathComputationRerouteRequestInputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.PathComputationRerouteRequestOutput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.PathComputationRerouteRequestOutputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.path.computation.reroute.request.input.Endpoints;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.path.computation.reroute.request.input.EndpointsBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.service.spectrum.constraint.rev230907.ServiceAEnd2;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.service.spectrum.constraint.rev230907.ServiceAEnd3;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.service.spectrum.constraint.rev230907.ServiceAEnd5;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.service.spectrum.constraint.rev230907.ServiceZEnd2;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.service.spectrum.constraint.rev230907.ServiceZEnd3;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.service.spectrum.constraint.rev230907.ServiceZEnd5;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.service.spectrum.constraint.rev230907.SpectrumAllocation;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.servicehandler.rev201125.ServiceRpcResultSh;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.servicehandler.rev201125.ServiceRpcResultShBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.ServiceEndpoint;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.ServiceNotificationTypes;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.configuration.response.common.ConfigurationResponseCommon;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.configuration.response.common.ConfigurationResponseCommonBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev211210.sdnc.request.header.SdncRequestHeader;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.routing.constraints.HardConstraints;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.routing.constraints.SoftConstraints;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.ServiceCreateInput;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.ServiceFeasibilityCheckInput;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.TempServiceCreateInput;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.ServiceEndpoint;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.ServiceNotificationTypes;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.configuration.response.common.ConfigurationResponseCommon;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.configuration.response.common.ConfigurationResponseCommonBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.sdnc.request.header.SdncRequestHeader;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.routing.constraints.HardConstraints;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.routing.constraints.SoftConstraints;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.ServiceCreateInput;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.ServiceFeasibilityCheckInput;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.TempServiceCreateInput;
 import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.PceMetric;
 import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.RpcStatusEx;
 import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.response.parameters.sp.ResponseParameters;
@@ -68,10 +82,24 @@ public class PCEServiceWrapper {
     public PathComputationRequestOutput performPCE(ServiceCreateInput serviceCreateInput, boolean reserveResource) {
         LOG.info(PERFORMING_PCE_MSG);
         if (validateParams(serviceCreateInput.getServiceName(), serviceCreateInput.getSdncRequestHeader())) {
-            return performPCE(serviceCreateInput.getHardConstraints(), serviceCreateInput.getSoftConstraints(),
-                    serviceCreateInput.getServiceName(), serviceCreateInput.getSdncRequestHeader(),
-                    serviceCreateInput.getServiceAEnd(), serviceCreateInput.getServiceZEnd(),
-                    ServiceNotificationTypes.ServiceCreateResult, reserveResource);
+
+            return performPCE(
+                    serviceCreateInput.getHardConstraints(),
+                    serviceCreateInput.getSoftConstraints(),
+                    serviceCreateInput.getServiceName(),
+                    serviceCreateInput.getSdncRequestHeader(),
+                    serviceCreateInput.getServiceAEnd(),
+                    serviceCreateInput.getServiceZEnd(),
+                    ServiceNotificationTypes.ServiceCreateResult,
+                    reserveResource,
+                    serviceCreateInput.getCustomer(),
+                    serviceCreateInput
+                            .getServiceAEnd()
+                            .augmentation(ServiceAEnd2.class),
+                    serviceCreateInput
+                            .getServiceZEnd()
+                            .augmentation(ServiceZEnd2.class)
+            );
         } else {
             return returnPCEFailed();
         }
@@ -79,12 +107,22 @@ public class PCEServiceWrapper {
 
     public PathComputationRequestOutput performPCE(TempServiceCreateInput tempServiceCreateInput,
             boolean reserveResource) {
+
         LOG.info(PERFORMING_PCE_MSG);
         if (validateParams(tempServiceCreateInput.getCommonId(), tempServiceCreateInput.getSdncRequestHeader())) {
-            return performPCE(tempServiceCreateInput.getHardConstraints(), tempServiceCreateInput.getSoftConstraints(),
-                    tempServiceCreateInput.getCommonId(), tempServiceCreateInput.getSdncRequestHeader(),
-                    tempServiceCreateInput.getServiceAEnd(), tempServiceCreateInput.getServiceZEnd(),
-                    ServiceNotificationTypes.ServiceCreateResult, reserveResource);
+            return performPCE(
+                    tempServiceCreateInput.getHardConstraints(),
+                    tempServiceCreateInput.getSoftConstraints(),
+                    tempServiceCreateInput.getCommonId(),
+                    tempServiceCreateInput.getSdncRequestHeader(),
+                    tempServiceCreateInput.getServiceAEnd(),
+                    tempServiceCreateInput.getServiceZEnd(),
+                    ServiceNotificationTypes.ServiceCreateResult,
+                    reserveResource,
+                    tempServiceCreateInput.getCustomer(),
+                    tempServiceCreateInput.getServiceAEnd().augmentation(ServiceAEnd5.class),
+                    tempServiceCreateInput.getServiceZEnd().augmentation(ServiceZEnd5.class)
+            );
         } else {
             return returnPCEFailed();
         }
@@ -93,21 +131,38 @@ public class PCEServiceWrapper {
     public PathComputationRequestOutput performPCE(ServiceFeasibilityCheckInput serviceFeasibilityCheckInput,
             boolean reserveResource) {
         LOG.info(PERFORMING_PCE_MSG);
+
+
         if (validateParams(serviceFeasibilityCheckInput.getCommonId(),
                 serviceFeasibilityCheckInput.getSdncRequestHeader())) {
             return performPCE(serviceFeasibilityCheckInput.getHardConstraints(),
                     serviceFeasibilityCheckInput.getSoftConstraints(), serviceFeasibilityCheckInput.getCommonId(),
                     serviceFeasibilityCheckInput.getSdncRequestHeader(), serviceFeasibilityCheckInput.getServiceAEnd(),
                     serviceFeasibilityCheckInput.getServiceZEnd(),
-                    ServiceNotificationTypes.ServiceCreateResult, reserveResource);
+                    ServiceNotificationTypes.ServiceCreateResult, reserveResource,
+                    serviceFeasibilityCheckInput.getCustomer(),
+                    serviceFeasibilityCheckInput.getServiceAEnd().augmentation(ServiceAEnd3.class),
+                    serviceFeasibilityCheckInput.getServiceZEnd().augmentation(ServiceZEnd3.class)
+            );
         } else {
             return returnPCEFailed();
         }
     }
 
-    private PathComputationRequestOutput performPCE(HardConstraints hardConstraints, SoftConstraints softConstraints,
-            String serviceName, SdncRequestHeader sdncRequestHeader, ServiceEndpoint serviceAEnd,
-            ServiceEndpoint serviceZEnd, ServiceNotificationTypes notifType, boolean reserveResource) {
+    private PathComputationRequestOutput performPCE(
+            HardConstraints hardConstraints,
+            SoftConstraints softConstraints,
+            String serviceName,
+            SdncRequestHeader sdncRequestHeader,
+            ServiceEndpoint serviceAEnd,
+            ServiceEndpoint serviceZEnd,
+            ServiceNotificationTypes notifType,
+            boolean reserveResource,
+            String customerName,
+            SpectrumAllocation spectrumAEndAllocation,
+            SpectrumAllocation spectrumZEndAllocation
+    ) {
+
         LOG.info("Calling path computation.");
         notification = new ServiceRpcResultShBuilder().setNotificationType(notifType).setServiceName(serviceName)
                 .setStatus(RpcStatusEx.Pending)
@@ -119,8 +174,18 @@ public class PCEServiceWrapper {
         }
         FutureCallback<PathComputationRequestOutput> pceCallback =
                 new PathComputationRequestOutputCallback(notifType, serviceName);
-        PathComputationRequestInput pathComputationRequestInput = createPceRequestInput(serviceName, sdncRequestHeader,
-                hardConstraints, softConstraints, reserveResource, serviceAEnd, serviceZEnd);
+        PathComputationRequestInput pathComputationRequestInput = createPceRequestInput(
+                serviceName,
+                sdncRequestHeader,
+                hardConstraints,
+                softConstraints,
+                reserveResource,
+                serviceAEnd,
+                serviceZEnd,
+                customerName,
+                spectrumAEndAllocation,
+                spectrumZEndAllocation
+        );
         ListenableFuture<PathComputationRequestOutput> pce = this.pathComputationService
                 .pathComputationRequest(pathComputationRequestInput);
         Futures.addCallback(pce, pceCallback, executor);
@@ -138,10 +203,43 @@ public class PCEServiceWrapper {
                 .build();
     }
 
-    private PathComputationRequestInput createPceRequestInput(String serviceName,
-            SdncRequestHeader serviceHandler, HardConstraints hardConstraints,
-            SoftConstraints softConstraints, Boolean reserveResource, ServiceEndpoint serviceAEnd,
-            ServiceEndpoint serviceZEnd) {
+    public PathComputationRerouteRequestOutput performPCEReroute(HardConstraints hardConstraints,
+           SoftConstraints softConstraints, SdncRequestHeader serviceHandler, ServiceEndpoint serviceAEnd,
+           ServiceEndpoint serviceZEnd,
+           Endpoints endpoints) {
+        // TODO: Make it asynchronous
+        LOG.info("Calling path computation reroute");
+        PathComputationRerouteRequestInput inputPCE = createPceRerouteRequestInput(hardConstraints, softConstraints,
+                serviceHandler, serviceAEnd, serviceZEnd, endpoints);
+        ListenableFuture<PathComputationRerouteRequestOutput> res =
+                pathComputationService.pathComputationRerouteRequest(inputPCE);
+        try {
+            return res.get();
+        } catch (ExecutionException | InterruptedException e) {
+            LOG.warn("PerformPCEReroute FAILED ! ", e);
+            return new PathComputationRerouteRequestOutputBuilder()
+                    .setConfigurationResponseCommon(new ConfigurationResponseCommonBuilder()
+                            .setAckFinalIndicator(ResponseCodes.FINAL_ACK_YES)
+                            .setRequestId("None")
+                            .setResponseCode(ResponseCodes.RESPONSE_OK)
+                            .setResponseMessage("PCE calculation FAILED")
+                            .build())
+                    .build();
+        }
+    }
+
+    private PathComputationRequestInput createPceRequestInput(
+            String serviceName,
+            SdncRequestHeader serviceHandler,
+            HardConstraints hardConstraints,
+            SoftConstraints softConstraints,
+            Boolean reserveResource,
+            ServiceEndpoint serviceAEnd,
+            ServiceEndpoint serviceZEnd,
+            String customerName,
+            SpectrumAllocation spectrumAEndAllocation,
+            SpectrumAllocation spectrumZEndAllocation) {
+
         LOG.info("Mapping ServiceCreateInput or ServiceFeasibilityCheckInput or serviceReconfigureInput to PCE"
                 + "requests");
         ServiceHandlerHeaderBuilder serviceHandlerHeader = new ServiceHandlerHeaderBuilder();
@@ -155,9 +253,30 @@ public class PCEServiceWrapper {
             .setHardConstraints(hardConstraints)
             .setSoftConstraints(softConstraints)
             .setPceRoutingMetric(PceMetric.TEMetric)
-            .setServiceAEnd(ModelMappingUtils.createServiceAEnd(serviceAEnd))
-            .setServiceZEnd(ModelMappingUtils.createServiceZEnd(serviceZEnd))
+            .setCustomerName(customerName)
+            .setServiceAEnd(ModelMappingUtils.createServiceAEnd(serviceAEnd, spectrumAEndAllocation))
+            .setServiceZEnd(ModelMappingUtils.createServiceZEnd(serviceZEnd, spectrumZEndAllocation))
             .build();
+    }
+
+    private PathComputationRerouteRequestInput createPceRerouteRequestInput(HardConstraints hardConstraints,
+            SoftConstraints softConstraints, SdncRequestHeader serviceHandler, ServiceEndpoint serviceAEnd,
+            ServiceEndpoint serviceZEnd, Endpoints endpoints) {
+        LOG.info("Mapping Service-reroute to PCE requests");
+        return new PathComputationRerouteRequestInputBuilder()
+                .setServiceHandlerHeader(serviceHandler == null
+                        ? new ServiceHandlerHeaderBuilder().build()
+                        : new ServiceHandlerHeaderBuilder().setRequestId(serviceHandler.getRequestId()).build())
+                .setHardConstraints(hardConstraints)
+                .setSoftConstraints(softConstraints)
+                .setPceRoutingMetric(PceMetric.TEMetric)
+                .setEndpoints(new EndpointsBuilder()
+                        .setAEndTp(endpoints.getAEndTp())
+                        .setZEndTp(endpoints.getZEndTp())
+                        .build())
+                .setServiceAEnd(ModelMappingUtils.createServiceAEndReroute(serviceAEnd))
+                .setServiceZEnd(ModelMappingUtils.createServiceZEndReroute(serviceZEnd))
+                .build();
     }
 
     private CancelResourceReserveInput mappingCancelResourceReserve(String serviceName,

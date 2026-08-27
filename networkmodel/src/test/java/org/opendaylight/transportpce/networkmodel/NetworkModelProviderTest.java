@@ -13,44 +13,45 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.util.concurrent.FluentFuture;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
+import org.opendaylight.mdsal.binding.api.DataBroker;
 import org.opendaylight.mdsal.binding.api.NotificationService;
-import org.opendaylight.mdsal.binding.api.RpcProviderService;
 import org.opendaylight.mdsal.common.api.CommitInfo;
+import org.opendaylight.transportpce.common.device.DeviceTransactionManager;
+import org.opendaylight.transportpce.common.mapping.PortMapping;
 import org.opendaylight.transportpce.common.network.NetworkTransactionService;
-import org.opendaylight.transportpce.networkmodel.listeners.PortMappingListener;
 import org.opendaylight.transportpce.networkmodel.service.FrequenciesService;
-import org.opendaylight.transportpce.test.AbstractTest;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev170818.TransportpceNetworkutilsService;
+import org.opendaylight.transportpce.networkmodel.service.NetworkModelService;
 
-@RunWith(MockitoJUnitRunner.StrictStubs.class)
-public class NetworkModelProviderTest extends AbstractTest {
+/**
+ * NetworkModelProviderTest class.
+ */
+@ExtendWith(MockitoExtension.class)
+public class NetworkModelProviderTest {
     @Mock
     NetworkTransactionService networkTransactionService;
     @Mock
-    RpcProviderService rpcProviderService;
+    DataBroker dataBroker;
     @Mock
-    TransportpceNetworkutilsService networkutilsService;
+    NetworkModelService networkModelService;
+    @Mock
+    DeviceTransactionManager deviceTransactionManager;
+    @Mock
+    PortMapping portMapping;
     @Mock
     NetConfTopologyListener topologyListener;
     @Mock
-    private NotificationService notificationService;
+    NotificationService notificationService;
     @Mock
-    private FrequenciesService frequenciesService;
-    @Mock
-    private PortMappingListener portMappingListener;
-
+    FrequenciesService frequenciesService;
 
     @Test
-    public void networkmodelProviderInitTest() {
-        NetworkModelProvider provider = new NetworkModelProvider(networkTransactionService, getDataBroker(),
-            rpcProviderService, networkutilsService, topologyListener, notificationService,
-            frequenciesService, portMappingListener);
+    void networkmodelProviderInitTest() {
         Answer<FluentFuture<CommitInfo>> answer = new Answer<FluentFuture<CommitInfo>>() {
 
             @Override
@@ -61,10 +62,9 @@ public class NetworkModelProviderTest extends AbstractTest {
         };
         when(networkTransactionService.commit()).then(answer);
 
-        provider.init();
+        new NetworkModelProvider(networkTransactionService, dataBroker, networkModelService, deviceTransactionManager,
+                portMapping, notificationService, frequenciesService);
 
-        verify(rpcProviderService, times(1))
-            .registerRpcImplementation(any(), any(TransportpceNetworkutilsService.class));
+        verify(dataBroker, times(2)).registerTreeChangeListener(any(), any(), any());
     }
-
 }

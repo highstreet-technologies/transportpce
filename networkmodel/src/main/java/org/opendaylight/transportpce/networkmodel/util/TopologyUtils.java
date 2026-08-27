@@ -15,14 +15,14 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
-import org.opendaylight.transportpce.common.NetworkUtils;
+import org.opendaylight.transportpce.common.StringConstants;
 import org.opendaylight.transportpce.common.network.NetworkTransactionService;
 import org.opendaylight.transportpce.networkmodel.dto.TopologyShard;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.mapping.Mapping;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev211210.Link1;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev211210.Link1Builder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev211210.TerminationPoint1;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev211210.TerminationPoint1Builder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mapping.Mapping;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.Link1;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.Link1Builder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.TerminationPoint1;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.TerminationPoint1Builder;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.state.types.rev191129.State;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.equipment.states.types.rev191129.AdminStates;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.NetworkId;
@@ -44,10 +44,13 @@ import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.top
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.networks.network.node.TerminationPoint;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.networks.network.node.TerminationPointBuilder;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.networks.network.node.TerminationPointKey;
-import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
+import org.opendaylight.yangtools.binding.DataObjectIdentifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Utility class to ease update of items in topology data-stores.
+ */
 public final class TopologyUtils {
 
     private static final Logger LOG = LoggerFactory.getLogger(TopologyUtils.class);
@@ -55,7 +58,18 @@ public final class TopologyUtils {
     private TopologyUtils() {
     }
 
-    // This method returns the linkBuilder object for given source and destination
+    /**
+     * Create a {@link org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226
+     *      .networks.network.LinkBuilder} object for a given source and destination.
+     *
+     * @param srcNode source node id
+     * @param dstNode destination node id
+     * @param srcTp source termination point
+     * @param destTp destination termination point
+     * @param otnPrefix OTN link type prefix
+     * @return {@link org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.networks
+     *          .network.LinkBuilder}
+     */
     public static LinkBuilder createLink(String srcNode, String dstNode, String srcTp, String destTp,
         String otnPrefix) {
 
@@ -91,7 +105,16 @@ public final class TopologyUtils {
         return lnkBldr;
     }
 
-    // This method returns the linkBuilder object for given source and destination
+    /**
+     * Delete a link specified by a given source and destination.
+     *
+     * @param srcNode source node id string
+     * @param dstNode destination node id
+     * @param srcTp source termination point
+     * @param destTp destination termination point
+     * @param networkTransactionService Service that eases the transaction operations with data-stores
+     * @return True if OK, False otherwise.
+     */
     public static boolean deleteLink(String srcNode, String dstNode, String srcTp, String destTp,
                                      NetworkTransactionService networkTransactionService) {
         LOG.info("deleting link for {}-{}", srcNode, dstNode);
@@ -105,17 +128,23 @@ public final class TopologyUtils {
         }
     }
 
-    // This method returns the linkBuilder object for given source and destination
+    /**
+     * Delete a link specified by its linkId.
+     *
+     * @param linkId The link identifier
+     * @param networkTransactionService Service that eases the transaction operations with data-stores
+     * @return True if OK, False otherwise.
+     */
     public static boolean deleteLinkLinkId(LinkId linkId , NetworkTransactionService networkTransactionService) {
         LOG.info("deleting link for LinkId: {}", linkId.getValue());
         try {
-            InstanceIdentifier.InstanceIdentifierBuilder<Link> linkIID = InstanceIdentifier.builder(Networks.class)
-                .child(Network.class, new NetworkKey(new NetworkId(NetworkUtils.OVERLAY_NETWORK_ID)))
+            DataObjectIdentifier.Builder<Link> linkIID = DataObjectIdentifier.builder(Networks.class)
+                .child(Network.class, new NetworkKey(new NetworkId(StringConstants.OPENROADM_TOPOLOGY)))
                 .augmentation(Network1.class).child(Link.class, new LinkKey(linkId));
             java.util.Optional<Link> link =
                 networkTransactionService.read(LogicalDatastoreType.CONFIGURATION,linkIID.build()).get();
             if (link.isPresent()) {
-                LinkBuilder linkBuilder = new LinkBuilder(link.get());
+                LinkBuilder linkBuilder = new LinkBuilder(link.orElseThrow());
                 Link1Builder link1Builder = new Link1Builder(linkBuilder.augmentation(Link1.class));
                 linkBuilder.removeAugmentation(Link1.class);
                 linkBuilder.addAugmentation(link1Builder.build());
@@ -135,50 +164,69 @@ public final class TopologyUtils {
         }
     }
 
+    /**
+     * Set the {@link org.opendaylight.yang.gen.v1.http.org.openroadm.equipment.states.types.rev191129.AdminStates}
+     *      according to string representation.
+     *
+     * @param adminState value of the AdminStates
+     * @return {@link org.opendaylight.yang.gen.v1.http.org.openroadm.equipment.states.types.rev191129.AdminStates}
+     */
     public static AdminStates setNetworkAdminState(String adminState) {
         if (adminState == null) {
             return null;
         }
-        switch (adminState) {
-            case "InService":
-                return AdminStates.InService;
-            case "OutOfService":
-                return AdminStates.OutOfService;
-            case "Maintenance":
-                return AdminStates.Maintenance;
-            default:
-                return null;
-        }
+        return switch (adminState) {
+            case "InService", "ENABLED" -> AdminStates.InService;
+            case "OutOfService", "DISABLED" -> AdminStates.OutOfService;
+            case "Maintenance" -> AdminStates.Maintenance;
+            default -> null;
+        };
     }
 
+    /**
+     * Set the {@link org.opendaylight.yang.gen.v1.http.org.openroadm.common.state.types.rev191129.State} according to
+     *      string representation.
+     *
+     * @param operState Value of the operational state
+     * @return {@link org.opendaylight.yang.gen.v1.http.org.openroadm.common.state.types.rev191129.State}
+     */
     public static State setNetworkOperState(String operState) {
         if (operState == null) {
             return null;
         }
-        switch (operState) {
-            case "InService":
-                return State.InService;
-            case "OutOfService":
-                return State.OutOfService;
-            case "Degraded":
-                return State.Degraded;
-            default:
-                return null;
-        }
+        return switch (operState) {
+            case "InService", "ACTIVE" -> State.InService;
+            case "OutOfService", "INACTIVE" -> State.OutOfService;
+            case "Degraded" -> State.Degraded;
+            default -> null;
+        };
     }
 
+    /**
+     * Update topology components.
+     *
+     * @param abstractNodeid Node name
+     * @param mapping mapping
+     * @param nodes Map of topology nodes
+     * @param links Map of topology links
+     * @return Subset of the topology
+     */
     public static TopologyShard updateTopologyShard(String abstractNodeid, Mapping mapping, Map<NodeKey, Node> nodes,
             Map<LinkKey, Link> links) {
         // update termination-point corresponding to the mapping
         List<TerminationPoint> topoTps = new ArrayList<>();
         TerminationPoint tp = nodes.get(new NodeKey(new NodeId(abstractNodeid))).augmentation(Node1.class)
             .getTerminationPoint().get(new TerminationPointKey(new TpId(mapping.getLogicalConnectionPoint())));
+        if (tp == null) {
+            LOG.error("Util TopologyUtils: TP is null while updating openroadm topology..");
+            return new TopologyShard(null, null, topoTps);
+        }
         TerminationPoint1Builder tp1Bldr = new TerminationPoint1Builder(tp.augmentation(TerminationPoint1.class));
         if (!tp1Bldr.getAdministrativeState().getName().equals(mapping.getPortAdminState())) {
-            tp1Bldr.setAdministrativeState(AdminStates.valueOf(mapping.getPortAdminState()));
+            tp1Bldr.setAdministrativeState(setNetworkAdminState(mapping.getPortAdminState()));
         }
         if (!tp1Bldr.getOperationalState().getName().equals(mapping.getPortOperState())) {
-            tp1Bldr.setOperationalState(State.valueOf(mapping.getPortOperState()));
+            tp1Bldr.setOperationalState(setNetworkOperState(mapping.getPortOperState()));
         }
         TerminationPointBuilder tpBldr = new TerminationPointBuilder(tp).addAugmentation(tp1Bldr.build());
         topoTps.add(tpBldr.build());

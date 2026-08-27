@@ -1,0 +1,578 @@
+module transportpce-portmapping {
+  yang-version 1;
+  namespace "http://org/opendaylight/transportpce/portmapping";
+  prefix org-opendaylight-transportpce-portmapping;
+
+  import ietf-inet-types {
+    prefix ietf-inet-types;
+    revision-date 2013-07-15;
+  }
+  import org-openroadm-common-optical-channel-types {
+    prefix org-openroadm-common-optical-channel-types;
+    revision-date 2025-03-28;
+  }
+  import org-openroadm-common-node-types {
+    prefix org-openroadm-common-node-types;
+    revision-date 2021-05-28;
+  }
+  import org-openroadm-otn-common-types {
+      prefix org-openroadm-otn-common-types;
+      // This is the original revision-date in public release 2021-09-24;
+      revision-date 2025-05-30; // This is local change made by TPCE
+  }
+  import org-openroadm-switching-pool-types {
+    prefix org-openroadm-switching-pool-types;
+    revision-date 2019-11-29;
+  }
+  import org-openroadm-port-types {
+    prefix org-openroadm-port-types;
+    revision-date 2025-05-30;
+  }
+
+
+  organization
+    "transportPCE";
+  contact
+    "transportPCE committers - ODL";
+  description
+    "YANG definitions for defining port mapping in TransportPCE.
+     Copyright (c) 2017 AT&T and others. All rights reserved.
+     authors: Dhruv Bhardwaj ( db929a@att.com ) Shweta Vachhani ( sv111y@att.com )
+              Balagangadhar Bathula ( bb4341@att.com )";
+
+  revision 2026-06-12 {
+    description
+      "Add support for OpenROADM 13.1.1 and 17.1 models";
+  }
+  revision 2026-05-29 {
+    description
+      "Add min-edge-freq and max-edge-freq to mc-capabilities";
+  }
+
+  revision 2025-09-05 {
+    description
+      "Add wavelength duplication support for SRG";
+  }
+
+  revision 2025-09-02 {
+    description
+      "Change revision of org-openroadm imported model to use the 13.1.1 version";
+  }
+
+  revision 2025-03-25 {
+    description
+      "Added openconfig-info container,
+       move supported-optical-channels and supported-interfaces in it";
+  }
+  revision 2025-01-15 {
+    description
+      "Add min/max-slots to mc-capabilities";
+  }
+  revision 2024-03-15 {
+    description
+      "Add support to open config in mapping";
+  }
+  revision 2023-12-21 {
+    description
+       "Add leaflist supported-operational-mode to lcp";
+  }
+  revision 2022-09-22 {
+    description
+       "Add initial support to regenerators functionality; Modify the attribute
+       xponder-type to xpdr-type";
+  }
+  revision 2022-03-16 {
+    description
+      "Align org-openroadm-port-types model version to the latest one,
+      that is 2020-12-11";
+  }
+  revision 2022-01-14 {
+    description
+      "Modify the container names for ODUCn and OTUCn supporting interfaces";
+  }
+  revision 2021-09-27 {
+    description
+      "Add supporting-otu interface in mapping";
+  }
+  revision 2021-04-26 {
+    description
+      "Adding mux-profile information to support 400G Muxponder";
+  }
+  revision 2021-04-25 {
+    description
+      "OpenROADM version fix 7.1.0 -> 7.1";
+  }
+  revision 2021-03-15 {
+    description
+      "Refacto model to use grouping";
+  }
+  revision 2021-03-10 {
+    description
+      "Add operational and administrative state of device port
+       in mapping";
+  }
+  revision 2020-10-12 {
+    description
+      "Upgrading imported models to 7.1.0";
+  }
+  revision 2020-08-27 {
+    description
+      "Add support to differentiate flexible and fixed
+       grid capabilities with mc-capabilities";
+  }
+  revision 2020-04-29 {
+    description
+      "Add SAPI/DAPI lcp hash value";
+  }
+  revision 2020-01-28 {
+    description
+      "Add necessary parameters to consolidate OTN
+       and address ONAP MDONS use case";
+  }
+  revision 2020-01-13 {
+    description
+      "Add OTN data from device and necessary
+       to build node inside otn topology";
+  }
+  revision 2019-11-15 {
+    description
+      "OTN support";
+  }
+  revision 2019-07-02 {
+    description
+      "Version 2. To manage device 2.2.1";
+  }
+  revision 2017-02-28 {
+    description
+      "Initial revision of port mapping model";
+  }
+
+  typedef openroadm-node-version {
+    type enumeration {
+      enum 1.2.1 {
+        value 1;
+        status deprecated; 
+        description
+          "Deprecated: kept for backward compatibility only.";
+      }
+      enum 2.2.1 {
+        value 2;
+        description
+          "Version 2.2.1";
+      }
+      enum 7.1 {
+        value 3;
+        description
+          "Version 7.1";
+      }
+      enum 13.1.1 {
+        value 4;
+        description
+          "Version 13.1.1";
+      }
+      enum 17.1 {
+        value 5;
+        description
+          "Version 17.1";
+      }
+    }
+    description
+        "YANG enumerations for OpenROADM models;
+         enums should be same as OpenROADM models
+         defined in org-openroadm-common-types";
+  }
+
+  typedef openconfig-node-version {
+    type enumeration {
+      enum PROTOTYPE {
+        value 1;
+        description
+          "Version that indicates a prototype implementation";
+      }
+      enum 2.0.0 {
+        value 2;
+        description
+          "Version 2.0.0 of Open Config";
+      }
+    }
+    description
+      "YANG enumerations for indicating the version of Open Config model supported ";
+  }
+
+  typedef node-datamodel-type {
+    type enumeration {
+      enum OPENROADM {
+        value 1;
+        description
+          "OpenRoadm datamodel type";
+      }
+      enum OPENCONFIG {
+        value 2;
+        description
+          "OpenConfig datamodel type";
+      }
+    }
+    description
+          "YANG enumerations for indicating the type of datamodel supported by a node";
+  }
+
+  grouping node-info {
+    leaf node-type {
+      type org-openroadm-common-node-types:node-types;
+      description
+        "Identifier for node-type e.g Roadm, xponder";
+    }
+    leaf openroadm-version {
+      type openroadm-node-version;
+    }
+    leaf openconfig-version {
+      type openconfig-node-version;
+    }
+    leaf sw-version {
+      type string;
+      description
+        "Software Version of the Node";
+    }
+    leaf node-clli {
+      type string;
+      description
+        "Common Language Location Identifier.";
+    }
+    leaf node-vendor {
+      type string;
+      description
+        "Vendor of the equipment";
+    }
+    leaf node-model {
+      type string;
+      description
+        "Physical resource model information.";
+    }
+    leaf node-ip-address {
+      type ietf-inet-types:ip-address;
+      description
+        "Current IP Address of device";
+    }
+  }
+
+  grouping mapping {
+    list mapping {
+      key "logical-connection-point";
+      description
+        "Mapping for Physical circuit pack/port/parent interfaces corresponding
+         to each logical connection point present in the node.";
+      leaf logical-connection-point {
+        type string;
+      }
+      leaf supporting-circuit-pack-name {
+        type string;
+        description
+          "Circuit pack where the logical connection point is located";
+      }
+      leaf supporting-port {
+        type string;
+        description
+          "Port where the logical connection point is located";
+      }
+      leaf supporting-oms {
+        type string;
+        description
+          "OMS interface provisioned on the port";
+      }
+      leaf supporting-ots {
+        type string;
+        description
+          "OTS interface provisioned on the port";
+      }
+      leaf port-direction {
+        type string;
+        description
+          "Useful for line port of XPDR, for which there is no indication
+           in its logical-termination-point naming";
+      }
+      leaf port-qual {
+        type string;
+        description
+          "Useful to identify from portmapping client from network ports
+           of XPDR";
+      }
+      leaf port-admin-state {
+        type string;
+        description
+          "admin-state of port";
+      }
+      leaf port-oper-state {
+        type string;
+        description
+          "operational-state of port";
+      }
+      leaf supporting-ethernet {
+        type string;
+        description
+          "Ethernet interface provisioned on the port";
+      }
+      leaf supporting-otu4 {
+          type string;
+          description
+            "OTU4 interface provisioned on the port";
+        }
+      leaf supporting-otucn {
+          type string;
+          description
+            "OTUCn interface provisioned on the port for B100G support. This includes
+            OTUC2, OTUC3, OTUC4";
+        }
+      leaf supporting-odu4 {
+          type string;
+          description
+            "ODU4 interface provisioned on the port";
+        }
+      leaf supporting-oducn {
+        type string;
+        description
+          "ODUCn interface provisioned on the port for B100G support. This includes
+           ODUC2, ODUC3, ODUC4";
+      }
+      leaf rate {
+        type string;
+        description
+          "Rate supported by the port";
+      }
+      leaf-list supported-interface-capability {
+        type identityref {
+          base org-openroadm-port-types:supported-if-capability;
+        }
+      }
+      leaf-list supported-operational-mode {
+        type string;
+        description
+          "List of operational-mode supported by the port";
+      }
+      uses mpdr-restrictions-grp;
+      uses regen-profiles-grp;
+      leaf xpdr-type {
+        type org-openroadm-common-node-types:xpdr-node-types;
+      }
+      leaf connection-map-lcp {
+        type string;
+        description
+          "For XPDR, associate two logical-connection-points from device/connnection-map
+           data";
+      }
+      leaf partner-lcp {
+        type string;
+        description
+          "For XPDR unidirectional NETWORK port, associate two logical-connection-points
+           from device/partner port data";
+      }
+      leaf lcp-hash-val {
+        type string;
+        description
+          "Hash value generated from node-id and lcp. This value will be used to map-
+           back SAPI and DAPI resource";
+      }
+      container openconfig-info {
+        leaf-list supported-optical-channels {
+          type string;
+          description
+            "List of optical-channels supported by the port (subcomponents of transceiver)";
+        }
+        leaf-list supported-interfaces {
+          type string;
+          description
+            "List of interfaces corresponding to the logical-channels supported by the port";
+        }
+      }
+    }
+  }
+
+  grouping regen-profiles-grp {
+    container regen-profiles {
+      when "../xpdr-type = 'regen'";
+      description
+        "This container is only populated when the xpdr-type is regen";
+      leaf-list regen-profile {
+        description
+          "Supported regen profile, these are otsi-group-capabilities profile";
+          type string;
+      }
+    }
+  }
+
+  grouping mpdr-restrictions-grp {
+    container mpdr-restrictions {
+      when "../port-qual = 'switch-client' and ../../node-info/openroadm-version = '7.1'";
+      description
+        "This container provides the information about multiplexing of LO ODUs to HO ODUs
+        Caveat: If port advertizes multiple rates, this container does not work and results could
+        be wrong, meaning if the supported-interface-capabilities include, if-100GE-ODU4, if-OTU4-ODU4,
+        if-200GE-oduflexcbr, then min/max-trib-slot could be different";
+      leaf min-trib-slot {
+          type org-openroadm-otn-common-types:opucn-trib-slot-def;
+          description
+              "Minimum OPUCn 5G trib slots in the form of TS #A.B (G.709)";
+      }
+      leaf max-trib-slot {
+          type org-openroadm-otn-common-types:opucn-trib-slot-def;
+          description
+              "Maximum OPUCn 5G trib slots in the form of TS #A.B (G.709)";
+      }
+    }
+  }
+
+  grouping mc-capabilities {
+    list mc-capabilities {
+      key "mc-node-name";
+      description
+        "Capabilities of the media channel associated with a degree SRG, or
+        XPDR (7.1 and above). ";
+      leaf mc-node-name {
+        type string;
+        description
+          "Name of the node, it has the format of DEGi-TTP or SRGj-PP
+           Where i, and j are the degree and SRG numbers respectively.
+           For XPDR type it will have one element in the leaf-list,
+           with name XPDR-mcprofile";
+      }
+      leaf slot-width-granularity {
+        type org-openroadm-common-optical-channel-types:frequency-GHz;
+        default "50";
+        description
+          "Width of a slot measured in GHz.";
+      }
+      leaf min-slots {
+        type uint32;
+        default "1";
+        description
+          "Minimum number of slots permitted to be joined together to form a media channel.  Must be less than or equal to the max-slots";
+      }
+      leaf max-slots {
+        type uint32;
+        default "1";
+        description
+          "Maximum number of slots permitted to be joined together to form a media channel.  Must be greater than or equal to the min-slots";
+      }
+      leaf center-freq-granularity {
+        type org-openroadm-common-optical-channel-types:frequency-GHz;
+        default "50";
+        description
+          "Width of a slot measured in GHz.";
+      }
+      leaf min-edge-freq {
+        type org-openroadm-common-optical-channel-types:frequency-THz;
+        description
+          "Minimum edge frequency";
+      }
+      leaf max-edge-freq {
+        type org-openroadm-common-optical-channel-types:frequency-THz;
+        description
+          "Maximum edge frequency";
+      }
+    }
+  }
+
+  grouping cp-to-degree {
+    list cp-to-degree {
+      key "circuit-pack-name";
+      description
+        "This mapping helps locate degree number of the circuitpack that
+         does lldp protocol management";
+      leaf circuit-pack-name {
+        type string;
+      }
+      leaf degree-number {
+        type uint32;
+      }
+      leaf interface-name {
+        type string;
+      }
+    }
+  }
+
+  grouping switching-pool-lcp {
+    list switching-pool-lcp {
+      key "switching-pool-number";
+      description
+        "For MUXPDR and SWITCH, associates from device/odu-switching-pools data,
+         the logical-connection-points";
+      leaf switching-pool-number {
+        type uint16;
+        description
+          "Unique identifier for this odu-switching-pool";
+      }
+      leaf switching-pool-type {
+        type org-openroadm-switching-pool-types:switching-pool-types;
+      }
+      list non-blocking-list {
+        key "nbl-number";
+        leaf nbl-number {
+          type uint16;
+          description
+            "Identifier for this non-blocking-list. Unique within odu-switching-pool";
+        }
+        leaf interconnect-bandwidth-unit {
+          type uint32;
+          description
+            "Switch fabric interconnect bandwidth unit rate in bits per second.
+             Represents granularity of switch fabric";
+        }
+        leaf interconnect-bandwidth {
+          type uint32;
+          description
+            "Total interconnect bandwidth for a non-blocking element expressed as
+             number of inter-connect-bandwidth units : corresponds to capable-
+             inter-connect bandwidth";
+        }
+        leaf available-interconnect-bandwidth {
+          type uint32;
+          description
+            "Total interconnect bandwidth available for a non-blocking element can use as
+             number of inter-connect-bandwidth units";
+        }
+        leaf-list lcp-list {
+          type string;
+        }
+      }
+    }
+  }
+
+  grouping shared-risk-group {
+    list shared-risk-group {
+      key "srg-number";
+      description
+        "SRG";
+      leaf srg-number {
+        type uint16;
+        description
+          "Validating if the srg is supported by add/drop group";
+      }
+      leaf wavelength-duplication {
+        type org-openroadm-common-optical-channel-types:wavelength-duplication-type;
+      }
+    }
+  }
+
+  container network {
+    list nodes {
+      key "node-id";
+      leaf node-id {
+        type string;
+        description
+          "Unique identifier for node in the network";
+      }
+      leaf datamodel-type {
+        type node-datamodel-type;
+        description
+          "Identifies the type of data model using which this node is controlled";
+      }
+      container node-info {
+        uses node-info;
+      }
+      uses mapping;
+      uses mc-capabilities;
+      uses cp-to-degree;
+      uses switching-pool-lcp;
+      uses shared-risk-group;
+    }
+  }
+}

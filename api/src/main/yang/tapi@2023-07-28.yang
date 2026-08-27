@@ -1,0 +1,90 @@
+module tapi {
+  yang-version 1.1;
+  namespace "urn:opendaylight:params:xml:ns:yang:tapi";
+  prefix tapi;
+
+  import tapi-topology {
+    prefix tapi-topology;
+    revision-date 2022-11-21;
+  }
+  import tapi-common {
+    prefix tapi-common;
+    revision-date 2022-11-21;
+  }
+  import org-openroadm-common-service-types {
+    prefix org-openroadm-common-service-types;
+  }
+
+  organization
+    "transportPCE";
+  contact
+    "transportPCE committers - ODL";
+  description
+    "YANG definitions for using REST API in TAPI module. Copyright
+     (c) 2018 ORANGE and others. All rights reserved. authors: Gilles
+     Thouenon ( gilles.thouenon@orange.com ) Christophe Betoule ( christophe.betoule@orange.com
+     )";
+
+  revision "2023-07-28" {
+    description
+      "Second revision of TAPI model for migration towards TAPI 2.4";
+  }
+  revision 2018-09-28 {
+    description
+      "Initial revision of TAPI model for internal use";
+  }
+
+  typedef end-point-type {
+    type enumeration {
+      enum Aend {
+        value 1;
+      }
+      enum Zend {
+        value 2;
+      }
+    }
+    description
+      "help to identify if the generic service end point is usable as a service termination for A or Z end-point";
+  }
+
+  rpc load-topology {
+    input {
+      leaf topology-name {
+        type string;
+        description
+          "none";
+      }
+      container topology {
+        description
+          "none";
+        uses tapi-topology:topology;
+      }
+    }
+    output {
+      leaf success {
+        type boolean;
+      }
+      leaf result {
+        type string;
+      }
+    }
+  }
+
+  container service-interface-points {
+    list service-end-point {
+      key "uuid";
+      description
+        "List of service-interface-point from tapi-topology available
+         for an org-openroadm-service usage";
+      leaf uuid {
+        type tapi-common:uuid;
+      }
+      container end-point {
+        leaf service-end-point-type {
+          type end-point-type;
+        }
+        uses org-openroadm-common-service-types:service-endpoint;
+      }
+    }
+  }
+}

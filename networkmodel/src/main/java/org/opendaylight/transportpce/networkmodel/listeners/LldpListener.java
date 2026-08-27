@@ -8,27 +8,37 @@
 
 package org.opendaylight.transportpce.networkmodel.listeners;
 
-import org.opendaylight.yang.gen.v1.http.org.openroadm.lldp.rev161014.LldpNbrInfoChange;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.lldp.rev161014.OrgOpenroadmLldpListener;
+import org.eclipse.jdt.annotation.NonNull;
+import org.opendaylight.mdsal.binding.api.NotificationService.Listener;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.lldp.rev181019.LldpNbrInfoChange;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.NodeId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class LldpListener implements OrgOpenroadmLldpListener {
+/**
+ * Implementation of the org.opendaylight.yang.gen.v1.http.org.openroadm.lldp.rev181019.LldpNbrInfoChange
+ * notification.
+ * This implementation is dedicated to yang model 1.2.1 revision.
+ */
+public class LldpListener implements Listener<LldpNbrInfoChange> {
 
     private static final Logger LOG = LoggerFactory.getLogger(LldpListener.class);
     private final NodeId nodeId;
 
+    /**
+     * Create instance of the device listener.
+     *
+     * @param nodeId Node name
+     */
     public LldpListener(final String nodeId) {
         this.nodeId = new NodeId(nodeId);
     }
 
     /**
      * Callback for lldp-nbr-info-change.
-     * @param notification LldpNbrInfoChange object
      */
     @Override
-    public void onLldpNbrInfoChange(LldpNbrInfoChange notification) {
-        LOG.info("Notification {} received {}", LldpNbrInfoChange.QNAME, notification);
+    public void onNotification(@NonNull LldpNbrInfoChange notification) {
+        LOG.info("Notification {} received {} on node {}", LldpNbrInfoChange.QNAME, notification, nodeId);
     }
 }

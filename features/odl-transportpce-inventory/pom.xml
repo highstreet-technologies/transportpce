@@ -9,17 +9,20 @@
   <parent>
     <groupId>org.opendaylight.odlparent</groupId>
     <artifactId>single-feature-parent</artifactId>
-    <version>9.0.13</version>
+    <version>14.3.1</version>
     <relativePath/>
   </parent>
 
   <groupId>org.opendaylight.transportpce</groupId>
   <artifactId>odl-transportpce-inventory</artifactId>
-  <version>5.0.0-SNAPSHOT</version>
+  <version>13.0.0-SNAPSHOT</version>
   <packaging>feature</packaging>
   <name>OpenDaylight :: transportpce :: Inventory</name>
 
   <properties>
+    <mdsal.version>16.0.3</mdsal.version>
+    <netconf.version>11.0.0</netconf.version>
+    <transportpce.models.version>24.0.1</transportpce.models.version>
     <transportpce.db.host>localhost:3306</transportpce.db.host>
     <transportpce.db.database>transportpce</transportpce.db.database>
     <transportpce.db.username>root</transportpce.db.username>
@@ -28,8 +31,27 @@
     <transporpce.device.backup.prefix></transporpce.device.backup.prefix>
     <transporpce.device.backup.period>600</transporpce.device.backup.period>
     <!-- skipping single feature test because DataSource is not available in Pax4j (H2 possible workaround) -->
-    <skip.karaf.featureTest>true</skip.karaf.featureTest>
+    <sft.skip>false</sft.skip>
   </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.opendaylight.mdsal</groupId>
+        <artifactId>mdsal-artifacts</artifactId>
+        <version>${mdsal.version}</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
+      <dependency>
+        <groupId>org.opendaylight.netconf</groupId>
+        <artifactId>netconf-artifacts</artifactId>
+        <version>${netconf.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <dependencies>
     <dependency>
@@ -40,62 +62,41 @@
       <type>xml</type>
     </dependency>
     <dependency>
+      <groupId>org.opendaylight.mdsal</groupId>
+      <artifactId>odl-mdsal-binding-base</artifactId>
+      <classifier>features</classifier>
+      <type>xml</type>
+    </dependency>
+    <!--dependency>
+      <groupId>org.opendaylight.netconf</groupId>
+      <artifactId>odl-netconf-util</artifactId>
+      <classifier>features</classifier>
+      <type>xml</type>
+    </dependency-->
+    <!--dependency>
+      <groupId>org.opendaylight.netconf</groupId>
+      <artifactId>odl-netconf-mapping-api</artifactId>
+      <classifier>features</classifier>
+      <type>xml</type>
+    </dependency-->
+    <dependency>
       <groupId>org.opendaylight.transportpce</groupId>
       <artifactId>transportpce-inventory</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.opendaylight.transportpce</groupId>
+      <artifactId>transportpce-inventory</artifactId>
+      <version>${project.version}</version>
+      <type>cfg</type>
+      <classifier>config</classifier>
+    </dependency>
+    <dependency>
+      <groupId>org.opendaylight.transportpce</groupId>
+      <artifactId>transportpce-inventory</artifactId>
+      <version>${project.version}</version>
+      <type>cfg</type>
+      <classifier>datasource</classifier>
+    </dependency>
   </dependencies>
-
-  <build>
-    <plugins>
-      <plugin>
-        <artifactId>maven-resources-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>copy-resources</id>
-            <phase>validate</phase>
-            <goals>
-              <goal>copy-resources</goal>
-            </goals>
-            <configuration>
-              <outputDirectory>${basedir}/target/resources</outputDirectory>
-              <resources>
-                <resource>
-                  <directory>src/main/resources</directory>
-                  <filtering>true</filtering>
-                </resource>
-              </resources>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>build-helper-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>attach-db-artifact</id>
-            <phase>package</phase>
-            <goals>
-              <goal>attach-artifact</goal>
-            </goals>
-            <configuration>
-              <artifacts>
-                <artifact>
-                  <file>target/resources/org.ops4j.datasource-transporpce.cfg</file>
-                  <type>cfg</type>
-                  <classifier>datasource</classifier>
-                </artifact>
-                <artifact>
-                  <file>target/resources/org.opendaylight.transportpce.job.cfg</file>
-                  <type>cfg</type>
-                  <classifier>config</classifier>
-                </artifact>
-              </artifacts>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
 </project>

@@ -700,6 +700,12 @@
     <degree>
       <degree-number>1</degree-number>
       <max-wavelengths>96</max-wavelengths>
+      <mc-capabilities>
+        <slot-width-granularity>12.5</slot-width-granularity>
+        <center-freq-granularity>6.25</center-freq-granularity>
+        <min-slots>3</min-slots>
+        <max-slots>384</max-slots>
+      </mc-capabilities>
       <circuit-packs>
         <index>1</index>
         <circuit-pack-name>1/0</circuit-pack-name>
@@ -717,6 +723,12 @@
     <degree>
       <degree-number>2</degree-number>
       <max-wavelengths>96</max-wavelengths>
+      <mc-capabilities>
+        <slot-width-granularity>12.5</slot-width-granularity>
+        <center-freq-granularity>6.25</center-freq-granularity>
+        <min-slots>3</min-slots>
+        <max-slots>384</max-slots>
+      </mc-capabilities>
       <circuit-packs>
         <index>1</index>
         <circuit-pack-name>2/0</circuit-pack-name>
@@ -735,6 +747,12 @@
       <srg-number>1</srg-number>
       <max-add-drop-ports>4</max-add-drop-ports>
       <wavelength-duplication>one-per-srg</wavelength-duplication>
+      <mc-capabilities>
+        <slot-width-granularity>12.5</slot-width-granularity>
+        <center-freq-granularity>6.25</center-freq-granularity>
+        <min-slots>3</min-slots>
+        <max-slots>384</max-slots>
+      </mc-capabilities>
       <circuit-packs>
         <index>1</index>
         <circuit-pack-name>3/0</circuit-pack-name>
@@ -745,6 +763,12 @@
       <srg-number>3</srg-number>
       <max-add-drop-ports>4</max-add-drop-ports>
       <wavelength-duplication>one-per-srg</wavelength-duplication>
+      <mc-capabilities>
+        <slot-width-granularity>12.5</slot-width-granularity>
+        <center-freq-granularity>6.25</center-freq-granularity>
+        <min-slots>3</min-slots>
+        <max-slots>384</max-slots>
+      </mc-capabilities>
       <circuit-packs>
         <index>1</index>
         <circuit-pack-name>5/0</circuit-pack-name>
@@ -790,7 +814,7 @@
       </measurement>
       <measurement>
         <granularity>24Hour</granularity>
-        <pmParameterValue>-49.3</pmParameterValue>
+        <pmParameterValue>-21.3</pmParameterValue>
         <pmParameterUnit>dBm</pmParameterUnit>
         <validity>complete</validity>
       </measurement>
@@ -850,7 +874,7 @@
       </measurement>
       <measurement>
         <granularity>24Hour</granularity>
-        <pmParameterValue>-49.3</pmParameterValue>
+        <pmParameterValue>-21.3</pmParameterValue>
         <pmParameterUnit>dBm</pmParameterUnit>
         <validity>complete</validity>
       </measurement>
@@ -875,5 +899,62 @@
     </current-pm>
   </current-pm-entry>
   </current-pm-list>
+
+  <current-pm-description xmlns="http://honeynode-simulator/pm-handling">
+    <pm-generation-rules>
+      <triggering-interface xmlns:org-openroadm-interfaces="http://org/openroadm/interfaces">org-openroadm-interfaces:opticalTransport</triggering-interface>
+      <pm-name-prefix>opticalPowerOutput</pm-name-prefix>
+      <!--This PM is generated on ROADMs on creation of the first NMC (MediaChannel) interface nmc-ttp-DEGX-TTP-[TX/TXRX]-[frequency]-->
+      <!--Its value will be changed as additional NMC are created-->
+      <analog>true</analog>
+      <!--Default value is purely indicative, the value shall be set trough pm-interact RPC according to a value calculated from span loss and Power mask -->
+      <!--The value set through the RPC will be the value to keep as a reference out of any forced mode use to simulate a failure -->
+      <default-current-value>0</default-current-value>
+      <max-value>21.82</max-value>
+      <min-value>-9.0</min-value>
+      <!--Evolution range is a percentage of the min max range expressed in dB-->
+      <evolution-range>5</evolution-range>
+    </pm-generation-rules>
+    <pm-generation-rules>
+      <triggering-interface xmlns:org-openroadm-interfaces="http://org/openroadm/interfaces">org-openroadm-interfaces:opticalTransport</triggering-interface>
+      <pm-name-prefix>opticalPowerInput</pm-name-prefix>
+      <!--This PM is generated on ROADMs on creation of a NMC (MediaChannel) interface nmc-ttp-DEGX-TTP-[RX/TXRX]-[frequency]-->
+      <analog>true</analog>
+      <!--Default value is purely indicative, the value shall be set trough pm-interact RPC according to a value calculated from span loss and Power mask -->
+      <!--The value set through the RPC will be the value to keep as a reference out of any forced mode use to simulate a failure -->
+      <default-current-value>-17.0</default-current-value>
+      <max-value>-9.0</max-value>
+      <min-value>-25.0</min-value>
+      <!--Evolution range is a percentage of the min max range expressed in dB-->
+      <evolution-range>10</evolution-range>
+    </pm-generation-rules>
+    <pm-generation-rules>
+      <triggering-interface xmlns:org-openroadm-interfaces="http://org/openroadm/interfaces">org-openroadm-interfaces:openROADMOpticalMultiplex</triggering-interface>
+      <pm-name-prefix>opticalPowerOutput</pm-name-prefix>
+      <!--This PM is generated on ROADMs on creation of the first NMC (MediaChannel) interface nmc-ttp-DEGX-TTP-[TX/TXRX]-[frequency]-->
+      <!--Its value will be changed as additional NMC are created-->
+      <analog>true</analog>
+      <!--Default value is purely indicative, the value shall be set trough pm-interact RPC according to a value calculated from span loss and Power mask -->
+      <!--The value set through the RPC will be the value to keep as a reference out of any forced mode use to simulate a failure -->
+      <default-current-value>0</default-current-value>
+      <max-value>21.82</max-value>
+      <min-value>-9.0</min-value>
+      <!--Evolution range is a percentage of the min max range expressed in dB-->
+      <evolution-range>5</evolution-range>
+    </pm-generation-rules>
+    <pm-generation-rules>
+      <triggering-interface xmlns:org-openroadm-interfaces="http://org/openroadm/interfaces">org-openroadm-interfaces:openROADMOpticalMultiplex</triggering-interface>
+      <pm-name-prefix>opticalPowerInput</pm-name-prefix>
+      <!--This PM is generated on ROADMs on creation of a NMC (MediaChannel) interface nmc-ttp-DEGX-TTP-[RX/TXRX]-[frequency]-->
+      <analog>true</analog>
+      <!--Default value is purely indicative, the value shall be set trough pm-interact RPC according to a value calculated from span loss and Power mask -->
+      <!--The value set through the RPC will be the value to keep as a reference out of any forced mode use to simulate a failure -->
+      <default-current-value>-17.0</default-current-value>
+      <max-value>-9.0</max-value>
+      <min-value>-25.0</min-value>
+      <!--Evolution range is a percentage of the min max range expressed in dB-->
+      <evolution-range>10</evolution-range>
+    </pm-generation-rules>
+  </current-pm-description>
 
  </data>

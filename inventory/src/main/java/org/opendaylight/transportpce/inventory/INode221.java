@@ -12,6 +12,7 @@ import static org.opendaylight.transportpce.inventory.utils.StringUtils.getCurre
 import static org.opendaylight.transportpce.inventory.utils.StringUtils.prepareDashString;
 import static org.opendaylight.transportpce.inventory.utils.StringUtils.prepareEmptyString;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -26,59 +27,60 @@ import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
 import org.opendaylight.transportpce.common.Timeouts;
 import org.opendaylight.transportpce.common.device.DeviceTransactionManager;
 import org.opendaylight.transportpce.inventory.query.Queries;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev170206.circuit.pack.CpSlots;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev170206.circuit.pack.CpSlotsKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev170206.circuit.packs.CircuitPacks;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev170206.circuit.packs.CircuitPacksKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev170206.degree.ConnectionPorts;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev170206.degree.ConnectionPortsKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev170206.external.links.ExternalLink;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev170206.external.links.ExternalLinkKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev170206.interfaces.grp.Interface;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev170206.interfaces.grp.InterfaceKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev170206.internal.links.InternalLink;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev170206.internal.links.InternalLinkKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev170206.org.openroadm.device.container.OrgOpenroadmDevice;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev170206.org.openroadm.device.container.org.openroadm.device.ConnectionMap;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev170206.org.openroadm.device.container.org.openroadm.device.ConnectionMapKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev170206.org.openroadm.device.container.org.openroadm.device.Degree;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev170206.org.openroadm.device.container.org.openroadm.device.DegreeKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev170206.org.openroadm.device.container.org.openroadm.device.Info;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev170206.org.openroadm.device.container.org.openroadm.device.Protocols;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev170206.org.openroadm.device.container.org.openroadm.device.RoadmConnections;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev170206.org.openroadm.device.container.org.openroadm.device.RoadmConnectionsKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev170206.org.openroadm.device.container.org.openroadm.device.SharedRiskGroup;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev170206.org.openroadm.device.container.org.openroadm.device.SharedRiskGroupKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev170206.physical.links.PhysicalLink;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev170206.physical.links.PhysicalLinkKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev170206.shelf.Slots;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev170206.shelf.SlotsKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev170206.shelves.Shelves;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev170206.shelves.ShelvesKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.ethernet.interfaces.rev161014.Interface1;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.ethernet.interfaces.rev161014.ethernet.container.EthernetBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.lldp.rev161014.Protocols1;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.lldp.rev161014.lldp.container.lldp.PortConfig;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.lldp.rev161014.lldp.container.lldp.PortConfigKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.lldp.rev161014.lldp.container.lldp.nbr.list.IfName;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.lldp.rev161014.lldp.container.lldp.nbr.list.IfNameKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.optical.channel.interfaces.rev161014.och.container.OchBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.optical.transport.interfaces.rev161014.ots.container.OtsBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.odu.interfaces.rev161014.odu.attributes.Tcm;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.odu.interfaces.rev161014.odu.attributes.TcmKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.odu.interfaces.rev161014.odu.container.OduBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.odu.interfaces.rev161014.opu.opu.msi.ExpMsi;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.odu.interfaces.rev161014.opu.opu.msi.ExpMsiKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.odu.interfaces.rev161014.opu.opu.msi.RxMsi;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.odu.interfaces.rev161014.opu.opu.msi.RxMsiKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.odu.interfaces.rev161014.opu.opu.msi.TxMsi;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.odu.interfaces.rev161014.opu.opu.msi.TxMsiKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.otu.interfaces.rev161014.otu.container.OtuBuilder;
-import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.OrgOpenroadmDeviceData;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.circuit.pack.CpSlots;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.circuit.pack.CpSlotsKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.circuit.packs.CircuitPacks;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.circuit.packs.CircuitPacksKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.degree.ConnectionPorts;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.degree.ConnectionPortsKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.external.links.ExternalLink;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.external.links.ExternalLinkKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.interfaces.grp.Interface;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.interfaces.grp.InterfaceKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.internal.links.InternalLink;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.internal.links.InternalLinkKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.org.openroadm.device.container.OrgOpenroadmDevice;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.org.openroadm.device.container.org.openroadm.device.ConnectionMap;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.org.openroadm.device.container.org.openroadm.device.ConnectionMapKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.org.openroadm.device.container.org.openroadm.device.Degree;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.org.openroadm.device.container.org.openroadm.device.DegreeKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.org.openroadm.device.container.org.openroadm.device.Info;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.org.openroadm.device.container.org.openroadm.device.Protocols;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.org.openroadm.device.container.org.openroadm.device.RoadmConnections;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.org.openroadm.device.container.org.openroadm.device.RoadmConnectionsKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.org.openroadm.device.container.org.openroadm.device.SharedRiskGroup;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.org.openroadm.device.container.org.openroadm.device.SharedRiskGroupKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.physical.links.PhysicalLink;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.physical.links.PhysicalLinkKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.shelf.Slots;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.shelf.SlotsKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.shelves.Shelves;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.shelves.ShelvesKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.ethernet.interfaces.rev181019.Interface1;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.ethernet.interfaces.rev181019.ethernet.container.EthernetBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.lldp.rev181019.Protocols1;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.lldp.rev181019.lldp.container.lldp.PortConfig;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.lldp.rev181019.lldp.container.lldp.PortConfigKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.lldp.rev181019.lldp.container.lldp.nbr.list.IfName;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.lldp.rev181019.lldp.container.lldp.nbr.list.IfNameKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.optical.channel.interfaces.rev181019.och.container.OchBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.optical.transport.interfaces.rev181019.ots.container.OtsBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.odu.interfaces.rev181019.odu.attributes.Tcm;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.odu.interfaces.rev181019.odu.attributes.TcmKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.odu.interfaces.rev181019.odu.container.OduBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.odu.interfaces.rev181019.opu.opu.msi.ExpMsi;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.odu.interfaces.rev181019.opu.opu.msi.ExpMsiKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.odu.interfaces.rev181019.opu.opu.msi.RxMsi;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.odu.interfaces.rev181019.opu.opu.msi.RxMsiKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.odu.interfaces.rev181019.opu.opu.msi.TxMsi;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.odu.interfaces.rev181019.opu.opu.msi.TxMsiKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.otu.interfaces.rev181019.otu.container.OtuBuilder;
+import org.opendaylight.yangtools.binding.DataObjectIdentifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@edu.umd.cs.findbugs.annotations.SuppressFBWarnings(
+@SuppressFBWarnings(
     value = "SQL_PREPARED_STATEMENT_GENERATED_FROM_NONCONSTANT_STRING",
     justification = "TODO review the SQL statement generation process")
 public class INode221 {
@@ -94,13 +96,16 @@ public class INode221 {
 
     public boolean addNode(String deviceId) {
 
-        InstanceIdentifier<Info> infoIID = InstanceIdentifier.create(OrgOpenroadmDevice.class).child(Info.class);
+        DataObjectIdentifier<Info> infoIID = DataObjectIdentifier
+            .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
+            .child(Info.class)
+            .build();
         Optional<Info> infoOpt =
                 deviceTransactionManager.getDataFromDevice(deviceId, LogicalDatastoreType.OPERATIONAL, infoIID,
                         Timeouts.DEVICE_READ_TIMEOUT, Timeouts.DEVICE_READ_TIMEOUT_UNIT);
         Info deviceInfo;
         if (infoOpt.isPresent()) {
-            deviceInfo = infoOpt.get();
+            deviceInfo = infoOpt.orElseThrow();
         } else {
             LOG.warn("Could not get device info from DataBroker");
             return false;
@@ -195,8 +200,10 @@ public class INode221 {
         return nodeExists != 0;
     }
 
-    public void getRoadmShelves(String nodeId) throws InterruptedException, ExecutionException {
-        InstanceIdentifier<OrgOpenroadmDevice> deviceIID = InstanceIdentifier.create(OrgOpenroadmDevice.class);
+    public void getRoadmShelves(String nodeId) {
+        DataObjectIdentifier<OrgOpenroadmDevice> deviceIID = DataObjectIdentifier
+            .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
+            .build();
         Optional<OrgOpenroadmDevice> deviceObject = deviceTransactionManager.getDataFromDevice(nodeId,
                 LogicalDatastoreType.OPERATIONAL, deviceIID, Timeouts.DEVICE_READ_TIMEOUT,
                 Timeouts.DEVICE_READ_TIMEOUT_UNIT);
@@ -205,7 +212,7 @@ public class INode221 {
             return;
         }
         @NonNull
-        Map<ShelvesKey, Shelves> shelvesMap = deviceObject.get().nonnullShelves();
+        Map<ShelvesKey, Shelves> shelvesMap = deviceObject.orElseThrow().nonnullShelves();
         LOG.info("Shelves size {}", shelvesMap.size());
         try (Connection connection = requireNonNull(dataSource.getConnection())) {
             for (Map.Entry<ShelvesKey, Shelves> entry : shelvesMap.entrySet()) {
@@ -229,7 +236,9 @@ public class INode221 {
     }
 
     public void getCircuitPacks(String nodeId) throws InterruptedException, ExecutionException {
-        InstanceIdentifier<OrgOpenroadmDevice> deviceIID = InstanceIdentifier.create(OrgOpenroadmDevice.class);
+        DataObjectIdentifier<OrgOpenroadmDevice> deviceIID = DataObjectIdentifier
+            .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
+            .build();
         Optional<OrgOpenroadmDevice> deviceObject =
                 deviceTransactionManager.getDataFromDevice(nodeId, LogicalDatastoreType.OPERATIONAL, deviceIID,
                         Timeouts.DEVICE_READ_TIMEOUT, Timeouts.DEVICE_READ_TIMEOUT_UNIT);
@@ -238,7 +247,7 @@ public class INode221 {
             return;
         }
         @NonNull
-        Map<CircuitPacksKey, CircuitPacks> circuitPacksMap = deviceObject.get().nonnullCircuitPacks();
+        Map<CircuitPacksKey, CircuitPacks> circuitPacksMap = deviceObject.orElseThrow().nonnullCircuitPacks();
         LOG.info("Circuit pack size {}", circuitPacksMap.size());
 
         try (Connection connection = requireNonNull(dataSource.getConnection())) {
@@ -534,7 +543,7 @@ public class INode221 {
         //int otsFiberTypeEnu = -1;
         String name = deviceInterface.getName();
         String description = deviceInterface.getDescription();
-        String type = deviceInterface.getType().getTypeName();
+        String type = deviceInterface.getType().toString();
         String circuitId = deviceInterface.getCircuitId();
         String supportingInterface = deviceInterface.getSupportingInterface();
         String supportingCircuitPackName = deviceInterface.getSupportingCircuitPackName();
@@ -625,9 +634,9 @@ public class INode221 {
             case "och":
                 OchBuilder ochIfBuilder = new OchBuilder(deviceInterface.augmentation(
                     org.opendaylight.yang.gen.v1
-                        .http.org.openroadm.optical.channel.interfaces.rev161014.Interface1.class)
+                        .http.org.openroadm.optical.channel.interfaces.rev181019.Interface1.class)
                     .getOch());
-                ochRate = ochIfBuilder.getRate().getName();
+                ochRate = ochIfBuilder.getRate().toString();
                 //ochWavelengthNumber = ochIfBuilder.getWavelengthNumber().toString();
                 ochModulationFormat = ochIfBuilder.getModulationFormat().getName();
                 ochTransmitPower = ochIfBuilder.getTransmitPower().toString();
@@ -636,7 +645,7 @@ public class INode221 {
             case "ots":
                 OtsBuilder otsIfBuilder = new OtsBuilder(deviceInterface.augmentation(
                     org.opendaylight.yang.gen.v1
-                        .http.org.openroadm.optical.transport.interfaces.rev161014.Interface1.class)
+                        .http.org.openroadm.optical.transport.interfaces.rev181019.Interface1.class)
                     .getOts());
                 //otsFiberTypeEnu = otsIfBuilder.getFiberType().getIntValue();
                 otsSpanLossReceive = otsIfBuilder.getSpanLossReceive().toString();
@@ -645,7 +654,7 @@ public class INode221 {
 
             case "odu":
                 OduBuilder oduIfBuilder = new OduBuilder(deviceInterface.augmentation(
-                    org.opendaylight.yang.gen.v1.http.org.openroadm.otn.odu.interfaces.rev161014.Interface1.class)
+                    org.opendaylight.yang.gen.v1.http.org.openroadm.otn.odu.interfaces.rev181019.Interface1.class)
                     .getOdu());
                 oduRate = String.valueOf(oduIfBuilder.getRate());
                 oduMonitoringMode = oduIfBuilder.getMonitoringMode().getName();
@@ -656,9 +665,9 @@ public class INode221 {
                 persistDevInterfaceOtnOduRxMsi(nodeId, name, oduIfBuilder, connection);
                 persistDevInterfaceOtnOduExpMsi(nodeId, name, oduIfBuilder, connection);
 
-                opuPayloadType = oduIfBuilder.getOpu().getPayloadType();
-                opuRxPayloadType = oduIfBuilder.getOpu().getRxPayloadType();
-                opuExpPayloadType = oduIfBuilder.getOpu().getExpPayloadType();
+                opuPayloadType = oduIfBuilder.getOpu().getPayloadType().getValue();
+                opuRxPayloadType = oduIfBuilder.getOpu().getRxPayloadType().getValue();
+                opuExpPayloadType = oduIfBuilder.getOpu().getExpPayloadType().getValue();
                 opuPayloadInterface = oduIfBuilder.getOpu().getPayloadInterface();
                         /*persistDevInterfaceOtnOduTxMsi(nodeId,name,oduIfBuilder,connection);
                         persistDevInterfaceOtnOduRxMsi(nodeId,name,oduIfBuilder,connection);
@@ -674,9 +683,9 @@ public class INode221 {
 
             case "otu":
                 OtuBuilder otuIfBuilder = new OtuBuilder(deviceInterface.augmentation(
-                    org.opendaylight.yang.gen.v1.http.org.openroadm.otn.otu.interfaces.rev161014.Interface1.class)
+                    org.opendaylight.yang.gen.v1.http.org.openroadm.otn.otu.interfaces.rev181019.Interface1.class)
                     .getOtu());
-                otuRate = otuIfBuilder.getRate().getName();
+                otuRate = otuIfBuilder.getRate().toString();
                 otuFecEnu = otuIfBuilder.getFec().getIntValue();
                 otuMaintLoopbackEnabled = otuIfBuilder.getMaintLoopback().getEnabled().toString();
                 otuMaintTypeEnu = otuIfBuilder.getMaintLoopback().getType().getIntValue();
@@ -841,7 +850,7 @@ public class INode221 {
     private static Object[] prepareDevInterfaceOtnOduTxMsiParameters(String nodeId, String interfaceName, TxMsi txMsi) {
 
         String tribSlot = txMsi.getTribSlot().toString();
-        String odtuType = txMsi.getOdtuType().getTypeName();
+        String odtuType = txMsi.getOdtuType().toString();
         String tribPort = txMsi.getTribPort().toString();
         String tribPortPayload = txMsi.getTribPortPayload();
 
@@ -862,7 +871,7 @@ public class INode221 {
     private static Object[] prepareDevInterfaceOtnOduRxMsiParameters(String nodeId, String interfaceName, RxMsi rxMsi) {
 
         String tribSlot = rxMsi.getTribSlot().toString();
-        String odtuType = rxMsi.getOdtuType().getTypeName();
+        String odtuType = rxMsi.getOdtuType().toString();
         String tribPort = rxMsi.getTribPort().toString();
         String tribPortPayload = rxMsi.getTribPortPayload();
 
@@ -885,7 +894,7 @@ public class INode221 {
         ExpMsi expMsi) {
 
         String tribSlot = expMsi.getTribSlot().toString();
-        String odtuType = expMsi.getOdtuType().getTypeName();
+        String odtuType = expMsi.getOdtuType().toString();
         String tribPort = expMsi.getTribPort().toString();
         String tribPortPayload = expMsi.getTribPortPayload();
 
@@ -905,7 +914,9 @@ public class INode221 {
 
     private void persistDevInterfaces(String nodeId, Connection connection) {
 
-        InstanceIdentifier<OrgOpenroadmDevice> deviceIID = InstanceIdentifier.create(OrgOpenroadmDevice.class);
+        DataObjectIdentifier<OrgOpenroadmDevice> deviceIID = DataObjectIdentifier
+            .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
+            .build();
         Optional<OrgOpenroadmDevice> deviceObject =
                 deviceTransactionManager.getDataFromDevice(nodeId, LogicalDatastoreType.OPERATIONAL, deviceIID,
                         Timeouts.DEVICE_READ_TIMEOUT, Timeouts.DEVICE_READ_TIMEOUT_UNIT);
@@ -917,7 +928,7 @@ public class INode221 {
                         Timeouts.DEVICE_READ_TIMEOUT, Timeouts.DEVICE_READ_TIMEOUT_UNIT); */
 
         @NonNull
-        Map<InterfaceKey, Interface> interfaceMap = deviceObject.get().nonnullInterface();
+        Map<InterfaceKey, Interface> interfaceMap = deviceObject.orElseThrow().nonnullInterface();
         for (Map.Entry<InterfaceKey, Interface> entry : interfaceMap.entrySet()) {
             Interface deviceInterface;
 
@@ -946,24 +957,26 @@ public class INode221 {
 
     private void persistDevProtocols(String nodeId, Connection connection) {
 
-        InstanceIdentifier<Protocols> protocolsIID =
-                InstanceIdentifier.create(OrgOpenroadmDevice.class).child(Protocols.class);
+        DataObjectIdentifier<Protocols> protocolsIID = DataObjectIdentifier
+            .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
+            .child(Protocols.class)
+            .build();
         Optional<Protocols> protocolObject =
                 deviceTransactionManager.getDataFromDevice(nodeId, LogicalDatastoreType.CONFIGURATION, protocolsIID,
                         Timeouts.DEVICE_READ_TIMEOUT, Timeouts.DEVICE_READ_TIMEOUT_UNIT);
-        if (!protocolObject.isPresent() || protocolObject.get().augmentation(Protocols1.class) == null) {
+        if (!protocolObject.isPresent() || protocolObject.orElseThrow().augmentation(Protocols1.class) == null) {
             LOG.error("LLDP subtree is missing");
             return;
         }
         int adminstatusEnu =
-            protocolObject.get().augmentation(Protocols1.class).getLldp().getGlobalConfig().getAdminStatus()
-            .getIntValue();
+            protocolObject.orElseThrow().augmentation(Protocols1.class).getLldp().getGlobalConfig().getAdminStatus()
+                .getIntValue();
         String msgTxtInterval =
-            protocolObject.get().augmentation(Protocols1.class).getLldp().getGlobalConfig().getMsgTxInterval()
-            .toString();
+            protocolObject.orElseThrow().augmentation(Protocols1.class).getLldp().getGlobalConfig().getMsgTxInterval()
+                .toString();
         String mxgTxHoldMultiplier =
-            protocolObject.get().augmentation(Protocols1.class).getLldp().getGlobalConfig().getMsgTxHoldMultiplier()
-            .toString();
+            protocolObject.orElseThrow().augmentation(Protocols1.class).getLldp().getGlobalConfig()
+                .getMsgTxHoldMultiplier().toString();
         String startTimestamp = getCurrentTimestamp();
         persistDevProtocolLldpPortConfig(nodeId, connection);
         persistDevProtocolLldpNbrList(nodeId, connection);
@@ -993,18 +1006,20 @@ public class INode221 {
 
     private void persistDevProtocolLldpPortConfig(String nodeId, Connection connection) {
 
-        InstanceIdentifier<Protocols> protocolsIID =
-                InstanceIdentifier.create(OrgOpenroadmDevice.class).child(Protocols.class);
+        DataObjectIdentifier<Protocols> protocolsIID = DataObjectIdentifier
+            .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
+            .child(Protocols.class)
+            .build();
         Optional<Protocols> protocolObject =
                 deviceTransactionManager.getDataFromDevice(nodeId, LogicalDatastoreType.CONFIGURATION, protocolsIID,
                         Timeouts.DEVICE_READ_TIMEOUT, Timeouts.DEVICE_READ_TIMEOUT_UNIT);
-        if (!protocolObject.isPresent() || protocolObject.get().augmentation(Protocols1.class) == null) {
+        if (!protocolObject.isPresent() || protocolObject.orElseThrow().augmentation(Protocols1.class) == null) {
             LOG.error("LLDP subtree is missing");
             return;
         }
         String startTimestamp = getCurrentTimestamp();
         @NonNull
-        Map<PortConfigKey, PortConfig> portConfigMap = protocolObject.get()
+        Map<PortConfigKey, PortConfig> portConfigMap = protocolObject.orElseThrow()
             .augmentation(Protocols1.class).getLldp().nonnullPortConfig();
         for (Map.Entry<PortConfigKey, PortConfig> entry : portConfigMap.entrySet()) {
 
@@ -1037,18 +1052,20 @@ public class INode221 {
 
     private void persistDevProtocolLldpNbrList(String nodeId, Connection connection) {
 
-        InstanceIdentifier<Protocols> protocolsIID =
-                InstanceIdentifier.create(OrgOpenroadmDevice.class).child(Protocols.class);
+        DataObjectIdentifier<Protocols> protocolsIID = DataObjectIdentifier
+            .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
+            .child(Protocols.class)
+            .build();
         Optional<Protocols> protocolObject =
                 deviceTransactionManager.getDataFromDevice(nodeId, LogicalDatastoreType.CONFIGURATION, protocolsIID,
                         Timeouts.DEVICE_READ_TIMEOUT, Timeouts.DEVICE_READ_TIMEOUT_UNIT);
-        if (!protocolObject.isPresent() || protocolObject.get().augmentation(Protocols1.class) == null) {
+        if (!protocolObject.isPresent() || protocolObject.orElseThrow().augmentation(Protocols1.class) == null) {
             LOG.error("LLDP subtree is missing");
             return;
         }
         String startTimestamp = getCurrentTimestamp();
         @NonNull
-        Map<IfNameKey, IfName> ifNameMap = protocolObject.get()
+        Map<IfNameKey, IfName> ifNameMap = protocolObject.orElseThrow()
             .augmentation(Protocols1.class).getLldp().getNbrList().nonnullIfName();
         for (Map.Entry<IfNameKey, IfName> entry : ifNameMap.entrySet()) {
 
@@ -1092,7 +1109,9 @@ public class INode221 {
 
     private void persistDevInternalLinks(String nodeId, Connection connection) {
 
-        InstanceIdentifier<OrgOpenroadmDevice> deviceIID = InstanceIdentifier.create(OrgOpenroadmDevice.class);
+        DataObjectIdentifier<OrgOpenroadmDevice> deviceIID = DataObjectIdentifier
+            .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
+            .build();
         Optional<OrgOpenroadmDevice> deviceObject =
                 deviceTransactionManager.getDataFromDevice(nodeId, LogicalDatastoreType.OPERATIONAL, deviceIID,
                         Timeouts.DEVICE_READ_TIMEOUT, Timeouts.DEVICE_READ_TIMEOUT_UNIT);
@@ -1102,7 +1121,7 @@ public class INode221 {
         }
         String startTimestamp = getCurrentTimestamp();
         @NonNull
-        Map<InternalLinkKey, InternalLink> internalLinkMap = deviceObject.get().nonnullInternalLink();
+        Map<InternalLinkKey, InternalLink> internalLinkMap = deviceObject.orElseThrow().nonnullInternalLink();
         for (Map.Entry<InternalLinkKey, InternalLink> entry : internalLinkMap.entrySet()) {
             InternalLink internalLink = entry.getValue();
             String internalLinkName = internalLink.getInternalLinkName();
@@ -1139,7 +1158,9 @@ public class INode221 {
 
     private void persistDevExternalLinks(String nodeId, Connection connection) {
 
-        InstanceIdentifier<OrgOpenroadmDevice> deviceIID = InstanceIdentifier.create(OrgOpenroadmDevice.class);
+        DataObjectIdentifier<OrgOpenroadmDevice> deviceIID = DataObjectIdentifier
+            .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
+            .build();
         Optional<OrgOpenroadmDevice> deviceObject =
                 deviceTransactionManager.getDataFromDevice(nodeId, LogicalDatastoreType.OPERATIONAL, deviceIID,
                         Timeouts.DEVICE_READ_TIMEOUT, Timeouts.DEVICE_READ_TIMEOUT_UNIT);
@@ -1149,14 +1170,14 @@ public class INode221 {
         }
         String startTimestamp = getCurrentTimestamp();
         @NonNull
-        Map<ExternalLinkKey, ExternalLink> externalLinkMap = deviceObject.get().nonnullExternalLink();
+        Map<ExternalLinkKey, ExternalLink> externalLinkMap = deviceObject.orElseThrow().nonnullExternalLink();
         for (Map.Entry<ExternalLinkKey, ExternalLink> entry : externalLinkMap.entrySet()) {
             ExternalLink externalLink = entry.getValue();
             String externalLinkName = externalLink.getExternalLinkName();
-            String sourceNodeId = externalLink.getSource().getNodeId();
+            String sourceNodeId = externalLink.getSource().getNodeId().getValue();
             String sourceCircuitPackName = externalLink.getSource().getCircuitPackName();
             String sourcePortName = externalLink.getSource().getPortName();
-            String destinationNodeId = externalLink.getDestination().getNodeId();
+            String destinationNodeId = externalLink.getDestination().getNodeId().getValue();
             String destinationCircuitPackName = externalLink.getDestination().getCircuitPackName();
             String destinationPortName = externalLink.getDestination().getPortName();
 
@@ -1189,7 +1210,9 @@ public class INode221 {
 
     private void persistDevPhysicalLinks(String nodeId, Connection connection) {
 
-        InstanceIdentifier<OrgOpenroadmDevice> deviceIID = InstanceIdentifier.create(OrgOpenroadmDevice.class);
+        DataObjectIdentifier<OrgOpenroadmDevice> deviceIID = DataObjectIdentifier
+            .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
+            .build();
         Optional<OrgOpenroadmDevice> deviceObject =
                 deviceTransactionManager.getDataFromDevice(nodeId, LogicalDatastoreType.OPERATIONAL, deviceIID,
                         Timeouts.DEVICE_READ_TIMEOUT, Timeouts.DEVICE_READ_TIMEOUT_UNIT);
@@ -1200,7 +1223,7 @@ public class INode221 {
         }
         String startTimestamp = getCurrentTimestamp();
         @NonNull
-        Map<PhysicalLinkKey, PhysicalLink> physicalLinkMap = deviceObject.get().nonnullPhysicalLink();
+        Map<PhysicalLinkKey, PhysicalLink> physicalLinkMap = deviceObject.orElseThrow().nonnullPhysicalLink();
         for (Map.Entry<PhysicalLinkKey, PhysicalLink> entry : physicalLinkMap.entrySet()) {
             PhysicalLink physicalLink = entry.getValue();
             String physicalLinkName = physicalLink.getPhysicalLinkName();
@@ -1236,7 +1259,9 @@ public class INode221 {
 
     private void persistDevDegree(String nodeId, Connection connection) {
 
-        InstanceIdentifier<OrgOpenroadmDevice> deviceIID = InstanceIdentifier.create(OrgOpenroadmDevice.class);
+        DataObjectIdentifier<OrgOpenroadmDevice> deviceIID = DataObjectIdentifier
+            .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
+            .build();
         Optional<OrgOpenroadmDevice> deviceObject =
                 deviceTransactionManager.getDataFromDevice(nodeId, LogicalDatastoreType.OPERATIONAL, deviceIID,
                         Timeouts.DEVICE_READ_TIMEOUT, Timeouts.DEVICE_READ_TIMEOUT_UNIT);
@@ -1246,7 +1271,7 @@ public class INode221 {
         }
         String startTimestamp = getCurrentTimestamp();
         @NonNull
-        Map<DegreeKey, Degree> degreeMap = deviceObject.get().nonnullDegree();
+        Map<DegreeKey, Degree> degreeMap = deviceObject.orElseThrow().nonnullDegree();
         for (Map.Entry<DegreeKey, Degree> entry : degreeMap.entrySet()) {
             Degree degree = entry.getValue();
             String degreeNumber = degree.getDegreeNumber().toString();
@@ -1294,11 +1319,11 @@ public class INode221 {
 
         String startTimestamp = getCurrentTimestamp();
         @NonNull
-        Map<org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev170206.degree.CircuitPacksKey,
-                org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev170206.degree.CircuitPacks>
+        Map<org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.degree.CircuitPacksKey,
+                org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.degree.CircuitPacks>
             circuitPacksMap = degree.nonnullCircuitPacks();
-        for (Map.Entry<org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev170206.degree.CircuitPacksKey,
-                org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev170206.degree.CircuitPacks> entry :
+        for (Map.Entry<org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.degree.CircuitPacksKey,
+                org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.degree.CircuitPacks> entry :
                     circuitPacksMap.entrySet()) {
 
 
@@ -1368,7 +1393,9 @@ public class INode221 {
 
     private void persistDevSrg(String nodeId, Connection connection) {
 
-        InstanceIdentifier<OrgOpenroadmDevice> deviceIID = InstanceIdentifier.create(OrgOpenroadmDevice.class);
+        DataObjectIdentifier<OrgOpenroadmDevice> deviceIID = DataObjectIdentifier
+            .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
+            .build();
         Optional<OrgOpenroadmDevice> deviceObject =
                 deviceTransactionManager.getDataFromDevice(nodeId, LogicalDatastoreType.OPERATIONAL, deviceIID,
                         Timeouts.DEVICE_READ_TIMEOUT, Timeouts.DEVICE_READ_TIMEOUT_UNIT);
@@ -1379,7 +1406,8 @@ public class INode221 {
         }
         String startTimestamp = getCurrentTimestamp();
         @NonNull
-        Map<SharedRiskGroupKey, SharedRiskGroup> sharedRiskGroupMap = deviceObject.get().nonnullSharedRiskGroup();
+        Map<SharedRiskGroupKey, SharedRiskGroup> sharedRiskGroupMap = deviceObject.orElseThrow()
+            .nonnullSharedRiskGroup();
         for (Map.Entry<SharedRiskGroupKey, SharedRiskGroup> entry : sharedRiskGroupMap.entrySet()) {
             SharedRiskGroup sharedRiskGroup = entry.getValue();
             String maxAddDropPorts = sharedRiskGroup.getMaxAddDropPorts().toString();
@@ -1426,14 +1454,14 @@ public class INode221 {
 
         String startTimestamp = getCurrentTimestamp();
         @NonNull
-        Map<org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev170206.srg.CircuitPacksKey,
-                org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev170206.srg.CircuitPacks>
+        Map<org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.srg.CircuitPacksKey,
+                org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.srg.CircuitPacks>
                 circuitPacksMap = sharedRiskGroup.nonnullCircuitPacks();
-        for (Map.Entry<org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev170206.srg.CircuitPacksKey,
-                org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev170206.srg.CircuitPacks> entry :
+        for (Map.Entry<org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.srg.CircuitPacksKey,
+                org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.srg.CircuitPacks> entry :
                     circuitPacksMap.entrySet()) {
 
-            org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev170206.srg.CircuitPacks circuitPack =
+            org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.srg.CircuitPacks circuitPack =
                                 entry.getValue();
             String circuitPackindex = circuitPack.getIndex().toString();
             String circuitPackName = circuitPack.getCircuitPackName();
@@ -1463,7 +1491,9 @@ public class INode221 {
 
     private void persistDevRoadmConnections(String nodeId, Connection connection) {
 
-        InstanceIdentifier<OrgOpenroadmDevice> deviceIID = InstanceIdentifier.create(OrgOpenroadmDevice.class);
+        DataObjectIdentifier<OrgOpenroadmDevice> deviceIID = DataObjectIdentifier
+            .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
+            .build();
         Optional<OrgOpenroadmDevice> deviceObject =
                 deviceTransactionManager.getDataFromDevice(nodeId, LogicalDatastoreType.OPERATIONAL, deviceIID,
                         Timeouts.DEVICE_READ_TIMEOUT, Timeouts.DEVICE_READ_TIMEOUT_UNIT);
@@ -1473,7 +1503,8 @@ public class INode221 {
         }
         String startTimestamp = getCurrentTimestamp();
         @NonNull
-        Map<RoadmConnectionsKey, RoadmConnections> roadmConnectionsMap = deviceObject.get().nonnullRoadmConnections();
+        Map<RoadmConnectionsKey, RoadmConnections> roadmConnectionsMap = deviceObject.orElseThrow()
+            .nonnullRoadmConnections();
         for (Map.Entry<RoadmConnectionsKey, RoadmConnections> entry : roadmConnectionsMap.entrySet()) {
             RoadmConnections roadmConnections = entry.getValue();
             int opticalcontrolmodeEnu = roadmConnections.getOpticalControlMode().getIntValue();
@@ -1516,7 +1547,9 @@ public class INode221 {
 
     private void persistDevConnectionMap(String nodeId, Connection connection) {
 
-        InstanceIdentifier<OrgOpenroadmDevice> deviceIID = InstanceIdentifier.create(OrgOpenroadmDevice.class);
+        DataObjectIdentifier<OrgOpenroadmDevice> deviceIID = DataObjectIdentifier
+            .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
+            .build();
         Optional<OrgOpenroadmDevice> deviceObject =
                 deviceTransactionManager.getDataFromDevice(nodeId, LogicalDatastoreType.OPERATIONAL, deviceIID,
                         Timeouts.DEVICE_READ_TIMEOUT, Timeouts.DEVICE_READ_TIMEOUT_UNIT);
@@ -1526,7 +1559,7 @@ public class INode221 {
         }
         String startTimestamp = getCurrentTimestamp();
         @NonNull
-        Map<ConnectionMapKey, ConnectionMap> connectionMapMap = deviceObject.get().nonnullConnectionMap();
+        Map<ConnectionMapKey, ConnectionMap> connectionMapMap = deviceObject.orElseThrow().nonnullConnectionMap();
         for (Map.Entry<ConnectionMapKey, ConnectionMap> entry : connectionMapMap.entrySet()) {
             ConnectionMap connectionMap = entry.getValue();
             String connectionMapNumber = connectionMap.getConnectionMapNumber().toString();

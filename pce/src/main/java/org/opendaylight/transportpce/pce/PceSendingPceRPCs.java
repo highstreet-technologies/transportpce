@@ -9,31 +9,45 @@
 package org.opendaylight.transportpce.pce;
 
 import org.opendaylight.transportpce.common.ResponseCodes;
+import org.opendaylight.transportpce.common.device.observer.EventSubscriber;
+import org.opendaylight.transportpce.common.device.observer.Subscriber;
+import org.opendaylight.transportpce.common.fixedflex.GridConstant;
 import org.opendaylight.transportpce.common.mapping.PortMapping;
 import org.opendaylight.transportpce.common.network.NetworkTransactionService;
+import org.opendaylight.transportpce.pce.constraints.OperatorConstraints;
 import org.opendaylight.transportpce.pce.constraints.PceConstraints;
 import org.opendaylight.transportpce.pce.constraints.PceConstraintsCalc;
+import org.opendaylight.transportpce.pce.frequency.interval.FrequencyIntervalFactory;
+import org.opendaylight.transportpce.pce.frequency.service.ServiceFrequency;
+import org.opendaylight.transportpce.pce.frequency.spectrum.FrequencySpectrum;
+import org.opendaylight.transportpce.pce.frequency.spectrum.index.SpectrumIndex;
 import org.opendaylight.transportpce.pce.gnpy.GnpyException;
 import org.opendaylight.transportpce.pce.gnpy.GnpyResult;
 import org.opendaylight.transportpce.pce.gnpy.GnpyUtilitiesImpl;
 import org.opendaylight.transportpce.pce.gnpy.consumer.GnpyConsumer;
 import org.opendaylight.transportpce.pce.graph.PceGraph;
+import org.opendaylight.transportpce.pce.input.ClientInput;
+import org.opendaylight.transportpce.pce.input.ServiceCreateClientInput;
 import org.opendaylight.transportpce.pce.networkanalyzer.PceCalculation;
 import org.opendaylight.transportpce.pce.networkanalyzer.PceResult;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.PathComputationRequestInput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.PathComputationRequestInputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev220118.service.path.rpc.result.PathDescriptionBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev211210.routing.constraints.HardConstraints;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.path.description.AToZDirection;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev210705.path.description.ZToADirection;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.PathComputationRequestInput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.PathComputationRequestInputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.PceConstraintMode;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.path.computation.reroute.request.input.Endpoints;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.service.path.rpc.result.PathDescriptionBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.routing.constraints.HardConstraints;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.path.description.AToZDirection;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.path.description.ZToADirection;
 import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.PceMetric;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.event.Level;
 
 /*
  * Class for Sending
  * PCE requests :
  * - path-computation-request
+ * - path-computation-reroute
  * - cancel-resource-reserve.
  * @author Martial Coulibaly ( martial.coulibaly@gfi.com ) on behalf of Orange
  *
@@ -61,23 +75,48 @@ public class PceSendingPceRPCs {
     private String responseCode;
     private final GnpyConsumer gnpyConsumer;
     private PortMapping portMapping;
+    // Define the termination points whose reservation status is not taken into account during the pruning process
+    private Endpoints endpoints;
+    // Define PCE mode of operation (OpenROADM/TAPI)
+    private String pceOperMode;
+    public static final String OR_PCE_OPER_MODE = "OpenROADM-PCE-Operation-Mode";
+    public static final String TAPI_PCE_OPER_MODE = "T-API-PCE-Operation-Mode";
+    public static final String SERVICE_LAYER_OTN = "OTN";
+    public static final String SERVICE_LAYER_PHOTONIC = "PHOTONIC";
+    public static final String SERVICE_LAYER_UNDEFINED = "UNDEFINED";
 
-    public PceSendingPceRPCs(GnpyConsumer gnpyConsumer) {
+    public PceSendingPceRPCs(GnpyConsumer gnpyConsumer, String pceOperationalMode) {
         setPathDescription(null);
         this.input = null;
         this.networkTransaction = null;
         this.gnpyConsumer = gnpyConsumer;
+        this.pceOperMode = pceOperationalMode;
     }
 
-    public PceSendingPceRPCs(PathComputationRequestInput input,
-        NetworkTransactionService networkTransaction, GnpyConsumer gnpyConsumer, PortMapping portMapping) {
+    public PceSendingPceRPCs(PathComputationRequestInput input, NetworkTransactionService networkTransaction,
+                             GnpyConsumer gnpyConsumer, PortMapping portMapping, String pceOperationalMode) {
         this.gnpyConsumer = gnpyConsumer;
         setPathDescription(null);
-
         // TODO compliance check to check that input is not empty
         this.input = input;
         this.networkTransaction = networkTransaction;
         this.portMapping = portMapping;
+        this.endpoints = null;
+        this.pceOperMode = pceOperationalMode;
+
+    }
+
+    public PceSendingPceRPCs(PathComputationRequestInput input, NetworkTransactionService networkTransaction,
+                             GnpyConsumer gnpyConsumer, PortMapping portMapping,
+                             Endpoints endpoints,
+                             String pceOperationalMode) {
+        this.gnpyConsumer = gnpyConsumer;
+        setPathDescription(null);
+        this.input = input;
+        this.networkTransaction = networkTransaction;
+        this.portMapping = portMapping;
+        this.endpoints = endpoints;
+        this.pceOperMode = pceOperationalMode;
     }
 
     public void cancelResourceReserve() {
@@ -93,10 +132,14 @@ public class PceSendingPceRPCs {
         LOG.info("cancelResourceReserve ...");
     }
 
-    public void pathComputationWithConstraints(PceConstraints hardConstraints, PceConstraints softConstraints) {
+    private void pathComputationWithConstraints(PceConstraints hardConstraints, PceConstraints softConstraints,
+            PceConstraintMode mode) {
 
-        PceCalculation nwAnalizer =
-            new PceCalculation(input, networkTransaction, hardConstraints, softConstraints, rc, portMapping);
+        rc = new PceResult();
+        LOG.info("PceSendingRpc PathComputation with constraints trigered with input {} AND Endpoints {}",
+            input, endpoints);
+        PceCalculation nwAnalizer = new PceCalculation(input, networkTransaction, hardConstraints, softConstraints, rc,
+                portMapping, endpoints, pceOperMode);
         nwAnalizer.retrievePceNetwork();
         rc = nwAnalizer.getReturnStructure();
         String serviceType = nwAnalizer.getServiceType();
@@ -104,10 +147,35 @@ public class PceSendingPceRPCs {
             LOG.error("In pathComputationWithConstraints, nwAnalizer: result = {}", rc);
             return;
         }
+        OperatorConstraints opConstraints = new OperatorConstraints(networkTransaction);
+        ClientInput clientInput = new ServiceCreateClientInput(
+                this.input,
+                new FrequencyIntervalFactory(
+                        new ServiceFrequency(),
+                        GridConstant.EFFECTIVE_BITS,
+                        GridConstant.GRANULARITY
+                ),
+                new FrequencySpectrum(
+                        new SpectrumIndex(
+                                GridConstant.START_EDGE_FREQUENCY_THZ,
+                                GridConstant.GRANULARITY,
+                                GridConstant.EFFECTIVE_BITS
+                        ),
+                        GridConstant.EFFECTIVE_BITS
+                ),
+                new ServiceFrequency(),
+                GridConstant.GRANULARITY
+        );
         LOG.info("PceGraph ...");
+
         PceGraph graph = new PceGraph(nwAnalizer.getaendPceNode(), nwAnalizer.getzendPceNode(),
-                nwAnalizer.getAllPceNodes(), hardConstraints, softConstraints, rc, serviceType);
-        graph.calcPath();
+            nwAnalizer.getAllPceNodes(), nwAnalizer.getAllPceLinks(), hardConstraints,
+            rc, serviceType, networkTransaction, mode, opConstraints.getBitMapConstraint(input.getCustomerName()),
+            clientInput, nwAnalizer.getServiceLayer());
+
+        Subscriber errorSubscriber = new EventSubscriber();
+        graph.setPceOperMode(this.pceOperMode);
+        graph.calcPath(errorSubscriber);
         rc = graph.getReturnStructure();
         if (!rc.getStatus()) {
             LOG.warn("In pathComputationWithConstraints : Graph return without Path ");
@@ -116,34 +184,38 @@ public class PceSendingPceRPCs {
                 && (hardConstraints.getPceMetrics() == PceMetric.HopCount)
                 && (hardConstraints.getMaxLatency() != -1)) {
                 hardConstraints.setPceMetrics(PceMetric.PropagationDelay);
-                graph = patchRerunGraph(graph);
+                graph = patchRerunGraph(graph, errorSubscriber);
             }
 
             if (rc.getLocalCause() == PceResult.LocalCause.HD_NODE_INCLUDE) {
                 graph.setKpathsToBring(graph.getKpathsToBring() * 10);
-                graph = patchRerunGraph(graph);
+                graph = patchRerunGraph(graph, errorSubscriber);
             }
 
             if (!rc.getStatus()) {
                 LOG.error("In pathComputationWithConstraints, graph.calcPath: result = {}", rc);
+                rc.error(errorSubscriber.first(Level.ERROR, "No path found by PCE.", 3));
                 return;
             }
         }
         LOG.info("PcePathDescription ...");
         PcePathDescription description = new PcePathDescription(graph.getPathAtoZ(), nwAnalizer.getAllPceLinks(), rc);
+        description.setAendOperationalMode(graph.getAendOperationalMode());
+        description.setZendOperationalMode(graph.getZendOperationalMode());
         description.buildDescriptions();
         rc = description.getReturnStructure();
         if (!rc.getStatus()) {
             LOG.error("In pathComputationWithConstraints, description: result = {}", rc);
+            rc.error(errorSubscriber.first(Level.ERROR, "No path found by PCE.", 3));
         }
     }
 
-    public void pathComputation() throws Exception {
+    public void pathComputation() {
 
         PceConstraintsCalc constraints = new PceConstraintsCalc(input, networkTransaction);
         pceHardConstraints = constraints.getPceHardConstraints();
         pceSoftConstraints = constraints.getPceSoftConstraints();
-        pathComputationWithConstraints(pceHardConstraints, pceSoftConstraints);
+        pathComputationWithConstraints(pceHardConstraints, pceSoftConstraints, PceConstraintMode.Loose);
         this.success = rc.getStatus();
         this.message = rc.getMessage();
         this.responseCode = rc.getResponseCode();
@@ -154,25 +226,31 @@ public class PceSendingPceRPCs {
             atoz = rc.getAtoZDirection();
             ztoa = rc.getZtoADirection();
         }
-
-        //Connect to Gnpy to check path feasibility and recompute another path in case of path non-feasibility
-        try {
-            if (gnpyConsumer.isAvailable()) {
-                GnpyUtilitiesImpl gnpy = new GnpyUtilitiesImpl(networkTransaction, input,
-                        gnpyConsumer);
-                if (rc.getStatus() && gnpyToCheckFeasiblity(atoz,ztoa,gnpy)) {
+        if (this.pceOperMode.equals(OR_PCE_OPER_MODE)) {
+            //Connect to Gnpy to check path feasibility and recompute another path in case of path non-feasibility
+            try {
+                if (gnpyConsumer.isAvailable()) {
+                    GnpyUtilitiesImpl gnpy = new GnpyUtilitiesImpl(networkTransaction, input,
+                            gnpyConsumer);
+                    if (rc.getStatus() && gnpyToCheckFeasiblity(atoz,ztoa,gnpy)) {
+                        setPathDescription(new PathDescriptionBuilder().setAToZDirection(atoz).setZToADirection(ztoa));
+                        return;
+                    }
+                    callGnpyToComputeNewPath(gnpy);
+                } else {
                     setPathDescription(new PathDescriptionBuilder().setAToZDirection(atoz).setZToADirection(ztoa));
-                    return;
                 }
-                callGnpyToComputeNewPath(gnpy);
-            } else {
+            }
+            catch (GnpyException e) {
+                LOG.error("Exception raised by GNPy {}",e.getMessage());
                 setPathDescription(new PathDescriptionBuilder().setAToZDirection(atoz).setZToADirection(ztoa));
             }
-        }
-        catch (GnpyException e) {
-            LOG.error("Exception raised by GNPy {}",e.getMessage());
+        } else {
+            //TODO : develop Serializer for GNPY analysis of path over a T-API topology
             setPathDescription(new PathDescriptionBuilder().setAToZDirection(atoz).setZToADirection(ztoa));
+            LOG.warn("No GNPY path analysis on T-API topology : T-API Path serializer not available yet");
         }
+
     }
 
     private boolean gnpyToCheckFeasiblity(AToZDirection atoz, ZToADirection ztoa, GnpyUtilitiesImpl gnpy)
@@ -217,7 +295,7 @@ public class PceSendingPceRPCs {
         PceConstraintsCalc constraintsGnpy = new PceConstraintsCalc(inputFromGnpy, networkTransaction);
         PceConstraints gnpyHardConstraints = constraintsGnpy.getPceHardConstraints();
         PceConstraints gnpySoftConstraints = constraintsGnpy.getPceSoftConstraints();
-        pathComputationWithConstraints(gnpyHardConstraints, gnpySoftConstraints);
+        pathComputationWithConstraints(gnpyHardConstraints, gnpySoftConstraints, PceConstraintMode.Strict);
         AToZDirection atoz = rc.getAtoZDirection();
         ZToADirection ztoa = rc.getZtoADirection();
         if (gnpyToCheckFeasiblity(atoz, ztoa,gnpy)) {
@@ -229,16 +307,22 @@ public class PceSendingPceRPCs {
         } else {
             LOG.info("In pceSendingPceRPC: the new path computed by GNPy is not valid");
             this.success = false;
-            this.message = "No path available";
+            if (rc.getLocalCause() != null) {
+                this.message = String.format("No path available (%s)", rc.getLocalCause());
+                LOG.error("No path available ({})", rc.getLocalCause());
+            } else {
+                this.message = "No path available (the new path computed by GNPy is not valid)";
+                LOG.error("No path available (the new path computed by GNPy is not valid)");
+            }
             this.responseCode = ResponseCodes.RESPONSE_FAILED;
             setPathDescription(new PathDescriptionBuilder().setAToZDirection(null).setZToADirection(null));
         }
     }
 
-    private PceGraph patchRerunGraph(PceGraph graph) {
+    private PceGraph patchRerunGraph(PceGraph graph, Subscriber errorSubscriber) {
         LOG.info("In pathComputation patchRerunGraph : rerun Graph with metric = PROPAGATION-DELAY ");
-        graph.setConstrains(pceHardConstraints, pceSoftConstraints);
-        graph.calcPath();
+        graph.setConstrains(pceHardConstraints);
+        graph.calcPath(errorSubscriber);
         return graph;
     }
 

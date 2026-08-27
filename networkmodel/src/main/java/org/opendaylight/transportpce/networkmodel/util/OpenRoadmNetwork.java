@@ -9,10 +9,10 @@
 package org.opendaylight.transportpce.networkmodel.util;
 
 import com.google.common.collect.ImmutableMap;
-import org.opendaylight.transportpce.common.NetworkUtils;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.network.nodes.NodeInfo;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.rev211210.Node1Builder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev211210.OpenroadmNodeType;
+import org.opendaylight.transportpce.common.StringConstants;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.network.nodes.NodeInfo;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.rev250530.Node1Builder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.OpenroadmNodeType;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.NetworkId;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.NodeId;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.networks.network.Node;
@@ -24,7 +24,9 @@ import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
+/**
+ * Utility class to implement the org-openroadm-network topology layer.
+ */
 public final class OpenRoadmNetwork {
 
     private static final Logger LOG = LoggerFactory.getLogger(OpenRoadmNetwork.class);
@@ -38,14 +40,13 @@ public final class OpenRoadmNetwork {
      *
      * @param nodeId node ID
      * @param nodeInfo some important and general data from device
-     *
      * @return node
      */
     public static Node createNode(String nodeId, NodeInfo nodeInfo) {
 
         Node1Builder node1Bldr = new Node1Builder();
-        org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev211210.Node1Builder node2Bldr =
-            new org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev211210.Node1Builder();
+        org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.Node1Builder node2Bldr =
+            new org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.Node1Builder();
 
         /*
          * Recognize the node type: 1:ROADM, 2:XPONDER
@@ -76,11 +77,11 @@ public final class OpenRoadmNetwork {
         // Sets the value of Network-ref and Node-ref as a part of the supporting node
         // attribute
         SupportingNode supportingNode = new SupportingNodeBuilder()
-            .setNetworkRef(new NetworkId(NetworkUtils.CLLI_NETWORK_ID))
-            .setNodeRef(new NodeId(nodeInfo.getNodeClli()))
-            .withKey(new SupportingNodeKey(new NetworkId(NetworkUtils.CLLI_NETWORK_ID),
-                new NodeId(nodeInfo.getNodeClli())))
-            .build();
+                .setNetworkRef(new NetworkId(StringConstants.CLLI_NETWORK))
+                .setNodeRef(new NodeId(nodeInfo.getNodeClli()))
+                .withKey(new SupportingNodeKey(new NetworkId(StringConstants.CLLI_NETWORK),
+                        new NodeId(nodeInfo.getNodeClli())))
+                .build();
 
         return new NodeBuilder()
             .setNodeId(new NodeId(nodeId))

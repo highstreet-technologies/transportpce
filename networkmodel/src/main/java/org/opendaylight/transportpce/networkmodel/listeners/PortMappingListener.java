@@ -7,49 +7,75 @@
  */
 package org.opendaylight.transportpce.networkmodel.listeners;
 
-import java.util.Collection;
-import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
 import org.eclipse.jdt.annotation.NonNull;
+import org.opendaylight.mdsal.binding.api.DataObjectWritten;
 import org.opendaylight.mdsal.binding.api.DataTreeChangeListener;
 import org.opendaylight.mdsal.binding.api.DataTreeModification;
 import org.opendaylight.transportpce.networkmodel.service.NetworkModelService;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.mapping.Mapping;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.network.Nodes;
-import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
-import org.opendaylight.yangtools.yang.binding.InstanceIdentifier.PathArgument;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mapping.Mapping;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.network.Nodes;
+import org.opendaylight.yangtools.binding.DataObjectIdentifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Implementation that listens to any data change on
+ * org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mapping.Mapping object.
+ */
 public class PortMappingListener implements DataTreeChangeListener<Mapping> {
 
     private static final Logger LOG = LoggerFactory.getLogger(PortMappingListener.class);
-
     private final NetworkModelService networkModelService;
 
+    /**
+     * Instantiate the PortMappingListener.
+     *
+     * @param networkModelService Service that eases data handling in topology data-stores.
+     */
     public PortMappingListener(NetworkModelService networkModelService) {
         this.networkModelService = networkModelService;
     }
 
+    /** {@inheritDoc} */
     @Override
-    public void onDataTreeChanged(@NonNull Collection<DataTreeModification<Mapping>> changes) {
+    public void onDataTreeChanged(@NonNull List<DataTreeModification<Mapping>> changes) {
         for (DataTreeModification<Mapping> change : changes) {
-            if (change.getRootNode().getDataBefore() != null && change.getRootNode().getDataAfter() != null) {
-                Mapping oldMapping = change.getRootNode().getDataBefore();
-                Mapping newMapping = change.getRootNode().getDataAfter();
-                if (oldMapping.getPortAdminState().equals(newMapping.getPortAdminState())
-                    || oldMapping.getPortOperState().equals(newMapping.getPortOperState())) {
-                    return;
-                } else {
-                    LinkedList<PathArgument> path = new LinkedList<>();
-                    path.addAll((Collection<? extends PathArgument>) change.getRootPath().getRootIdentifier()
-                        .getPathArguments());
-                    path.removeLast();
-                    @SuppressWarnings("unchecked") InstanceIdentifier<Nodes> portmappintNodeID =
-                        (InstanceIdentifier<Nodes>) InstanceIdentifier.create(path);
-                    String nodeId = InstanceIdentifier.keyOf(portmappintNodeID).getNodeId();
-                    networkModelService.updateOpenRoadmTopologies(nodeId, newMapping);
+            switch (change.getRootNode()) {
+                case DataObjectWritten<Mapping> modifiedMapping -> {
+                    LOG.info("onDataTreeChanged in PortMappingListener: WRITE");
+                    Mapping oldMapping = modifiedMapping.dataBefore();
+                    Mapping newMapping = modifiedMapping.dataAfter();
+                    if (oldMapping != null) {
+                        if (isMappingChanged(oldMapping, newMapping)) {
+                            networkModelService.updateOpenRoadmTopologies(
+                                    getNodeIdFromMappingDataTreeIdentifier(change.path()), newMapping);
+                        }
+                    }
+                }
+                default -> {
+                    // No action needed for other modification types
+                    LOG.info("onDataTreeChanged in PortMappingListener: {} - No action taken",
+                            change.getRootNode().getClass().getSimpleName());
                 }
             }
         }
+    }
+
+    private boolean isMappingChanged(Mapping oldMapping, Mapping newMapping) {
+        boolean adminStateChanged = !Objects.equals(oldMapping.getPortAdminState(), newMapping.getPortAdminState());
+        boolean operStateChanged = !Objects.equals(oldMapping.getPortOperState(), newMapping.getPortOperState());
+        return adminStateChanged || operStateChanged;
+    }
+
+    /**
+     * Retrieve from the data change the node id that emits the device notification.
+     *
+     * @param identifier Instance Identifiers of the mapping change.
+     * @return the node ID, parent of the data tree change.
+     */
+    protected String getNodeIdFromMappingDataTreeIdentifier(DataObjectIdentifier<Mapping> identifier) {
+        return identifier.firstKeyOf(Nodes.class).getNodeId();
     }
 }

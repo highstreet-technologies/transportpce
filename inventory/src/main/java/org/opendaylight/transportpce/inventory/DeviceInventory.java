@@ -12,10 +12,8 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.concurrent.ExecutionException;
 import java.util.regex.Pattern;
 import javax.sql.DataSource;
-import org.opendaylight.transportpce.common.device.DeviceTransactionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,21 +28,17 @@ public class DeviceInventory {
 
     private final DataSource dataSource;
     private final INode inode;
-    private final DeviceTransactionManager deviceTransactionManager;
 
-    public DeviceInventory(DataSource dataSource, INode inode,
-                           DeviceTransactionManager deviceTransactionManager) {
+    public DeviceInventory(DataSource dataSource, INode inode) {
         this.dataSource = dataSource;
         this.inode = inode;
-        this.deviceTransactionManager = deviceTransactionManager;
     }
 
     public void init() {
         LOG.info("Initializing {}", DeviceInventory.class.getName());
     }
 
-    public void initializeDevice(String deviceId, String openRoadmVersion)
-        throws InterruptedException, ExecutionException {
+    public void initializeDevice(String deviceId, String openRoadmVersion) {
 
         LOG.info("Creating Device Inventory for device {} with version {}", deviceId, openRoadmVersion);
         if (!inode.dataExists("inv_dev_info", " node_id = '" + deviceId + "'")) {

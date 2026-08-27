@@ -1,0 +1,237 @@
+module transportpce-networkutils {
+  yang-version 1.1;
+  namespace "http://org/opendaylight/transportpce/networkutils";
+  prefix org-opendaylight-transportpce-networkutils;
+
+  import ietf-network {
+    prefix nd;
+    revision-date 2018-02-26;
+  }
+  import ietf-network-topology {
+    prefix nwt;
+    revision-date 2018-02-26;
+  }
+  import org-openroadm-common-network {
+    prefix cnet;
+    revision-date 2025-05-30;
+  }
+
+  revision 2025-09-02 {
+    description
+      "Change revision of org-openroadm-common-network imported model
+      to use the 13.1.1 version";
+  }
+
+  revision 2024-09-23 {
+    description
+      "Add T-API Ids to ROADM nodes to extend topology coverage and include
+       T-API abstracting node attributes. Add RPC init-interdomain-link";
+  }
+  revision 2022-06-30 {
+    description
+      "Add transportpce augmentation to manage otn-link-type in otn-topology";
+  }
+
+  revision 2017-08-18 {
+    description
+      "Initial revision of networkutils model";
+  }
+
+  typedef otn-link-type {
+    type enumeration {
+      enum "OTU4" {
+        value 0;
+      }
+      enum "ODU4" {
+        value 1;
+      }
+      enum "ODTU4" {
+        value 2;
+      }
+      enum "ODU2e" {
+        value 3;
+      }
+      enum "ODU0" {
+        value 4;
+      }
+      enum "OTUC4" {
+        value 5;
+      }
+      enum "ODUC4" {
+        value 6;
+      }
+      enum "OTUC3" {
+        value 7;
+      }
+      enum "ODUC3" {
+        value 8;
+      }
+      enum "OTUC2" {
+        value 9;
+      }
+      enum "ODUC2" {
+        value 10;
+      }
+    }
+  }
+
+
+  grouping rdm-tapi-uuid-information {
+    leaf rdm-topology-uuid {
+      type string;
+    }
+    leaf rdm-node-uuid {
+      type string;
+    }
+    leaf rdm-nep-uuid {
+      type string;
+    }
+    description
+      "Optional parameters to be provided if the ROADM node is part of a T-API topology
+       retrieved from the South Bound Interface";
+  }
+
+  grouping links-input-grouping {
+    container links-input {
+      description
+        "This is the input to initialize the nodes";
+      leaf xpdr-node {
+        type string;
+      }
+      leaf xpdr-num {
+        type uint8;
+      }
+      leaf network-num {
+        type uint8;
+      }
+      leaf rdm-node {
+        type string;
+      }
+      leaf srg-num {
+        type uint8;
+      }
+      leaf termination-point-num {
+        type string;
+      }
+      uses rdm-tapi-uuid-information;
+    }
+  }
+
+  grouping generic-rdm-information {
+    leaf rdm-node {
+      type string;
+    }
+    leaf deg-num {
+      type uint8;
+    }
+    leaf termination-point {
+      type string;
+    }
+    description
+      "rdm parameters to be provided for inter-domain link creation";
+  }
+
+  rpc init-roadm-nodes {
+    description
+      "This rpc initiates roadm to roadm link";
+    input {
+      leaf rdm-a-node {
+        type string;
+      }
+      leaf deg-a-num {
+        type uint8;
+      }
+      leaf termination-point-a {
+        type string;
+      }
+      leaf rdm-z-node {
+        type string;
+      }
+      leaf deg-z-num {
+        type uint8;
+      }
+      leaf termination-point-z {
+        type string;
+      }
+    }
+    output {
+      leaf result {
+        type string;
+      }
+    }
+  }
+
+  rpc init-xpdr-rdm-links {
+    description
+      "This rpc initiates xponder to rdm link";
+    input {
+      uses links-input-grouping;
+    }
+    output {
+      leaf result {
+        type string;
+      }
+    }
+  }
+
+  rpc init-rdm-xpdr-links {
+    description
+      "This rpc initiates rdm to xponder link";
+    input {
+      uses links-input-grouping;
+    }
+    output {
+      leaf result {
+        type string;
+      }
+    }
+  }
+
+  rpc delete-link {
+    description
+      "This rpc deletes a given link in openroadm Topology layer";
+    input {
+      leaf link-id {
+        type string;
+      }
+    }
+    output {
+      leaf result {
+        type string;
+      }
+    }
+  }
+
+  rpc init-inter-domain-links {
+    description
+      "This rpc initiates rdm to rdm inter-domain link";
+    input {
+      container a-end {
+        uses generic-rdm-information;
+        uses rdm-tapi-uuid-information;
+      }
+      container z-end {
+        uses generic-rdm-information;
+        uses rdm-tapi-uuid-information;
+      }
+    }
+    output {
+      leaf result {
+        type string;
+      }
+    }
+  }
+
+  augment "/nd:networks/nd:network/nwt:link" {
+    when "../nd:network-types/cnet:openroadm-common-network/otn-topology";
+    description
+      "Defines more accurate otn link types to differentiate otn links in otn-topology";
+    leaf otn-link-type {
+      when
+        "../cnet:link-type = 'OTN-LINK'";
+      type otn-link-type;
+      description
+        "type of otn link, to help link management inside transportpce";
+    }
+  }
+}

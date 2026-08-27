@@ -21,7 +21,8 @@ import org.opendaylight.transportpce.common.device.DeviceTransaction;
 import org.opendaylight.transportpce.common.device.DeviceTransactionManager;
 import org.opendaylight.transportpce.common.mapping.PortMapping;
 import org.opendaylight.transportpce.common.mapping.PortMappingVersion221;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.mapping.Mapping;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mapping.Mapping;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.OrgOpenroadmDeviceData;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.circuit.pack.Ports;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.circuit.pack.PortsKey;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.circuit.packs.CircuitPacks;
@@ -34,8 +35,7 @@ import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.org.open
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.port.Interfaces;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.equipment.states.types.rev171215.AdminStates;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.equipment.states.types.rev171215.States;
-import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
-import org.opendaylight.yangtools.yang.binding.KeyedInstanceIdentifier;
+import org.opendaylight.yangtools.binding.DataObjectIdentifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,11 +47,10 @@ public class OpenRoadmInterfacesImpl221 {
     private final PortMapping portMapping;
     private final PortMappingVersion221 portMapping221;
 
-    public OpenRoadmInterfacesImpl221(DeviceTransactionManager deviceTransactionManager,
-            PortMapping portMapping, PortMappingVersion221 portMapping221) {
+    public OpenRoadmInterfacesImpl221(DeviceTransactionManager deviceTransactionManager, PortMapping portMapping) {
         this.deviceTransactionManager = deviceTransactionManager;
         this.portMapping = portMapping;
-        this.portMapping221 = portMapping221;
+        this.portMapping221 = portMapping.getPortMappingVersion221();
     }
 
     public void postInterface(String nodeId, InterfaceBuilder ifBuilder) throws OpenRoadmInterfaceException {
@@ -60,7 +59,7 @@ public class OpenRoadmInterfacesImpl221 {
         try {
             Optional<DeviceTransaction> deviceTxOpt = deviceTxFuture.get();
             if (deviceTxOpt.isPresent()) {
-                deviceTx = deviceTxOpt.get();
+                deviceTx = deviceTxOpt.orElseThrow();
             } else {
                 throw new OpenRoadmInterfaceException(String.format("Device transaction was not found for node %s!",
                     nodeId));
@@ -70,8 +69,10 @@ public class OpenRoadmInterfacesImpl221 {
                 nodeId), e);
         }
 
-        InstanceIdentifier<Interface> interfacesIID = InstanceIdentifier.create(OrgOpenroadmDevice.class).child(
-            Interface.class, new InterfaceKey(ifBuilder.getName()));
+        DataObjectIdentifier<Interface> interfacesIID = DataObjectIdentifier
+            .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
+            .child(Interface.class, new InterfaceKey(ifBuilder.getName()))
+            .build();
         LOG.info("POST INTERF for {} : InterfaceBuilder : name = {} \t type = {}", nodeId, ifBuilder.getName(),
             ifBuilder.getType().toString());
         deviceTx.merge(LogicalDatastoreType.CONFIGURATION, interfacesIID, ifBuilder.build());
@@ -112,9 +113,11 @@ public class OpenRoadmInterfacesImpl221 {
     }
 
 
-    public Optional<Interface> getInterface(String nodeId, String interfaceName) throws OpenRoadmInterfaceException {
-        InstanceIdentifier<Interface> interfacesIID = InstanceIdentifier.create(OrgOpenroadmDevice.class)
-            .child(Interface.class, new InterfaceKey(interfaceName));
+    public Optional<Interface> getInterface(String nodeId, String interfaceName) {
+        DataObjectIdentifier<Interface> interfacesIID = DataObjectIdentifier
+            .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
+            .child(Interface.class, new InterfaceKey(interfaceName))
+            .build();
         return deviceTransactionManager.getDataFromDevice(nodeId, LogicalDatastoreType.CONFIGURATION,
             interfacesIID, Timeouts.DEVICE_READ_TIMEOUT, Timeouts.DEVICE_READ_TIMEOUT_UNIT);
     }
@@ -123,14 +126,9 @@ public class OpenRoadmInterfacesImpl221 {
     public synchronized void deleteInterface(String nodeId, String interfaceName) throws OpenRoadmInterfaceException {
         LOG.info("deleting interface {} on device221 {}", interfaceName, nodeId);
         Optional<Interface> intf2DeleteOpt;
-        try {
-            intf2DeleteOpt = getInterface(nodeId, interfaceName);
-        } catch (OpenRoadmInterfaceException e) {
-            throw new OpenRoadmInterfaceException(String.format("Failed to check if interface %s exists on node %s!",
-                interfaceName, nodeId), e);
-        }
+        intf2DeleteOpt = getInterface(nodeId, interfaceName);
         if (intf2DeleteOpt.isPresent()) {
-            Interface intf2Delete = intf2DeleteOpt.get();
+            Interface intf2Delete = intf2DeleteOpt.orElseThrow();
             // State admin state to out of service
             InterfaceBuilder ifBuilder = new InterfaceBuilder()
                 .setAdministrativeState(AdminStates.OutOfService)
@@ -144,15 +142,17 @@ public class OpenRoadmInterfacesImpl221 {
                     + " deleting it!", interfaceName, AdminStates.OutOfService), ex);
             }
 
-            InstanceIdentifier<Interface> interfacesIID = InstanceIdentifier.create(OrgOpenroadmDevice.class).child(
-                Interface.class, new InterfaceKey(interfaceName));
+            DataObjectIdentifier<Interface> interfacesIID = DataObjectIdentifier
+                .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
+                .child(Interface.class, new InterfaceKey(interfaceName))
+                .build();
             Future<Optional<DeviceTransaction>> deviceTxFuture = this.deviceTransactionManager.getDeviceTransaction(
                 nodeId);
             DeviceTransaction deviceTx;
             try {
                 Optional<DeviceTransaction> deviceTxOpt = deviceTxFuture.get();
                 if (deviceTxOpt.isPresent()) {
-                    deviceTx = deviceTxOpt.get();
+                    deviceTx = deviceTxOpt.orElseThrow();
                 } else {
                     throw new OpenRoadmInterfaceException(String.format("Device transaction was not found for node %s!",
                         nodeId));
@@ -190,14 +190,16 @@ public class OpenRoadmInterfacesImpl221 {
 
     public void postEquipmentState(String nodeId, String circuitPackName, boolean activate)
         throws OpenRoadmInterfaceException {
-        InstanceIdentifier<CircuitPacks> circuitPackIID = InstanceIdentifier.create(OrgOpenroadmDevice.class).child(
-            CircuitPacks.class, new CircuitPacksKey(circuitPackName));
+        DataObjectIdentifier<CircuitPacks> circuitPackIID = DataObjectIdentifier
+            .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
+            .child(CircuitPacks.class, new CircuitPacksKey(circuitPackName))
+            .build();
         Optional<CircuitPacks> cpOpt = this.deviceTransactionManager.getDataFromDevice(nodeId,
             LogicalDatastoreType.CONFIGURATION, circuitPackIID, Timeouts.DEVICE_READ_TIMEOUT,
             Timeouts.DEVICE_READ_TIMEOUT_UNIT);
         CircuitPacks cp = null;
         if (cpOpt.isPresent()) {
-            cp = cpOpt.get();
+            cp = cpOpt.orElseThrow();
         } else {
             throw new OpenRoadmInterfaceException(String.format(
                 "Could not find CircuitPack %s in equipment config datastore for node %s", circuitPackName, nodeId));
@@ -222,7 +224,7 @@ public class OpenRoadmInterfacesImpl221 {
             try {
                 Optional<DeviceTransaction> deviceTxOpt = deviceTxFuture.get();
                 if (deviceTxOpt.isPresent()) {
-                    deviceTx = deviceTxOpt.get();
+                    deviceTx = deviceTxOpt.orElseThrow();
                 } else {
                     throw new OpenRoadmInterfaceException(String.format("Device transaction was not found for node %s!",
                         nodeId));
@@ -246,25 +248,18 @@ public class OpenRoadmInterfacesImpl221 {
 
     public String getSupportedInterface(String nodeId, String interf) {
         Optional<Interface> supInterfOpt;
-        try {
-            supInterfOpt = getInterface(nodeId, interf);
-            if (supInterfOpt.isPresent()) {
-                return supInterfOpt.get().getSupportingInterface();
-            } else {
-                return null;
-            }
-        } catch (OpenRoadmInterfaceException e) {
-            LOG.error("error getting Supported Interface of {} - {}", interf, nodeId, e);
-            return null;
-        }
+        supInterfOpt = getInterface(nodeId, interf);
+        return supInterfOpt.map(s -> s.getSupportingInterface()).orElse(null);
     }
 
     private boolean checkIfDevicePortIsUpdatedWithInterface(String nodeId, InterfaceBuilder ifBuilder) {
-        KeyedInstanceIdentifier<Ports, PortsKey> portIID = InstanceIdentifier.create(OrgOpenroadmDevice.class)
+        DataObjectIdentifier<Ports> portIID = DataObjectIdentifier
+            .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
             .child(CircuitPacks.class, new CircuitPacksKey(ifBuilder.getSupportingCircuitPackName()))
-            .child(Ports.class, new PortsKey(ifBuilder.getSupportingPort()));
+            .child(Ports.class, new PortsKey(ifBuilder.getSupportingPort()))
+            .build();
         Ports port = deviceTransactionManager.getDataFromDevice(nodeId, LogicalDatastoreType.OPERATIONAL,
-            portIID, Timeouts.DEVICE_READ_TIMEOUT, Timeouts.DEVICE_READ_TIMEOUT_UNIT).get();
+            portIID, Timeouts.DEVICE_READ_TIMEOUT, Timeouts.DEVICE_READ_TIMEOUT_UNIT).orElseThrow();
         if (port.getInterfaces() == null) {
             return false;
         }

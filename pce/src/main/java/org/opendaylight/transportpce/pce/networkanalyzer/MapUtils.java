@@ -12,20 +12,22 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import org.opendaylight.transportpce.common.NetworkUtils;
+import org.opendaylight.transportpce.common.StringConstants;
 import org.opendaylight.transportpce.pce.constraints.PceConstraints;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev211210.Link1;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev211210.networks.network.link.oms.attributes.Span;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev211210.OpenroadmLinkType;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev211210.link.concatenation.LinkConcatenation;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev211210.link.concatenation.LinkConcatenationKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.Link1;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.networks.network.link.oms.attributes.Span;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.OpenroadmLinkType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.link.concatenation.LinkConcatenation;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.link.concatenation.LinkConcatenationKey;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.networks.network.Node;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.networks.network.node.SupportingNode;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.LinkId;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.networks.network.Link;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.networks.network.link.SupportingLink;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.Uuid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +52,7 @@ public final class MapUtils {
         for (Node node : allNodes) {
             if (excClliNodes.contains(node.getNodeId().getValue())) {
                 LOG.debug("mapDiversityConstraints setExcludeCLLI for node {}", node.getNodeId().getValue());
-                pceHardConstraints.setExcludeCLLI(Arrays.asList(getCLLI(node)));
+                pceHardConstraints.setExcludeCLLI(List.of(getCLLI(node)));
             }
 
             if (excNodes.contains(node.getNodeId().getValue())) {
@@ -81,6 +83,68 @@ public final class MapUtils {
 
     }
 
+    public static void mapDiversityConstraintsForTapi(
+            Map<Map<Uuid, Uuid>, org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev221121.Node>  allNodes,
+            Map<Map<Uuid, Uuid>, org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev221121.topology.Link>
+                allLinks, PceConstraints pceHardConstraints) {
+        List<String> excClliNodes = pceHardConstraints.getExcludeClliNodes();
+        List<String> excNodes = pceHardConstraints.getExcludeNodes();
+        List<String> excSrlgLinks = pceHardConstraints.getExcludeSrlgLinks();
+
+        LOG.info("mapDiversityConstraintsForTapi before: ExcludeClliNodes {} \n ExcludeNodes {} \n ExcludeSrlgLinks {}",
+                excClliNodes, excNodes, excSrlgLinks);
+
+        for (Map.Entry<Map<Uuid, Uuid>, org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev221121.Node>
+            entry : allNodes.entrySet()) {
+            var node = entry.getValue();
+            if (excClliNodes.contains(node.getUuid().getValue())) {
+                LOG.debug("mapDiversityConstraints setExcludeCLLI for node {}", node.getUuid().getValue());
+                pceHardConstraints.setExcludeCLLI(List.of(node.getUuid().getValue()));
+            }
+
+            if (excNodes.contains(node.getUuid().getValue())) {
+                LOG.debug("mapDiversityConstraints setExcludeSupNodes for node {}", node.getUuid().getValue());
+                pceHardConstraints.setExcludeSupNodes(Arrays.asList(node.getUuid().getValue()));
+            }
+        }
+
+        for (Map.Entry<Map<Uuid, Uuid>, org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev221121
+                .topology.Link> entry : allLinks.entrySet()) {
+            var link = entry.getValue();
+            if (excSrlgLinks.contains(link.getUuid().getValue())) {
+                // zero SRLG means not populated as not OMS link
+                Set<String> srlgTapiList = TapiMapUtils.getSRLG(link);
+                List<Long> convertedSrlgList = new ArrayList<>();
+                if (srlgTapiList != null) {
+                    for (String srlgEntry : srlgTapiList) {
+                        try {
+                            if (Long.valueOf(srlgEntry) != null) {
+                                convertedSrlgList.add(Long.valueOf(srlgEntry));
+                            } else {
+                                break;
+                            }
+                        } catch (NumberFormatException e) {
+                            LOG.debug("SRLG List for Link {} not convertable to Long required with OR API:"
+                                + " Execption raised", link.getName(), e);
+                            break;
+                        }
+                    }
+                    if (!convertedSrlgList.isEmpty()) {
+                        pceHardConstraints.setExcludeSRLG(convertedSrlgList);
+                        LOG.debug("mapDiversityConstraints setExcludeSRLG {} for link {}",
+                            convertedSrlgList, link.getUuid().getValue());
+                    }
+                }
+            }
+        }
+
+        LOG.info("mapDiversityConstraintsforTapi after : ExcludeCLLI {} \n ExcludeSupNodes {} \n ExcludeSRLG {}",
+                pceHardConstraints.getExcludeCLLI(),
+                pceHardConstraints.getExcludeSupNodes(),
+                pceHardConstraints.getExcludeSRLG());
+
+    }
+
     public static String getCLLI(Node node) {
         // TODO STUB retrieve CLLI from node. for now it is supporting node ID of the first supp node
         return node.nonnullSupportingNode().values().iterator().next().getNodeRef().getValue();
@@ -103,8 +167,8 @@ public final class MapUtils {
     }
 
     public static List<Long> getSRLGfromLink(Link link) {
-        org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev211210.Link1 linkC = link
-                .augmentation(org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev211210.Link1.class);
+        org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.Link1 linkC = link
+                .augmentation(org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.Link1.class);
         if (linkC == null) {
             LOG.error(MAP_UTILS_NO_LINK_AUGMENTATION_AVAILABLE_MSG, link.getLinkId().getValue());
             return new ArrayList<>();
@@ -122,7 +186,7 @@ public final class MapUtils {
 
     public static String getSupNetworkNode(Node node) {
         for (SupportingNode snode : node.nonnullSupportingNode().values()) {
-            if (NetworkUtils.UNDERLAY_NETWORK_ID.equals(snode.getNetworkRef().getValue())) {
+            if (StringConstants.OPENROADM_NETWORK.equals(snode.getNetworkRef().getValue())) {
                 return snode.getNodeRef().getValue();
             }
         }
@@ -131,7 +195,7 @@ public final class MapUtils {
 
     public static String getSupClliNode(Node node) {
         for (SupportingNode snode : node.nonnullSupportingNode().values()) {
-            if (NetworkUtils.CLLI_NETWORK_ID.equals(snode.getNetworkRef().getValue())) {
+            if (StringConstants.CLLI_NETWORK.equals(snode.getNetworkRef().getValue())) {
                 return snode.getNodeRef().getValue();
             }
         }
@@ -161,11 +225,11 @@ public final class MapUtils {
 
 
     public static Long getAvailableBandwidth(Link link) {
-        if (link.augmentation(org.opendaylight.yang.gen.v1.http.org.openroadm.otn.network.topology.rev211210
+        if (link.augmentation(org.opendaylight.yang.gen.v1.http.org.openroadm.otn.network.topology.rev250530
             .Link1.class) != null
-            && link.augmentation(org.opendaylight.yang.gen.v1.http.org.openroadm.otn.network.topology.rev211210
+            && link.augmentation(org.opendaylight.yang.gen.v1.http.org.openroadm.otn.network.topology.rev250530
                 .Link1.class).getAvailableBandwidth() != null) {
-            return link.augmentation(org.opendaylight.yang.gen.v1.http.org.openroadm.otn.network.topology.rev211210
+            return link.augmentation(org.opendaylight.yang.gen.v1.http.org.openroadm.otn.network.topology.rev250530
                 .Link1.class).getAvailableBandwidth().toJava();
         } else {
             LOG.warn("MapUtils: no Available Bandwidth available for link {}", link.getLinkId());
@@ -174,11 +238,11 @@ public final class MapUtils {
     }
 
     public static Long getUsedBandwidth(Link link) {
-        if (link.augmentation(org.opendaylight.yang.gen.v1.http.org.openroadm.otn.network.topology.rev211210
+        if (link.augmentation(org.opendaylight.yang.gen.v1.http.org.openroadm.otn.network.topology.rev250530
             .Link1.class) != null
-            && link.augmentation(org.opendaylight.yang.gen.v1.http.org.openroadm.otn.network.topology.rev211210
+            && link.augmentation(org.opendaylight.yang.gen.v1.http.org.openroadm.otn.network.topology.rev250530
                 .Link1.class).getUsedBandwidth() != null) {
-            return link.augmentation(org.opendaylight.yang.gen.v1.http.org.openroadm.otn.network.topology.rev211210
+            return link.augmentation(org.opendaylight.yang.gen.v1.http.org.openroadm.otn.network.topology.rev250530
                 .Link1.class).getUsedBandwidth().toJava();
         } else {
             LOG.warn("MapUtils: no Available Bandwidth available for link {}", link.getLinkId());
@@ -206,9 +270,9 @@ public final class MapUtils {
     }
 
     public static Span getOmsAttributesSpan(Link link) {
-        org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev211210.Link1 link1 = null;
+        org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.Link1 link1 = null;
         link1 =
-            link.augmentation(org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev211210.Link1.class);
+            link.augmentation(org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.Link1.class);
 
         if (link1 == null) {
             LOG.error(MAP_UTILS_NO_LINK_AUGMENTATION_AVAILABLE_MSG, link.getLinkId().getValue());
@@ -222,17 +286,19 @@ public final class MapUtils {
     }
 
     public static LinkId extractOppositeLink(Link link) {
-        LinkId tmpoppositeLink = null;
-        org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev211210.Link1 linkOpposite
-            = link.augmentation(org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev211210.Link1.class);
-        tmpoppositeLink = linkOpposite.getOppositeLink();
+        var linkOpposite
+            = link.augmentation(org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.Link1.class);
+        if (linkOpposite == null) {
+            LOG.error("No opposite link augmentation for network link {}", link);
+            return null;
+        }
         LOG.debug("PceLink: reading oppositeLink.  {}", linkOpposite);
+        LinkId tmpoppositeLink = linkOpposite.getOppositeLink();
         if (tmpoppositeLink == null) {
             LOG.error("PceLink: Error reading oppositeLink. Link is ignored {}", link.getLinkId().getValue());
             return null;
         }
         return tmpoppositeLink;
     }
-
 
 }

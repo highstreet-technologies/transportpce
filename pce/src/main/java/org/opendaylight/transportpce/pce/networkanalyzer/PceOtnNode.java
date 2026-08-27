@@ -8,7 +8,7 @@
 
 package org.opendaylight.transportpce.pce.networkanalyzer;
 
-import java.math.BigDecimal;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Comparator;
@@ -18,38 +18,45 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 import org.opendaylight.transportpce.common.StringConstants;
+import org.opendaylight.transportpce.pce.spectrum.slot.McCapability;
+import org.opendaylight.transportpce.pce.spectrum.slot.UnconstrainedMcCapability;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.state.types.rev191129.State;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.equipment.states.types.rev191129.AdminStates;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.types.rev201211.xpdr.odu.switching.pools.OduSwitchingPools;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.types.rev201211.xpdr.odu.switching.pools.odu.switching.pools.NonBlockingList;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev211210.OpenroadmNodeType;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev211210.OpenroadmTpType;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev211210.xpdr.tp.supported.interfaces.SupportedInterfaceCapability;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.common.types.rev200327.ODTU4TsAllocated;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.common.types.rev200327.ODTUCnTs;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.network.topology.rev211210.Node1;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.network.topology.rev211210.TerminationPoint1;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.network.topology.rev211210.networks.network.node.termination.point.XpdrTpPortConnectionAttributes;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev201211.If100GEODU4;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev201211.If10GEODU2e;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev201211.If1GEODU0;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev201211.IfOCHOTU4ODU4;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev201211.IfOtsiOtsigroup;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev201211.SupportedIfCapability;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.xponder.rev211210.xpdr.otn.tp.attributes.OdtuTpnPool;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.networks.network.node.termination.point.XpdrNetworkAttributes;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.types.rev250530.xpdr.odu.switching.pools.OduSwitchingPools;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.types.rev250530.xpdr.odu.switching.pools.odu.switching.pools.NonBlockingList;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.OpenroadmNodeType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.OpenroadmTpType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.xpdr.tp.supported.interfaces.SupportedInterfaceCapability;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.common.types.rev250530.ODTU4TsAllocated;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.common.types.rev250530.ODTUCnTs;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.network.topology.rev250530.Node1;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.network.topology.rev250530.TerminationPoint1;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.network.topology.rev250530.networks.network.node.termination.point.XpdrTpPortConnectionAttributes;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.If100GEODU4;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.If10GEODU2e;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.If1GEODU0;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.IfOCHOTU4ODU4;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.IfOtsiOtsigroup;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.SupportedIfCapability;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.xponder.rev250530.xpdr.otn.tp.attributes.OdtuTpnPool;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.NodeId;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.networks.network.Node;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.TpId;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.networks.network.node.TerminationPoint;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.AdministrativeState;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.OperationalState;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.Uuid;
 import org.opendaylight.yangtools.yang.common.Uint16;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class PceOtnNode implements PceNode {
+
     ////////////////////////// OTN NODES ///////////////////////////
     /*
      * For This Class the node passed shall be at the otn-openroadm Layer
-     */
+    */
 
     private static final Logger LOG = LoggerFactory.getLogger(PceOtnNode.class);
     private static final List<String> SERVICE_TYPE_ODU_LIST = List.of(
@@ -61,11 +68,11 @@ public class PceOtnNode implements PceNode {
         OpenroadmNodeType.MUXPDR,
         OpenroadmNodeType.SWITCH,
         OpenroadmNodeType.TPDR);
-    private static final Map<String, Class<? extends SupportedIfCapability>> SERVICE_TYPE_ETH_CLASS_MAP = Map.of(
-        StringConstants.SERVICE_TYPE_1GE, If1GEODU0.class,
-        StringConstants.SERVICE_TYPE_10GE, If10GEODU2e.class,
-        StringConstants.SERVICE_TYPE_100GE_M, If100GEODU4.class,
-        StringConstants.SERVICE_TYPE_100GE_S, If100GEODU4.class);
+    private static final Map<String, SupportedIfCapability> SERVICE_TYPE_ETH_CLASS_MAP = Map.of(
+        StringConstants.SERVICE_TYPE_1GE, If1GEODU0.VALUE,
+        StringConstants.SERVICE_TYPE_10GE, If10GEODU2e.VALUE,
+        StringConstants.SERVICE_TYPE_100GE_M, If100GEODU4.VALUE,
+        StringConstants.SERVICE_TYPE_100GE_S, If100GEODU4.VALUE);
     private static final Map<String, Integer> SERVICE_TYPE_ETH_TS_NB_MAP = Map.of(
         StringConstants.SERVICE_TYPE_1GE, 1,
         StringConstants.SERVICE_TYPE_10GE, 10,
@@ -103,13 +110,10 @@ public class PceOtnNode implements PceNode {
     private Map<String, String> clientPerNwTp = new HashMap<>();
     private String clientPort;
 
-    public PceOtnNode(
-            Node node,
-            OpenroadmNodeType nodeType,
-            NodeId nodeId,
-            String pceNodeType,
-            String serviceType,
-            String clientPort) {
+    @SuppressFBWarnings(value = "MC_OVERRIDABLE_METHOD_CALL_IN_CONSTRUCTOR",
+        justification = "need to initialise available tribport and tribslt")
+    public PceOtnNode(Node node, OpenroadmNodeType nodeType, NodeId nodeId, String pceNodeType, String serviceType,
+                      String clientPort) {
         this.node = node;
         this.nodeId = nodeId;
         this.nodeType = nodeType;
@@ -123,32 +127,32 @@ public class PceOtnNode implements PceNode {
         this.availableXpdrClientTps = new ArrayList<>();
         this.usableXpdrClientTps = new ArrayList<>();
         this.adminStates = node
-            .augmentation(org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev211210.Node1.class)
+            .augmentation(org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.Node1.class)
             .getAdministrativeState();
         this.state = node
-            .augmentation(org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev211210.Node1.class)
+            .augmentation(org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.Node1.class)
             .getOperationalState();
         this.tpAvailableTribPort.clear();
-        checkAvailableTribPort();
+        initializeAvailableTribPort();
         this.tpAvailableTribSlot.clear();
-        checkAvailableTribSlot();
+        initializeAvailableTribSlot();
         this.clientPort = clientPort;
         if (node == null
                 || nodeId == null
                 || nodeType == null
                 || !VALID_NODETYPES_LIST.contains(nodeType)) {
-            LOG.error("PceOtnNode: one of parameters is not populated : nodeId, node type");
+            LOG.debug("PceOtnNode: one of parameters is not populated : nodeId, node type");
             this.valid = false;
         }
         if (!SERVICE_TYPE_ETH_CLASS_MAP.containsKey(serviceType)
                 && !SERVICE_TYPE_ODU_LIST.contains(serviceType)) {
-            LOG.error("PceOtnNode: unsupported OTN Service Type {}", serviceType);
+            LOG.debug("PceOtnNode: unsupported OTN Service Type {}", serviceType);
             this.valid = false;
         }
     }
 
     public void initXndrTps(String mode) {
-        LOG.info("PceOtnNode: initXndrTps for node {}", this.nodeId.getValue());
+        LOG.debug("PceOtnNode: initXndrTps for node {}", this.nodeId.getValue());
         this.availableXponderTp.clear();
         this.modeType = mode;
         List<TerminationPoint> allTps =
@@ -160,14 +164,14 @@ public class PceOtnNode implements PceNode {
                 .values());
         this.valid = false;
         if (allTps.isEmpty()) {
-            LOG.error("PceOtnNode: initXndrTps: XPONDER TerminationPoint list is empty for node {}", this);
+            LOG.error("PceOtnNode:initXndrTps : initXndrTps: XPONDER TerminationPoint list is empty for node {}", this);
             return;
         }
         for (TerminationPoint tp : allTps) {
-            org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev211210
+            org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530
                     .TerminationPoint1 ocnTp1
                 = tp.augmentation(
-                    org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev211210
+                    org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530
                         .TerminationPoint1.class);
             if (ocnTp1 == null) {
                 LOG.warn("null ocn TP {}", tp);
@@ -182,7 +186,7 @@ public class PceOtnNode implements PceNode {
                 case XPONDERNETWORK:
                     String notCreatedServiceType = xpdrNetTpCreation(ontTp1);
                     if (notCreatedServiceType == null) {
-                        LOG.info("TP {} of XPONDER {} is validated",
+                        LOG.debug("TP {} of XPONDER {} is validated",
                             tp.getTpId().getValue(),
                             node.getNodeId().getValue());
                         this.availableXpdrNWTps.add(tp.getTpId());
@@ -198,7 +202,7 @@ public class PceOtnNode implements PceNode {
                         continue;
                     }
                     if (checkClientTp(ontTp1)) {
-                        LOG.info("TP {} of XPONDER {} is validated",
+                        LOG.debug("TP {} of XPONDER {} is validated",
                             tp.getTpId(),
                             node.getNodeId().getValue());
                         this.availableXpdrClientTps.add(tp.getTpId());
@@ -210,7 +214,7 @@ public class PceOtnNode implements PceNode {
                     break;
 
                 default:
-                    LOG.debug("unsupported ocn TP type {}", ocnTp1.getTpType());
+                    LOG.debug("PceOtnNode:initXndrTps : unsupported ocn TP type {}", ocnTp1.getTpType());
             }
         }
         this.valid = checkSwPool(availableXpdrNWTps, availableXpdrClientTps);
@@ -240,7 +244,6 @@ public class PceOtnNode implements PceNode {
     }
 
     private boolean checkSwPool(List<TpId> netwTps, List<TpId> clientTps) {
-
         if (SERVICE_TYPE_ODU_LIST.contains(this.otnServiceType)) {
             return true;
         }
@@ -254,13 +257,12 @@ public class PceOtnNode implements PceNode {
         if (node1 == null) {
             return false;
         }
+
         List<NonBlockingList> nblList = new ArrayList<>(
-                node1.getSwitchingPools().nonnullOduSwitchingPools()
-                        .values().stream().findFirst().get()
-                                .getNonBlockingList().values());
-        if (nblList == null) {
-            return false;
-        }
+                node1.getSwitchingPools().nonnullOduSwitchingPools().values()
+                    .stream()
+                    .flatMap(pool -> pool.getNonBlockingList().values().stream())
+                    .collect(Collectors.toList()));
         netwTps.sort(Comparator.comparing(TpId::getValue));
 
         switch (modeType) {
@@ -305,12 +307,12 @@ public class PceOtnNode implements PceNode {
                             && nbl.getTpList().contains(nwTp)) {
                         usableXpdrClientTps.add(clTp);
                         usableXpdrNWTps.add(nwTp);
-                    }
-                    if (usableXpdrClientTps.size() >= 1
-                            && usableXpdrNWTps.size() >= 1
-                            && (this.clientPort == null || this.clientPort.equals(clTp.getValue()))) {
-                        clientPerNwTp.put(nwTp.getValue(), clTp.getValue());
-                        return true;
+                        if (usableXpdrClientTps.size() >= 1
+                                && usableXpdrNWTps.size() >= 1
+                                && (this.clientPort == null || this.clientPort.equals(clTp.getValue()))) {
+                            clientPerNwTp.put(nwTp.getValue(), clTp.getValue());
+                            return true;
+                        }
                     }
                 }
             }
@@ -321,9 +323,9 @@ public class PceOtnNode implements PceNode {
     private boolean checkTpForOdtuTermination(TerminationPoint1 ontTp1) {
         for (SupportedInterfaceCapability sic :
                 ontTp1.getTpSupportedInterfaces().getSupportedInterfaceCapability().values()) {
-            LOG.info("in checkTpForOduTermination - sic = {}", sic.getIfCapType());
-            if ((sic.getIfCapType().equals(IfOCHOTU4ODU4.class)
-                    || sic.getIfCapType().equals(IfOtsiOtsigroup.class))
+            LOG.debug("PceOtnNode:checkTpForOduTermination : - sic = {}", sic.getIfCapType());
+            if ((sic.getIfCapType().equals(IfOCHOTU4ODU4.VALUE)
+                    || sic.getIfCapType().equals(IfOtsiOtsigroup.VALUE))
                     && (ontTp1.getXpdrTpPortConnectionAttributes() == null
                         || ontTp1.getXpdrTpPortConnectionAttributes().getTsPool() == null)) {
                 return true;
@@ -334,28 +336,31 @@ public class PceOtnNode implements PceNode {
 
     private boolean checkOdtuTTPforLoOduCreation(TerminationPoint1 ontTp1, int tsNb) {
         XpdrTpPortConnectionAttributes portConAttr = ontTp1.getXpdrTpPortConnectionAttributes();
+        //For OC NEs tsPool is null in port conn attributes.
+        if (portConAttr != null && portConAttr.getTsPool() == null) {
+            return true;
+        }
         if (portConAttr == null
                 || portConAttr.getTsPool() == null
                 || portConAttr.getTsPool().size() < tsNb
                 || portConAttr.getOdtuTpnPool() == null) {
             return false;
         }
-        return checkFirstOdtuTpn(portConAttr.getOdtuTpnPool().values().stream().findFirst().get());
+        return checkFirstOdtuTpn(portConAttr.getOdtuTpnPool().values().stream().findFirst().orElseThrow());
     }
 
     private boolean checkFirstOdtuTpn(OdtuTpnPool otPool) {
-        return (otPool.getOdtuType().getSimpleName().equals(ODTU4TsAllocated.class.getSimpleName())
-                || otPool.getOdtuType().getSimpleName().equals(ODTUCnTs.class.getSimpleName()))
+        return (otPool.getOdtuType().equals(ODTU4TsAllocated.VALUE))
+                || otPool.getOdtuType().equals(ODTUCnTs.VALUE)
             && !otPool.getTpnPool().isEmpty();
     }
 
     private boolean checkClientTp(TerminationPoint1 ontTp1) {
         for (SupportedInterfaceCapability sic :
                 ontTp1.getTpSupportedInterfaces().getSupportedInterfaceCapability().values()) {
-            LOG.debug("in checkTpForOduTermination - sic = {}", sic.getIfCapType());
+            LOG.debug("PceOtnNode:checkTpForOduTermination : - sic = {}", sic.getIfCapType());
             // we could also check the administrative status of the tp
-            if (SERVICE_TYPE_ETH_CLASS_MAP.get(otnServiceType).getSimpleName()
-                    .equals(sic.getIfCapType().getSimpleName())) {
+            if (SERVICE_TYPE_ETH_CLASS_MAP.get(otnServiceType).equals(sic.getIfCapType())) {
                 return true;
             }
         }
@@ -372,7 +377,7 @@ public class PceOtnNode implements PceNode {
         } else if (OpenroadmNodeType.SWITCH.equals(this.nodeType)) {
             initXndrTps(INTERMEDIATE_MODETYPE);
         } else {
-            LOG.info("validateAZxponder: XPONDER is ignored == {}", nodeId.getValue());
+            LOG.warn("validateAZxponder: XPONDER is ignored == {}", nodeId.getValue());
             valid = false;
         }
     }
@@ -390,13 +395,13 @@ public class PceOtnNode implements PceNode {
                         && nbll.getTpList() != null
                         && nbll.getTpList().contains(tp1.getTpId())
                         && nbll.getTpList().contains(tp2.getTpId())) {
-                    LOG.debug("validateSwitchingPoolBandwidth: couple  of tp {} x {} valid for crossconnection",
-                        tp1.getTpId(), tp2.getTpId());
+                    LOG.debug("PceOtnNode:validateSwitchingPoolBandwidth : couple  of tp {} x {} valid for cross-"
+                        + "connection", tp1.getTpId(), tp2.getTpId());
                     return true;
                 }
             }
         }
-        LOG.debug("validateSwitchingPoolBandwidth: No valid Switching pool for crossconnecting tp {} and {}",
+        LOG.debug("PceOtnNode:validateSwitchingPoolBandwidth: No valid Switching pool for crossconnecting tp {} and {}",
             tp1.getTpId(), tp2.getTpId());
         return false;
     }
@@ -411,13 +416,13 @@ public class PceOtnNode implements PceNode {
         // Validate switch for use as an intermediate XPONDER on the path
         initXndrTps(INTERMEDIATE_MODETYPE);
         if (this.valid) {
-            LOG.info("validateIntermediateSwitch: Switch usable for transit == {}", nodeId.getValue());
+            LOG.debug("PceOtnNode:validateIntermediateSwitch: Switch usable for transit == {}", nodeId.getValue());
         } else {
-            LOG.debug("validateIntermediateSwitch: Switch unusable for transit == {}", nodeId.getValue());
+            LOG.debug("PceOtnNode:validateIntermediateSwitch: Switch unusable for transit == {}", nodeId.getValue());
         }
     }
 
-    public void checkAvailableTribPort() {
+    private void initializeAvailableTribPort() {
         for (TerminationPoint tp :
             node.augmentation(
                     org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226
@@ -425,23 +430,28 @@ public class PceOtnNode implements PceNode {
                 .getTerminationPoint().values().stream()
                 .filter(type -> type
                     .augmentation(
-                        org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev211210
+                        org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530
                             .TerminationPoint1.class)
                     .getTpType()
                     .equals(OpenroadmTpType.XPONDERNETWORK))
                 .collect(Collectors.toList())) {
-            XpdrTpPortConnectionAttributes portConAttr =
-                tp.augmentation(TerminationPoint1.class).getXpdrTpPortConnectionAttributes();
+            XpdrTpPortConnectionAttributes portConAttr = tp.augmentation(TerminationPoint1.class) != null
+                    ? tp.augmentation(TerminationPoint1.class).getXpdrTpPortConnectionAttributes()
+                    : null;
             if (portConAttr != null && portConAttr.getOdtuTpnPool() != null) {
-                OdtuTpnPool otPool = portConAttr.getOdtuTpnPool().values().stream().findFirst().get();
+                OdtuTpnPool otPool = portConAttr.getOdtuTpnPool().values().stream().findFirst().orElseThrow();
                 if (checkFirstOdtuTpn(otPool)) {
-                    tpAvailableTribPort.put(tp.getTpId().getValue(), otPool.getTpnPool());
+                    tpAvailableTribPort.put(tp.getTpId().getValue(), new ArrayList<>(otPool.getTpnPool()));
                 }
             }
         }
     }
 
-    public void checkAvailableTribSlot() {
+    public void checkAvailableTribPort() {
+        initializeAvailableTribPort();
+    }
+
+    private void initializeAvailableTribSlot() {
         for (TerminationPoint tp :
             node.augmentation(
                 org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226
@@ -449,17 +459,22 @@ public class PceOtnNode implements PceNode {
             .getTerminationPoint().values().stream()
             .filter(type -> type
                 .augmentation(
-                    org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev211210
+                    org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530
                         .TerminationPoint1.class)
                 .getTpType().equals(OpenroadmTpType.XPONDERNETWORK))
             .collect(Collectors.toList())
         ) {
-            XpdrTpPortConnectionAttributes portConAttr =
-                tp.augmentation(TerminationPoint1.class).getXpdrTpPortConnectionAttributes();
+            XpdrTpPortConnectionAttributes portConAttr = tp.augmentation(TerminationPoint1.class) != null
+                    ? tp.augmentation(TerminationPoint1.class).getXpdrTpPortConnectionAttributes()
+                    : null;
             if (portConAttr != null && portConAttr.getTsPool() != null) {
-                tpAvailableTribSlot.put(tp.getTpId().getValue(), portConAttr.getTsPool());
+                tpAvailableTribSlot.put(tp.getTpId().getValue(), new ArrayList<>(portConAttr.getTsPool()));
             }
         }
+    }
+
+    public void checkAvailableTribSlot() {
+        initializeAvailableTribSlot();
     }
 
     public boolean isValid() {
@@ -467,7 +482,7 @@ public class PceOtnNode implements PceNode {
                 || nodeType == null
                 || this.getSupNetworkNodeId() == null
                 || this.getSupClliNodeId() == null) {
-            LOG.error("PceNode: one of parameters is not populated : nodeId, node type, supporting nodeId");
+            LOG.error("PceOtnNode:isValid: one of parameters is not populated : nodeId, node type, supporting nodeId");
             valid = false;
         }
         return valid;
@@ -494,7 +509,7 @@ public class PceOtnNode implements PceNode {
     }
 
     @Override
-    public String getXpdrClient(String tp) {
+    public String getXpdrNWfromClient(String tp) {
         return this.clientPerNwTp.get(tp);
     }
 
@@ -572,23 +587,60 @@ public class PceOtnNode implements PceNode {
         return null;
     }
 
-    /*
-    * (non-Javadoc)
-    *
-    * @see org.opendaylight.transportpce.pce.networkanalyzer.PceNode#getSlotWidthGranularity()
-    */
     @Override
-    public BigDecimal getSlotWidthGranularity() {
+    public String getXponderOperationalMode(XpdrNetworkAttributes tp) {
+        // For OTN node, no direct relation between 1 NW and 1 client. All calculation based on NRG and IRG
+        // No significance -> return null
         return null;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see org.opendaylight.transportpce.pce.networkanalyzer.PceNode#getCentralFreqGranularity()
-     */
     @Override
-    public BigDecimal getCentralFreqGranularity() {
+    public String getOperationalMode() {
+        return null;
+    }
+
+    @Override
+    public OpenroadmNodeType getORNodeType() {
+        return this.nodeType;
+    }
+
+    @Override
+    public McCapability mcCapabilities() {
+        return new UnconstrainedMcCapability();
+    }
+
+    @Override
+    public boolean isContentionLessSrg() {
+        return false;
+    }
+
+    @Override
+    public AdministrativeState getAdminState() {
+        return null;
+    }
+
+    @Override
+    public OperationalState getOperationalState() {
+        return null;
+    }
+
+    @Override
+    public  String getXpdrOperationalMode(Uuid nepUuid) {
+        return null;
+    }
+
+    @Override
+    public Uuid getNodeUuid() {
+        return null;
+    }
+
+    @Override
+    public List<BasePceNep> getListOfNep() {
+        return null;
+    }
+
+    @Override
+    public Uuid getParentNodeUuid() {
         return null;
     }
 }

@@ -10,7 +10,7 @@ package org.opendaylight.transportpce.pce.utils;
 import com.google.common.util.concurrent.ListenableFuture;
 import java.util.concurrent.TimeUnit;
 import org.opendaylight.mdsal.binding.api.NotificationPublishService;
-import org.opendaylight.yangtools.yang.binding.Notification;
+import org.opendaylight.yangtools.binding.Notification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,19 +19,19 @@ public class NotificationPublishServiceMock implements NotificationPublishServic
     private static final Logger LOG = LoggerFactory.getLogger(NotificationPublishServiceMock.class);
 
     @Override
-    public void putNotification(Notification notification) throws InterruptedException {
+    public void putNotification(Notification<?> notification) throws InterruptedException {
         LOG.info("putNotification");
     }
 
     @Override
-    public ListenableFuture<?> offerNotification(Notification notification) {
+    public ListenableFuture<?> offerNotification(Notification<?> notification) {
         LOG.info("offerNotification");
         throw new UnsupportedOperationException("offerNotification is not implemented");
     }
 
     @Override
-    public ListenableFuture<?> offerNotification(Notification notification, int timeout, TimeUnit unit)
-        throws InterruptedException {
+    public ListenableFuture<?> offerNotification(Notification<?> notification, int timeout, TimeUnit unit)
+            throws InterruptedException {
         LOG.info("offerNotification");
         throw new UnsupportedOperationException("offerNotification is not implemented");
     }

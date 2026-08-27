@@ -7,591 +7,586 @@
  */
 package org.opendaylight.transportpce.servicehandler.impl;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.opendaylight.transportpce.servicehandler.impl.ServicehandlerImpl.LogMessages;
 
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-import org.opendaylight.mdsal.binding.api.DataBroker;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.opendaylight.mdsal.binding.api.NotificationPublishService;
+import org.opendaylight.mdsal.binding.api.RpcProviderService;
 import org.opendaylight.transportpce.common.ResponseCodes;
+import org.opendaylight.transportpce.common.network.NetworkTransactionImpl;
 import org.opendaylight.transportpce.pce.service.PathComputationService;
 import org.opendaylight.transportpce.renderer.provisiondevice.RendererServiceOperations;
-import org.opendaylight.transportpce.servicehandler.listeners.NetworkModelListenerImpl;
-import org.opendaylight.transportpce.servicehandler.listeners.PceListenerImpl;
-import org.opendaylight.transportpce.servicehandler.listeners.RendererListenerImpl;
+import org.opendaylight.transportpce.servicehandler.ServiceInput;
+import org.opendaylight.transportpce.servicehandler.catalog.CatalogDataStoreOperations;
+import org.opendaylight.transportpce.servicehandler.catalog.CatalogDataStoreOperationsImpl;
+import org.opendaylight.transportpce.servicehandler.listeners.NetworkListener;
+import org.opendaylight.transportpce.servicehandler.listeners.PceListener;
+import org.opendaylight.transportpce.servicehandler.listeners.RendererListener;
+import org.opendaylight.transportpce.servicehandler.service.PCEServiceWrapper;
+import org.opendaylight.transportpce.servicehandler.service.RendererServiceWrapper;
 import org.opendaylight.transportpce.servicehandler.service.ServiceDataStoreOperations;
 import org.opendaylight.transportpce.servicehandler.service.ServiceDataStoreOperationsImpl;
+import org.opendaylight.transportpce.servicehandler.utils.CatalogDataUtils;
 import org.opendaylight.transportpce.servicehandler.utils.ServiceDataUtils;
 import org.opendaylight.transportpce.test.AbstractTest;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.ServiceCreateInput;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.ServiceCreateInputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.ServiceCreateOutput;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.ServiceDeleteInput;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.ServiceDeleteInputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.ServiceDeleteOutput;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.ServiceFeasibilityCheckInput;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.ServiceFeasibilityCheckInputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.ServiceFeasibilityCheckOutput;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.ServiceReconfigureInput;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.ServiceReconfigureInputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.ServiceReconfigureOutput;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.ServiceRerouteInput;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.ServiceRerouteInputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.ServiceRerouteOutput;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.ServiceRestorationInput;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.ServiceRestorationInputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.ServiceRestorationOutput;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.TempServiceCreateInput;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.TempServiceCreateInputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.TempServiceCreateOutput;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.TempServiceDeleteInput;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.TempServiceDeleteInputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.TempServiceDeleteOutput;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev211210.service.delete.input.ServiceDeleteReqInfoBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.PathComputationRequestOutputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.PathComputationRerouteRequestOutputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.service.path.rpc.result.PathDescription;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.configuration.response.common.ConfigurationResponseCommonBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.state.types.rev191129.State;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.AddOpenroadmOperationalModesToCatalogInputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.AddOpenroadmOperationalModesToCatalogOutput;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.AddSpecificOperationalModesToCatalogInputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.AddSpecificOperationalModesToCatalogOutput;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.ServiceCreateInput;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.ServiceCreateInputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.ServiceCreateOutput;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.ServiceDeleteInput;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.ServiceDeleteInputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.ServiceDeleteOutput;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.ServiceFeasibilityCheckInputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.ServiceFeasibilityCheckOutput;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.ServiceReconfigureInput;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.ServiceReconfigureInputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.ServiceReconfigureOutput;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.ServiceRerouteInput;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.ServiceRerouteInputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.ServiceRerouteOutput;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.ServiceRestorationInput;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.ServiceRestorationInputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.ServiceRestorationOutput;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.TempServiceCreateInput;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.TempServiceCreateInputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.TempServiceCreateOutput;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.TempServiceDeleteInputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.TempServiceDeleteOutput;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.service.delete.input.ServiceDeleteReqInfoBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.service.list.ServicesBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.path.description.AToZDirectionBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.path.description.ZToADirectionBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.path.description.atoz.direction.AToZ;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.path.description.atoz.direction.AToZBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.path.description.atoz.direction.AToZKey;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.pce.resource.ResourceBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.pce.resource.resource.resource.TerminationPointBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.response.parameters.sp.ResponseParametersBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.response.parameters.sp.response.parameters.PathDescriptionBuilder;
 import org.opendaylight.yangtools.yang.common.RpcResult;
+import org.opendaylight.yangtools.yang.common.Uint32;
 
-public class ServicehandlerImplTest extends AbstractTest  {
-
+@ExtendWith(MockitoExtension.class)
+public class ServicehandlerImplTest extends AbstractTest {
+    @Mock
+    private RpcProviderService rpcProviderService;
     @Mock
     private PathComputationService pathComputationService;
-
     @Mock
     private RendererServiceOperations rendererServiceOperations;
-
     @Mock
     private NotificationPublishService notificationPublishService;
+    @Mock
+    private PceListener pceListenerImpl;
+    @Mock
+    private RendererListener rendererListenerImpl;
+    @Mock
+    private NetworkListener networkModelListenerImpl;
 
     @Mock
-    private PceListenerImpl pceListenerImpl;
-
-    @Mock
-    private RendererListenerImpl rendererListenerImpl;
-
-    @Mock
-    private NetworkModelListenerImpl networkModelListenerImpl;
-
+    private PathDescription pathDescription;
     private ServiceDataStoreOperations serviceDataStoreOperations;
+    private CatalogDataStoreOperations catalogDataStoreOperations;
+    private ServiceCreateInput serviceCreateInput;
+    private ServiceDeleteInput serviceDeleteInput;
+    private ServiceReconfigureInput serviceReconfigureInput;
+    private ServiceRestorationInput serviceRestorationInput;
+    private ServiceRerouteInput serviceRerouteInput;
     private ListeningExecutorService executorService;
     private CountDownLatch endSignal;
     private static final int NUM_THREADS = 5;
+    private PCEServiceWrapper pceServiceWrapper;
+    private RendererServiceWrapper rendererServiceWrapper;
 
-    @Before
-    public void setUp() {
+    @BeforeEach
+    void setUp() {
         executorService = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(NUM_THREADS));
         endSignal = new CountDownLatch(1);
-        MockitoAnnotations.openMocks(this);
         this.serviceDataStoreOperations = new ServiceDataStoreOperationsImpl(getNewDataBroker());
+        this.catalogDataStoreOperations = new CatalogDataStoreOperationsImpl(
+                new NetworkTransactionImpl(getDataBroker()),
+                getDataStoreContextUtil().getBindingDOMCodecServices());
+        serviceCreateInput = ServiceDataUtils.buildServiceCreateInput();
+        serviceDeleteInput = ServiceDataUtils.buildServiceDeleteInput();
+        serviceReconfigureInput = ServiceDataUtils.buildServiceReconfigureInput();
+        serviceRestorationInput = ServiceDataUtils.buildServiceRestorationInput();
+        serviceRerouteInput = ServiceDataUtils.buildServiceRerouteInput();
+        pathDescription = ServiceDataUtils.createPathDescription(0,1,0,1);
+        pceServiceWrapper = new PCEServiceWrapper(pathComputationService, notificationPublishService);
+        this.rendererServiceWrapper = new RendererServiceWrapper(rendererServiceOperations, notificationPublishService);
     }
 
     @Test
-    public void createServiceShouldBeFailedWithEmptyInput() throws ExecutionException, InterruptedException {
-        ServicehandlerImpl servicehandlerImpl =
-            new ServicehandlerImpl(getNewDataBroker(), pathComputationService, rendererServiceOperations,
-                notificationPublishService, pceListenerImpl, rendererListenerImpl, networkModelListenerImpl,
-                serviceDataStoreOperations);
+    void testRpcRegistration() {
+        new ServicehandlerImpl(rpcProviderService, serviceDataStoreOperations, pceListenerImpl, rendererListenerImpl,
+                networkModelListenerImpl, catalogDataStoreOperations, pathComputationService, rendererServiceOperations,
+                notificationPublishService);
+        verify(rpcProviderService, times(1)).registerRpcImplementations(any(ServiceCreateImpl.class),
+                any(ServiceDeleteImpl.class), any(ServiceFeasibilityCheckImpl.class), any(ServiceReconfigureImpl.class),
+                any(ServiceRestorationImpl.class), any(ServiceRerouteImpl.class), any(TempServiceCreateImpl.class),
+                any(TempServiceDeleteImpl.class), any(AddOpenroadmOperationalModesToCatalogImpl.class),
+                any(AddSpecificOperationalModesToCatalogImpl.class));
+    }
+
+    @Test
+    void createServiceShouldBeFailedWithEmptyInput() throws ExecutionException, InterruptedException {
         ListenableFuture<RpcResult<ServiceCreateOutput>> result =
-            servicehandlerImpl.serviceCreate(new ServiceCreateInputBuilder().build());
-        result.addListener(new Runnable() {
-            @Override
-            public void run() {
-                endSignal.countDown();
-            }
-        }, executorService);
-
+            new ServiceCreateImpl(serviceDataStoreOperations, pceListenerImpl, rendererListenerImpl,
+                    networkModelListenerImpl, pceServiceWrapper, notificationPublishService)
+                .invoke(new ServiceCreateInputBuilder().build());
+        result.addListener(() -> endSignal.countDown(), executorService);
         endSignal.await();
-
-        RpcResult<ServiceCreateOutput> rpcResult = result.get();
-        Assert.assertEquals(
-            ResponseCodes.RESPONSE_FAILED, rpcResult.getResult().getConfigurationResponseCommon().getResponseCode());
+        assertEquals(
+            ResponseCodes.RESPONSE_FAILED,
+            result.get().getResult().getConfigurationResponseCommon().getResponseCode());
     }
 
     @Test
-    public void createServiceShouldBeSuccessfulWhenPreformPCESuccessful()
-        throws ExecutionException, InterruptedException {
-        ServiceCreateInput input = ServiceDataUtils.buildServiceCreateInput();
-        Mockito.when(pathComputationService.pathComputationRequest(any())).thenReturn(Futures.immediateFuture(any()));
-        ServicehandlerImpl servicehandlerImpl =
-            new ServicehandlerImpl(getNewDataBroker(), pathComputationService, rendererServiceOperations,
-                notificationPublishService, pceListenerImpl, rendererListenerImpl, networkModelListenerImpl,
-                serviceDataStoreOperations);
-        ListenableFuture<RpcResult<ServiceCreateOutput>> result =  servicehandlerImpl.serviceCreate(input);
-        result.addListener(new Runnable() {
-            @Override
-            public void run() {
-                endSignal.countDown();
-            }
-        }, executorService);
-
+    void createServiceShouldBeFailedWithServiceAlreadyExist() throws ExecutionException, InterruptedException {
+        final ServiceDataStoreOperations serviceDSOperations = mock(ServiceDataStoreOperations.class);
+        when(serviceDSOperations.getService(serviceCreateInput.getServiceName()))
+                .thenReturn(Optional.of(
+                        new ServicesBuilder()
+                                .setServiceName(serviceCreateInput.getServiceName())
+                                .build()));
+        ListenableFuture<RpcResult<ServiceCreateOutput>> result =
+            new ServiceCreateImpl(serviceDSOperations, pceListenerImpl, rendererListenerImpl,
+                    networkModelListenerImpl, pceServiceWrapper, notificationPublishService)
+                .invoke(serviceCreateInput);
+        result.addListener(() -> endSignal.countDown(), executorService);
         endSignal.await();
-
-        RpcResult<ServiceCreateOutput> rpcResult = result.get();
-        Assert.assertEquals(
-            ResponseCodes.RESPONSE_OK, rpcResult.getResult().getConfigurationResponseCommon().getResponseCode());
+        assertEquals(
+            ResponseCodes.RESPONSE_FAILED,
+            result.get().getResult().getConfigurationResponseCommon().getResponseCode());
     }
 
     @Test
-    public void deleteServiceShouldBeFailedWithEmptyInput() throws ExecutionException, InterruptedException {
-        ServicehandlerImpl servicehandlerImpl =
-            new ServicehandlerImpl(getNewDataBroker(), pathComputationService, rendererServiceOperations,
-                notificationPublishService, pceListenerImpl, rendererListenerImpl, networkModelListenerImpl,
-                serviceDataStoreOperations);
+    void createServiceShouldBeSuccessfulWhenPerformPCESuccessful() throws ExecutionException, InterruptedException {
+        when(pathComputationService.pathComputationRequest(any())).thenReturn(Futures.immediateFuture(any()));
+        ListenableFuture<RpcResult<ServiceCreateOutput>> result =
+                new ServiceCreateImpl(serviceDataStoreOperations, pceListenerImpl, rendererListenerImpl,
+                        networkModelListenerImpl, pceServiceWrapper, notificationPublishService)
+                    .invoke(serviceCreateInput);
+        result.addListener(() -> endSignal.countDown(), executorService);
+        endSignal.await();
+        assertEquals(
+            ResponseCodes.RESPONSE_OK,
+            result.get().getResult().getConfigurationResponseCommon().getResponseCode());
+    }
+
+    @Test
+    void deleteServiceShouldBeFailedWithEmptyInput() throws ExecutionException, InterruptedException {
         ListenableFuture<RpcResult<ServiceDeleteOutput>> result =
-            servicehandlerImpl.serviceDelete(new ServiceDeleteInputBuilder()
-                .setServiceDeleteReqInfo(new ServiceDeleteReqInfoBuilder().setServiceName("").build()).build());
-        result.addListener(new Runnable() {
-            @Override
-            public void run() {
-                endSignal.countDown();
-            }
-        }, executorService);
-
+                new ServiceDeleteImpl(serviceDataStoreOperations, pceListenerImpl, rendererListenerImpl,
+                        networkModelListenerImpl, rendererServiceWrapper, notificationPublishService)
+                    .invoke(new ServiceDeleteInputBuilder()
+                            .setServiceDeleteReqInfo(new ServiceDeleteReqInfoBuilder()
+                                    .setServiceName("")
+                                    .build())
+                            .build());
+        result.addListener(() -> endSignal.countDown(), executorService);
         endSignal.await();
-
-        RpcResult<ServiceDeleteOutput> rpcResult = result.get();
-        Assert.assertEquals(
-            ResponseCodes.RESPONSE_FAILED, rpcResult.getResult().getConfigurationResponseCommon().getResponseCode());
+        assertEquals(
+            ResponseCodes.RESPONSE_FAILED,
+            result.get().getResult().getConfigurationResponseCommon().getResponseCode());
     }
 
     @Test
-    public void deleteServiceShouldBeFailedWithNonExistService() throws ExecutionException, InterruptedException {
-        ServiceDeleteInput input = ServiceDataUtils.buildServiceDeleteInput();
-        ServicehandlerImpl servicehandlerImpl =
-            new ServicehandlerImpl(getNewDataBroker(), pathComputationService, rendererServiceOperations,
-                notificationPublishService, pceListenerImpl, rendererListenerImpl, networkModelListenerImpl,
-                serviceDataStoreOperations);
-        ListenableFuture<RpcResult<ServiceDeleteOutput>> result = servicehandlerImpl.serviceDelete(input);
-        result.addListener(new Runnable() {
-            @Override
-            public void run() {
-                endSignal.countDown();
-            }
-        }, executorService);
-
+    void deleteServiceShouldBeFailedWithNonExistService() throws ExecutionException, InterruptedException {
+        ListenableFuture<RpcResult<ServiceDeleteOutput>> result =
+                new ServiceDeleteImpl(serviceDataStoreOperations, pceListenerImpl, rendererListenerImpl,
+                        networkModelListenerImpl, rendererServiceWrapper, notificationPublishService)
+                    .invoke(serviceDeleteInput);
+        result.addListener(() -> endSignal.countDown(), executorService);
         endSignal.await();
-
-        RpcResult<ServiceDeleteOutput> rpcResult = result.get();
-        Assert.assertEquals(
-            ResponseCodes.RESPONSE_FAILED, rpcResult.getResult().getConfigurationResponseCommon().getResponseCode());
+        assertEquals(
+            ResponseCodes.RESPONSE_FAILED,
+            result.get().getResult().getConfigurationResponseCommon().getResponseCode());
     }
 
     @Test
-    public void deleteServiceShouldBeSuccessForExistingService() throws ExecutionException, InterruptedException {
-        DataBroker dataBroker = getNewDataBroker();
-        Mockito.when(rendererServiceOperations.serviceDelete(any(), any())).thenReturn(Futures.immediateFuture(any()));
-        ServicehandlerImpl servicehandlerImpl =
-            new ServicehandlerImpl(dataBroker, pathComputationService, rendererServiceOperations,
-                notificationPublishService, pceListenerImpl, rendererListenerImpl, networkModelListenerImpl,
-                serviceDataStoreOperations);
-        ServiceCreateInput createInput = ServiceDataUtils.buildServiceCreateInput();
-        serviceDataStoreOperations.createService(createInput);
-        ServiceDeleteInput input = ServiceDataUtils.buildServiceDeleteInput();
-        ListenableFuture<RpcResult<ServiceDeleteOutput>> result = servicehandlerImpl.serviceDelete(input);
-        result.addListener(new Runnable() {
-            @Override
-            public void run() {
-                endSignal.countDown();
-            }
-        }, executorService);
-
+    void deleteServiceShouldBeSuccessForExistingService() throws ExecutionException, InterruptedException {
+        when(rendererServiceOperations.serviceDelete(any(), any())).thenReturn(Futures.immediateFuture(any()));
+        serviceDataStoreOperations.createService(serviceCreateInput);
+        ListenableFuture<RpcResult<ServiceDeleteOutput>> result =
+                new ServiceDeleteImpl(serviceDataStoreOperations, pceListenerImpl, rendererListenerImpl,
+                        networkModelListenerImpl, rendererServiceWrapper, notificationPublishService)
+                    .invoke(serviceDeleteInput);
+        result.addListener(() -> endSignal.countDown(), executorService);
         endSignal.await();
-
-        RpcResult<ServiceDeleteOutput> rpcResult = result.get();
-        Assert.assertEquals(
-            ResponseCodes.RESPONSE_OK, rpcResult.getResult().getConfigurationResponseCommon().getResponseCode());
+        assertEquals(
+            ResponseCodes.RESPONSE_OK,
+            result.get().getResult().getConfigurationResponseCommon().getResponseCode());
     }
 
-
     @Test
-    public void serviceFeasibilityCheckShouldBeFailedWithEmptyInput() throws ExecutionException, InterruptedException {
-        ServicehandlerImpl servicehandlerImpl =
-                new ServicehandlerImpl(getNewDataBroker(), pathComputationService, rendererServiceOperations,
-                        notificationPublishService, pceListenerImpl, rendererListenerImpl, networkModelListenerImpl,
-                        serviceDataStoreOperations);
+    void serviceFeasibilityCheckShouldBeFailedWithEmptyInput() throws ExecutionException, InterruptedException {
         ListenableFuture<RpcResult<ServiceFeasibilityCheckOutput>> result =
-                servicehandlerImpl.serviceFeasibilityCheck(new ServiceFeasibilityCheckInputBuilder().build());
-        result.addListener(new Runnable() {
-            @Override
-            public void run() {
-                endSignal.countDown();
-            }
-        }, executorService);
-
+                new ServiceFeasibilityCheckImpl(serviceDataStoreOperations, pceListenerImpl, rendererListenerImpl,
+                        networkModelListenerImpl, pceServiceWrapper)
+                    .invoke(new ServiceFeasibilityCheckInputBuilder().build());
+        result.addListener(() -> endSignal.countDown(), executorService);
         endSignal.await();
-
-        RpcResult<ServiceFeasibilityCheckOutput> rpcResult = result.get();
-        Assert.assertEquals(
-            ResponseCodes.RESPONSE_FAILED, rpcResult.getResult().getConfigurationResponseCommon().getResponseCode());
+        assertEquals(
+            ResponseCodes.RESPONSE_FAILED,
+            result.get().getResult().getConfigurationResponseCommon().getResponseCode());
     }
 
     @Test
-    public void serviceFeasibilityCheckShouldBeSuccessfulWhenPreformPCESuccessful()
+    void serviceFeasibilityCheckShouldBeSuccessfulWhenPerformPCESuccessful()
             throws ExecutionException, InterruptedException {
-        ServiceFeasibilityCheckInput input = ServiceDataUtils.buildServiceFeasibilityCheckInput();
-        Mockito.when(pathComputationService.pathComputationRequest(any())).thenReturn(Futures.immediateFuture(any()));
-        ServicehandlerImpl servicehandlerImpl =
-                new ServicehandlerImpl(getNewDataBroker(), pathComputationService, rendererServiceOperations,
-                        notificationPublishService, pceListenerImpl, rendererListenerImpl, networkModelListenerImpl,
-                        serviceDataStoreOperations);
+        when(pathComputationService.pathComputationRequest(any())).thenReturn(Futures.immediateFuture(any()));
         ListenableFuture<RpcResult<ServiceFeasibilityCheckOutput>> result =
-            servicehandlerImpl.serviceFeasibilityCheck(input);
-        result.addListener(new Runnable() {
-            @Override
-            public void run() {
-                endSignal.countDown();
-            }
-        }, executorService);
-
+                new ServiceFeasibilityCheckImpl(serviceDataStoreOperations, pceListenerImpl, rendererListenerImpl,
+                        networkModelListenerImpl, pceServiceWrapper)
+                    .invoke(ServiceDataUtils.buildServiceFeasibilityCheckInput());
+        result.addListener(() -> endSignal.countDown(), executorService);
         endSignal.await();
-
-        RpcResult<ServiceFeasibilityCheckOutput> rpcResult = result.get();
-        Assert.assertEquals(
-                ResponseCodes.RESPONSE_OK, rpcResult.getResult().getConfigurationResponseCommon().getResponseCode());
+        assertEquals(
+            ResponseCodes.RESPONSE_OK,
+            result.get().getResult().getConfigurationResponseCommon().getResponseCode());
     }
 
     @Test
-    public void serviceReconfigureShouldBeFailedWithEmptyInput() throws ExecutionException, InterruptedException {
-        ServicehandlerImpl servicehandlerImpl =
-                new ServicehandlerImpl(getNewDataBroker(), pathComputationService, rendererServiceOperations,
-                        notificationPublishService, pceListenerImpl, rendererListenerImpl, networkModelListenerImpl,
-                        serviceDataStoreOperations);
+    void serviceReconfigureShouldBeFailedWithEmptyInput() throws InterruptedException {
         ListenableFuture<RpcResult<ServiceReconfigureOutput>> result =
-                servicehandlerImpl.serviceReconfigure(new ServiceReconfigureInputBuilder().setServiceName("").build());
-        result.addListener(new Runnable() {
-            @Override
-            public void run() {
-                endSignal.countDown();
-            }
-        }, executorService);
-
+                new ServiceReconfigureImpl(serviceDataStoreOperations, pceListenerImpl, rendererListenerImpl,
+                        networkModelListenerImpl, rendererServiceWrapper)
+                    .invoke(new ServiceReconfigureInputBuilder().setServiceName("").build());
+        result.addListener(() -> endSignal.countDown(), executorService);
         endSignal.await();
     }
 
 
     @Test
-    public void serviceReconfigureShouldBeFailedWithNonExistService() throws ExecutionException, InterruptedException {
-        ServiceReconfigureInput input = ServiceDataUtils.buildServiceReconfigureInput();
-
+    void serviceReconfigureShouldBeFailedWithNonExistService() throws InterruptedException {
         //action -> service reconfigure
-        ServicehandlerImpl servicehandlerImpl =
-                new ServicehandlerImpl(getNewDataBroker(), pathComputationService, rendererServiceOperations,
-                        notificationPublishService, pceListenerImpl, rendererListenerImpl, networkModelListenerImpl,
-                        serviceDataStoreOperations);
-        ListenableFuture<RpcResult<ServiceReconfigureOutput>> result = servicehandlerImpl.serviceReconfigure(input);
-
-        result.addListener(new Runnable() {
-            @Override
-            public void run() {
-                endSignal.countDown();
-            }
-        }, executorService);
-
+        ListenableFuture<RpcResult<ServiceReconfigureOutput>> result =
+                new ServiceReconfigureImpl(serviceDataStoreOperations, pceListenerImpl, rendererListenerImpl,
+                        networkModelListenerImpl, rendererServiceWrapper)
+                    .invoke(serviceReconfigureInput);
+        result.addListener(() -> endSignal.countDown(), executorService);
         endSignal.await();
     }
 
     @Test
-    public void serviceReconfigureShouldBeSuccessForExistingService() throws ExecutionException, InterruptedException {
-        DataBroker dataBroker = getNewDataBroker();
-
-        //mocking
+    void serviceReconfigureShouldBeSuccessForExistingService() throws InterruptedException {
         // serviceReconfigure is calling service delete method in renderer
-        Mockito.when(rendererServiceOperations.serviceDelete(any(), any())).thenReturn(Futures.immediateFuture(any()));
+        when(rendererServiceOperations.serviceDelete(any(), any())).thenReturn(Futures.immediateFuture(any()));
         //create service to reconfigure
-        ServicehandlerImpl servicehandlerImpl =
-                new ServicehandlerImpl(dataBroker, pathComputationService, rendererServiceOperations,
-                        notificationPublishService, pceListenerImpl, rendererListenerImpl, networkModelListenerImpl,
-                        serviceDataStoreOperations);
-        ServiceCreateInput createInput = ServiceDataUtils.buildServiceCreateInput();
-        serviceDataStoreOperations.createService(createInput);
-
+        serviceDataStoreOperations.createService(serviceCreateInput);
         //service reconfigure test action
-        ServiceReconfigureInput input = ServiceDataUtils.buildServiceReconfigureInput();
         //ServiceReconfigureInput is created with the same service information that is created before
-        ListenableFuture<RpcResult<ServiceReconfigureOutput>> result = servicehandlerImpl.serviceReconfigure(input);
-        result.addListener(new Runnable() {
-            @Override
-            public void run() {
-                endSignal.countDown();
-            }
-        }, executorService);
-
+        ListenableFuture<RpcResult<ServiceReconfigureOutput>> result =
+                new ServiceReconfigureImpl(serviceDataStoreOperations, pceListenerImpl, rendererListenerImpl,
+                        networkModelListenerImpl, rendererServiceWrapper)
+                    .invoke(serviceReconfigureInput);
+        result.addListener(() -> endSignal.countDown(), executorService);
         endSignal.await();
     }
 
     @Test
-    public void serviceReRestorationShouldBeFailedWithEmptyInput() throws ExecutionException, InterruptedException {
-        ServicehandlerImpl servicehandlerImpl =
-                new ServicehandlerImpl(getNewDataBroker(), pathComputationService, rendererServiceOperations,
-                        notificationPublishService, pceListenerImpl, rendererListenerImpl, networkModelListenerImpl,
-                        serviceDataStoreOperations);
+    void serviceReRestorationShouldBeFailedWithEmptyInput() throws InterruptedException {
         ListenableFuture<RpcResult<ServiceRestorationOutput>> result =
-                servicehandlerImpl.serviceRestoration(new ServiceRestorationInputBuilder().setServiceName("").build());
-        result.addListener(new Runnable() {
-            @Override
-            public void run() {
-                endSignal.countDown();
-            }
-        }, executorService);
-
+                new ServiceRestorationImpl(serviceDataStoreOperations, pceListenerImpl, rendererListenerImpl,
+                        networkModelListenerImpl, rendererServiceWrapper)
+                    .invoke(new ServiceRestorationInputBuilder()
+                            .setServiceName("")
+                            .build());
+        result.addListener(() -> endSignal.countDown(), executorService);
         endSignal.await();
     }
 
-
     @Test
-    public void serviceRestorationShouldBeFailedWithNonExistService() throws ExecutionException, InterruptedException {
-        ServiceRestorationInput input = ServiceDataUtils.buildServiceRestorationInput();
-
+    void serviceRestorationShouldBeFailedWithNonExistService() throws InterruptedException {
         //action -> service restore
-        ServicehandlerImpl servicehandlerImpl =
-                new ServicehandlerImpl(getNewDataBroker(), pathComputationService, rendererServiceOperations,
-                        notificationPublishService, pceListenerImpl, rendererListenerImpl, networkModelListenerImpl,
-                        serviceDataStoreOperations);
-        ListenableFuture<RpcResult<ServiceRestorationOutput>> result = servicehandlerImpl.serviceRestoration(input);
-
-        result.addListener(new Runnable() {
-            @Override
-            public void run() {
-                endSignal.countDown();
-            }
-        }, executorService);
-
+        ListenableFuture<RpcResult<ServiceRestorationOutput>> result =
+                new ServiceRestorationImpl(serviceDataStoreOperations, pceListenerImpl, rendererListenerImpl,
+                        networkModelListenerImpl, rendererServiceWrapper)
+                    .invoke(serviceRestorationInput);
+        result.addListener(() -> endSignal.countDown(), executorService);
         endSignal.await();
     }
 
     @Test
-    public void serviceRestorationShouldBeSuccessForExistingService() throws ExecutionException, InterruptedException {
-        DataBroker dataBroker = getNewDataBroker();
-
-        //mocking
+    void serviceRestorationShouldBeSuccessForExistingService() throws InterruptedException {
         // serviceRestoration is calling service delete method in renderer
-        Mockito.when(rendererServiceOperations.serviceDelete(any(), any())).thenReturn(Futures.immediateFuture(any()));
+        when(rendererServiceOperations.serviceDelete(any(), any())).thenReturn(Futures.immediateFuture(any()));
         //create service to restore
-        ServicehandlerImpl servicehandlerImpl =
-                new ServicehandlerImpl(dataBroker, pathComputationService, rendererServiceOperations,
-                        notificationPublishService, pceListenerImpl, rendererListenerImpl, networkModelListenerImpl,
-                        serviceDataStoreOperations);
-        ServiceCreateInput createInput = ServiceDataUtils.buildServiceCreateInput();
-        serviceDataStoreOperations.createService(createInput);
-
+        serviceDataStoreOperations.createService(serviceCreateInput);
         //service Restoration test action
-        ServiceRestorationInput input = ServiceDataUtils.buildServiceRestorationInput();
         //ServiceRestorationInput is created with the same service information that is created before
-        ListenableFuture<RpcResult<ServiceRestorationOutput>> result = servicehandlerImpl.serviceRestoration(input);
-        result.addListener(new Runnable() {
-            @Override
-            public void run() {
-                endSignal.countDown();
-            }
-        }, executorService);
-
+        ListenableFuture<RpcResult<ServiceRestorationOutput>> result =
+                new ServiceRestorationImpl(serviceDataStoreOperations, pceListenerImpl, rendererListenerImpl,
+                        networkModelListenerImpl, rendererServiceWrapper)
+                    .invoke(serviceRestorationInput);
+        result.addListener(() -> endSignal.countDown(), executorService);
         endSignal.await();
     }
 
     @Test
-    public void serviceRerouteShouldBeFailedWithEmptyInput() throws ExecutionException, InterruptedException {
-        ServicehandlerImpl servicehandlerImpl =
-                new ServicehandlerImpl(getNewDataBroker(), pathComputationService, rendererServiceOperations,
-                        notificationPublishService, pceListenerImpl, rendererListenerImpl, networkModelListenerImpl,
-                        serviceDataStoreOperations);
+    void serviceRerouteShouldBeFailedWithEmptyInput() throws ExecutionException, InterruptedException {
         ListenableFuture<RpcResult<ServiceRerouteOutput>> result =
-                servicehandlerImpl.serviceReroute(new ServiceRerouteInputBuilder().setServiceName("").build());
-        result.addListener(new Runnable() {
-            @Override
-            public void run() {
-                endSignal.countDown();
-            }
-        }, executorService);
-
+                new ServiceRerouteImpl(serviceDataStoreOperations, pceServiceWrapper)
+                    .invoke(new ServiceRerouteInputBuilder()
+                            .setServiceName("")
+                            .build());
+        result.addListener(() -> endSignal.countDown(), executorService);
         endSignal.await();
+        assertEquals(
+            ResponseCodes.RESPONSE_FAILED,
+            result.get().getResult().getConfigurationResponseCommon().getResponseCode());
     }
 
     @Test
-    public void serviceRerouteShouldBeFailedWithNonExistService() throws ExecutionException, InterruptedException {
-        ServiceRerouteInput input = ServiceDataUtils.buildServiceRerouteInput();
-
+    void serviceRerouteShouldBeFailedWithNonExistService() throws ExecutionException, InterruptedException {
         //action -> service reconfigure
-        ServicehandlerImpl servicehandlerImpl =
-                new ServicehandlerImpl(getNewDataBroker(), pathComputationService, rendererServiceOperations,
-                        notificationPublishService, pceListenerImpl, rendererListenerImpl, networkModelListenerImpl,
-                        serviceDataStoreOperations);
-        ListenableFuture<RpcResult<ServiceRerouteOutput>> result = servicehandlerImpl.serviceReroute(input);
-
-        result.addListener(new Runnable() {
-            @Override
-            public void run() {
-                endSignal.countDown();
-            }
-        }, executorService);
-
+        ListenableFuture<RpcResult<ServiceRerouteOutput>> result =
+                new ServiceRerouteImpl(serviceDataStoreOperations, pceServiceWrapper)
+                    .invoke(serviceRerouteInput);
+        result.addListener(() -> endSignal.countDown(), executorService);
         endSignal.await();
+        assertEquals(
+            ResponseCodes.RESPONSE_FAILED,
+            result.get().getResult().getConfigurationResponseCommon().getResponseCode());
     }
 
     @Test
-    public void serviceRerouteShouldBeSuccessForExistingService() throws ExecutionException, InterruptedException {
-        DataBroker dataBroker = getNewDataBroker();
+    void serviceRerouteShouldBeSuccessForExistingService() throws ExecutionException, InterruptedException {
+        when(pathComputationService.pathComputationRerouteRequest(any()))
+            .thenReturn(Futures.immediateFuture(new PathComputationRerouteRequestOutputBuilder()
+                    .setConfigurationResponseCommon(new ConfigurationResponseCommonBuilder()
+                            .setResponseCode(ResponseCodes.RESPONSE_OK)
+                            .build())
+                    .build()));
+        Map<AToZKey, AToZ> atoz = Map.of(
+                new AToZKey("0"),
+                new AToZBuilder()
+                        .setId("0")
+                        .setResource(new ResourceBuilder()
+                                .setResource(new TerminationPointBuilder()
+                                        .setTpNodeId("tpNodeIdC")
+                                        .setTpId("TpIdC1")
+                                        .build())
+                                .setState(State.InService)
+                                .build())
+                        .build(),
+                new AToZKey("1"),
+                new AToZBuilder()
+                        .setId("1")
+                        .setResource(new ResourceBuilder()
+                                .setResource(new TerminationPointBuilder()
+                                        .setTpNodeId("tpNodeIdD")
+                                        .setTpId("TpIdCD")
+                                        .build())
+                                .setState(State.InService)
+                                .build())
+                        .build(), new AToZKey("2"),
+                new AToZBuilder()
+                        .setId("2")
+                        .setResource(new ResourceBuilder()
+                                .setResource(new TerminationPointBuilder()
+                                        .setTpNodeId("tpNodeIdA")
+                                        .setTpId("TpIdA1")
+                                        .build())
+                                .setState(State.InService)
+                                .build())
+                        .build()
 
-        //mocking
-        // serviceReroute is calling service delete method in renderer
-        Mockito.when(rendererServiceOperations.serviceDelete(any(), any())).thenReturn(Futures.immediateFuture(any()));
-        //create service to be rerouted later
-        ServicehandlerImpl servicehandlerImpl =
-                new ServicehandlerImpl(dataBroker, pathComputationService, rendererServiceOperations,
-                        notificationPublishService, pceListenerImpl, rendererListenerImpl, networkModelListenerImpl,
-                        serviceDataStoreOperations);
-        ServiceCreateInput createInput = ServiceDataUtils.buildServiceCreateInput();
-        serviceDataStoreOperations.createService(createInput);
-
-        //service reroute test action
-        ServiceRerouteInput input = ServiceDataUtils.buildServiceRerouteInput();
-        //ServiceRerouteInput is created with the same service information that is created before
-        ListenableFuture<RpcResult<ServiceRerouteOutput>> result = servicehandlerImpl.serviceReroute(input);
-        result.addListener(new Runnable() {
-            @Override
-            public void run() {
-                endSignal.countDown();
-            }
-        }, executorService);
-
+        );
+        serviceDataStoreOperations.createServicePath(new ServiceInput(serviceCreateInput),
+                new PathComputationRequestOutputBuilder()
+                        .setResponseParameters(new ResponseParametersBuilder()
+                                .setPathDescription(new PathDescriptionBuilder()
+                                        .setAToZDirection(new AToZDirectionBuilder()
+                                                .setAToZ(atoz)
+                                                .setRate(Uint32.ONE)
+                                                .build())
+                                        .setZToADirection(new ZToADirectionBuilder()
+                                                .setRate(Uint32.ONE)
+                                                .build())
+                                        .build())
+                                .build())
+                        .build());
+        serviceDataStoreOperations.createService(serviceCreateInput);
+        ListenableFuture<RpcResult<ServiceRerouteOutput>> result =
+                new ServiceRerouteImpl(serviceDataStoreOperations, pceServiceWrapper)
+                    .invoke(serviceRerouteInput);
+        result.addListener(() -> endSignal.countDown(), executorService);
         endSignal.await();
+        assertEquals(
+            ResponseCodes.RESPONSE_OK,
+            result.get().getResult().getConfigurationResponseCommon().getResponseCode());
     }
 
     @Test
-    public void tempServiceDeleteShouldBeFailedWithEmptyInput() throws ExecutionException, InterruptedException {
-        ServicehandlerImpl servicehandlerImpl =
-                new ServicehandlerImpl(getNewDataBroker(), pathComputationService, rendererServiceOperations,
-                        notificationPublishService, pceListenerImpl, rendererListenerImpl, networkModelListenerImpl,
-                        serviceDataStoreOperations);
+    void tempServiceDeleteShouldBeFailedWithEmptyInput() throws ExecutionException, InterruptedException {
         ListenableFuture<RpcResult<TempServiceDeleteOutput>> result =
-                servicehandlerImpl.tempServiceDelete(new TempServiceDeleteInputBuilder()
-                        .setCommonId("").build());
-        result.addListener(new Runnable() {
-            @Override
-            public void run() {
-                endSignal.countDown();
-            }
-        }, executorService);
-
+                new TempServiceDeleteImpl(serviceDataStoreOperations, pceListenerImpl, rendererListenerImpl,
+                        rendererServiceWrapper)
+                    .invoke(new TempServiceDeleteInputBuilder()
+                            .setCommonId("")
+                            .build());
+        result.addListener(() -> endSignal.countDown(), executorService);
         endSignal.await();
-
         RpcResult<TempServiceDeleteOutput> rpcResult = result.get();
-        Assert.assertEquals(
-            ResponseCodes.RESPONSE_FAILED, rpcResult.getResult().getConfigurationResponseCommon().getResponseCode());
-        Assert.assertEquals(
+        assertEquals(
+            ResponseCodes.RESPONSE_FAILED,
+            rpcResult.getResult().getConfigurationResponseCommon().getResponseCode());
+        assertEquals(
             LogMessages.SERVICE_NON_COMPLIANT,
             rpcResult.getResult().getConfigurationResponseCommon().getResponseMessage());
     }
 
     @Test
-    public void tempServiceDeleteShouldBeFailedWithNonExistService() throws ExecutionException, InterruptedException {
-        TempServiceDeleteInput input = ServiceDataUtils.buildTempServiceDeleteInput();
-        ServicehandlerImpl servicehandlerImpl =
-                new ServicehandlerImpl(getNewDataBroker(), pathComputationService, rendererServiceOperations,
-                        notificationPublishService, pceListenerImpl, rendererListenerImpl, networkModelListenerImpl,
-                        serviceDataStoreOperations);
-        ListenableFuture<RpcResult<TempServiceDeleteOutput>> result = servicehandlerImpl.tempServiceDelete(input);
-        result.addListener(new Runnable() {
-            @Override
-            public void run() {
-                endSignal.countDown();
-            }
-        }, executorService);
-
+    void tempServiceDeleteShouldBeFailedWithNonExistService() throws ExecutionException, InterruptedException {
+        ListenableFuture<RpcResult<TempServiceDeleteOutput>> result =
+                new TempServiceDeleteImpl(serviceDataStoreOperations, pceListenerImpl, rendererListenerImpl,
+                        rendererServiceWrapper)
+                    .invoke(ServiceDataUtils.buildTempServiceDeleteInput());
+        result.addListener(() -> endSignal.countDown(), executorService);
         endSignal.await();
-
-        RpcResult<TempServiceDeleteOutput> rpcResult = result.get();
-        Assert.assertEquals(
-            ResponseCodes.RESPONSE_FAILED, rpcResult.getResult().getConfigurationResponseCommon().getResponseCode());
+        assertEquals(
+            ResponseCodes.RESPONSE_FAILED,
+            result.get().getResult().getConfigurationResponseCommon().getResponseCode());
     }
 
     @Test
-    public void tempServiceDeleteShouldBeSuccessForExistingService() throws ExecutionException, InterruptedException {
-        DataBroker dataBroker = getNewDataBroker();
-        Mockito.when(rendererServiceOperations.serviceDelete(any(), any())).thenReturn(Futures.immediateFuture(any()));
-
+    void tempServiceDeleteShouldBeSuccessForExistingService() throws ExecutionException, InterruptedException {
+        when(rendererServiceOperations.serviceDelete(any(), any())).thenReturn(Futures.immediateFuture(any()));
         //create temp service to delete in the temp delete action
-        ServicehandlerImpl servicehandlerImpl =
-                new ServicehandlerImpl(dataBroker, pathComputationService, rendererServiceOperations,
-                        notificationPublishService, pceListenerImpl, rendererListenerImpl, networkModelListenerImpl,
-                        serviceDataStoreOperations);
         TempServiceCreateInput createInput = ServiceDataUtils.buildTempServiceCreateInput();
-        serviceDataStoreOperations.createTempService(createInput);
-
-
-        TempServiceDeleteInput input = ServiceDataUtils.buildTempServiceDeleteInput(createInput.getCommonId());
-        ListenableFuture<RpcResult<TempServiceDeleteOutput>> result = servicehandlerImpl.tempServiceDelete(input);
-        result.addListener(new Runnable() {
-            @Override
-            public void run() {
-                endSignal.countDown();
-            }
-        }, executorService);
-
+        serviceDataStoreOperations.createTempService(createInput, pathDescription);
+        ListenableFuture<RpcResult<TempServiceDeleteOutput>> result =
+                new TempServiceDeleteImpl(serviceDataStoreOperations, pceListenerImpl, rendererListenerImpl,
+                        rendererServiceWrapper)
+                    .invoke(ServiceDataUtils.buildTempServiceDeleteInput(createInput.getCommonId()));
+        result.addListener(() -> endSignal.countDown(), executorService);
         endSignal.await();
-
-        RpcResult<TempServiceDeleteOutput> rpcResult = result.get();
-        Assert.assertEquals(
-                ResponseCodes.RESPONSE_OK, rpcResult.getResult().getConfigurationResponseCommon().getResponseCode());
+        assertEquals(
+            ResponseCodes.RESPONSE_OK,
+            result.get().getResult().getConfigurationResponseCommon().getResponseCode());
     }
 
     @Test
-    public void tempServiceCreateShouldBeFailedWithEmptyInput() throws ExecutionException, InterruptedException {
-        ServicehandlerImpl servicehandlerImpl =
-                new ServicehandlerImpl(getNewDataBroker(), pathComputationService, rendererServiceOperations,
-                        notificationPublishService, pceListenerImpl, rendererListenerImpl, networkModelListenerImpl,
-                        serviceDataStoreOperations);
+    void tempServiceCreateShouldBeFailedWithEmptyInput() throws ExecutionException, InterruptedException {
         ListenableFuture<RpcResult<TempServiceCreateOutput>> result =
-                servicehandlerImpl.tempServiceCreate(new TempServiceCreateInputBuilder().build());
-        result.addListener(new Runnable() {
-            @Override
-            public void run() {
-                endSignal.countDown();
-            }
-        }, executorService);
-
+                new TempServiceCreateImpl(serviceDataStoreOperations, pceListenerImpl, rendererListenerImpl,
+                        networkModelListenerImpl, pceServiceWrapper)
+                    .invoke(new TempServiceCreateInputBuilder().build());
+        result.addListener(() -> endSignal.countDown(), executorService);
         endSignal.await();
-
-        RpcResult<TempServiceCreateOutput> rpcResult = result.get();
-        Assert.assertEquals(
-            ResponseCodes.RESPONSE_FAILED, rpcResult.getResult().getConfigurationResponseCommon().getResponseCode());
+        assertEquals(
+            ResponseCodes.RESPONSE_FAILED,
+            result.get().getResult().getConfigurationResponseCommon().getResponseCode());
     }
-
 
     @Test
-    public void tempServiceCreateShouldBeSuccessfulWhenPreformPCESuccessful()
-            throws ExecutionException, InterruptedException {
-        TempServiceCreateInput input = ServiceDataUtils.buildTempServiceCreateInput();
-        Mockito.when(pathComputationService.pathComputationRequest(any())).thenReturn(Futures.immediateFuture(any()));
-
-        ServicehandlerImpl servicehandlerImpl =
-                new ServicehandlerImpl(getNewDataBroker(), pathComputationService, rendererServiceOperations,
-                        notificationPublishService, pceListenerImpl, rendererListenerImpl, networkModelListenerImpl,
-                        serviceDataStoreOperations);
-
-        ListenableFuture<RpcResult<TempServiceCreateOutput>> result =  servicehandlerImpl.tempServiceCreate(input);
-        result.addListener(new Runnable() {
-            @Override
-            public void run() {
-                endSignal.countDown();
-            }
-        }, executorService);
-
+    void tempServiceCreateShouldBeFailedWithServiceAlreadyExist() throws ExecutionException, InterruptedException {
+        final ServiceDataStoreOperations serviceDSOperations = mock(ServiceDataStoreOperations.class);
+        when(serviceDSOperations.getTempService(any()))
+            .thenReturn(Optional.of(
+                    new org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.temp.service.list
+                            .ServicesBuilder()
+                        .setCommonId("bad_commonId")
+                        .build()));
+        ListenableFuture<RpcResult<TempServiceCreateOutput>> result =
+                new TempServiceCreateImpl(serviceDSOperations, pceListenerImpl, rendererListenerImpl,
+                        networkModelListenerImpl, pceServiceWrapper)
+                    .invoke(ServiceDataUtils.buildTempServiceCreateInput());
+        result.addListener(() -> endSignal.countDown(), executorService);
         endSignal.await();
-
-        RpcResult<TempServiceCreateOutput> rpcResult = result.get();
-
-        Assert.assertEquals(
-                ResponseCodes.RESPONSE_OK, rpcResult.getResult().getConfigurationResponseCommon().getResponseCode());
+        assertEquals(
+            ResponseCodes.RESPONSE_FAILED,
+            result.get().getResult().getConfigurationResponseCommon().getResponseCode());
+        assertEquals(
+            "Service 'Temp (commonId)' already exists in datastore",
+            result.get().getResult().getConfigurationResponseCommon().getResponseMessage());
     }
 
+    @Test
+    void tempServiceCreateShouldBeSuccessfulWhenPerformPCESuccessful()
+            throws ExecutionException, InterruptedException {
+        when(pathComputationService.pathComputationRequest(any())).thenReturn(Futures.immediateFuture(any()));
+        ListenableFuture<RpcResult<TempServiceCreateOutput>> result =
+                new TempServiceCreateImpl(serviceDataStoreOperations, pceListenerImpl, rendererListenerImpl,
+                        networkModelListenerImpl, pceServiceWrapper)
+                    .invoke(ServiceDataUtils.buildTempServiceCreateInput());
+        result.addListener(() -> endSignal.countDown(), executorService);
+        endSignal.await();
+        assertEquals(
+            ResponseCodes.RESPONSE_OK,
+            result.get().getResult().getConfigurationResponseCommon().getResponseCode());
+    }
+
+    @Test
+    public void addOpenroadmOperationalModesToCatalogShouldBeFailedWithEmptyInput()
+            throws ExecutionException, InterruptedException {
+        ListenableFuture<RpcResult<AddOpenroadmOperationalModesToCatalogOutput>> result =
+                new AddOpenroadmOperationalModesToCatalogImpl(catalogDataStoreOperations)
+                    .invoke(new AddOpenroadmOperationalModesToCatalogInputBuilder().build());
+        assertEquals(
+            ResponseCodes.RESPONSE_FAILED,
+            result.get().getResult().getConfigurationResponseCommon().getResponseCode());
+    }
+
+    @Test
+    public void addSpecificOperationalModesToCatalogShouldBeFailedWithEmptyInput()
+            throws ExecutionException, InterruptedException {
+        ListenableFuture<RpcResult<AddSpecificOperationalModesToCatalogOutput>> result =
+                new AddSpecificOperationalModesToCatalogImpl(catalogDataStoreOperations)
+                    .invoke(new AddSpecificOperationalModesToCatalogInputBuilder().build());
+        assertEquals(
+            ResponseCodes.RESPONSE_FAILED,
+            result.get().getResult().getConfigurationResponseCommon().getResponseCode());
+    }
+
+    @Test
+    public void addOpenroadmOperationalModesToCatalogShouldBeSuccessfulWhenAddORToCatalog()
+            throws ExecutionException, InterruptedException {
+        ListenableFuture<RpcResult<AddOpenroadmOperationalModesToCatalogOutput>> result =
+                new AddOpenroadmOperationalModesToCatalogImpl(catalogDataStoreOperations)
+                    .invoke(CatalogDataUtils.buildAddORToCatalogInput());
+        assertEquals(
+            ResponseCodes.RESPONSE_OK,
+            result.get().getResult().getConfigurationResponseCommon().getResponseCode());
+    }
+
+    @Test
+    public void addSpecificOperationalModesToCatalogShouldBeSuccessfulWhenAddSpecificToCatalog()
+            throws ExecutionException, InterruptedException {
+        ListenableFuture<RpcResult<AddSpecificOperationalModesToCatalogOutput>> result =
+                new AddSpecificOperationalModesToCatalogImpl(catalogDataStoreOperations)
+                    .invoke(CatalogDataUtils.buildAddSpecificToCatalogInput());
+        assertEquals(
+            ResponseCodes.RESPONSE_OK,
+            result.get().getResult().getConfigurationResponseCommon().getResponseCode());
+    }
 }

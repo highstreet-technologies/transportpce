@@ -7,30 +7,31 @@
  */
 package org.opendaylight.transportpce.nbinotifications.serialization;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.Map;
-import org.junit.Test;
+import org.json.JSONException;
+import org.junit.jupiter.api.Test;
 import org.opendaylight.transportpce.common.converter.JsonStringConverter;
 import org.opendaylight.transportpce.test.AbstractTest;
-import org.opendaylight.yang.gen.v1.nbi.notifications.rev210813.NotificationAlarmService;
+import org.opendaylight.yang.gen.v1.nbi.notifications.rev230728.NotificationAlarmService;
 import org.opendaylight.yangtools.yang.data.api.YangInstanceIdentifier;
 import org.opendaylight.yangtools.yang.data.codec.gson.JSONCodecFactorySupplier;
+import org.skyscreamer.jsonassert.JSONAssert;
 
 public class NotificationAlarmServiceSerializerTest extends AbstractTest {
 
     @Test
-    public void serializeTest() throws IOException {
+    void serializeTest() throws IOException, JSONException {
         JsonStringConverter<NotificationAlarmService> converter =
                 new JsonStringConverter<>(getDataStoreContextUtil().getBindingDOMCodecServices());
-        String json = Files.readString(Paths.get("src/test/resources/event_alarm_service.json"));
+        String json = Files.readString(Path.of("src/test/resources/event_alarm_service.json"));
         NotificationAlarmService notificationAlarmService = converter
                 .createDataObjectFromJsonString(YangInstanceIdentifier.of(NotificationAlarmService.QNAME),
                         json, JSONCodecFactorySupplier.RFC7951);
@@ -39,10 +40,10 @@ public class NotificationAlarmServiceSerializerTest extends AbstractTest {
         serializer.configure(configs, false);
         byte[] data = serializer.serialize("test", notificationAlarmService);
         serializer.close();
-        assertNotNull("Serialized data should not be null", data);
-        String expectedJson = Files.readString(Paths.get("src/test/resources/expected_event_alarm_service.json"));
+        assertNotNull(data, "Serialized data should not be null");
+        String expectedJson = Files.readString(Path.of("src/test/resources/expected_event_alarm_service.json"));
         // Minify the json string
         expectedJson = new ObjectMapper().readValue(expectedJson, JsonNode.class).toString();
-        assertEquals("The event should be equals", expectedJson, new String(data, StandardCharsets.UTF_8));
+        JSONAssert.assertEquals(expectedJson, new String(data, StandardCharsets.UTF_8), true);
     }
 }

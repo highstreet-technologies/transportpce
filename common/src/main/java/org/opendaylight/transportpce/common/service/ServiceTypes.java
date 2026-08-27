@@ -10,7 +10,7 @@ package org.opendaylight.transportpce.common.service;
 
 import java.util.Map;
 import org.opendaylight.transportpce.common.StringConstants;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.mapping.Mapping;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mapping.Mapping;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.types.rev191129.PortQual;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.types.rev191129.XpdrNodeTypes;
 import org.opendaylight.yangtools.yang.common.Uint32;
@@ -19,16 +19,26 @@ import org.slf4j.LoggerFactory;
 
 public final class ServiceTypes {
     private static final Logger LOG = LoggerFactory.getLogger(ServiceTypes.class);
+    private static final String TAPI_PCE_OPER_MODE = "T-API-PCE-Operation-Mode";
 
     private ServiceTypes() {
     }
 
-    public static String getServiceType(String serviceFormat, Uint32 serviceRate, Mapping mapping) {
+    public static String getServiceType(String serviceFormat, Uint32 serviceRate, Mapping mapping, String pceOperMode) {
 
         switch (serviceFormat) {
             case "OC":
                 if (Uint32.valueOf(100).equals(serviceRate)) {
                     return StringConstants.SERVICE_TYPE_100GE_T;
+                }
+                if (Uint32.valueOf(200).equals(serviceRate)) {
+                    return StringConstants.SERVICE_TYPE_OTUC2;
+                }
+                if (Uint32.valueOf(300).equals(serviceRate)) {
+                    return StringConstants.SERVICE_TYPE_OTUC3;
+                }
+                if (Uint32.valueOf(400).equals(serviceRate)) {
+                    return StringConstants.SERVICE_TYPE_400GE;
                 }
                 LOG.warn("Invalid service-rate {}", serviceRate);
                 return null;
@@ -41,12 +51,18 @@ public final class ServiceTypes {
                     if (mapping == null || !PortQual.SwitchClient.getName().equals(mapping.getPortQual())) {
                         return StringConstants.SERVICE_TYPE_100GE_T;
                     }
-                    if (XpdrNodeTypes.Switch.equals(mapping.getXponderType())) {
+                    if (mapping.getXpdrType() != null
+                            && XpdrNodeTypes.Switch.getName().equals(mapping.getXpdrType().getName())) {
                         return StringConstants.SERVICE_TYPE_100GE_S;
                     }
                 }
                 return getOtnServiceType(serviceFormat, serviceRate);
 
+            case "other":
+                if (Uint32.valueOf(100).equals(serviceRate) && (TAPI_PCE_OPER_MODE).equals(pceOperMode)) {
+                    return StringConstants.SERVICE_TYPE_100GE_S;
+                }
+                return StringConstants.SERVICE_TYPE_OTHER;
             //case "ODU":
             //case "OTU":
             default:
@@ -57,8 +73,8 @@ public final class ServiceTypes {
     public static String getOtnServiceType(String serviceFormat, Uint32 serviceRate) {
         Map<String, Map<Uint32, String>> otnMap = Map.of(
             "Ethernet", Map.of(
-                    Uint32.valueOf(1), StringConstants.SERVICE_TYPE_1GE,
-                    Uint32.valueOf(10), StringConstants.SERVICE_TYPE_10GE,
+                    Uint32.ONE, StringConstants.SERVICE_TYPE_1GE,
+                    Uint32.TEN, StringConstants.SERVICE_TYPE_10GE,
                     Uint32.valueOf(100), StringConstants.SERVICE_TYPE_100GE_M),
             "OTU", Map.of(
                     Uint32.valueOf(100), StringConstants.SERVICE_TYPE_OTU4,

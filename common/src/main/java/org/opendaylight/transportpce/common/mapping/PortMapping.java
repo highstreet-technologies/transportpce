@@ -11,12 +11,13 @@ package org.opendaylight.transportpce.common.mapping;
 
 import java.util.List;
 import java.util.Map;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.mapping.Mapping;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.mc.capabilities.McCapabilities;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev220316.network.Nodes;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mapping.Mapping;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mc.capabilities.McCapabilities;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.network.Nodes;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.org.openroadm.device.container.org.openroadm.device.OduSwitchingPools;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.org.openroadm.device.container.org.openroadm.device.odu.switching.pools.non.blocking.list.PortList;
-import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
+import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev130715.IpAddress;
+import org.opendaylight.yangtools.binding.DataObjectIdentifier;
 import org.opendaylight.yangtools.yang.common.Uint16;
 
 
@@ -24,26 +25,23 @@ public interface PortMapping {
 
     PortMappingVersion221 getPortMappingVersion221();
 
+    PortMappingVersion710 getPortMappingVersion710();
+
     /**
      * This method creates logical to physical port mapping for a given device.
      * Instead of parsing all the circuit packs/ports in the device, this methods
      * does a selective read operation on degree/srg subtree to get circuit
      * packs/ports that map to :
      *
-     * <p>
-     * 1. DEGn-TTP-TX, DEGn-TTP-RX, DEGn-TTP-TXRX
+     * <p>1. DEGn-TTP-TX, DEGn-TTP-RX, DEGn-TTP-TXRX
      *
-     * <p>
-     * 2. SRGn-PPp-TX, SRGn-PPp-RX, SRGn-PPp-TXRX
+     * <p>2. SRGn-PPp-TX, SRGn-PPp-RX, SRGn-PPp-TXRX
      *
-     * <p>
-     * 3. LINEn
+     * <p>3. LINEn
      *
-     * <p>
-     * 4. CLNTn.
+     * <p>4. CLNTn.
      *
-     * <p>
-     * If the port is Mw it also store the OMS, OTS interface provisioned on the
+     * <p>If the port is Mw it also store the OMS, OTS interface provisioned on the
      * port. It skips the logical ports that are internal. If operation is
      * successful the mapping gets stored in datastore corresponding to
      * portmapping.yang data model.
@@ -52,10 +50,12 @@ public interface PortMapping {
      *            node ID
      * @param nodeVersion
      *            node version
+     * @param ipAddress
+     *            node ipaddress
      *
      * @return true/false based on status of operation
      */
-    boolean createMappingData(String nodeId, String nodeVersion);
+    boolean createMappingData(String nodeId, String nodeVersion, IpAddress ipAddress);
 
     /**
      * This method removes all mapping data of a given node from the datastore
@@ -63,8 +63,9 @@ public interface PortMapping {
      *
      * @param nodeId
      *            node ID
+     * @return true/false based on whether the operation completed successfully
      */
-    void deletePortMappingNode(String nodeId);
+    boolean deletePortMappingNode(String nodeId);
 
     /**
      * This method for a given node's termination point returns the Mapping object
@@ -72,14 +73,11 @@ public interface PortMapping {
      * created when the node is connected for the first time. The mapping object
      * basically contains the following attributes of interest:
      *
-     * <p>
-     * 1. Supporting circuit pack
+     * <p>1. Supporting circuit pack
      *
-     * <p>
-     * 2. Supporting port
+     * <p>2. Supporting port
      *
-     * <p>
-     * 3. Supporting OTS/OMS interface (if port on ROADM)
+     * <p>3. Supporting OTS/OMS interface (if port on ROADM)
      *
      * @param nodeId
      *            Unique Identifier for the node of interest.
@@ -108,6 +106,27 @@ public interface PortMapping {
     Mapping getMapping(String nodeId, String circuitPackName, String portName);
 
     /**
+     * This method for a given node's termination point returns the Mapping object
+     * based on portmapping.yang model stored in the MD-SAL data store which is
+     * created when the node is connected for the first time. The mapping object
+     * basically contains the following attributes of interest:
+     *
+     * <p>1. Supporting circuit pack
+     *
+     * <p>2. Supporting port
+     *
+     * <p>3. Supporting OTS/OMS interface (if port on ROADM)
+     *
+     * @param nodeId
+     *            Unique Identifier for the node of interest.
+     * @param interfName
+     *            Name of the OTS interface
+     *
+     * @return Result Mapping object if success otherwise null.
+     */
+    Mapping getMappingFromOtsInterface(String nodeId, String interfName);
+
+    /**
      * This method removes a given mapping data from the mapping list
      * stored in the datastore while the Netconf device is already
      * connected to the controller.
@@ -125,17 +144,13 @@ public interface PortMapping {
      * created when the node is connected for the first time. The mapping object
      * basically contains the following attributes of interest:
      *
-     * <p>
-     * 1. slot width granularity
+     * <p>1. slot width granularity
      *
-     * <p>
-     * 2. center frequency granularity
+     * <p>2. center frequency granularity
      *
-     * <p>
-     * 3. Supporting OMS interface (if port on ROADM)
+     * <p>3. Supporting OMS interface (if port on ROADM)
      *
-     * <p>
-     * 4. Supporting OTS interface (if port on ROADM)
+     * <p>4. Supporting OTS interface (if port on ROADM)
      *
      * @param nodeId
      *            Unique Identifier for the node of interest.
@@ -192,8 +207,8 @@ public interface PortMapping {
      *
      * @return Result true/false based on status of operation.
      */
-    boolean updatePortMappingWithOduSwitchingPools(String nodeId, InstanceIdentifier<OduSwitchingPools> ospIID,
-        Map<Uint16, List<InstanceIdentifier<PortList>>> nbliidMap);
+    boolean updatePortMappingWithOduSwitchingPools(String nodeId, DataObjectIdentifier<OduSwitchingPools> ospIID,
+        Map<Uint16, List<DataObjectIdentifier<PortList>>> nbliidMap);
 
     /**
      * This method check the presence or not of a given node inside the PortMapping

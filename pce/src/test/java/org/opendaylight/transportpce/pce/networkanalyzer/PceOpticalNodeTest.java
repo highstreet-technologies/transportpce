@@ -8,46 +8,53 @@
 
 package org.opendaylight.transportpce.pce.networkanalyzer;
 
-import java.math.BigDecimal;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Map;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.opendaylight.transportpce.common.NetworkUtils;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.opendaylight.transportpce.common.StringConstants;
 import org.opendaylight.transportpce.common.fixedflex.GridConstant;
 import org.opendaylight.transportpce.common.fixedflex.GridUtils;
 import org.opendaylight.transportpce.common.mapping.PortMapping;
+import org.opendaylight.transportpce.pce.networkanalyzer.port.NoPreference;
+import org.opendaylight.transportpce.pce.networkanalyzer.port.Preference;
+import org.opendaylight.transportpce.pce.spectrum.slot.InterfaceMcCapability;
 import org.opendaylight.transportpce.test.AbstractTest;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev211210.Node1;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev211210.TerminationPoint1Builder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.optical.channel.types.rev211210.FrequencyGHz;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.optical.channel.types.rev211210.FrequencyTHz;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.Node1;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.TerminationPoint1Builder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.optical.channel.types.rev250328.FrequencyGHz;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.optical.channel.types.rev250328.FrequencyTHz;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.optical.channel.types.rev250328.WavelengthDuplicationType;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.state.types.rev191129.State;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.equipment.states.types.rev191129.AdminStates;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev211210.networks.network.node.DegreeAttributes;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev211210.networks.network.node.DegreeAttributesBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev211210.networks.network.node.SrgAttributes;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev211210.networks.network.node.SrgAttributesBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev211210.networks.network.node.termination.point.CpAttributesBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev211210.networks.network.node.termination.point.CtpAttributesBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev211210.networks.network.node.termination.point.PpAttributesBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev211210.networks.network.node.termination.point.RxTtpAttributesBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev211210.networks.network.node.termination.point.TxTtpAttributesBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev211210.networks.network.node.termination.point.XpdrClientAttributesBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev211210.networks.network.node.termination.point.XpdrNetworkAttributesBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev211210.networks.network.node.termination.point.XpdrPortAttributesBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev211210.OpenroadmNodeType;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev211210.OpenroadmTpType;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev211210.available.freq.map.AvailFreqMaps;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev211210.available.freq.map.AvailFreqMapsBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev211210.available.freq.map.AvailFreqMapsKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.format.rev191129.ServiceFormat;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.networks.network.node.DegreeAttributes;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.networks.network.node.DegreeAttributesBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.networks.network.node.SrgAttributes;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.networks.network.node.SrgAttributesBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.networks.network.node.termination.point.CpAttributesBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.networks.network.node.termination.point.CtpAttributesBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.networks.network.node.termination.point.PpAttributesBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.networks.network.node.termination.point.RxTtpAttributesBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.networks.network.node.termination.point.TxTtpAttributesBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.networks.network.node.termination.point.XpdrClientAttributesBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.networks.network.node.termination.point.XpdrNetworkAttributesBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.networks.network.node.termination.point.XpdrPortAttributesBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.OpenroadmNodeType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.OpenroadmTpType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.available.freq.map.AvailFreqMaps;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.available.freq.map.AvailFreqMapsBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.available.freq.map.AvailFreqMapsKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.format.rev250530.ServiceFormat;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.NetworkId;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.NodeId;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.networks.network.Node;
@@ -60,8 +67,10 @@ import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.top
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.TpId;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.networks.network.node.TerminationPoint;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.networks.network.node.TerminationPointBuilder;
+import org.opendaylight.yangtools.yang.common.Decimal64;
 import org.opendaylight.yangtools.yang.common.Uint16;
 
+@ExtendWith(MockitoExtension.class)
 public class PceOpticalNodeTest extends AbstractTest {
 
     private PceOpticalNode pceOpticalNode;
@@ -72,167 +81,288 @@ public class PceOpticalNodeTest extends AbstractTest {
     private String serviceType = "100GE";
     @Mock
     private PortMapping portMapping;
+    private final Preference portPreference = new NoPreference();
 
-    @Before
-    public void setUp() {
+    @BeforeEach
+    void setUp() {
         NodeBuilder node1Builder = getNodeBuilder(geSupportingNodes(), OpenroadmTpType.SRGTXRXPP);
         node = node1Builder.setNodeId(new NodeId("test")).build();
         availableBitSet.set(0,8);
-        MockitoAnnotations.openMocks(this);
     }
 
     @Test
-    public void isValidTest() {
+    void isValidTest() {
         OpenroadmNodeType nodeType = OpenroadmNodeType.ROADM;
         pceOpticalNode = new PceOpticalNode(deviceNodeId, serviceType, portMapping, node, nodeType,
-            StringConstants.OPENROADM_DEVICE_VERSION_2_2_1, GridConstant.SLOT_WIDTH_50, GridConstant.SLOT_WIDTH_50);
-        Assert.assertTrue(pceOpticalNode.isValid());
+            StringConstants.OPENROADM_DEVICE_VERSION_2_2_1, new InterfaceMcCapability());
+        assertTrue(pceOpticalNode.isValid());
     }
 
     @Test
-    public void testInitSrgTps() {
+    void testInitSrgTps() {
 
         pceOpticalNode = new PceOpticalNode(deviceNodeId, serviceType, portMapping, node,
                 OpenroadmNodeType.ROADM, StringConstants.OPENROADM_DEVICE_VERSION_2_2_1,
-                GridConstant.SLOT_WIDTH_50, GridConstant.SLOT_WIDTH_50);
-        pceOpticalNode.initSrgTps();
+                new InterfaceMcCapability());
+        pceOpticalNode.initSrgTps(portPreference);
         pceOpticalNode.initXndrTps(ServiceFormat.OMS);
         pceOpticalNode.initFrequenciesBitSet();
-        Assert.assertFalse(pceOpticalNode.isValid());
-        Assert.assertNull(pceOpticalNode.getBitSetData());
-        Assert.assertTrue(pceOpticalNode.checkTP("testTP"));
-        Assert.assertNull(pceOpticalNode.getAvailableTribPorts());
-        Assert.assertNull(pceOpticalNode.getAvailableTribPorts());
-        Assert.assertNull(pceOpticalNode.getXpdrClient("test"));
+        assertFalse(pceOpticalNode.isValid());
+        assertNull(pceOpticalNode.getBitSetData());
+        assertTrue(pceOpticalNode.checkTP("testTP"));
+        assertNull(pceOpticalNode.getAvailableTribPorts());
+        assertNull(pceOpticalNode.getAvailableTribPorts());
+        assertNull(pceOpticalNode.getXpdrNWfromClient("test"));
     }
 
     @Test
-    public void testInitXndrTpSrgTypes() {
+    void testInitXndrTpSrgTypes() {
         NodeBuilder node1Builder = getNodeBuilder(geSupportingNodes(), OpenroadmTpType.XPONDERNETWORK);
         Node specificNode = node1Builder.build();
         pceOpticalNode = new PceOpticalNode(deviceNodeId, serviceType, portMapping, specificNode,
                 OpenroadmNodeType.SRG, StringConstants.OPENROADM_DEVICE_VERSION_2_2_1,
-                GridConstant.SLOT_WIDTH_50, GridConstant.SLOT_WIDTH_50);
+                new InterfaceMcCapability());
         pceOpticalNode.initFrequenciesBitSet();
-        Assert.assertTrue(pceOpticalNode.isValid());
-        Assert.assertEquals(availableBitSet, pceOpticalNode.getBitSetData().get(88,96));
-        Assert.assertTrue(pceOpticalNode.checkTP("testTP"));
+        assertTrue(pceOpticalNode.isValid());
+        assertEquals(availableBitSet, pceOpticalNode.getBitSetData().get(88,96));
+        assertTrue(pceOpticalNode.checkTP("testTP"));
     }
 
     @Test
-    public void testInitXndrTpDegTypes() {
+    void testInitXndrTpDegTypes() {
         pceOpticalNode = new PceOpticalNode(deviceNodeId, serviceType, portMapping, node,
                 OpenroadmNodeType.DEGREE, StringConstants.OPENROADM_DEVICE_VERSION_2_2_1,
-                GridConstant.SLOT_WIDTH_50, GridConstant.SLOT_WIDTH_50);
+                new InterfaceMcCapability());
         pceOpticalNode.initFrequenciesBitSet();
-        Assert.assertTrue(pceOpticalNode.isValid());
-        Assert.assertEquals(usedBitSet,pceOpticalNode.getBitSetData().get(88,96));
-        Assert.assertTrue(pceOpticalNode.checkTP("testTP"));
+        assertTrue(pceOpticalNode.isValid());
+        assertEquals(usedBitSet,pceOpticalNode.getBitSetData().get(88,96));
+        assertTrue(pceOpticalNode.checkTP("testTP"));
     }
 
     @Test
-    public void testInitXndrTpXpondrTypes() {
+    void testInitXndrTpXpondrTypes() {
         pceOpticalNode = new PceOpticalNode(deviceNodeId, serviceType, portMapping, node,
                 OpenroadmNodeType.XPONDER, StringConstants.OPENROADM_DEVICE_VERSION_2_2_1,
-                GridConstant.SLOT_WIDTH_50, GridConstant.SLOT_WIDTH_50);
+                new InterfaceMcCapability());
         pceOpticalNode.initFrequenciesBitSet();
-        Assert.assertTrue(pceOpticalNode.isValid());
-        Assert.assertEquals(availableBitSet, pceOpticalNode.getBitSetData().get(88,96));
-        Assert.assertTrue(pceOpticalNode.checkTP("testTP"));
+        assertTrue(pceOpticalNode.isValid());
+        assertEquals(availableBitSet, pceOpticalNode.getBitSetData().get(88,96));
+        assertTrue(pceOpticalNode.checkTP("testTP"));
     }
 
     @Test
-    public void testinitFrequenciesBitSet() {
+    void testinitFrequenciesBitSet() {
         pceOpticalNode = new PceOpticalNode(null, null, null, node,
                 OpenroadmNodeType.ROADM, StringConstants.OPENROADM_DEVICE_VERSION_2_2_1,
-                GridConstant.SLOT_WIDTH_50, GridConstant.SLOT_WIDTH_50);
+                new InterfaceMcCapability());
         pceOpticalNode.initXndrTps(ServiceFormat.OMS);
         pceOpticalNode.initFrequenciesBitSet();
-        Assert.assertFalse(pceOpticalNode.isValid());
-        Assert.assertNull(pceOpticalNode.getBitSetData());
-        Assert.assertTrue(pceOpticalNode.checkTP("testTP"));
+        assertFalse(pceOpticalNode.isValid());
+        assertNull(pceOpticalNode.getBitSetData());
+        assertTrue(pceOpticalNode.checkTP("testTP"));
     }
 
     @Test
-    public void testGetRdmSrgClient() {
+    void testGetRdmSrgClient() {
         pceOpticalNode = new PceOpticalNode(null, null, null, node,
                 OpenroadmNodeType.ROADM, StringConstants.OPENROADM_DEVICE_VERSION_2_2_1,
-                GridConstant.SLOT_WIDTH_50, GridConstant.SLOT_WIDTH_50);
-        pceOpticalNode.initSrgTps();
-        Assert.assertNull(pceOpticalNode.getRdmSrgClient("7", StringConstants.SERVICE_DIRECTION_AZ));
-        Assert.assertFalse(pceOpticalNode.isValid());
-        Assert.assertNull(pceOpticalNode.getBitSetData());
-        Assert.assertTrue(pceOpticalNode.checkTP("testTP"));
+                new InterfaceMcCapability());
+        pceOpticalNode.initSrgTps(portPreference);
+        assertNull(pceOpticalNode.getRdmSrgClient("7", StringConstants.SERVICE_DIRECTION_AZ));
+        assertFalse(pceOpticalNode.isValid());
+        assertNull(pceOpticalNode.getBitSetData());
+        assertTrue(pceOpticalNode.checkTP("testTP"));
     }
 
     @Test
-    public void testGetRdmSrgClientEmpty() {
+    void testGetRdmSrgClientEmpty() {
         NodeBuilder node1Builder = getNodeBuilderEmpty(geSupportingNodes(), OpenroadmTpType.SRGTXRXPP);
         Node specificNode = node1Builder.setNodeId(new NodeId("test")).build();
         pceOpticalNode = new PceOpticalNode(null, null, null, specificNode,
                 OpenroadmNodeType.ROADM, StringConstants.OPENROADM_DEVICE_VERSION_2_2_1,
-                GridConstant.SLOT_WIDTH_50, GridConstant.SLOT_WIDTH_50);
-        pceOpticalNode.initSrgTps();
+                new InterfaceMcCapability());
+        pceOpticalNode.initSrgTps(portPreference);
         pceOpticalNode.initFrequenciesBitSet();
         pceOpticalNode.initXndrTps(ServiceFormat.OMS);
-        Assert.assertNull(pceOpticalNode.getRdmSrgClient("7" ,StringConstants.SERVICE_DIRECTION_AZ));
-        Assert.assertFalse(pceOpticalNode.isValid());
-        Assert.assertNull(pceOpticalNode.getBitSetData());
-        Assert.assertTrue(pceOpticalNode.checkTP("testTP"));
+        assertNull(pceOpticalNode.getRdmSrgClient("7" ,StringConstants.SERVICE_DIRECTION_AZ));
+        assertFalse(pceOpticalNode.isValid());
+        assertNull(pceOpticalNode.getBitSetData());
+        assertTrue(pceOpticalNode.checkTP("testTP"));
     }
 
     @Test
-    public void testGetRdmSrgClientDeg() {
+    void testGetRdmSrgClientDeg() {
         pceOpticalNode = new PceOpticalNode(null, null, null, node,
                 OpenroadmNodeType.DEGREE, StringConstants.OPENROADM_DEVICE_VERSION_2_2_1,
-                GridConstant.SLOT_WIDTH_50, GridConstant.SLOT_WIDTH_50);
-        pceOpticalNode.initSrgTps();
-        Assert.assertNull(pceOpticalNode.getRdmSrgClient("7" ,StringConstants.SERVICE_DIRECTION_AZ));
-        Assert.assertFalse(pceOpticalNode.isValid());
-        Assert.assertNull(pceOpticalNode.getBitSetData());
-        Assert.assertTrue(pceOpticalNode.checkTP("testTP"));
+                new InterfaceMcCapability());
+        pceOpticalNode.initSrgTps(portPreference);
+        assertNull(pceOpticalNode.getRdmSrgClient("7" ,StringConstants.SERVICE_DIRECTION_AZ));
+        assertFalse(pceOpticalNode.isValid());
+        assertNull(pceOpticalNode.getBitSetData());
+        assertTrue(pceOpticalNode.checkTP("testTP"));
     }
 
     @Test
-    public void testGetRdmSrgClientsrgtxcp() {
+    void testGetRdmSrgClientsrgtxcp() {
         NodeBuilder node1Builder = getNodeBuilder(geSupportingNodes(), OpenroadmTpType.SRGTXCP);
         Node specificNode = node1Builder.build();
         pceOpticalNode = new PceOpticalNode(null, null, null, specificNode,
                 OpenroadmNodeType.ROADM, StringConstants.OPENROADM_DEVICE_VERSION_2_2_1,
-                GridConstant.SLOT_WIDTH_50, GridConstant.SLOT_WIDTH_50);
-        pceOpticalNode.initSrgTps();
-        Assert.assertFalse(pceOpticalNode.isValid());
-        Assert.assertNull(pceOpticalNode.getBitSetData());
-        Assert.assertTrue(pceOpticalNode.checkTP("testTP"));
-        Assert.assertNull(pceOpticalNode.getRdmSrgClient("5", StringConstants.SERVICE_DIRECTION_AZ));
+                new InterfaceMcCapability());
+        pceOpticalNode.initSrgTps(portPreference);
+        assertFalse(pceOpticalNode.isValid());
+        assertNull(pceOpticalNode.getBitSetData());
+        assertTrue(pceOpticalNode.checkTP("testTP"));
+        assertNull(pceOpticalNode.getRdmSrgClient("5", StringConstants.SERVICE_DIRECTION_AZ));
     }
 
     @Test
-    public void testGetRdmSrgClientDegreerxtpp() {
+    void testGetRdmSrgClientDegreerxtpp() {
         NodeBuilder node1Builder = getNodeBuilder(geSupportingNodes(), OpenroadmTpType.DEGREERXTTP);
         node = node1Builder.build();
         pceOpticalNode = new PceOpticalNode(null, null, null, node,
                 OpenroadmNodeType.ROADM, StringConstants.OPENROADM_DEVICE_VERSION_2_2_1,
-                GridConstant.SLOT_WIDTH_50, GridConstant.SLOT_WIDTH_50);
-        pceOpticalNode.initSrgTps();
-        Assert.assertNull(pceOpticalNode.getRdmSrgClient("2" ,StringConstants.SERVICE_DIRECTION_AZ));
-        Assert.assertFalse(pceOpticalNode.isValid());
-        Assert.assertNull(pceOpticalNode.getBitSetData());
-        Assert.assertTrue(pceOpticalNode.checkTP("testTP"));
+                new InterfaceMcCapability());
+        pceOpticalNode.initSrgTps(portPreference);
+        assertNull(pceOpticalNode.getRdmSrgClient("2" ,StringConstants.SERVICE_DIRECTION_AZ));
+        assertFalse(pceOpticalNode.isValid());
+        assertNull(pceOpticalNode.getBitSetData());
+        assertTrue(pceOpticalNode.checkTP("testTP"));
+    }
+
+    @Test
+    void testIsContentionLessSrgForRoadmIsFalse() {
+        NodeBuilder node1Builder = getNodeBuilder(geSupportingNodes(), OpenroadmTpType.DEGREERXTTP);
+        node = node1Builder.build();
+        pceOpticalNode = new PceOpticalNode(null, null, null, node,
+                OpenroadmNodeType.ROADM, StringConstants.OPENROADM_DEVICE_VERSION_2_2_1,
+                new InterfaceMcCapability());
+
+        assertFalse(pceOpticalNode.isContentionLessSrg());
+    }
+
+    @Test
+    void testIsContentionLessSrgForRoadmWithSrgAttributesIsFalse() {
+        NodeBuilder node1Builder = getNodeBuilder(geSupportingNodes(), OpenroadmTpType.DEGREERXTTP);
+        org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.Node1 node1 =
+                new org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.Node1Builder()
+                        .setSrgAttributes(
+                                new SrgAttributesBuilder()
+                                        .setWavelengthDuplication(WavelengthDuplicationType.OnePerDegree)
+                                        .build()
+        ).build();
+        node1Builder.addAugmentation(node1);
+        node = node1Builder.build();
+        pceOpticalNode = new PceOpticalNode(deviceNodeId, serviceType, portMapping, node,
+                OpenroadmNodeType.ROADM, StringConstants.OPENROADM_DEVICE_VERSION_2_2_1,
+                new InterfaceMcCapability());
+
+        assertFalse(pceOpticalNode.isContentionLessSrg());
+    }
+
+    @Test
+    void testIsContentionLessSrgForDegreeIsFalse() {
+        NodeBuilder node1Builder = getNodeBuilder(geSupportingNodes(), OpenroadmTpType.DEGREERXTTP);
+        org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.Node1 node1 =
+                new org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.Node1Builder()
+                        .setSrgAttributes(
+                                new SrgAttributesBuilder()
+                                        .setWavelengthDuplication(WavelengthDuplicationType.OnePerDegree)
+                                        .build()
+                        ).build();
+        node1Builder.addAugmentation(node1);
+        node = node1Builder.build();
+        pceOpticalNode = new PceOpticalNode(deviceNodeId, serviceType, portMapping, node,
+                OpenroadmNodeType.DEGREE, StringConstants.OPENROADM_DEVICE_VERSION_2_2_1,
+                new InterfaceMcCapability());
+
+        assertFalse(pceOpticalNode.isContentionLessSrg());
+    }
+
+    @Test
+    void testIsContentionLessSrgForXponderIsFalse() {
+        NodeBuilder node1Builder = getNodeBuilder(geSupportingNodes(), OpenroadmTpType.DEGREERXTTP);
+        org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.Node1 node1 =
+                new org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.Node1Builder()
+                        .setSrgAttributes(
+                                new SrgAttributesBuilder()
+                                        .setWavelengthDuplication(WavelengthDuplicationType.OnePerDegree)
+                                        .build()
+                        ).build();
+        node1Builder.addAugmentation(node1);
+        node = node1Builder.build();
+        pceOpticalNode = new PceOpticalNode(deviceNodeId, serviceType, portMapping, node,
+                OpenroadmNodeType.XPONDER, StringConstants.OPENROADM_DEVICE_VERSION_2_2_1,
+                new InterfaceMcCapability());
+
+        assertFalse(pceOpticalNode.isContentionLessSrg());
+    }
+
+    @Test
+    void testIsContentionLessSrgOnePerDegreeIsTrue() {
+        NodeBuilder node1Builder = getNodeBuilder(geSupportingNodes(), OpenroadmTpType.DEGREERXTTP);
+        org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.Node1 node1 =
+                new org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.Node1Builder()
+                        .setSrgAttributes(
+                                new SrgAttributesBuilder()
+                                        .setWavelengthDuplication(WavelengthDuplicationType.OnePerDegree)
+                                        .build()
+                        ).build();
+        node1Builder.addAugmentation(node1);
+        node = node1Builder.build();
+        pceOpticalNode = new PceOpticalNode(deviceNodeId, serviceType, portMapping, node,
+                OpenroadmNodeType.SRG, StringConstants.OPENROADM_DEVICE_VERSION_2_2_1,
+                new InterfaceMcCapability());
+
+        assertTrue(pceOpticalNode.isContentionLessSrg());
+    }
+
+    @Test
+    void testIsContentionLessSrgOnePerSrgIsFalse() {
+        NodeBuilder node1Builder = getNodeBuilder(geSupportingNodes(), OpenroadmTpType.DEGREERXTTP);
+        org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.Node1 node1 =
+                new org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.Node1Builder()
+                        .setSrgAttributes(
+                                new SrgAttributesBuilder()
+                                        .setWavelengthDuplication(WavelengthDuplicationType.OnePerSrg)
+                                        .build()
+                        ).build();
+        node1Builder.addAugmentation(node1);
+        node = node1Builder.build();
+        pceOpticalNode = new PceOpticalNode(deviceNodeId, serviceType, portMapping, node,
+                OpenroadmNodeType.SRG, StringConstants.OPENROADM_DEVICE_VERSION_2_2_1,
+                new InterfaceMcCapability());
+
+        assertFalse(pceOpticalNode.isContentionLessSrg());
+    }
+
+    @Test
+    void testIsContentionLessSrgMissingAttributesIsFalse() {
+        NodeBuilder node1Builder = getNodeBuilder(geSupportingNodes(), OpenroadmTpType.DEGREERXTTP);
+        org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.Node1 node1 =
+                new org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.Node1Builder()
+                        .build();
+        node1Builder.addAugmentation(node1);
+        node = node1Builder.build();
+        pceOpticalNode = new PceOpticalNode(deviceNodeId, serviceType, portMapping, node,
+                OpenroadmNodeType.SRG, StringConstants.OPENROADM_DEVICE_VERSION_2_2_1,
+                new InterfaceMcCapability());
+
+        assertFalse(pceOpticalNode.isContentionLessSrg());
     }
 
     private Map<SupportingNodeKey,SupportingNode> geSupportingNodes() {
         Map<SupportingNodeKey,SupportingNode> supportingNodes1 = new HashMap<>();
         SupportingNode supportingNode1 = new SupportingNodeBuilder()
                 .setNodeRef(new NodeId("node 1"))
-                .setNetworkRef(new NetworkId(NetworkUtils.CLLI_NETWORK_ID))
+                .setNetworkRef(new NetworkId(StringConstants.CLLI_NETWORK))
                 .build();
         supportingNodes1
                 .put(supportingNode1.key(),supportingNode1);
 
         SupportingNode supportingNode2 = new SupportingNodeBuilder()
                 .setNodeRef(new NodeId("node 2"))
-                .setNetworkRef(new NetworkId(NetworkUtils.UNDERLAY_NETWORK_ID))
+                .setNetworkRef(new NetworkId(StringConstants.OPENROADM_NETWORK))
                 .build();
         supportingNodes1
                 .put(supportingNode2.key(),supportingNode2);
@@ -246,16 +376,14 @@ public class PceOpticalNodeTest extends AbstractTest {
         TerminationPointBuilder xpdrTpBldr = getTerminationPointBuilder();
         xpdrTpBldr.addAugmentation(tp1Bldr.build());
         xpdrTpBldr.addAugmentation(createAnotherTerminationPoint().build());
-        org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev211210.Node1 node1 = getNode1();
+        org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.Node1 node1 = getNode1();
         TerminationPoint xpdr = xpdrTpBldr.build();
         org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.Node1 node1Rev180226 =
                 new Node1Builder()
                         .setTerminationPoint(Map.of(xpdr.key(),xpdr))
                         .build();
-        Node1 node11 = new org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev211210.Node1Builder()
+        Node1 node11 = new org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.Node1Builder()
                 .setAdministrativeState(AdminStates.InService).setOperationalState(State.InService).build();
-
-
         return new NodeBuilder()
                 .setNodeId(new NodeId("node_test"))
                 .withKey(new NodeKey(new NodeId("node 1")))
@@ -273,16 +401,14 @@ public class PceOpticalNodeTest extends AbstractTest {
         xpdrTpBldr.addAugmentation(tp1Bldr.build());
         xpdrTpBldr.addAugmentation(createAnotherTerminationPoint().build());
 
-        org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev211210.Node1 node1 = getNode1Empty();
+        org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.Node1 node1 = getNode1Empty();
         TerminationPoint xpdr = xpdrTpBldr.build();
         org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.Node1 node1Rev180226 =
                 new Node1Builder()
                         .setTerminationPoint(Map.of(xpdr.key(),xpdr))
                         .build();
-        Node1 node11 = new org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev211210.Node1Builder()
+        Node1 node11 = new org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.Node1Builder()
                 .setAdministrativeState(AdminStates.InService).setOperationalState(State.InService).build();
-
-
         return new NodeBuilder()
                 .setNodeId(new NodeId("node_test"))
                 .withKey(new NodeKey(new NodeId("node 1")))
@@ -293,16 +419,16 @@ public class PceOpticalNodeTest extends AbstractTest {
     }
 
     private org.opendaylight
-            .yang.gen.v1.http.org.openroadm.network.topology.rev211210.Node1 getNode1() {
-        return new org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev211210.Node1Builder()
+            .yang.gen.v1.http.org.openroadm.network.topology.rev250530.Node1 getNode1() {
+        return new org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.Node1Builder()
                 .setSrgAttributes(getSrgAttributes())
                 .setDegreeAttributes(getDegAttributes())
                 .build();
     }
 
     private org.opendaylight
-            .yang.gen.v1.http.org.openroadm.network.topology.rev211210.Node1 getNode1Empty() {
-        return new org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev211210.Node1Builder()
+            .yang.gen.v1.http.org.openroadm.network.topology.rev250530.Node1 getNode1Empty() {
+        return new org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.Node1Builder()
                 .setSrgAttributes(getEmptySrgAttributes())
                 .setDegreeAttributes(getEmptyDegAttributes())
                 .build();
@@ -314,8 +440,10 @@ public class PceOpticalNodeTest extends AbstractTest {
         byteArray[7] = (byte) GridConstant.AVAILABLE_SLOT_VALUE;
         Map<AvailFreqMapsKey, AvailFreqMaps> waveMap = new HashMap<>();
         AvailFreqMaps availFreqMaps = new AvailFreqMapsBuilder().setMapName(GridConstant.C_BAND)
-                .setFreqMapGranularity(new FrequencyGHz(BigDecimal.valueOf(GridConstant.GRANULARITY)))
-                .setStartEdgeFreq(new FrequencyTHz(BigDecimal.valueOf(GridConstant.START_EDGE_FREQUENCY)))
+                .setFreqMapGranularity(new FrequencyGHz(
+                        Decimal64.valueOf(String.valueOf(GridConstant.GRANULARITY)).scaleTo(5)))
+                .setStartEdgeFreq(new FrequencyTHz(
+                        Decimal64.valueOf(String.valueOf(GridConstant.START_EDGE_FREQUENCY_THZ)).scaleTo(8)))
                 .setEffectiveBits(Uint16.valueOf(GridConstant.EFFECTIVE_BITS))
                 .setFreqMap(byteArray)
                 .build();
@@ -344,16 +472,15 @@ public class PceOpticalNodeTest extends AbstractTest {
     }
 
     private TerminationPoint1Builder getTerminationPoint1Builder(OpenroadmTpType openroadmTpType) {
-
         return new TerminationPoint1Builder().setTpType(openroadmTpType).setOperationalState(State.InService)
                 .setAdministrativeState(AdminStates.InService);
 
     }
 
     private org.opendaylight.yang.gen
-            .v1.http.org.openroadm.network.topology.rev211210.TerminationPoint1Builder createAnotherTerminationPoint() {
+            .v1.http.org.openroadm.network.topology.rev250530.TerminationPoint1Builder createAnotherTerminationPoint() {
         return new org.opendaylight
-                .yang.gen.v1.http.org.openroadm.network.topology.rev211210.TerminationPoint1Builder()
+                .yang.gen.v1.http.org.openroadm.network.topology.rev250530.TerminationPoint1Builder()
                 .setCtpAttributes((new CtpAttributesBuilder()).build())
                 .setCpAttributes((new CpAttributesBuilder()).build())
                 .setTxTtpAttributes((new TxTtpAttributesBuilder()).setUsedWavelengths(Map.of()).build())
@@ -364,5 +491,4 @@ public class PceOpticalNodeTest extends AbstractTest {
                 .setXpdrNetworkAttributes(new XpdrNetworkAttributesBuilder()
                         .setTailEquipmentId("destNode" + "--" + "destTp").build());
     }
-
 }

@@ -8,6 +8,8 @@
 
 package org.opendaylight.transportpce.olm.service;
 
+import java.util.List;
+import java.util.Map;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev210618.CalculateSpanlossBaseInput;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev210618.CalculateSpanlossBaseOutput;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev210618.CalculateSpanlossCurrentInput;
@@ -26,8 +28,7 @@ public interface OlmPowerService {
     /**
      * This method is the implementation of the 'get-pm' service.
      *
-     * <p>
-     * 1. get-pm This operation traverse through current PM list and gets PM for
+     * <p>This operation traverse through current PM list and gets PM for
      * given NodeId and Resource name
      *
      * @param input
@@ -38,13 +39,28 @@ public interface OlmPowerService {
     GetPmOutput getPm(GetPmInput input);
 
     /**
+     * This method is the implementation of the 'get-pm' service.
+     *
+     * <p>This operation traverse through current PM list and return all
+     * PM for the given node.
+     *
+     * @param input
+     *            Input parameter from the olm yang model
+     *
+     * @return  a map with the realNodeId + interface name as key, and the corresponding measurements as values.
+     */
+    Map<String, List<GetPmOutput>> getPmAll(GetPmInput input);
+
+    /**
      * This method is the implementation of the 'service-power-setup'.
      *
-     * <p>
-     * 1. service-power-setup: This operation performs following steps:
-     *    Step1: Calculate Spanloss on all links which are part of service.
-     *    TODO Step2: Calculate power levels for each Tp-Id
-     *    TODO Step3: Post power values on roadm connections
+     * <p>This operation performs following steps:
+     *
+     * <p>Step1: Calculate Spanloss on all links which are part of service.
+     *
+     * <p>TODO Step2: Calculate power levels for each Tp-Id
+     *
+     * <p>TODO Step3: Post power values on roadm connections
      *
      * @param input
      *            Input parameter from the olm yang model
@@ -57,11 +73,13 @@ public interface OlmPowerService {
     /**
      * This method is the implementation of the 'service-power-trundown'.
      *
-     * <p>
-     * 1. service-power-turndown: This operation performs following steps:
-     *    Step1: For each TP within Node sets interface outofservice .
-     *    Step2: For each roam-connection sets power to -60dbm
-     *    Step3: Turns power mode off
+     * <p>This operation performs following steps:
+     *
+     * <p>Step1: For each TP within Node sets interface outofservice .
+     *
+     * <p>Step2: For each roam-connection sets power to -60dbm
+     *
+     * <p>Step3: Turns power mode off
      *
      * @param input
      *            Input parameter from the olm yang model
@@ -76,12 +94,15 @@ public interface OlmPowerService {
      * part of active inventory in Network Model or for newly added links
      * based on input src-type.
      *
-     * <p>
-     * 1. Calculate-Spanloss-Base: This operation performs following steps:
-     *    Step1: Read all Roadm-to-Roadm links from network model or get data for given linkID.
-     *    Step2: Retrieve PMs for each end point for OTS interface
-     *    Step3: Calculates Spanloss
-     *    Step4: Posts calculated spanloss in Device and in network model
+     * <p>This operation performs following steps:
+     *
+     * <p>Step1: Read all Roadm-to-Roadm links from network model or get data for given linkID.
+     *
+     * <p>Step2: Retrieve PMs for each end point for OTS interface
+     *
+     * <p>Step3: Calculates Spanloss
+     *
+     * <p>Step4: Posts calculated spanloss in Device and in network model
      *
      * @param input
      *            Input parameter from the olm yang model

@@ -22,8 +22,10 @@ import org.opendaylight.transportpce.common.Timeouts;
 import org.opendaylight.transportpce.common.crossconnect.CrossConnect;
 import org.opendaylight.transportpce.common.device.DeviceTransaction;
 import org.opendaylight.transportpce.common.device.DeviceTransactionManager;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mapping.Mapping;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.link.types.rev191129.OpticalControlMode;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.link.types.rev191129.PowerDBm;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.OrgOpenroadmDeviceData;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.circuit.pack.Ports;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.circuit.pack.PortsKey;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.circuit.packs.CircuitPacks;
@@ -35,10 +37,15 @@ import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.org.open
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.org.openroadm.device.container.org.openroadm.device.RoadmConnections;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.org.openroadm.device.container.org.openroadm.device.RoadmConnectionsBuilder;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.org.openroadm.device.container.org.openroadm.device.RoadmConnectionsKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.optical.channel.interfaces.rev200529.och.container.OchBuilder;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.optical.channel.tributary.signal.interfaces.rev200529.Interface1;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.optical.channel.tributary.signal.interfaces.rev200529.Interface1Builder;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.optical.channel.tributary.signal.interfaces.rev200529.otsi.container.OtsiBuilder;
-import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.IfOCH;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.IfOCHOTU4ODU4;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.IfOtsiOtsigroup;
+import org.opendaylight.yangtools.binding.DataObjectIdentifier;
+import org.opendaylight.yangtools.yang.common.Decimal64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,9 +72,11 @@ public final class PowerMgmtVersion710 {
      */
     public static Map<String, Double> getXponderPowerRange(String circuitPackName, String portName, String deviceId,
             DeviceTransactionManager deviceTransactionManager) {
-        InstanceIdentifier<Ports> portIID = InstanceIdentifier.create(OrgOpenroadmDevice.class)
-                .child(CircuitPacks.class, new CircuitPacksKey(circuitPackName))
-                .child(Ports.class, new PortsKey(portName));
+        DataObjectIdentifier<Ports> portIID = DataObjectIdentifier
+            .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
+            .child(CircuitPacks.class, new CircuitPacksKey(circuitPackName))
+            .child(Ports.class, new PortsKey(portName))
+            .build();
         LOG.debug("Fetching logical Connection Point value for port {} at circuit pack {}", portName, circuitPackName);
         Optional<Ports> portObject =
                 deviceTransactionManager.getDataFromDevice(deviceId, LogicalDatastoreType.OPERATIONAL, portIID,
@@ -75,7 +84,7 @@ public final class PowerMgmtVersion710 {
         if (!portObject.isPresent()) {
             return new HashMap<>();
         }
-        Ports port = portObject.get();
+        Ports port = portObject.orElseThrow();
         if (port.getTransponderPort() == null || port.getTransponderPort().getPortPowerCapabilityMaxTx() == null) {
             LOG.warn("Logical Connection Point value missing for {} {}", circuitPackName, port.getPortName());
             return new HashMap<>();
@@ -106,9 +115,11 @@ public final class PowerMgmtVersion710 {
             String circuitPackName, String portName) {
         LOG.debug("Coming inside SRG power range");
         LOG.debug("Mapping object exists.");
-        InstanceIdentifier<Ports> portIID = InstanceIdentifier.create(OrgOpenroadmDevice.class)
-                .child(CircuitPacks.class, new CircuitPacksKey(circuitPackName))
-                .child(Ports.class, new PortsKey(portName));
+        DataObjectIdentifier<Ports> portIID = DataObjectIdentifier
+            .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
+            .child(CircuitPacks.class, new CircuitPacksKey(circuitPackName))
+            .child(Ports.class, new PortsKey(portName))
+            .build();
         LOG.debug("Fetching logical Connection Point value for port {} at circuit pack {}{}", portName,
                 circuitPackName, portIID);
         Optional<Ports> portObject =
@@ -118,7 +129,7 @@ public final class PowerMgmtVersion710 {
             LOG.info("Port not found");
             return new HashMap<>();
         }
-        Ports port = portObject.get();
+        Ports port = portObject.orElseThrow();
         if (port.getRoadmPort() == null) {
             LOG.warn("Roadm ports power value is missing for {} {}", circuitPackName, port.getPortName());
             return new HashMap<>();
@@ -148,31 +159,56 @@ public final class PowerMgmtVersion710 {
      * @return true/false based on status of operation
      */
     public static boolean setTransponderPower(String nodeId, String interfaceName, BigDecimal txPower,
-            DeviceTransactionManager deviceTransactionManager,
-            Interface interfaceObj) {
+            DeviceTransactionManager deviceTransactionManager, Interface interfaceObj, Mapping portMap) {
         LOG.debug("Setting target-power for transponder nodeId: {} InterfaceName: {}",
                 nodeId, interfaceName);
-        InterfaceBuilder otsiInterfaceBuilder = new InterfaceBuilder(interfaceObj);
-        OtsiBuilder otsiBuilder = new OtsiBuilder(otsiInterfaceBuilder.augmentation(Interface1.class).getOtsi());
-        otsiBuilder.setTransmitPower(new PowerDBm(txPower));
-        otsiInterfaceBuilder.addAugmentation(new Interface1Builder().setOtsi(otsiBuilder.build()).build());
+        // Transponder port can have a port-capability of 100 or 400G
+        // from port-mapping check if has OCH-OTU-ODU cap or OTSI cap
+        // need to set power for OCH port
+        InterfaceBuilder ochOtsiInterfaceBuilder = new InterfaceBuilder(interfaceObj);
+        if (portMap.getSupportedInterfaceCapability().contains(IfOCHOTU4ODU4.VALUE)
+                || portMap.getSupportedInterfaceCapability().contains(IfOCH.VALUE)) {
+            ochOtsiInterfaceBuilder
+                .addAugmentation(
+                    new org.opendaylight.yang.gen.v1.http.org.openroadm.optical.channel.interfaces.rev200529
+                            .Interface1Builder()
+                        .setOch(
+                            new OchBuilder(
+                                    ochOtsiInterfaceBuilder
+                                        .augmentation(org.opendaylight.yang.gen.v1.http
+                                            .org.openroadm.optical.channel.interfaces.rev200529.Interface1.class)
+                                        .getOch())
+                                .setTransmitPower(new PowerDBm(Decimal64.valueOf(txPower).scaleTo(2)))
+                                .build())
+                        .build());
+        } else if (portMap.getSupportedInterfaceCapability().contains(IfOtsiOtsigroup.VALUE)) {
+            ochOtsiInterfaceBuilder
+                .addAugmentation(
+                    new Interface1Builder()
+                        .setOtsi(
+                            new OtsiBuilder(ochOtsiInterfaceBuilder.augmentation(Interface1.class).getOtsi())
+                                .setTransmitPower(new PowerDBm(Decimal64.valueOf(txPower).scaleTo(2)))
+                                .build())
+                        .build());
+        }
         Future<Optional<DeviceTransaction>> deviceTxFuture = deviceTransactionManager.getDeviceTransaction(nodeId);
         DeviceTransaction deviceTx;
         try {
             Optional<DeviceTransaction> deviceTxOpt = deviceTxFuture.get();
-            if (deviceTxOpt.isPresent()) {
-                deviceTx = deviceTxOpt.get();
-            } else {
+            if (deviceTxOpt.isEmpty()) {
                 LOG.error("Transaction for device {} was not found during transponder power setup for Node:", nodeId);
                 return false;
             }
+            deviceTx = deviceTxOpt.orElseThrow();
         } catch (InterruptedException | ExecutionException e) {
             LOG.error("Unable to get transaction for device {} during transponder power setup!", nodeId, e);
             return false;
         }
-        InstanceIdentifier<Interface> interfacesIID = InstanceIdentifier.create(OrgOpenroadmDevice.class)
-                .child(Interface.class, new InterfaceKey(interfaceName));
-        deviceTx.merge(LogicalDatastoreType.CONFIGURATION, interfacesIID, otsiInterfaceBuilder.build());
+        DataObjectIdentifier<Interface> interfacesIID = DataObjectIdentifier
+            .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
+            .child(Interface.class, new InterfaceKey(interfaceName))
+            .build();
+        deviceTx.merge(LogicalDatastoreType.CONFIGURATION, interfacesIID, ochOtsiInterfaceBuilder.build());
         FluentFuture<? extends @NonNull CommitInfo> commit =
             deviceTx.commit(Timeouts.DEVICE_WRITE_TIMEOUT, Timeouts.DEVICE_WRITE_TIMEOUT_UNIT);
         try {
@@ -214,10 +250,10 @@ public final class PowerMgmtVersion710 {
             LOG.warn("Roadm-Connection is null in set power level ({})", connectionNumber);
             return false;
         }
-        RoadmConnectionsBuilder rdmConnBldr = new RoadmConnectionsBuilder(rdmConnOpt.get());
+        RoadmConnectionsBuilder rdmConnBldr = new RoadmConnectionsBuilder(rdmConnOpt.orElseThrow());
         rdmConnBldr.setOpticalControlMode(mode);
         if (powerValue != null) {
-            rdmConnBldr.setTargetOutputPower(new PowerDBm(powerValue));
+            rdmConnBldr.setTargetOutputPower(new PowerDBm(Decimal64.valueOf(powerValue).scaleTo(2)));
         }
         RoadmConnections newRdmConn = rdmConnBldr.build();
         Future<Optional<DeviceTransaction>> deviceTxFuture = deviceTransactionManager.getDeviceTransaction(deviceId);
@@ -228,14 +264,16 @@ public final class PowerMgmtVersion710 {
                 LOG.error("Transaction for device {} was not found!", deviceId);
                 return false;
             }
-            deviceTx = deviceTxOpt.get();
+            deviceTx = deviceTxOpt.orElseThrow();
         } catch (InterruptedException | ExecutionException e) {
             LOG.error("Unable to get transaction for device {}!", deviceId, e);
             return false;
         }
         // post the cross connect on the device
-        InstanceIdentifier<RoadmConnections> roadmConnIID = InstanceIdentifier.create(OrgOpenroadmDevice.class)
-                .child(RoadmConnections.class, new RoadmConnectionsKey(connectionNumber));
+        DataObjectIdentifier<RoadmConnections> roadmConnIID = DataObjectIdentifier
+            .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
+            .child(RoadmConnections.class, new RoadmConnectionsKey(connectionNumber))
+            .build();
         deviceTx.merge(LogicalDatastoreType.CONFIGURATION, roadmConnIID, newRdmConn);
         FluentFuture<? extends @NonNull CommitInfo> commit =
             deviceTx.commit(Timeouts.DEVICE_WRITE_TIMEOUT, Timeouts.DEVICE_WRITE_TIMEOUT_UNIT);

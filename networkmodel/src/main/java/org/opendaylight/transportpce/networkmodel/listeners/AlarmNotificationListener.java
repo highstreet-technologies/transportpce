@@ -10,71 +10,91 @@ package org.opendaylight.transportpce.networkmodel.listeners;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import org.opendaylight.mdsal.binding.api.DataBroker;
+import org.opendaylight.mdsal.binding.api.NotificationService.CompositeListener;
 import org.opendaylight.mdsal.binding.api.ReadTransaction;
 import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.alarmsuppression.rev171102.ServiceNodelist;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.alarmsuppression.rev171102.service.nodelist.Nodelist;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.alarmsuppression.rev171102.service.nodelist.nodelist.Nodes;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.alarmsuppression.rev171102.service.nodelist.nodelist.NodesBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.alarm.rev161014.AlarmNotification;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.alarm.rev161014.OrgOpenroadmAlarmListener;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.alarm.rev161014.alarm.ProbableCause;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.resource.rev161014.resource.ResourceType;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.resource.rev161014.resource.resource.Resource;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.resource.rev161014.resource.resource.resource.CircuitPack;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.resource.rev161014.resource.resource.resource.Connection;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.resource.rev161014.resource.resource.resource.Degree;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.resource.rev161014.resource.resource.resource.Interface;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.resource.rev161014.resource.resource.resource.InternalLink;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.resource.rev161014.resource.resource.resource.PhysicalLink;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.resource.rev161014.resource.resource.resource.Port;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.resource.rev161014.resource.resource.resource.Service;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.resource.rev161014.resource.resource.resource.Shelf;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.resource.rev161014.resource.resource.resource.Srg;
-import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.alarm.rev181019.AlarmNotification;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.alarm.rev181019.alarm.ProbableCause;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.resource.rev181019.resource.ResourceType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.resource.rev181019.resource.resource.Resource;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.resource.rev181019.resource.resource.resource.CircuitPack;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.resource.rev181019.resource.resource.resource.Connection;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.resource.rev181019.resource.resource.resource.Degree;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.resource.rev181019.resource.resource.resource.Interface;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.resource.rev181019.resource.resource.resource.InternalLink;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.resource.rev181019.resource.resource.resource.PhysicalLink;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.resource.rev181019.resource.resource.resource.Port;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.resource.rev181019.resource.resource.resource.Service;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.resource.rev181019.resource.resource.resource.Shelf;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.resource.rev181019.  resource.resource.resource.Srg;
+import org.opendaylight.yangtools.binding.DataObjectIdentifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class AlarmNotificationListener implements OrgOpenroadmAlarmListener {
+/**
+ * Implementation of the org.opendaylight.yang.gen.v1.http.org.openroadm.alarm.rev161014.AlarmNotification notification.
+ * This implementation is dedicated to yang model 1.2.1 revision.
+ */
+public class AlarmNotificationListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(AlarmNotificationListener.class);
     private static final String PIPE = "|";
     private final DataBroker dataBroker;
 
+    /**
+     * Create instance of the listener.
+     *
+     * @param dataBroker Provides access to the conceptual data tree store used by the listener implementation.
+     */
     public AlarmNotificationListener(DataBroker dataBroker) {
         this.dataBroker = dataBroker;
     }
 
+    /**
+     * Get instances of a CompositeListener that could be used to unregister listeners.
+     *
+     * @return a Composite listener containing listener implementations that will receive notifications
+     */
+    public CompositeListener getCompositeListener() {
+        return new CompositeListener(Set.of(
+            new CompositeListener.Component<>(AlarmNotification.class, this::onAlarmNotification)));
+    }
 
     /**
      * Callback for alarm-notification.
      *
      * @param notification AlarmNotification object
      */
-    @Override
-    public void onAlarmNotification(AlarmNotification notification) {
+    private void onAlarmNotification(AlarmNotification notification) {
         List<Nodes> allNodeList = new ArrayList<>();
-        InstanceIdentifier<ServiceNodelist> serviceNodeListIID = InstanceIdentifier.create(ServiceNodelist.class);
+        DataObjectIdentifier<ServiceNodelist> serviceNodeListIID = DataObjectIdentifier.builder(ServiceNodelist.class)
+                .build();
         try (ReadTransaction rtx = dataBroker.newReadOnlyTransaction()) {
             Optional<ServiceNodelist> serviceListObject =
                     rtx.read(LogicalDatastoreType.OPERATIONAL, serviceNodeListIID).get();
             if (serviceListObject.isPresent()) {
-                for (Nodelist nodelist : serviceListObject.get().nonnullNodelist().values()) {
+                for (Nodelist nodelist : serviceListObject.orElseThrow().nonnullNodelist().values()) {
                     allNodeList.addAll(nodelist.nonnullNodes().values());
                 }
             }
         } catch (InterruptedException | ExecutionException ex) {
             LOG.warn("Exception thrown while reading Logical Connection Point value: ", ex);
         }
-        String message = String.join(PIPE,notification.getResource().getDevice().getNodeId(),
+        String message = String.join(PIPE,notification.getResource().getDevice().getNodeId().toString(),
                 buildCause(notification.getProbableCause()),notification.getId() != null ? notification.getId() : "",
                 notification.getRaiseTime() != null ? notification.getRaiseTime().toString() : "",
                 notification.getSeverity() != null ? notification.getSeverity().getName() : "",
                 notification.getCircuitId() != null ? notification.getCircuitId() : "", buildType(notification));
 
-        Nodes build = new NodesBuilder().setNodeId(notification.getResource().getDevice().getNodeId()).build();
+        Nodes build = new NodesBuilder().setNodeId(notification.getResource().getDevice().getNodeId().toString())
+                .build();
         if (allNodeList.contains(build)) {
             LOG.info("onAlarmNotification: {}", message);
         } else {
@@ -128,71 +148,71 @@ public class AlarmNotificationListener implements OrgOpenroadmAlarmListener {
             case CircuitPack:
                 Optional<CircuitPack> circuitPackOptional = tryCastToParticularResource(CircuitPack.class, resource);
                 if (circuitPackOptional.isPresent()) {
-                    circuitPack = circuitPackOptional.get().getCircuitPackName();
+                    circuitPack = circuitPackOptional.orElseThrow().getCircuitPackName();
                 }
                 break;
 
             case Connection:
                 Optional<Connection> connectionOptional = tryCastToParticularResource(Connection.class, resource);
                 if (connectionOptional.isPresent()) {
-                    connection = connectionOptional.get().getConnectionNumber();
+                    connection = connectionOptional.orElseThrow().getConnectionName();
                 }
                 break;
 
             case Degree:
                 Optional<Degree> degreeOptional = tryCastToParticularResource(Degree.class, resource);
                 if (degreeOptional.isPresent()) {
-                    degree = degreeOptional.get().getDegreeNumber().toString();
+                    degree = degreeOptional.orElseThrow().getDegreeNumber().toString();
                 }
                 break;
 
             case Interface:
                 Optional<Interface> interfaceOptional = tryCastToParticularResource(Interface.class, resource);
                 if (interfaceOptional.isPresent()) {
-                    iface = interfaceOptional.get().getInterfaceName();
+                    iface = interfaceOptional.orElseThrow().getInterfaceName();
                 }
                 break;
 
             case InternalLink:
                 Optional<InternalLink> internalLinkOptional = tryCastToParticularResource(InternalLink.class, resource);
                 if (internalLinkOptional.isPresent()) {
-                    internalLink = internalLinkOptional.get().getInternalLinkName();
+                    internalLink = internalLinkOptional.orElseThrow().getInternalLinkName();
                 }
                 break;
 
             case PhysicalLink:
                 Optional<PhysicalLink> physicalLinkOptional = tryCastToParticularResource(PhysicalLink.class, resource);
                 if (physicalLinkOptional.isPresent()) {
-                    physicalLink = physicalLinkOptional.get().getPhysicalLinkName();
+                    physicalLink = physicalLinkOptional.orElseThrow().getPhysicalLinkName();
                 }
                 break;
 
             case Service:
                 Optional<Service> serviceOptional = tryCastToParticularResource(Service.class, resource);
                 if (serviceOptional.isPresent()) {
-                    service = serviceOptional.get().getServiceName();
+                    service = serviceOptional.orElseThrow().getServiceName();
                 }
                 break;
 
             case Shelf:
                 Optional<Shelf> shelfOptional = tryCastToParticularResource(Shelf.class, resource);
                 if (shelfOptional.isPresent()) {
-                    shelf = shelfOptional.get().getShelfName();
+                    shelf = shelfOptional.orElseThrow().getShelfName();
                 }
                 break;
 
             case SharedRiskGroup:
                 Optional<Srg> sharedRiskGroupOptional = tryCastToParticularResource(Srg.class, resource);
                 if (sharedRiskGroupOptional.isPresent()) {
-                    sharedRiskGroup = sharedRiskGroupOptional.get().getSrgNumber().toString();
+                    sharedRiskGroup = sharedRiskGroupOptional.orElseThrow().getSrgNumber().toString();
                 }
                 break;
 
             case Port:
                 Optional<Port> portContainerOptional = tryCastToParticularResource(Port.class, resource);
                 if (portContainerOptional.isPresent()) {
-                    port = portContainerOptional.get().getPort().getPortName();
-                    portCircuitPack = portContainerOptional.get().getPort().getCircuitPackName();
+                    port = portContainerOptional.orElseThrow().getPort().getPortName();
+                    portCircuitPack = portContainerOptional.orElseThrow().getPort().getCircuitPackName();
                 }
                 break;
 

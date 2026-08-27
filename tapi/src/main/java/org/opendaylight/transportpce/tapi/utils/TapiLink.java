@@ -1,5 +1,5 @@
 /*
- * Copyright © 2021 Nokia.  All rights reserved.
+ * Copyright © 2023 Orange, Inc. and others.  All rights reserved.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v1.0 which accompanies this distribution,
@@ -7,289 +7,225 @@
  */
 package org.opendaylight.transportpce.tapi.utils;
 
-import java.nio.charset.Charset;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.concurrent.ExecutionException;
-import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
-import org.opendaylight.transportpce.common.network.NetworkTransactionService;
-import org.opendaylight.transportpce.tapi.TapiStringConstants;
+import java.util.Set;
+import org.opendaylight.transportpce.tapi.openroadm.topology.link.LinkResolver;
+import org.opendaylight.transportpce.tapi.openroadm.topology.link.LinkTerminationPointsFactory;
+import org.opendaylight.transportpce.tapi.openroadm.topology.link.state.OpenRoadmLinkStateMapper;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.state.types.rev191129.State;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.equipment.states.types.rev191129.AdminStates;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev181210.AdministrativeState;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev181210.CapacityUnit;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev181210.Context;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev181210.ForwardingDirection;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev181210.LayerProtocolName;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev181210.LifecycleState;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev181210.OperationalState;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev181210.Uuid;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev181210.capacity.TotalSizeBuilder;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev181210.capacity.pac.AvailableCapacityBuilder;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev181210.capacity.pac.TotalPotentialCapacityBuilder;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev181210.global._class.NameBuilder;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev181210.Context1;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev181210.ProtectionType;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev181210.RestorationPolicy;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev181210.context.TopologyContext;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev181210.link.NodeEdgePoint;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev181210.link.NodeEdgePointBuilder;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev181210.link.NodeEdgePointKey;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev181210.link.ResilienceTypeBuilder;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev181210.node.OwnedNodeEdgePoint;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev181210.node.OwnedNodeEdgePointKey;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev181210.risk.parameter.pac.RiskCharacteristic;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev181210.risk.parameter.pac.RiskCharacteristicBuilder;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev181210.topology.Link;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev181210.topology.LinkBuilder;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev181210.topology.Node;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev181210.topology.NodeKey;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev181210.topology.context.Topology;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev181210.topology.context.TopologyKey;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev181210.transfer.cost.pac.CostCharacteristic;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev181210.transfer.cost.pac.CostCharacteristicBuilder;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev181210.transfer.timing.pac.LatencyCharacteristic;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev181210.transfer.timing.pac.LatencyCharacteristicBuilder;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev181210.validation.pac.ValidationMechanism;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev181210.validation.pac.ValidationMechanismBuilder;
-import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
-import org.opendaylight.yangtools.yang.common.Uint64;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.networks.Network;
+import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.LinkId;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.AdministrativeState;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.LayerProtocolName;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.OperationalState;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.Uuid;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev221121.cep.list.ConnectionEndPoint;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev221121.topology.Link;
 
-public class TapiLink {
+/**
+ * Service for building TAPI links and resolving their associated state and CEP data.
+ *
+ * <p>This interface provides utility methods to:
+ * <ul>
+ *   <li>create a TAPI {@link Link} between two node edge points,</li>
+ *   <li>translate OpenROADM administrative and operational states into TAPI states,</li>
+ *   <li>retrieve the effective state of a link from its endpoint NEPs, and</li>
+ *   <li>expose the map of generated TAPI connection end points (CEPs).</li>
+ * </ul>
+ */
+@SuppressWarnings("checkstyle:LineLength")
+public interface TapiLink {
 
-    private static final Logger LOG = LoggerFactory.getLogger(TapiLink.class);
-    private final NetworkTransactionService networkTransactionService;
+    /**
+     * Creates a TAPI link between a source and destination termination point.
+     *
+     * @param srcOpenRoadmTopologyNodeId node id (e.g. ROADM-A1-SRG1)
+     * @param srcOpenRoadmTopologyTerminationPointId Relative to srcOpenRoadmTopologyNodeId (e.g. SRG1-PP2-TXRX)
+     * @param destOpenRoadmTopologyNodeId node id (ROADM-B1-SRG2)
+     * @param destOpenRoadmTopologyTerminationPointId Relative to destOpenRoadmTopologyNodeId (e.g. SRG2-PP3-TXRX)
+     * @param network OpenROADM topology (i.e. openroadm-topology)
+     * @param tapiTopoUuid UUID of the TAPI topology that will contain the link
+     * @param linkResolver resolver used to find the OpenROADM link in the topology
+     * @return the created TAPI link, or {@code null} if the link type is not recognized
+     *         or the link cannot be created
+     * @see #createTapiLink(
+     *     org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.networks.network.Link,
+     *     Network,
+     *     Uuid,
+     *     LinkTerminationPointsFactory)
+     */
+    Link createTapiLink(
+            String srcOpenRoadmTopologyNodeId,
+            String srcOpenRoadmTopologyTerminationPointId,
+            String destOpenRoadmTopologyNodeId,
+            String destOpenRoadmTopologyTerminationPointId,
+            Network network,
+            Uuid tapiTopoUuid,
+            LinkResolver linkResolver);
 
-    public TapiLink(NetworkTransactionService networkTransactionService) {
-        this.networkTransactionService = networkTransactionService;
-    }
+    /**
+     * Creates a TAPI link between a source and destination termination point.
+     *
+     * <p>The link is built from the supplied openroadm link,
+     * and the UUID of the target TAPI topology.
+     *
+     * @param openRoadmLink The openroadm link being translated into a TAPI link
+     * @param network OpenROADM topology
+     * @param tapiTopoUuid UUID of the TAPI topology that will contain the link
+     * @param linkTerminationPointsFactory Primarily used to validate the given link against the topology.
+     * @return the created TAPI link, or {@code null} if the link type is not recognized
+     *         or the link cannot be created
+     */
+    Link createTapiLink(
+            org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226
+                    .networks.network.Link openRoadmLink,
+            Network network,
+            Uuid tapiTopoUuid,
+            LinkTerminationPointsFactory linkTerminationPointsFactory);
 
-    public Link createTapiLink(String srcNodeid, String srcTpId, String dstNodeId, String dstTpId, String linkType,
-                               String srcNodeQual, String dstNodeQual, String srcTpQual, String dstTpQual,
-                               String adminState, String operState, List<LayerProtocolName> layerProtoNameList,
-                               List<String> transLayerNameList, Uuid tapiTopoUuid) {
-        Map<NodeEdgePointKey, NodeEdgePoint> nepList = new HashMap<>();
-        String sourceNodeKey = String.join("+", srcNodeid, srcNodeQual);
-        String sourceNepKey = String.join("+", srcNodeid, srcTpQual, srcTpId);
-        Uuid sourceUuidNode = new Uuid(UUID.nameUUIDFromBytes(sourceNodeKey.getBytes(Charset.forName("UTF-8")))
-            .toString());
-        Uuid sourceUuidTp = new Uuid(UUID.nameUUIDFromBytes(sourceNepKey.getBytes(Charset.forName("UTF-8")))
-            .toString());
-        String destNodeKey = String.join("+", dstNodeId, dstNodeQual);
-        String destNepKey = String.join("+", dstNodeId, dstTpQual, dstTpId);
-        String linkKey = String.join("to", sourceNepKey, destNepKey);
-        Uuid destUuidNode = new Uuid(UUID.nameUUIDFromBytes(destNodeKey.getBytes(Charset.forName("UTF-8"))).toString());
-        Uuid destUuidTp = new Uuid(UUID.nameUUIDFromBytes(destNepKey.getBytes(Charset.forName("UTF-8"))).toString());
-        NodeEdgePoint sourceNep = new NodeEdgePointBuilder()
-            .setTopologyUuid(tapiTopoUuid)
-            .setNodeUuid(sourceUuidNode)
-            .setNodeEdgePointUuid(sourceUuidTp)
-            .build();
-        nepList.put(sourceNep.key(), sourceNep);
-        NodeEdgePoint destNep = new NodeEdgePointBuilder()
-            .setTopologyUuid(tapiTopoUuid)
-            .setNodeUuid(destUuidNode)
-            .setNodeEdgePointUuid(destUuidTp)
-            .build();
-        nepList.put(destNep.key(), destNep);
-        NameBuilder linkName = new NameBuilder();
-        // TODO: variables for each type
-        switch (linkType) {
-            case TapiStringConstants.OMS_RDM_RDM_LINK:
-                LOG.info("Roadm to roadm link");
-                linkName
-                    .setValueName("OMS link name")
-                    .setValue(linkKey);
-                break;
-            case TapiStringConstants.TRANSITIONAL_LINK:
-                LOG.info("Transitional link");
-                linkName
-                    .setValueName("transitional link name")
-                    .setValue(linkKey);
-                break;
-            case TapiStringConstants.OMS_XPDR_RDM_LINK:
-                LOG.info("Xpdr to roadm link");
-                linkName
-                    .setValueName("XPDR-RDM link name")
-                    .setValue(linkKey);
-                break;
-            case TapiStringConstants.OTN_XPDR_XPDR_LINK:
-                LOG.info("OTN Xpdr to roadm link");
-                linkName
-                    .setValueName("otn link name")
-                    .setValue(linkKey);
-                break;
-            default:
-                LOG.warn("Type {} not recognized", linkType);
-                return null;
-        }
-        // Todo: common aspects of links and set all attributes
-        CostCharacteristic costCharacteristic = new CostCharacteristicBuilder()
-            .setCostAlgorithm("Restricted Shortest Path - RSP")
-            .setCostName("HOP_COUNT")
-            .setCostValue("12345678")
-            .build();
-        LatencyCharacteristic latencyCharacteristic = new LatencyCharacteristicBuilder()
-            .setFixedLatencyCharacteristic("12345678")
-            .setQueingLatencyCharacteristic("12345678")
-            .setJitterCharacteristic("12345678")
-            .setWanderCharacteristic("12345678")
-            .setTrafficPropertyName("FIXED_LATENCY")
-            .build();
-        RiskCharacteristic riskCharacteristic = new RiskCharacteristicBuilder()
-            .setRiskCharacteristicName("risk characteristic")
-            .setRiskIdentifierList(List.of("risk identifier1", "risk identifier2"))
-            .build();
-        ValidationMechanism validationMechanism = new ValidationMechanismBuilder()
-            .setValidationMechanism("validation mechanism")
-            .setValidationRobustness("validation robustness")
-            .setLayerProtocolAdjacencyValidated("layer protocol adjacency")
-            .build();
-        return new LinkBuilder()
-            .setUuid(new Uuid(
-                UUID.nameUUIDFromBytes(linkKey.getBytes(Charset.forName("UTF-8"))).toString()))
-            .setName(Map.of(linkName.build().key(), linkName.build()))
-            .setTransitionedLayerProtocolName(transLayerNameList)
-            .setLayerProtocolName(layerProtoNameList)
-            .setNodeEdgePoint(nepList)
-            .setDirection(ForwardingDirection.BIDIRECTIONAL)
-            .setAvailableCapacity(new AvailableCapacityBuilder().setTotalSize(
-                    new TotalSizeBuilder().setUnit(CapacityUnit.GBPS).setValue(Uint64.valueOf(100)).build())
-                .build())
-            .setResilienceType(new ResilienceTypeBuilder().setProtectionType(ProtectionType.NOPROTECTON)
-                .setRestorationPolicy(RestorationPolicy.NA)
-                .build())
-            .setAdministrativeState(setTapiAdminState(adminState))
-            .setOperationalState(setTapiOperationalState(operState))
-            .setLifecycleState(LifecycleState.INSTALLED)
-            .setTotalPotentialCapacity(new TotalPotentialCapacityBuilder().setTotalSize(
-                    new TotalSizeBuilder().setUnit(CapacityUnit.GBPS).setValue(Uint64.valueOf(100)).build())
-                .build())
-            .setCostCharacteristic(Map.of(costCharacteristic.key(), costCharacteristic))
-            .setLatencyCharacteristic(Map.of(latencyCharacteristic.key(), latencyCharacteristic))
-            .setRiskCharacteristic(Map.of(riskCharacteristic.key(), riskCharacteristic))
-            .setErrorCharacteristic("error")
-            .setLossCharacteristic("loss")
-            .setRepeatDeliveryCharacteristic("repeat delivery")
-            .setDeliveryOrderCharacteristic("delivery order")
-            .setUnavailableTimeCharacteristic("unavailable time")
-            .setServerIntegrityProcessCharacteristic("server integrity process")
-            .setValidationMechanism(Map.of(validationMechanism.key(), validationMechanism))
-            .build();
-    }
+    /**
+     * Creates a TAPI link between a source and destination termination point.
+     *
+     * <p>The link is built from the supplied source/destination node and TP identifiers,
+     * link type, qualifiers, administrative/operational state, supported layer protocols,
+     * and the UUID of the target TAPI topology.
+     *
+     * @param srcNodeId source node identifier
+     * @param srcTpId source termination point identifier
+     * @param dstNodeId destination node identifier
+     * @param dstTpId destination termination point identifier
+     * @param linkType link type used to determine how the TAPI link is built
+     * @param srcNodeQual qualifier associated with the source node
+     * @param dstNodeQual qualifier associated with the destination node
+     * @param srcTpQual qualifier associated with the source termination point
+     * @param dstTpQual qualifier associated with the destination termination point
+     * @param adminState administrative state as a string
+     * @param operState operational state as a string
+     * @param layerProtoNameList set of layer protocols supported by the link
+     * @param transLayerNameList set of transition layer protocol names
+     * @param tapiTopoUuid UUID of the TAPI topology that will contain the link
+     * @return the created TAPI link, or {@code null} if the link type is not recognized
+     *         or the link cannot be created
+     * @deprecated use one of the other two alternatives instead
+     * @see #createTapiLink(String, String, String, String, Network, Uuid, LinkResolver)
+     * @see #createTapiLink(
+     *     org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.networks.network.Link,
+     *     Network,
+     *     Uuid,
+     *     LinkTerminationPointsFactory)
+     */
+    @Deprecated(forRemoval = true)
+    Link createTapiLink(
+            String srcNodeId,
+            String srcTpId,
+            String dstNodeId,
+            String dstTpId,
+            String linkType,
+            String srcNodeQual,
+            String dstNodeQual,
+            String srcTpQual,
+            String dstTpQual,
+            String adminState,
+            String operState,
+            Set<LayerProtocolName> layerProtoNameList,
+            Set<String> transLayerNameList,
+            Uuid tapiTopoUuid);
 
-    public AdministrativeState setTapiAdminState(String adminState) {
-        if (adminState == null) {
-            return null;
-        }
-        return adminState.equals(AdminStates.InService.getName())
-            || adminState.equals(AdministrativeState.UNLOCKED.getName()) ? AdministrativeState.UNLOCKED
-                : AdministrativeState.LOCKED;
-    }
+    /**
+     * Converts a textual administrative state into the corresponding TAPI administrative state.
+     *
+     * @param adminState administrative state expressed as a string
+     * @return {@link AdministrativeState#UNLOCKED}, {@link AdministrativeState#LOCKED},
+     *         or {@code null} if the input is {@code null}
+     * @deprecated use {@link OpenRoadmLinkStateMapper#toTapiAdminState(String)} instead.
+     */
+    @Deprecated(forRemoval = true)
+    AdministrativeState setTapiAdminState(String adminState);
 
-    public AdministrativeState setTapiAdminState(AdminStates adminState1, AdminStates adminState2) {
-        if (adminState1 == null || adminState2 == null) {
-            return null;
-        }
-        LOG.info("Admin state 1 = {}, andmin state 2 = {}", adminState1.getName(), adminState2.getName());
-        return AdminStates.InService.equals(adminState1) && AdminStates.InService.equals(adminState2)
-            ? AdministrativeState.UNLOCKED : AdministrativeState.LOCKED;
-    }
+    /**
+     * Converts two OpenROADM administrative states into a single effective TAPI administrative state.
+     *
+     * <p>The effective state is typically derived from both link endpoints.
+     *
+     * @param adminState1 administrative state of the first endpoint
+     * @param adminState2 administrative state of the second endpoint
+     * @return {@link AdministrativeState#UNLOCKED} when both endpoints are in service,
+     *         otherwise {@link AdministrativeState#LOCKED}; {@code null} if either input is {@code null}
+     * @deprecated use {@link OpenRoadmLinkStateMapper#toTapiAdminState(AdminStates, AdminStates)} instead.
+     */
+    @Deprecated(forRemoval = true)
+    AdministrativeState setTapiAdminState(AdminStates adminState1, AdminStates adminState2);
 
-    public OperationalState setTapiOperationalState(String operState) {
-        if (operState == null) {
-            return null;
-        }
-        return operState.equals("inService") || operState.equals(OperationalState.ENABLED.getName())
-            ? OperationalState.ENABLED : OperationalState.DISABLED;
-    }
+    /**
+     * Converts a textual operational state into the corresponding TAPI operational state.
+     *
+     * @param operState operational state expressed as a string
+     * @return {@link OperationalState#ENABLED}, {@link OperationalState#DISABLED},
+     *         or {@code null} if the input is {@code null}
+     * @deprecated use {@link OpenRoadmLinkStateMapper#toTapiOperationalState(String)} instead.
+     */
+    @Deprecated(forRemoval = true)
+    OperationalState setTapiOperationalState(String operState);
 
-    public OperationalState setTapiOperationalState(State operState1, State operState2) {
-        if (operState1 == null || operState2 == null) {
-            return null;
-        }
-        return State.InService.equals(operState1) && State.InService.equals(operState2)
-            ? OperationalState.ENABLED : OperationalState.DISABLED;
-    }
+    /**
+     * Converts two OpenROADM operational states into a single effective TAPI operational state.
+     *
+     * <p>The effective state is typically derived from both link endpoints.
+     *
+     * @param operState1 operational state of the first endpoint
+     * @param operState2 operational state of the second endpoint
+     * @return {@link OperationalState#ENABLED} when both endpoints are in service,
+     *         otherwise {@link OperationalState#DISABLED}; {@code null} if either input is {@code null}
+     * @deprecated use {@link OpenRoadmLinkStateMapper#toTapiOperationalState(State, State)} instead.
+     */
+    @Deprecated(forRemoval = true)
+    OperationalState setTapiOperationalState(State operState1, State operState2);
 
-    public String getOperState(String srcNodeId, String destNodeId, String sourceTpId, String destTpId) {
-        Uuid tapiTopoUuid = new Uuid(UUID.nameUUIDFromBytes(TapiStringConstants.T0_FULL_MULTILAYER
-            .getBytes(Charset.forName("UTF-8"))).toString());
-        Uuid nodeUuid = new Uuid(UUID.nameUUIDFromBytes(String.join("+", srcNodeId,
-            TapiStringConstants.PHTNC_MEDIA).getBytes(Charset.forName("UTF-8"))).toString());
-        Uuid nepUuid = new Uuid(UUID.nameUUIDFromBytes(String.join("+", srcNodeId,
-            TapiStringConstants.PHTNC_MEDIA, sourceTpId).getBytes(Charset.forName("UTF-8"))).toString());
-        InstanceIdentifier<OwnedNodeEdgePoint> onepIID = InstanceIdentifier.builder(Context.class)
-            .augmentation(Context1.class).child(TopologyContext.class)
-            .child(Topology.class, new TopologyKey(tapiTopoUuid)).child(Node.class, new NodeKey(nodeUuid))
-            .child(OwnedNodeEdgePoint.class, new OwnedNodeEdgePointKey(nepUuid))
-            .build();
-        Uuid node1Uuid = new Uuid(UUID.nameUUIDFromBytes(String.join("+", destNodeId,
-            TapiStringConstants.PHTNC_MEDIA).getBytes(Charset.forName("UTF-8"))).toString());
-        Uuid nep1Uuid = new Uuid(UUID.nameUUIDFromBytes(String.join("+", destNodeId,
-            TapiStringConstants.PHTNC_MEDIA, destTpId).getBytes(Charset.forName("UTF-8"))).toString());
-        InstanceIdentifier<OwnedNodeEdgePoint> onep1IID = InstanceIdentifier.builder(Context.class)
-            .augmentation(Context1.class).child(TopologyContext.class)
-            .child(Topology.class, new TopologyKey(tapiTopoUuid)).child(Node.class, new NodeKey(node1Uuid))
-            .child(OwnedNodeEdgePoint.class, new OwnedNodeEdgePointKey(nep1Uuid))
-            .build();
-        try {
-            Optional<OwnedNodeEdgePoint> optionalOnep = this.networkTransactionService.read(
-                LogicalDatastoreType.OPERATIONAL, onepIID).get();
-            Optional<OwnedNodeEdgePoint> optionalOnep1 = this.networkTransactionService.read(
-                LogicalDatastoreType.OPERATIONAL, onep1IID).get();
-            if (!optionalOnep.isPresent() || !optionalOnep1.isPresent()) {
-                LOG.error("One of the 2 neps doesnt exist in the datastore: {} OR {}", nepUuid, nep1Uuid);
-                return null;
-            }
-            return optionalOnep.get().getOperationalState().equals(optionalOnep1.get().getOperationalState())
-                ? optionalOnep.get().getOperationalState().getName() : OperationalState.DISABLED.getName();
-        } catch (InterruptedException | ExecutionException e) {
-            LOG.error("Failed getting Mapping data from portMapping",e);
-            return null;
-        }
-    }
+    /**
+     * Retrieves the effective operational state of a link from the corresponding source and destination NEPs.
+     *
+     * @param srcNodeId source node identifier
+     * @param destNodeId destination node identifier
+     * @param sourceTpId source termination point identifier
+     * @param destTpId destination termination point identifier
+     * @param topoUuid UUID of the TAPI topology containing the source and destination NEPs
+     * @return the effective operational state name, or {@code null} if it cannot be resolved
+     */
+    String getOperState(String srcNodeId, String destNodeId, String sourceTpId, String destTpId, Uuid topoUuid);
 
-    public String getAdminState(String srcNodeId, String destNodeId, String sourceTpId, String destTpId) {
-        Uuid tapiTopoUuid = new Uuid(UUID.nameUUIDFromBytes(TapiStringConstants.T0_FULL_MULTILAYER
-            .getBytes(Charset.forName("UTF-8"))).toString());
-        Uuid nodeUuid = new Uuid(UUID.nameUUIDFromBytes(String.join("+", srcNodeId,
-            TapiStringConstants.PHTNC_MEDIA).getBytes(Charset.forName("UTF-8"))).toString());
-        Uuid nepUuid = new Uuid(UUID.nameUUIDFromBytes(String.join("+", srcNodeId,
-            TapiStringConstants.PHTNC_MEDIA, sourceTpId).getBytes(Charset.forName("UTF-8"))).toString());
-        InstanceIdentifier<OwnedNodeEdgePoint> onepIID = InstanceIdentifier.builder(Context.class)
-            .augmentation(Context1.class).child(TopologyContext.class)
-            .child(Topology.class, new TopologyKey(tapiTopoUuid)).child(Node.class, new NodeKey(nodeUuid))
-            .child(OwnedNodeEdgePoint.class, new OwnedNodeEdgePointKey(nepUuid))
-            .build();
-        Uuid node1Uuid = new Uuid(UUID.nameUUIDFromBytes(String.join("+", destNodeId,
-            TapiStringConstants.PHTNC_MEDIA).getBytes(Charset.forName("UTF-8"))).toString());
-        Uuid nep1Uuid = new Uuid(UUID.nameUUIDFromBytes(String.join("+", destNodeId,
-            TapiStringConstants.PHTNC_MEDIA, destTpId).getBytes(Charset.forName("UTF-8"))).toString());
-        InstanceIdentifier<OwnedNodeEdgePoint> onep1IID = InstanceIdentifier.builder(Context.class)
-            .augmentation(Context1.class).child(TopologyContext.class)
-            .child(Topology.class, new TopologyKey(tapiTopoUuid)).child(Node.class, new NodeKey(node1Uuid))
-            .child(OwnedNodeEdgePoint.class, new OwnedNodeEdgePointKey(nep1Uuid))
-            .build();
-        try {
-            Optional<OwnedNodeEdgePoint> optionalOnep = this.networkTransactionService.read(
-                LogicalDatastoreType.OPERATIONAL, onepIID).get();
-            Optional<OwnedNodeEdgePoint> optionalOnep1 = this.networkTransactionService.read(
-                LogicalDatastoreType.OPERATIONAL, onep1IID).get();
-            if (!optionalOnep.isPresent() || !optionalOnep1.isPresent()) {
-                LOG.error("One of the 2 neps doesnt exist in the datastore: {} OR {}", nepUuid, nep1Uuid);
-                return null;
-            }
-            return optionalOnep.get().getAdministrativeState().equals(optionalOnep1.get().getAdministrativeState())
-                ? optionalOnep.get().getAdministrativeState().getName() : AdministrativeState.UNLOCKED.getName();
-        } catch (InterruptedException | ExecutionException e) {
-            LOG.error("Failed getting Mapping data from portMapping",e);
-            return null;
-        }
-    }
+    /**
+     * Retrieves the effective administrative state of a link from the corresponding source and destination NEPs.
+     *
+     * @param srcNodeId source node identifier
+     * @param destNodeId destination node identifier
+     * @param sourceTpId source termination point identifier
+     * @param destTpId destination termination point identifier
+     * @param topoUuid UUID of the TAPI topology containing the source and destination NEPs
+     * @return the effective administrative state name, or {@code null} if it cannot be resolved
+     */
+    String getAdminState(String srcNodeId, String destNodeId, String sourceTpId, String destTpId, Uuid topoUuid);
+
+    /**
+     * Returns the map of generated TAPI connection end points indexed by their associated UUID mapping.
+     *
+     * @return a map containing generated CEPs
+     */
+    Map<Map<String, String>, ConnectionEndPoint> getCepMap();
+
+    /**
+     * Builds and returns an inter-domain TAPI Unidirectional link from input parameters.
+     *
+     * @param orlinkId linkId as it appears in OpenRoadm Topology
+     * @param tapilinkId used as the name value of Tapi Link Name (value-name = "tapi-interdomain-link")
+     * @param srcNodeUuid Uuid of source node
+     * @param srcTpUuid source termination point Uuid
+     * @param dstNodeUuid Uuid of destination node
+     * @param dstTpUuid destination termination point Uuid
+     * @param srcTapiTopoUuid UUID of the TAPI topology containing the source NEP
+     * @param dstTapiTopoUuid UUID of the TAPI topology containing the destination NEP
+     * @return a Tapi interdomain Link
+     */
+    Link createInterDomainTapiLink(LinkId orlinkId, String tapilinkId, Uuid srcNodeUuid, Uuid srcTpUuid,
+            Uuid dstNodeUuid, Uuid dstTpUuid, Uuid srcTapiTopoUuid, Uuid dstTapiTopoUuid);
 }
