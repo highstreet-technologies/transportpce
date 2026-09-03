@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-  * NTSimulator for OpenROADM with 2.2.1 Model (hightec/ntsim_openroadm_2.2.1_standalone:0.6.5)
+  * PyNTSimulator for OpenROADM with 7.1.0 Model (registry.t1.lab.osn-lab.com/hightec/pynts-openroadm-v7_1_0:latest)
 
 ## Configure
 Just config the params in the ```.env``` file.
@@ -10,23 +10,10 @@ Just config the params in the ```.env``` file.
 ```
 REMOTE_ODL_ENABLED=true
 ```
-## Autogenerate device files, docker compose and profiles
-```
-cd integration
-```
-```
-../bin/createNTSdevices.py \
-  --nodes ../topology-info/Nodes_Germany_17.json \
-  --links ../topology-info/Links_Germany_17.json \
-  --output-profile germany-17 \
-  --output-folder demo-standalone/conf-generated
-
-  ```
 
 ## How to start
-```
-cd integration/demo-standalone
-```
+
+ * start the containers
 
 ```
 docker-compose -f docker-compose-generated.yml up -d
@@ -56,13 +43,9 @@ For creation of service with germany-17 backbone network
 ```
 ansible -i sim-deployment/hosts.ini -m ping all
 ```
- * deploy simulators with the models (NTS)
-```
-cd sim-deployment
-./deploy-sims.py deploy --src ../demo-standalone/conf-generated/ --profile germany-17
-```
+ * deploy simulators with the models (PyNTS)
 
- * deploy simulators with the NTS-NG models
+
 ```
 cd sim-deployment
 ./deploy-sims.py deploy-ng --src ../demo-standalone/conf-generated/ --profile germany-17-ng

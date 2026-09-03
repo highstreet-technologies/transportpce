@@ -230,7 +230,7 @@ class NTSDeviceModelCreator:
         # an inline command waits for sdnr's health endpoint to respond before
         # starting supervisord (the image's default cmd).
         waitForSdnr = (
-            '/bin/sh -c "until wget -q -O /dev/null http://sdnr:8181/ready 2>/dev/null; '
+            '/bin/sh -c "until wget --no-check-certificate -q -O /dev/null ${REMOTE_SDNR_URL}/ready 2>/dev/null; '
             'do echo \'Waiting for sdnr...\'; sleep 5; done; echo \'sdnr is ready\'; '
             'exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf"'
         )
@@ -241,7 +241,7 @@ class NTSDeviceModelCreator:
             environment={
                 'NETCONF_USERNAME': '${SIM_NETCONF_USERNAME}',
                 'NETCONF_PASSWORD': '${SIM_NETCONF_PASSWORD}',
-                'SDNR_RESTCONF_URL': 'http://sdnr:8181',
+                'SDNR_RESTCONF_URL': '${REMOTE_SDNR_URL}',
                 'SDNR_USERNAME': '${SDNR_USERNAME}',
                 'SDNR_PASSWORD': '${SDNR_PASSWORD}'
             },

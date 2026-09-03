@@ -1,20 +1,31 @@
-# Integration for TransportPCE to ONAP
-
-This folder contains integration szenarios for transportPCE as a service in a absolute minimal ONAP environment.
-
-
- * [Basic ONAP SDNC](onap/README.md)
- * [ONAP SDNC with NetconfServerSimulators](onap-ext/README.md)
- * [ONAP SDNC with HoneyNode Sims](onap-ext2/README.md)
- * [ONAP SDNC with NTSim Sims](onap-ext3/README.md)
-
-Up to now it is for running a manual integration test to see if a standalone transportPCE instance is behaving the same like a remote one.
-
+# Infrastructure Integration
 ## Simulators
 
  * PyNTSimulator-openroadm https://git-highstreet-technologies.com/highstreet/pynts
 
-## Preparation
+### Generating Device Files and Docker Compose
+To generate device files and the Docker Compose configuration for simulators, use the `createNTSdevices.py` script located in the `bin` folder. This script processes topology files (e.g., `Nodes_Germany_17.json` and `Links_Germany_17.json`) to generate the necessary configurations for the simulators.
+
+**⚠️ Ensure you are in the `integration` folder before executing the command.**
+
+Example command:
+```
+./bin/createNTSdevices.py \
+  --nodes topology-info/Nodes_Germany_17.json \
+  --links topology-info/Links_Germany_17.json \
+  --output-profile germany-17 \
+  --output-folder demo-standalone/conf-generated
+```
+
+### Demo-Standalone Folder
+The `demo-standalone` folder contains configurations and scripts for running a standalone integration of ONAP SDNC with TransportPCE and PyNTS OpenROADM simulators. It includes:
+- Auto-generated device files and Docker Compose configurations.
+- Scripts for deploying and testing the simulators.
+- Environment configurations for remote and local setups.
+
+For more details on how to run the service creation tests, refer to the [demo-standalone README](demo-standalone/README.md).
+
+## Transport PCE Preparation (for future after odl update)
 
  * compile all sources (maybe with skipTests): mvn clean install
  * build transportpce and gui docker image (distribution folder)
