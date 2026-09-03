@@ -37,13 +37,13 @@ import org.opendaylight.transportpce.tapi.utils.TapiLinkImpl;
 import org.opendaylight.transportpce.tapi.utils.TapiTopologyDataUtils;
 import org.opendaylight.transportpce.test.AbstractTest;
 import org.opendaylight.transportpce.test.utils.TopologyDataUtils;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.Link1;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.Link1Builder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.TerminationPoint1;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.TerminationPoint1Builder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250110.Link1;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250110.Link1Builder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250110.TerminationPoint1;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250110.TerminationPoint1Builder;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.state.types.rev191129.State;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.equipment.states.types.rev191129.AdminStates;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.OpenroadmTpType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250110.OpenroadmTpType;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.NetworkId;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.Networks;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.NodeId;
@@ -939,10 +939,7 @@ public class ConvertTopoORtoTapiNbiTest extends AbstractTest {
                 "the rule type should be 'FORWARDING'");
             indexnrg++;
         }
-        List<NodeEdgePoint> nodeEdgePointList = new ArrayList<>(nrgList.get(2).nonnullNodeEdgePoint().values());
-        LOG.info("nodeEdgePointList = {}", nodeEdgePointList);
-        LOG.info("networkNepUuid = {}", networkNepUuid.getValue());
-        LOG.info("clientNepUuid = {}", clientNepUuid.getValue());
+        List<NodeEdgePoint> nodeEdgePointList = new ArrayList<>(nrgList.get(1).nonnullNodeEdgePoint().values());
         assertThat(nodeEdgePointList.get(0).getNodeEdgePointUuid().getValue())
             .withFailMessage("node-rule-group nb 2 should be between nep-client4 and nep-network1")
             .matches(value -> value.contains(networkNepUuid.getValue()) || value.contains(clientNepUuid.getValue()));
@@ -1201,7 +1198,7 @@ public class ConvertTopoORtoTapiNbiTest extends AbstractTest {
 
     private void checkOtnLink(
             Link link, Uuid node1Uuid, Uuid node2Uuid, Uuid tp1Uuid, Uuid tp2Uuid, Uuid linkUuid, String linkName) {
-        assertEquals(linkName, link.getName().get(new NameKey("OTN link name")).getValue(), "bad name for the link");
+        assertEquals(linkName, link.getName().get(new NameKey("otn link name")).getValue(), "bad name for the link");
         assertEquals(linkUuid, link.getUuid(), "bad uuid for link");
         assertEquals(CAPACITYUNITGBPS.VALUE, link.getAvailableCapacity().getTotalSize().getUnit(),
             "Available capacity unit should be MBPS");
@@ -1215,7 +1212,7 @@ public class ConvertTopoORtoTapiNbiTest extends AbstractTest {
         }
         assertEquals(CAPACITYUNITGBPS.VALUE, link.getTotalPotentialCapacity().getTotalSize().getUnit(),
             "Total capacity unit should be GBPS");
-        assertEquals(Decimal64.valueOf(7, 100), link.getTotalPotentialCapacity().getTotalSize().getValue(),
+        assertEquals(Decimal64.valueOf("100"), link.getTotalPotentialCapacity().getTotalSize().getValue(),
             "Total capacity -total size value should be 100");
         if ("OTU4".equals(prefix)) {
             assertEquals(

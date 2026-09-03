@@ -10,7 +10,6 @@ package org.opendaylight.transportpce.pce.graph;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.jgrapht.graph.DefaultWeightedEdge;
 import org.opendaylight.transportpce.pce.networkanalyzer.PceLink;
-//import org.opendaylight.transportpce.pce.networkanalyzer.PceORLink;
 
 @SuppressWarnings("serial")
 @SuppressFBWarnings(

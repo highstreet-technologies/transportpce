@@ -58,7 +58,6 @@ T0_FULL_MULTILAYER_TOPO = 'T0 - Full Multi-layer topology'
 T100GE_UUID = 'cf51c729-3699-308a-a7d0-594c6a62ebbb'
 T0_MULTILAYER_TOPO_UUID = '747c670e-7a07-3dab-b379-5b1cd17402a3'
 T0_FULL_MULTILAYER_TOPO_UUID = '393f09a4-0a0b-3d82-a4f6-1fbbc14ca1a7'
-SBI_TOPO_UUID = 'a21e4756-4d70-3d40-95b6-f7f630b4a13b'
 
 SIM_LOG_DIRECTORY = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'log')
 
@@ -178,11 +177,10 @@ def start_lightynode(log_file: str, sim):
                                     '..', '..', 'sample_configs', 'openroadm', sim[1])
     if os.path.isfile(executable):
         with open(log_file, 'w', encoding='utf-8') as outfile:
-            if sim[1] == 'oc200':
+            if sim[1] == 'oc' or sim[1] == 'OC':
                 version = 'OC'
                 sample_directory = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                                '..', '..', 'sample_configs', 'openconfig', '251203')
-
+                                                '..', '..', 'sample_configs', 'openconfig', '240119')
             else:
                 version = sim[1]
             return subprocess.Popen(
@@ -546,29 +544,6 @@ def get_tapi_topology_node(topouuid: str, nodeuuid: str, onepuuid: str, content:
         onep = None
     return {'status_code': response.status_code,
             'onep': onep}
-
-
-def get_tapi_topology_link(topouuid: str, linkuuid: str, content: str):
-    # pylint: disable=line-too-long
-    url = {'rfc8040': '{}/data/tapi-common:context/tapi-topology:topology-context/topology={}/link={}?content={}',
-           'draft-bierman02': '{}/{}/tapi-common:context/topology-context/tapi-topology:topology/{}/link/{}'}
-    if RESTCONF_VERSION in ('rfc8040'):
-        format_args = ('{}', topouuid, linkuuid, content)
-    elif content == 'config':
-        format_args = ('{}', content, topouuid, linkuuid)
-    else:
-        format_args = ('{}', 'operational', topouuid, linkuuid)
-    response = get_request(url[RESTCONF_VERSION].format(*format_args))
-    if bool(response):
-        res = response.json()
-        # print('response in testUtils = {}', res)
-        return_key = {'rfc8040': 'tapi-topology:link',
-                      'draft-bierman02': 'tapi-topology:link'}
-        link = res[return_key[RESTCONF_VERSION]]
-    else:
-        link = None
-    return {'status_code': response.status_code,
-            'link': link}
 
 #
 # Topology operations

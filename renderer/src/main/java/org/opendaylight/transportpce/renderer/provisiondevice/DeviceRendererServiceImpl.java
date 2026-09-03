@@ -55,7 +55,6 @@ import org.opendaylight.transportpce.renderer.provisiondevice.servicepath.Servic
 import org.opendaylight.transportpce.renderer.provisiondevice.transaction.Connection;
 import org.opendaylight.transportpce.renderer.provisiondevice.transaction.DeviceInterface;
 import org.opendaylight.transportpce.renderer.provisiondevice.transaction.DevicePort;
-import org.opendaylight.transportpce.renderer.provisiondevice.transaction.DeviceTransceiver;
 import org.opendaylight.transportpce.renderer.provisiondevice.transaction.delete.DeleteService;
 import org.opendaylight.transportpce.renderer.provisiondevice.transaction.delete.DeleteSubscriber;
 import org.opendaylight.transportpce.renderer.provisiondevice.transaction.delete.FailedRollbackResult;
@@ -63,37 +62,37 @@ import org.opendaylight.transportpce.renderer.provisiondevice.transaction.delete
 import org.opendaylight.transportpce.renderer.provisiondevice.transaction.delete.Subscriber;
 import org.opendaylight.transportpce.renderer.provisiondevice.transaction.history.History;
 import org.opendaylight.transportpce.renderer.provisiondevice.transaction.history.NonStickHistoryMemory;
-import org.opendaylight.yang.gen.v1.http.openconfig.net.yang.transport.types.rev230208.AdminStateType;
+import org.opendaylight.yang.gen.v1.http.openconfig.net.yang.transport.types.rev210729.AdminStateType;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.alarmsuppression.rev171102.ServiceNodelist;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.alarmsuppression.rev171102.service.nodelist.NodelistBuilder;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.alarmsuppression.rev171102.service.nodelist.NodelistKey;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.device.renderer.rev260212.CreateOtsOmsInput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.device.renderer.rev260212.CreateOtsOmsOutput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.device.renderer.rev260212.CreateOtsOmsOutputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.device.renderer.rev260212.RendererRollbackInput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.device.renderer.rev260212.RendererRollbackOutput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.device.renderer.rev260212.RendererRollbackOutputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.device.renderer.rev260212.ServicePathInput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.device.renderer.rev260212.ServicePathOutput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.device.renderer.rev260212.ServicePathOutputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.device.renderer.rev260212.az.api.info.AEndApiInfo;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.device.renderer.rev260212.az.api.info.ZEndApiInfo;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.device.renderer.rev260212.renderer.rollback.output.FailedToRollback;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.device.renderer.rev260212.renderer.rollback.output.FailedToRollbackBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.device.renderer.rev260212.renderer.rollback.output.FailedToRollbackKey;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.OpenroadmNodeVersion;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mapping.Mapping;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.service.Topology;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.ServiceList;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.service.list.Services;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.service.list.ServicesBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.service.list.ServicesKey;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.common.types.rev260707.link.tp.LinkTp;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.common.types.rev260707.link.tp.LinkTpBuilder;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.common.types.rev260707.node.interfaces.NodeInterface;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.common.types.rev260707.node.interfaces.NodeInterfaceBuilder;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.common.types.rev260707.node.interfaces.NodeInterfaceKey;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.common.types.rev260707.optical.renderer.nodes.Nodes;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.device.renderer.rev251001.CreateOtsOmsInput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.device.renderer.rev251001.CreateOtsOmsOutput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.device.renderer.rev251001.CreateOtsOmsOutputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.device.renderer.rev251001.RendererRollbackInput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.device.renderer.rev251001.RendererRollbackOutput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.device.renderer.rev251001.RendererRollbackOutputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.device.renderer.rev251001.ServicePathInput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.device.renderer.rev251001.ServicePathOutput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.device.renderer.rev251001.ServicePathOutputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.device.renderer.rev251001.az.api.info.AEndApiInfo;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.device.renderer.rev251001.az.api.info.ZEndApiInfo;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.device.renderer.rev251001.renderer.rollback.output.FailedToRollback;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.device.renderer.rev251001.renderer.rollback.output.FailedToRollbackBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.device.renderer.rev251001.renderer.rollback.output.FailedToRollbackKey;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905.OpenroadmNodeVersion;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905.mapping.Mapping;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250110.service.Topology;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250110.ServiceList;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250110.service.list.Services;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250110.service.list.ServicesBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250110.service.list.ServicesKey;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.common.types.rev251022.link.tp.LinkTp;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.common.types.rev251022.link.tp.LinkTpBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.common.types.rev251022.node.interfaces.NodeInterface;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.common.types.rev251022.node.interfaces.NodeInterfaceBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.common.types.rev251022.node.interfaces.NodeInterfaceKey;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.common.types.rev251022.optical.renderer.nodes.Nodes;
 import org.opendaylight.yangtools.binding.DataObjectIdentifier;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -155,6 +154,7 @@ public class DeviceRendererServiceImpl implements DeviceRendererService {
         if (!alarmSuppressionNodeRegistration(input)) {
             LOG.warn("Alarm suppresion node registration failed!!!!");
         }
+        AtomicBoolean isOpenConfig = new AtomicBoolean(false);
         ConcurrentLinkedQueue<String> results = new ConcurrentLinkedQueue<>();
         Map<NodeInterfaceKey, NodeInterface> nodeInterfaces = new ConcurrentHashMap<>();
         Set<String> nodesProvisioned = Sets.newConcurrentHashSet();
@@ -162,7 +162,6 @@ public class DeviceRendererServiceImpl implements DeviceRendererService {
         AtomicBoolean success = new AtomicBoolean(true);
         ForkJoinPool forkJoinPool = new ForkJoinPool();
         ForkJoinTask forkJoinTask = forkJoinPool.submit(() -> nodes.parallelStream().forEach(node -> {
-            boolean isOpenConfig = false;
             String nodeId = node.getNodeId();
             LOG.info("Starting provisioning for node : {}", nodeId);
             AEndApiInfo apiInfoA = null;
@@ -181,36 +180,31 @@ public class DeviceRendererServiceImpl implements DeviceRendererService {
             int crossConnectFlag = 0;
 
             Set<String> portIds = new HashSet<>();
-            String transceiver = "";
 
             try {
                 // if the node is currently mounted then proceed
                 if (this.deviceTransactionManager.isDeviceMounted(nodeId)) {
-                    org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612
+                    org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905
                             .network.Nodes mappingNode = portMapping.getNode(nodeId);
                     if (mappingNode != null && mappingNode.getDatamodelType() != null
                             && mappingNode.getDatamodelType().getName().equals("OPENCONFIG")) {
-                        isOpenConfig = true;
+                        isOpenConfig.set(true);
                     }
-                    if (isOpenConfig) {
+                    if (isOpenConfig.get()) {
                         String destTp = node.getDestTp();
                         if ((destTp != null) && destTp.contains(StringConstants.NETWORK_TOKEN)) {
-                            LOG.info("Starting OpenConfig network service configuration for node {} on destination {}",
+                            LOG.info("Configuring network admin state & optical channel in node {} and dest {}",
                                     nodeId, destTp);
                             String configOpticalChannel = this.openConfigInterfaceFactory
                                     .configureNetworkOpticalChannel(nodeId, destTp, input);
+                            LOG.info("Optical channel configured for {}", configOpticalChannel);
                             portIds = this.openConfigInterfaceFactory
                                     .configurePortAdminState(nodeId, destTp, AdminStateType.ENABLED);
-                            transceiver = this.openConfigInterfaceFactory.configureTransceiversTxLaser(nodeId,
-                                    destTp, List.of(1), true);
+                            LOG.info("Admin state configured for  node {} and port {} ", nodeId, portIds);
                             transactionHistory.add(new DevicePort(nodeId, portIds.stream().findFirst().orElseThrow()));
-                            transactionHistory.add(new DeviceTransceiver(nodeId, transceiver));
                             nodesProvisioned.add(nodeId);
                             Mapping mapping = portMapping.getMapping(nodeId, destTp);
                             portMapping.updateMapping(nodeId, mapping);
-                            if (node.getSrcTp() == null) {
-                                otnLinkTps.add(new LinkTpBuilder().setNodeId(nodeId).setTpId(destTp).build());
-                            }
                         } else {
                             LOG.error("Termination point should be a Network type");
                         }
@@ -224,7 +218,7 @@ public class DeviceRendererServiceImpl implements DeviceRendererService {
                                     nodeId, destTp, spectrumInformation);
                             crossConnectFlag++;
                             String supportingOchInterface = this.openRoadmInterfaceFactory.createOpenRoadmOchInterface(
-                                    nodeId, destTp, spectrumInformation, input.getOperationalMode());
+                                    nodeId, destTp, spectrumInformation);
                             transactionHistory.add(new DeviceInterface(nodeId, supportingOchInterface));
 
                             // Split the string based on # pass the last element as the supported Interface
@@ -283,7 +277,7 @@ public class DeviceRendererServiceImpl implements DeviceRendererService {
                             crossConnectFlag++;
                             // create OpenRoadm Xponder Line Interfaces
                             String supportingOchInterface = this.openRoadmInterfaceFactory.createOpenRoadmOchInterface(
-                                    nodeId, srcTp, spectrumInformation, input.getOperationalMode());
+                                    nodeId, srcTp, spectrumInformation);
                             transactionHistory.add(new DeviceInterface(nodeId, supportingOchInterface));
 
                             // createdOchInterfaces.add(supportingOchInterface);
@@ -378,9 +372,8 @@ public class DeviceRendererServiceImpl implements DeviceRendererService {
             NodeInterfaceBuilder nodeInterfaceBuilder = new NodeInterfaceBuilder()
                     .withKey(new NodeInterfaceKey(nodeId))
                     .setNodeId(nodeId);
-            if (isOpenConfig) {
+            if (isOpenConfig.get()) {
                 nodeInterfaceBuilder.setPortId(portIds);
-                nodeInterfaceBuilder.setTransceiverId(Set.of(transceiver));
             } else {
                 nodeInterfaceBuilder.setConnectionId(createdConnections)
                         .setEthInterfaceId(createdEthInterfaces)
@@ -390,6 +383,7 @@ public class DeviceRendererServiceImpl implements DeviceRendererService {
             }
             NodeInterface nodeInterface = nodeInterfaceBuilder.build();
             nodeInterfaces.put(nodeInterface.key(), nodeInterface);
+
         }));
         try {
             forkJoinTask.get();
@@ -407,7 +401,9 @@ public class DeviceRendererServiceImpl implements DeviceRendererService {
         forkJoinPool.shutdown();
 
         if (success.get()) {
-            String message = "Successfully configured nodes: ";
+            String message = isOpenConfig.get()
+                    ? "Components configured successfully for nodes: "
+                    : "Interfaces created successfully for nodes: ";
             results.add(message + String.join(", ", nodesProvisioned));
             LOG.info("Setup service path successful. {} {}", message, nodesProvisioned);
         }
@@ -450,6 +446,7 @@ public class DeviceRendererServiceImpl implements DeviceRendererService {
         if (input.getNodes() != null) {
             nodes.addAll(input.getNodes());
         }
+        AtomicBoolean isOpenConfig = new AtomicBoolean(false);
         AtomicBoolean success = new AtomicBoolean(true);
         ConcurrentLinkedQueue<String> results = new ConcurrentLinkedQueue<>();
         CopyOnWriteArrayList<LinkTp> otnLinkTps = new CopyOnWriteArrayList<>();
@@ -470,37 +467,29 @@ public class DeviceRendererServiceImpl implements DeviceRendererService {
                 return;
                 //TODO should deletion end here?
             }
-            boolean isOpenConfig = false;
             // if the node is currently mounted then proceed.
-            org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612
+            org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905
                     .network.Nodes mappingNode = portMapping.getNode(nodeId);
             if (mappingNode != null && mappingNode.getDatamodelType() != null
                     && mappingNode.getDatamodelType().getName().equals("OPENCONFIG")) {
-                isOpenConfig = true;
+                isOpenConfig.set(true);
             }
-            if (isOpenConfig) {
+            if (isOpenConfig.get()) {
                 String destTp = node.getDestTp();
-                if (node.getSrcTp() == null) {
-                    otnLinkTps.add(new LinkTpBuilder().setNodeId(nodeId).setTpId(destTp).build());
-                }
                 if ((destTp != null) && destTp.contains(StringConstants.NETWORK_TOKEN)) {
-                    LOG.info("Starting OpenConfig network service deletion for node {} at destination {}",
-                            nodeId, destTp);
+                    LOG.info("Configuring Admin state Disabled for node {} and dest {}", nodeId, destTp);
                     Set<String> portIds = null;
                     try {
                         portIds = this.openConfigInterfaceFactory
                                 .configurePortAdminState(nodeId, destTp, AdminStateType.DISABLED);
-                        ArrayList<Integer> channelIndex = new ArrayList<>(List.of(1));
-                        String transceiver = this.openConfigInterfaceFactory.configureTransceiversTxLaser(nodeId,
-                                destTp, channelIndex, false);
                         Mapping mapping = portMapping.getMapping(nodeId, destTp);
                         portMapping.updateMapping(nodeId, mapping);
-                        LOG.info("Successfully deleted OpenConfig network service configuration for node {}", nodeId);
                     } catch (OpenConfigInterfacesException ex) {
                         processErrorMessage("Setup service path failed! Exception:"
                                 + ex.toString(), forkJoinPool, results);
                         success.set(false);
                     }
+                    LOG.info("Admin state Disabled for  {} ", portIds);
                 } else {
                     LOG.error("Termination point should be a Network type");
                 }
@@ -542,8 +531,10 @@ public class DeviceRendererServiceImpl implements DeviceRendererService {
             LOG.error("Alarm suppresion node removal failed!!!!");
         }
         ServicePathOutputBuilder builder = new ServicePathOutputBuilder();
-        builder.setLinkTp(otnLinkTps);
         builder.setSuccess(success.get());
+        if (!isOpenConfig.get()) {
+            builder.setLinkTp(otnLinkTps);
+        }
         builder.setResult(
                 results.isEmpty()
                         ? "Request processed"
@@ -669,23 +660,33 @@ public class DeviceRendererServiceImpl implements DeviceRendererService {
                 isOpenConfig.set(true);
             }
             if (isOpenConfig.get()) {
+                if (nodeInterfaces.getInterfaceId() != null) {
+                    try {
+                        Set<String> clientInterface = this.openConfigInterfaceFactory.configureClientInterface(nodeId,
+                                nodeInterfaces.getInterfaceId(), false);
+                        LOG.info("Client interfaces de-provisioned for {} on node {} ", clientInterface, nodeId);
+                    } catch (OpenConfigInterfacesException e) {
+                        LOG.error("Error while de-provisioning client interfaces on node {} ", nodeId);
+                    }
+                }
+                if (nodeInterfaces.getOpticalChannelId() != null) {
+                    try {
+                        Set<String> opticalChannels = this.openConfigInterfaceFactory.configureClientOpticalChannel(
+                                nodeId, nodeInterfaces.getOpticalChannelId(), "TRUE");
+                        LOG.info("Client optical channel de-provisioned for {} on node {} ", opticalChannels, nodeId);
+                    } catch (OpenConfigInterfacesException e) {
+                        LOG.error("Error while de-provisioning client optical channels on node {} ", nodeId);
+                    }
+                }
                 if (nodeInterfaces.getPortId() != null) {
                     for (String portId : nodeInterfaces.getPortId()) {
                         try {
-                            this.openConfigInterfaceFactory.disablePortAdminState(nodeId, portId);
+                            Set<String> port = this.openConfigInterfaceFactory.disablePortAdminState(nodeId,
+                                    portId);
+                            LOG.info("Admin state disabled for {} on node {} ", port, nodeId);
                         } catch (OpenConfigInterfacesException e) {
                             LOG.error("Error while disabling admin state on node {} and supporting port {} ", nodeId,
                                     portId);
-                        }
-                    }
-                }
-                if (nodeInterfaces.getTransceiverId() != null) {
-                    for (String transceiver : nodeInterfaces.getTransceiverId()) {
-                        try {
-                            this.openConfigInterfaceFactory.disableTxLaser(nodeId, transceiver);
-                        } catch (OpenConfigInterfacesException e) {
-                            LOG.error("Error while disabling tx-laser for transceiver {} on node {} ", transceiver,
-                                    nodeId);
                         }
                     }
                 }

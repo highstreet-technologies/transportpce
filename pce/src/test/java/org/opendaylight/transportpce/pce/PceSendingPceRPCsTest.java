@@ -33,14 +33,14 @@ import org.opendaylight.transportpce.pce.gnpy.consumer.GnpyConsumer;
 import org.opendaylight.transportpce.pce.gnpy.consumer.GnpyConsumerImpl;
 import org.opendaylight.transportpce.pce.utils.PceTestData;
 import org.opendaylight.transportpce.test.AbstractTest;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mapping.Mapping;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mapping.MappingBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.network.Nodes;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.network.NodesBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.network.NodesKey;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.network.nodes.NodeInfo;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.network.nodes.NodeInfoBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.node.types.rev210528.NodeTypes;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905.mapping.Mapping;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905.mapping.MappingBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905.network.Nodes;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905.network.NodesBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905.network.NodesKey;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905.network.nodes.NodeInfo;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905.network.nodes.NodeInfoBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.types.rev191129.NodeTypes;
 
 @ExtendWith(MockitoExtension.class)
 class PceSendingPceRPCsTest extends AbstractTest {
@@ -50,7 +50,6 @@ class PceSendingPceRPCsTest extends AbstractTest {
     private Mapping mapping;
     private DataBroker dataBroker;
     private GnpyConsumer gnpyConsumer;
-    private static String OR_PCE_OPER_MODE = "OpenROADM-PCE-Operation-Mode";
     @Mock
     private PortMapping portMapping;
 
@@ -62,7 +61,7 @@ class PceSendingPceRPCsTest extends AbstractTest {
         gnpyConsumer = new GnpyConsumerImpl(
             "http://localhost:9998", "mylogin", "mypassword", getDataStoreContextUtil().getBindingDOMCodecServices());
         pceSendingPceRPCs = new PceSendingPceRPCs(
-            PceTestData.getPCE_test1_request_54(), networkTransaction, gnpyConsumer, portMapping, OR_PCE_OPER_MODE);
+            PceTestData.getPCE_test1_request_54(), networkTransaction, gnpyConsumer, portMapping);
         mapping = new MappingBuilder()
             .setLogicalConnectionPoint("logicalConnectionPoint")
             .setPortQual("xpdr-client")
@@ -94,7 +93,7 @@ class PceSendingPceRPCsTest extends AbstractTest {
                                 .readString(
                                         Path.of("src", "test", "resources", "gnpy", "gnpy_result_with_path.json")))));
         pceSendingPceRPCs = new PceSendingPceRPCs(PceTestData.getGnpyPCERequest("XPONDER-1", "XPONDER-2"),
-                networkTransaction, gnpyConsumer, portMapping, OR_PCE_OPER_MODE);
+                networkTransaction, gnpyConsumer, portMapping);
         when(portMapping.getMapping(anyString(), anyString())).thenReturn(mapping);
         // WHEN
         pceSendingPceRPCs.pathComputation();

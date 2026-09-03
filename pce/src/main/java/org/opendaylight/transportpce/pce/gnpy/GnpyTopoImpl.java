@@ -45,15 +45,15 @@ import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev220615.topo.El
 import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev220615.topo.ElementsKey;
 import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev220615.topo.elements.Metadata;
 import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev220615.topo.elements.MetadataBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.Link1;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.link.rev250530.SpanAttributes;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.link.rev250530.amplified.link.attributes.AmplifiedLink;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.link.rev250530.amplified.link.attributes.amplified.link.section.element.section.element.Span;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.link.rev250530.amplified.link.attributes.amplified.link.section.element.section.element.ila.Ila;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.rev250530.Node1;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.networks.network.link.OMSAttributes;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.OpenroadmLinkType;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.link.concatenation.LinkConcatenation;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250110.Link1;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.link.rev250110.SpanAttributes;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.link.rev250110.amplified.link.attributes.AmplifiedLink;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.link.rev250110.amplified.link.attributes.amplified.link.section.element.section.element.Span;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.link.rev250110.amplified.link.attributes.amplified.link.section.element.section.element.ila.Ila;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.rev250110.Node1;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250110.networks.network.link.OMSAttributes;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250110.OpenroadmLinkType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250110.link.concatenation.LinkConcatenation;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.NetworkId;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.Networks;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.networks.Network;
@@ -165,13 +165,13 @@ public class GnpyTopoImpl {
                 // Retrieve the mapping between the openRoadm topology and openRoadm network
                 mapDisgNodeRefNode.put(openRoadmTopoNode.getNodeId().getValue(), nodeRef);
                 Node1 openRoadmNetNode1 = null;
-                org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530
+                org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250110
                     .Node1 commonNetworkNode1 = null;
                 for (Node openRoadmNetNode : openRoadmNetNodeList) {
                     if (openRoadmNetNode.getNodeId().getValue().equals(nodeRef)) {
                         openRoadmNetNode1 = openRoadmNetNode.augmentation(Node1.class);
                         commonNetworkNode1 = openRoadmNetNode.augmentation(org.opendaylight.yang.gen.v1
-                            .http.org.openroadm.common.network.rev250530.Node1.class);
+                            .http.org.openroadm.common.network.rev250110.Node1.class);
                         break;
                     }
                 }
@@ -218,9 +218,9 @@ public class GnpyTopoImpl {
 
         for (Link link : linksList) {
             Link1 link1 = link.augmentation(Link1.class);
-            org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530
+            org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250110
                 .Link1 openroadmNetworkLink1 = link.augmentation(org.opendaylight.yang.gen.v1.http
-                        .org.openroadm.network.topology.rev250530.Link1.class);
+                        .org.openroadm.network.topology.rev250110.Link1.class);
             if (link1.getLinkType() == null) {
                 throw new GnpyException("In gnpyTopoImpl: the link type is null");
             }
@@ -338,8 +338,8 @@ public class GnpyTopoImpl {
     private Elements createElementsFiber(double latitude, double longitude, String region, String city, String uidFiber,
             double length, double attIn, double lossCoef, double connIn, double connOut, String typeVariety) {
         // Create an amplifier after the ROADM
-        Coordinate c1 = new Coordinate(Decimal64.valueOf(String.valueOf(latitude)).scaleTo(6));
-        Coordinate c2 = new Coordinate(Decimal64.valueOf(String.valueOf(longitude)).scaleTo(6));
+        Coordinate c1 = new Coordinate(Decimal64.valueOf(String.valueOf(latitude)));
+        Coordinate c2 = new Coordinate(Decimal64.valueOf(String.valueOf(longitude)));
         Location location1 = new LocationBuilder().setRegion(region).setCity(city).setLatitude(c1).setLongitude(c2)
                 .build();
         Metadata metadata1 = new MetadataBuilder().setLocation(location1).build();
@@ -364,8 +364,8 @@ public class GnpyTopoImpl {
     private Elements createElementsEdfa(double latitude, double longitude, String region, String city,
             BigDecimal gainTarget, BigDecimal tiltTarget, BigDecimal outVoa, String typeVariety, String uidEdfa) {
         // Create an amplifier after the ROADM
-        Coordinate c1 = new Coordinate(Decimal64.valueOf(String.valueOf(latitude)).scaleTo(6));
-        Coordinate c2 = new Coordinate(Decimal64.valueOf(String.valueOf(longitude)).scaleTo(6));
+        Coordinate c1 = new Coordinate(Decimal64.valueOf(String.valueOf(latitude)));
+        Coordinate c2 = new Coordinate(Decimal64.valueOf(String.valueOf(longitude)));
         Location location1 = new LocationBuilder().setRegion(region).setCity(city).setLatitude(c1).setLongitude(c2)
                 .build();
         Metadata metadata1 = new MetadataBuilder().setLocation(location1).build();
@@ -386,8 +386,8 @@ public class GnpyTopoImpl {
      */
     private Elements createElementsRoadm(double latitude, double longitude, String region, String city,
             double targetPchOutDb, String uidRoadm) {
-        Coordinate c1 = new Coordinate(Decimal64.valueOf(String.valueOf(latitude)).scaleTo(6));
-        Coordinate c2 = new Coordinate(Decimal64.valueOf(String.valueOf(longitude)).scaleTo(6));
+        Coordinate c1 = new Coordinate(Decimal64.valueOf(String.valueOf(latitude)));
+        Coordinate c2 = new Coordinate(Decimal64.valueOf(String.valueOf(longitude)));
         Location location1 = new LocationBuilder().setRegion(region).setCity(city).setLatitude(c1).setLongitude(c2)
                 .build();
         Metadata metadata1 = new MetadataBuilder().setLocation(location1).build();
@@ -405,8 +405,8 @@ public class GnpyTopoImpl {
      */
     private Elements createElementsTransceiver(double latitude, double longitude, String region, String city,
             String uidTrans) {
-        Coordinate c1 = new Coordinate(Decimal64.valueOf(String.valueOf(latitude)).scaleTo(6));
-        Coordinate c2 = new Coordinate(Decimal64.valueOf(String.valueOf(longitude)).scaleTo(6));
+        Coordinate c1 = new Coordinate(Decimal64.valueOf(String.valueOf(latitude)));
+        Coordinate c2 = new Coordinate(Decimal64.valueOf(String.valueOf(longitude)));
         Location location1 = new LocationBuilder().setRegion(region).setCity(city).setLatitude(c1).setLongitude(c2)
                 .build();
         Metadata metadata1 = new MetadataBuilder().setLocation(location1).build();

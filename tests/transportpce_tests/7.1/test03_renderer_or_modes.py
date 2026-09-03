@@ -122,7 +122,7 @@ class TestTransportPCERendererOrModes(unittest.TestCase):
                 "higher-spectral-slot-number": 272,
             })
         self.assertEqual(response["status_code"], requests.codes.ok)
-        self.assertIn("Successfully configured nodes: ", response["output"]["result"])
+        self.assertIn("Interfaces created successfully for nodes: ", response["output"]["result"])
         # node-interface is list which does not preserve the order
         a_side = "XPDR-A2"
         z_side = "XPDR-C2"
@@ -560,12 +560,6 @@ class TestTransportPCERendererOrModes(unittest.TestCase):
 
     # 200G 31.6 Gbaud mode for muxponder, with qam16
     def test_32_service_path_create_otuc2(self):
-        # Update the network dict variable for mpdr
-        self.NETWORK1_CHECK_DICT["logical-connection-point"] = "XPDR2-NETWORK1"
-        self.NETWORK1_CHECK_DICT["supporting-circuit-pack-name"] = "1/2/2-PLUG-NET"
-        self.NETWORK1_CHECK_DICT["port-qual"] = "switch-network"
-        self.NETWORK1_CHECK_DICT["xpdr-type"] = "mpdr"
-        self.NETWORK1_CHECK_DICT["lcp-hash-val"] = "LY9PxYJqUbw="
         response = test_utils.transportpce_api_rpc_request(
             "transportpce-device-renderer", "service-path",
             {
@@ -589,7 +583,7 @@ class TestTransportPCERendererOrModes(unittest.TestCase):
                 "higher-spectral-slot-number": 272,
             })
         self.assertEqual(response["status_code"], requests.codes.ok)
-        self.assertIn("Successfully configured nodes: ", response["output"]["result"])
+        self.assertIn("Interfaces created successfully for nodes: ", response["output"]["result"])
         # node-interface is list which does not preserve the order
         a_side = "XPDR-A2"
         z_side = "XPDR-C2"
@@ -601,8 +595,8 @@ class TestTransportPCERendererOrModes(unittest.TestCase):
                  "XPDR2-NETWORK1-OTUC2"
              ],
              "och-interface-id": [
-                 "XPDR2-NETWORK1-265:272",
-                 "XPDR2-NETWORK1-OTSIGROUP-200G"
+                 "XPDR2-NETWORK1-OTSIGROUP-200G",
+                 "XPDR2-NETWORK1-265:272"
              ]},
             response["output"]["node-interface"][0])
         self.assertEqual(
@@ -611,10 +605,16 @@ class TestTransportPCERendererOrModes(unittest.TestCase):
                  "XPDR2-NETWORK1-OTUC2"
              ],
              "och-interface-id": [
-                 "XPDR2-NETWORK1-265:272",
-                 "XPDR2-NETWORK1-OTSIGROUP-200G"
+                 "XPDR2-NETWORK1-OTSIGROUP-200G",
+                 "XPDR2-NETWORK1-265:272"
              ]},
             response["output"]["node-interface"][1])
+        # Update the network dict variable for mpdr
+        self.NETWORK1_CHECK_DICT["logical-connection-point"] = "XPDR2-NETWORK1"
+        self.NETWORK1_CHECK_DICT["supporting-circuit-pack-name"] = "1/2/2-PLUG-NET"
+        self.NETWORK1_CHECK_DICT["port-qual"] = "switch-network"
+        self.NETWORK1_CHECK_DICT["xpdr-type"] = "mpdr"
+        self.NETWORK1_CHECK_DICT["lcp-hash-val"] = "LY9PxYJqUbw="
 
     def test_33_get_portmapping_network1(self):
         response = test_utils.get_portmapping_node_attr("XPDR-A2", "mapping", "XPDR2-NETWORK1")

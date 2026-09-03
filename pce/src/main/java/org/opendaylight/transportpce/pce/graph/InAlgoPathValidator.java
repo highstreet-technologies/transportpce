@@ -10,7 +10,7 @@ package org.opendaylight.transportpce.pce.graph;
 
 import org.jgrapht.GraphPath;
 import org.jgrapht.alg.shortestpath.PathValidator;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.OpenroadmLinkType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250110.OpenroadmLinkType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,8 +29,9 @@ public class InAlgoPathValidator implements PathValidator<String, PceGraphEdge> 
         if (size == 0) {
             return true;
         }
-        LOG.info("InAlgoPathValidator: partialPath size: {} new edge {} previous edge {}",
+        LOG.debug("InAlgoPathValidator: partialPath size: {} prev edge {} new edge {}",
             size, edge.link().getlinkType(), partialPath.getEdgeList().get(size - 1).link().getlinkType());
+
         return (checkTurn(partialPath.getEdgeList().get(size - 1).link().getlinkType(), edge.link().getlinkType()));
     }
 
@@ -67,6 +68,8 @@ public class InAlgoPathValidator implements PathValidator<String, PceGraphEdge> 
             LOG.debug(IN_CHECK_PATH_DROPPED_MSG, prevType, nextType);
             return false;
         }
+
         return true;
     }
 }
+

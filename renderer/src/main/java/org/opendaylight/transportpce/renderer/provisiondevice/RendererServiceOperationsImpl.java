@@ -48,8 +48,8 @@ import org.opendaylight.transportpce.renderer.provisiondevice.tasks.RollbackProc
 import org.opendaylight.transportpce.renderer.provisiondevice.tasks.RollbackResultMessage;
 import org.opendaylight.transportpce.renderer.provisiondevice.transaction.history.History;
 import org.opendaylight.transportpce.renderer.provisiondevice.transaction.history.TransactionHistory;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.device.renderer.rev260212.Action;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.device.renderer.rev260212.OtnServicePathInput;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.device.renderer.rev251001.Action;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.device.renderer.rev251001.OtnServicePathInput;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev250902.OtnLinkType;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev210618.GetPm;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev210618.GetPmInputBuilder;
@@ -58,8 +58,6 @@ import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev21
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev210618.ServicePowerSetupInput;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev210618.ServicePowerTurndown;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev210618.get.pm.output.Measurements;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mapping.Mapping;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mapping.MappingKey;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.renderer.rev210915.ServiceDeleteInput;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.renderer.rev210915.ServiceDeleteOutput;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.renderer.rev210915.ServiceImplementationRequestInput;
@@ -69,19 +67,19 @@ import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.renderer.
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.renderer.rev210915.renderer.rpc.result.sp.Link;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.renderer.rev210915.renderer.rpc.result.sp.LinkBuilder;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.types.rev191129.NodeTypes;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.resource.types.rev181019.ResourceTypeEnum;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.format.rev250530.ServiceFormat;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.service.list.Services;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.PathDescription;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.resource.types.rev161014.ResourceTypeEnum;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.format.rev191129.ServiceFormat;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250110.service.list.Services;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev230501.PathDescription;
 import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.RpcStatusEx;
 import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.ServicePathNotificationTypes;
 import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.servicepath.rev171017.ServicePathList;
 import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.servicepath.rev171017.service.path.list.ServicePaths;
 import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.servicepath.rev171017.service.path.list.ServicePathsKey;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.common.types.rev260707.PmGranularity;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.common.types.rev260707.link.tp.LinkTp;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.common.types.rev260707.olm.get.pm.input.ResourceIdentifierBuilder;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.common.types.rev260707.optical.renderer.nodes.Nodes;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.common.types.rev251022.PmGranularity;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.common.types.rev251022.link.tp.LinkTp;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.common.types.rev251022.olm.get.pm.input.ResourceIdentifierBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.common.types.rev251022.optical.renderer.nodes.Nodes;
 import org.opendaylight.yangtools.binding.DataObjectIdentifier;
 import org.opendaylight.yangtools.yang.common.Uint32;
 import org.osgi.service.component.annotations.Activate;
@@ -148,7 +146,7 @@ public class RendererServiceOperationsImpl implements RendererServiceOperations 
                     "Service compliant, submitting service implementation Request ...");
                 Uint32 serviceRate = getServiceRate(input);
                 LOG.info("Using {}G rate", serviceRate);
-                org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612
+                org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905
                         .network.Nodes mappingNode =
                     portMapping.isNodeExist(input.getServiceAEnd().getNodeId())
                         ? portMapping.getNode(input.getServiceAEnd().getNodeId())
@@ -157,9 +155,6 @@ public class RendererServiceOperationsImpl implements RendererServiceOperations 
                 if (mappingNode != null && mappingNode.getDatamodelType() != null
                         && mappingNode.getDatamodelType().getName().equals("OPENCONFIG")) {
                     isOpenConfig = true;
-                    Map<MappingKey, Mapping> mapping = mappingNode.getMapping();
-                    Set<Map.Entry<MappingKey, Mapping>> entries = mapping.entrySet();
-                    entries.forEach(e -> e.getValue().getSupportedOperationalMode());
                 }
                 String serviceType = "";
                 //TODO: OpenConfig check can be removed if additional info is added in the OC
@@ -172,15 +167,13 @@ public class RendererServiceOperationsImpl implements RendererServiceOperations 
                     serviceType = ServiceTypes.getServiceType(
                         input.getServiceAEnd().getServiceFormat().getName(),
                         serviceRate,
-                        mappingNode != null && NodeTypes.Xpdr.getName().equals(mappingNode.getNodeInfo()
-                                .getNodeType().getName())
+                        mappingNode != null && NodeTypes.Xpdr.equals(mappingNode.getNodeInfo().getNodeType())
                             && input.getServiceAEnd().getTxDirection() != null
                             && input.getServiceAEnd().getTxDirection().getPort() != null
                             && input.getServiceAEnd().getTxDirection().getPort().getPortName() != null
                         ? portMapping.getMapping(input.getServiceAEnd().getNodeId(),
                             input.getServiceAEnd().getTxDirection().getPort().getPortName())
-                        : null,
-                        null
+                        : null
                     );
                 }
                 //TODO a Map might be more indicated here
@@ -251,7 +244,7 @@ public class RendererServiceOperationsImpl implements RendererServiceOperations 
                             .createServiceDeleteResponse(ResponseCodes.RESPONSE_FAILED, OPERATION_FAILED);
                 }
                 PathDescription pathDescription = pathDescriptionOpt.orElseThrow();
-                org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612
+                org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905
                         .network.Nodes mappingNode =
                         portMapping.isNodeExist(service.getServiceAEnd().getNodeId().getValue())
                                 ? portMapping.getNode(service.getServiceAEnd().getNodeId().getValue())
@@ -279,8 +272,7 @@ public class RendererServiceOperationsImpl implements RendererServiceOperations 
                                     .orElseThrow().getPort().getPortName() == null
                                     ? null : portMapping.getMapping(service.getServiceAEnd().getNodeId().getValue(),
                                     service.getServiceAEnd().getTxDirection().values().stream().findFirst()
-                                            .orElseThrow().getPort().getPortName()),
-                             null);
+                                            .orElseThrow().getPort().getPortName()));
                 }
                 switch (serviceType) {
                     case StringConstants.SERVICE_TYPE_100GE_T:
@@ -527,7 +519,7 @@ public class RendererServiceOperationsImpl implements RendererServiceOperations 
             LOG.info("For temp-service create OLM is not computed and skipped");
             return new ArrayList<>();
         }
-        LOG.info("Olm power setup A-Z powerSetUpInputAtoZ = {}", powerSetupInputAtoZ);
+        LOG.info("Olm power setup A-Z");
         sendNotifications(
                 ServicePathNotificationTypes.ServiceImplementationRequest,
                 powerSetupInputAtoZ.getServiceName(),
@@ -537,10 +529,10 @@ public class RendererServiceOperationsImpl implements RendererServiceOperations 
                 this.executor.submit(
                     new OlmPowerSetupTask(rpcService.getRpc(ServicePowerSetup.class), powerSetupInputAtoZ));
 
-        LOG.info("Olm power setup Z-A powerSetUpInputZtoA = {}", powerSetupInputZtoA);
+        LOG.info("OLM power setup Z-A");
         sendNotifications(
                 ServicePathNotificationTypes.ServiceImplementationRequest,
-                powerSetupInputZtoA.getServiceName(),
+                powerSetupInputAtoZ.getServiceName(),
                 RpcStatusEx.Pending,
                 "Olm power setup Z-A");
         ListenableFuture<OLMRenderingResult> olmPowerSetupFutureZtoA =
@@ -583,7 +575,7 @@ public class RendererServiceOperationsImpl implements RendererServiceOperations 
             justification = "call in call() method")
     private boolean isServiceActivated(String nodeId, String tpId) {
         LOG.info("Starting service activation test on node {} and tp {}", nodeId, tpId);
-        if (!NodeTypes.Xpdr.getName().equals(portMapping.getNode(nodeId).getNodeInfo().getNodeType().getName())) {
+        if (!NodeTypes.Xpdr.equals(portMapping.getNode(nodeId).getNodeInfo().getNodeType())) {
             LOG.info("Device {} is not xponder, can't verify PreFEC", nodeId);
             return true;
         }
@@ -668,7 +660,7 @@ public class RendererServiceOperationsImpl implements RendererServiceOperations 
         justification = "call in call() method")
     private boolean manageServicePathCreation(ServiceImplementationRequestInput input, String serviceType,
                                               boolean isTempService) {
-        org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.network.Nodes
+        org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905.network.Nodes
                 mappingNode = portMapping.isNodeExist(input.getServiceAEnd().getNodeId())
                 ? portMapping.getNode(input.getServiceAEnd().getNodeId())
                 : null;
@@ -687,20 +679,22 @@ public class RendererServiceOperationsImpl implements RendererServiceOperations 
         // TODO:The existing openconfig renderer support is for a back to back XPDR usecase and there were no specific
         //      power up/down sequence recommended by NEC documentation for enabling/disabling datapath for XPDRs.
         //      We can look at enhancing this in a future update.
-        List<OLMRenderingResult> olmRenderingResults = olmPowerSetup(
-                rollbackProcessor,
-                //olmPowerSetupInputAtoZ,
-                ModelMappingUtils.createServicePowerSetupInput(renderingResults.get(0).getOlmList(), input),
-                //olmPowerSetupInputZtoA
-                ModelMappingUtils.createServicePowerSetupInput(renderingResults.get(1).getOlmList(), input),
-                isTempService);
-        if (rollbackProcessor.rollbackAllIfNecessary() > 0 || renderingResults.isEmpty()) {
-            sendNotifications(
-                    ServicePathNotificationTypes.ServiceImplementationRequest,
-                    input.getServiceName(),
-                    RpcStatusEx.Failed,
-                    olmResultMessage(olmRenderingResults));
-            return false;
+        if (!isOpenConfig) {
+            List<OLMRenderingResult> olmRenderingResults = olmPowerSetup(
+                    rollbackProcessor,
+                    //olmPowerSetupInputAtoZ,
+                    ModelMappingUtils.createServicePowerSetupInput(renderingResults.get(0).getOlmList(), input),
+                    //olmPowerSetupInputZtoA
+                    ModelMappingUtils.createServicePowerSetupInput(renderingResults.get(1).getOlmList(), input),
+                    isTempService);
+            if (rollbackProcessor.rollbackAllIfNecessary() > 0 || renderingResults.isEmpty()) {
+                sendNotifications(
+                        ServicePathNotificationTypes.ServiceImplementationRequest,
+                        input.getServiceName(),
+                        RpcStatusEx.Failed,
+                        olmResultMessage(olmRenderingResults));
+                return false;
+            }
         }
         if (rollbackProcessor.rollbackAllIfNecessary() > 0 || renderingResults.isEmpty()) {
             sendNotifications(
@@ -793,8 +787,8 @@ public class RendererServiceOperationsImpl implements RendererServiceOperations 
                 LOG.error("Error while turning down power!");
                 return false;
             }
-            LOG.info("OLM power successfully turned down!");
         }
+        LOG.info("OLM power successfully turned down!");
         // delete service path with renderer
         LOG.info("Deleting service path via renderer");
         sendNotifications(

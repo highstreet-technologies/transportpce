@@ -21,7 +21,8 @@ import test_utils  # nopep8
 # Basic NetCONF device operations for openconfig
 #
 
-def metadata_input_oc200():
+
+def metadata_input():
     url = {'rfc8040': '{}/data/open-terminal-meta-data:open-terminal-meta-data',
            'draft-bierman02': '{}/config/data/open-terminal-meta-data:open-terminal-meta-data'}
     body = {
@@ -29,7 +30,7 @@ def metadata_input_oc200():
             "transceiver-info": {
                 "transceiver": [
                     {
-                        "part-no": "OD-PPAC48D10001",
+                        "part-no": "Transceiver-part-1",
                         "operational-modes": {
                             "operational-mode": [
                                 {
@@ -44,12 +45,12 @@ def metadata_input_oc200():
                                 "interface-sequence": [
                                     {
                                         "position": 1,
-                                        "interface-type": "PROT_OTUCN",
+                                        "interface-type": "openconfig-transport-types:PROT_OTUCN",
                                         "max-interfaces": 1
                                     },
                                     {
                                         "position": 2,
-                                        "interface-type": "PROT_ODUCN",
+                                        "interface-type": "openconfig-transport-types:PROT_ODUCN",
                                         "max-interfaces": 1
                                     }
                                 ]
@@ -57,35 +58,7 @@ def metadata_input_oc200():
                         ]
                     },
                     {
-                        "part-no": "Line transceiver (Linecard 1, CFP2 transceiver 1)",
-                        "operational-modes": {
-                            "operational-mode": [
-                                {
-                                    "mode-id": 1,
-                                    "catalog-id": "4308",
-                                    "rate": "400"
-                                }
-                            ]
-                        },
-                        "supported-interface-capability": [
-                            {
-                                "interface-sequence": [
-                                    {
-                                        "position": 1,
-                                        "interface-type": "PROT_OTUCN",
-                                        "max-interfaces": 1
-                                    },
-                                    {
-                                        "position": 2,
-                                        "interface-type": "PROT_ODUCN",
-                                        "max-interfaces": 1
-                                    }
-                                ]
-                            }
-                        ]
-                    },
-                    {
-                        "part-no": "Client transceiver (Linecard 1, QSFP28 transceiver 1)",
+                        "part-no": "Transceiver-client-part-1",
                         "operational-modes": {
                             "operational-mode": [
                                 {
@@ -100,12 +73,12 @@ def metadata_input_oc200():
                                 "interface-sequence": [
                                     {
                                         "position": 1,
-                                        "interface-type": "PROT_100GE",
+                                        "interface-type": "openconfig-transport-types:PROT_100GE",
                                         "max-interfaces": 1
                                     },
                                     {
                                         "position": 2,
-                                        "interface-type": "PROT_ODU4",
+                                        "interface-type": "openconfig-transport-types:PROT_ODU4",
                                         "max-interfaces": 1
                                     }
                                 ]
@@ -117,58 +90,33 @@ def metadata_input_oc200():
             "line-card-info": {
                 "line-card": [
                     {
-                        "part-no": "Line card component 1",
+                        "part-no": "Linecard component (4 x 400G CFP2-DC + 4 x 100GbE QSFP28 Ports)",
                         "xpdr-type": "MPDR",
                         "supported-port": [
                             {
                                 "id": 1,
-                                "component-name": "linecard-[0-9]{1,2}-client-port-1",
-                                "type": "TERMINAL_CLIENT"
+                                "component-name": "client-qsfp-1",
+                                "type": "openconfig-transport-types:TERMINAL_CLIENT"
                             },
                             {
                                 "id": 2,
-                                "component-name": "linecard-[0-9]{1,2}-client-port-2",
-                                "type": "TERMINAL_CLIENT"
+                                "component-name": "client-qsfp-2",
+                                "type": "openconfig-transport-types:TERMINAL_CLIENT"
                             },
                             {
                                 "id": 3,
-                                "component-name": "linecard-[0-9]{1,2}-client-port-3",
-                                "type": "TERMINAL_CLIENT"
+                                "component-name": "client-qsfp-3",
+                                "type": "openconfig-transport-types:TERMINAL_CLIENT"
                             },
                             {
                                 "id": 4,
-                                "component-name": "linecard-[0-9]{1,2}-client-port-4",
-                                "type": "TERMINAL_CLIENT"
+                                "component-name": "client-qsfp-4",
+                                "type": "openconfig-transport-types:TERMINAL_CLIENT"
                             },
                             {
                                 "id": 5,
-                                "component-name": "linecard-[0-9]{1,2}-client-port-5",
-                                "type": "TERMINAL_CLIENT"
-                            },
-                            {
-                                "id": 6,
-                                "component-name": "linecard-[0-9]{1,2}-client-port-6",
-                                "type": "TERMINAL_CLIENT"
-                            },
-                            {
-                                "id": 7,
-                                "component-name": "linecard-[0-9]{1,2}-client-port-7",
-                                "type": "TERMINAL_CLIENT"
-                            },
-                            {
-                                "id": 8,
-                                "component-name": "linecard-[0-9]{1,2}-client-port-8",
-                                "type": "TERMINAL_CLIENT"
-                            },
-                            {
-                                "id": 9,
-                                "component-name": "linecard-[0-9]{1,2}-line-port-1",
-                                "type": "TERMINAL_LINE"
-                            },
-                            {
-                                "id": 10,
-                                "component-name": "linecard-[0-9]{1,2}-line-port-2",
-                                "type": "TERMINAL_LINE"
+                                "component-name": "line-cfp2-1",
+                                "type": "openconfig-transport-types:TERMINAL_LINE"
                             }
                         ],
                         "switch-fabric": [
@@ -178,74 +126,30 @@ def metadata_input_oc200():
                                 "non-blocking-list": [
                                     {
                                         "nbl-id": 1,
-                                        "interconnect-bandwidth-unit": 1000000000,
-                                        "interconnect-bandwidth": 100,
                                         "connectable-port": [
-                                            9,
+                                            5,
                                             1
                                         ]
                                     },
                                     {
                                         "nbl-id": 2,
-                                        "interconnect-bandwidth-unit": 1000000000,
-                                        "interconnect-bandwidth": 100,
                                         "connectable-port": [
-                                            9,
+                                            5,
                                             2
                                         ]
                                     },
                                     {
                                         "nbl-id": 3,
-                                        "interconnect-bandwidth-unit": 1000000000,
-                                        "interconnect-bandwidth": 100,
                                         "connectable-port": [
-                                            9,
+                                            5,
                                             3
                                         ]
                                     },
                                     {
                                         "nbl-id": 4,
-                                        "interconnect-bandwidth-unit": 1000000000,
-                                        "interconnect-bandwidth": 100,
                                         "connectable-port": [
-                                            9,
+                                            5,
                                             4
-                                        ]
-                                    },
-                                    {
-                                        "nbl-id": 5,
-                                        "interconnect-bandwidth-unit": 1000000000,
-                                        "interconnect-bandwidth": 100,
-                                        "connectable-port": [
-                                            10,
-                                            5
-                                        ]
-                                    },
-                                    {
-                                        "nbl-id": 6,
-                                        "interconnect-bandwidth-unit": 1000000000,
-                                        "interconnect-bandwidth": 100,
-                                        "connectable-port": [
-                                            10,
-                                            6
-                                        ]
-                                    },
-                                    {
-                                        "nbl-id": 7,
-                                        "interconnect-bandwidth-unit": 1000000000,
-                                        "interconnect-bandwidth": 100,
-                                        "connectable-port": [
-                                            10,
-                                            7
-                                        ]
-                                    },
-                                    {
-                                        "nbl-id": 8,
-                                        "interconnect-bandwidth-unit": 1000000000,
-                                        "interconnect-bandwidth": 100,
-                                        "connectable-port": [
-                                            10,
-                                            8
                                         ]
                                     }
                                 ]
@@ -260,16 +164,15 @@ def metadata_input_oc200():
     return response
 
 
-def catalog_input_oc200():
-    """OC 2.0 specific operational mode catalog with 25GHz slot granularity compatibility."""
+def catlog_input():
     url = {'rfc8040': '{}/operations/org-openroadm-service:add-specific-operational-modes-to-catalog',
            'draft-bierman02': '{}/config/operations/org-openroadm-service:add-specific-operational-modes-to-catalog'}
     body = {
         "input": {
             "sdnc-request-header": {
-                "request-id": "load-specific-OM-Catalog-OC200",
+                "request-id": "load-specific-OM-Catalog",
                 "rpc-action": "fill-catalog-with-specific-operational-modes",
-                "request-system-id": "test-oc200"
+                "request-system-id": "test"
             },
             "operational-mode-info": {
                 "specific-operational-modes": {
@@ -279,10 +182,10 @@ def catalog_input_oc200():
                             "baud-rate": "65.7",
                             "modulation-format": "dp-qam16",
                             "min-RX-osnr-tolerance": "23.000",
-                            "min-edge-frequency": "191.32500000",
-                            "max-edge-frequency": "196.12500000",
-                            "central-frequency-granularity": "6.25000",
-                            "min-channel-width": "37.50000",
+                            "min-central-frequency": "191.32500000",
+                            "max-central-frequency": "196.12500000",
+                            "central-frequency-granularity": "12.50000",
+                            "min-spacing": "37.50000",
                             "line-rate": "505.1",
                             "min-TX-osnr": "36.000",
                             "TX-OOB-osnr": {
@@ -297,7 +200,7 @@ def catalog_input_oc200():
                             },
                             "min-input-power-at-RX-osnr": "-14.000",
                             "max-input-power": "1.000",
-                            "channel-width": "75.00000",
+                            "channel-width": "75.72000",
                             "fec-type": "org-openroadm-common-types:ofec",
                             "min-roll-off": "0.05",
                             "max-roll-off": "0.20",

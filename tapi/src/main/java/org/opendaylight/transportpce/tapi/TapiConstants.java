@@ -23,16 +23,11 @@ public final class TapiConstants {
 
     public static final String TRANSITIONAL_LINK = "tapi-transitional-link";
     public static final String OMS_RDM_RDM_LINK = "tapi-rdm-rdm-link";
-    public static final String OTS_INTERDOMAIN_RDM_RDM_LINK = "tapi-interdomain-link";
-    public static final String OTS_XPDR_RDM_LINK = "xpdr-tapi-rdm-link";
-    public static final String OTS_RDM_XPDR_LINK = "tapi-xpdr-rdm-link";
+    public static final String OMS_XPDR_RDM_LINK = "tapi-xpdr-rdm-link";
     public static final String OTN_XPDR_XPDR_LINK = "tapi-otn-xpdr-xpdr-link";
-    public static final String VALUE_NAME_OTN_XPDR_XPDR_LINK = "OTN link name";
-    public static final String VALUE_NAME_OTS_XPDR_RDM_LINK = "xpdr to roadm link name";
-    public static final String VALUE_NAME_OTS_RDM_XPDR_LINK = "roadm to xpdr link name";
+    public static final String VALUE_NAME_OTN_XPDR_XPDR_LINK = "otn link name";
+    public static final String VALUE_NAME_OTS_XPDR_RDM_LINK = "Xpdr to roadm link";
     public static final String VALUE_NAME_OMS_RDM_RDM_LINK = "OMS link name";
-    public static final String VALUE_NAME_TRANSITIONAL_LINK = "transitional-link name";
-    public static final String VALUE_NAME_OPPOSITE_LINK_UUID = "opposite link UUID";
     public static final String VALUE_NAME_ROADM_NODE = "roadm node name";
     public static final String VALUE_NAME_XPDR_NODE = "dsr/odu node name";
     public static final String T0_MULTILAYER = "T0 - Multi-layer topology";
@@ -55,10 +50,6 @@ public final class TapiConstants {
     // ALIEN_XPDR_TAPI_TOPOLOGY_UUID = "4aedacb6-f830-3b3d-983a-a2de06bc373b"
     public static final Uuid ALIEN_XPDR_TAPI_TOPOLOGY_UUID = new Uuid(UUID.nameUUIDFromBytes(
         TapiConstants.ALIEN_XPDR_TAPI_TOPOLOGY.getBytes(Charset.forName("UTF-8"))).toString());
-    public static final Uuid SBISERVICENOTIFICATIONUUID = new Uuid(UUID.nameUUIDFromBytes(
-        "SBIServiceNotificationUuid".getBytes(Charset.forName("UTF-8"))).toString());
-    public static final Uuid SBINETWORKNOTIFICATIONUUID = new Uuid(UUID.nameUUIDFromBytes(
-        "SBINetworkNotificationUuid".getBytes(Charset.forName("UTF-8"))).toString());
 
     public static final String TPDR_100G = "Transponder 100GE";
     public static final String DSR = "DSR";
@@ -101,10 +92,10 @@ public final class TapiConstants {
             .build();
     public static final DataObjectIdentifier<TopologyContext> TAPI_TOPOLOGY_CONTEXT_II = DataObjectIdentifier.builder(
             Context.class).augmentation(Context1.class).child(TopologyContext.class).build();
-    public static final WithKey<Topology, TopologyKey> TAPI_TOPOLOGY_T0_FULL_IID = DataObjectIdentifier
-        .builder(Context.class).augmentation(Context1.class).child(TopologyContext.class)
-        .child(Topology.class, new TopologyKey(T0_FULL_MULTILAYER_UUID))
-        .build();
+    public static final WithKey<Topology, TopologyKey> TAPI_TOPOLOGY_II = DataObjectIdentifier.builder(Context.class)
+            .augmentation(Context1.class).child(TopologyContext.class).child(Topology.class,
+                new TopologyKey(T0_FULL_MULTILAYER_UUID))
+            .build();
 
     private TapiConstants() {
         // hiding the default constructor

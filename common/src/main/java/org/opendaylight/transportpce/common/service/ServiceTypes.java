@@ -10,7 +10,7 @@ package org.opendaylight.transportpce.common.service;
 
 import java.util.Map;
 import org.opendaylight.transportpce.common.StringConstants;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mapping.Mapping;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905.mapping.Mapping;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.types.rev191129.PortQual;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.types.rev191129.XpdrNodeTypes;
 import org.opendaylight.yangtools.yang.common.Uint32;
@@ -19,12 +19,11 @@ import org.slf4j.LoggerFactory;
 
 public final class ServiceTypes {
     private static final Logger LOG = LoggerFactory.getLogger(ServiceTypes.class);
-    private static final String TAPI_PCE_OPER_MODE = "T-API-PCE-Operation-Mode";
 
     private ServiceTypes() {
     }
 
-    public static String getServiceType(String serviceFormat, Uint32 serviceRate, Mapping mapping, String pceOperMode) {
+    public static String getServiceType(String serviceFormat, Uint32 serviceRate, Mapping mapping) {
 
         switch (serviceFormat) {
             case "OC":
@@ -51,17 +50,13 @@ public final class ServiceTypes {
                     if (mapping == null || !PortQual.SwitchClient.getName().equals(mapping.getPortQual())) {
                         return StringConstants.SERVICE_TYPE_100GE_T;
                     }
-                    if (mapping.getXpdrType() != null
-                            && XpdrNodeTypes.Switch.getName().equals(mapping.getXpdrType().getName())) {
+                    if (XpdrNodeTypes.Switch.equals(mapping.getXpdrType())) {
                         return StringConstants.SERVICE_TYPE_100GE_S;
                     }
                 }
                 return getOtnServiceType(serviceFormat, serviceRate);
 
             case "other":
-                if (Uint32.valueOf(100).equals(serviceRate) && (TAPI_PCE_OPER_MODE).equals(pceOperMode)) {
-                    return StringConstants.SERVICE_TYPE_100GE_S;
-                }
                 return StringConstants.SERVICE_TYPE_OTHER;
             //case "ODU":
             //case "OTU":

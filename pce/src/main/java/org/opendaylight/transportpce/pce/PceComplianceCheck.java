@@ -62,8 +62,8 @@ public final class PceComplianceCheck {
 
             Factory inputValidationFactory = new ValidInputFactory();
             Valid validInput = inputValidationFactory.instantiate(
-                    GridConstant.START_EDGE_FREQUENCY_THZ,
-                    GridConstant.CENTRAL_FREQUENCY_THZ,
+                    GridConstant.START_EDGE_FREQUENCY,
+                    GridConstant.CENTRAL_FREQUENCY,
                     GridConstant.GRANULARITY,
                     12.5,
                     GridConstant.EFFECTIVE_BITS

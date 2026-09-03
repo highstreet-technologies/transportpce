@@ -47,9 +47,4 @@ public class FrequencyRangeFactory implements RangeFactory {
         return sortedRange;
 
     }
-
-    @Override
-    public Range empty() {
-        return new SortedRange();
-    }
 }

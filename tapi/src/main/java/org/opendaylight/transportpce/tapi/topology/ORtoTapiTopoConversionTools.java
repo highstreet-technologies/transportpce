@@ -7,10 +7,10 @@
  */
 package org.opendaylight.transportpce.tapi.topology;
 
-import com.google.common.annotations.VisibleForTesting;
 import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -28,30 +28,36 @@ import org.opendaylight.transportpce.tapi.frequency.Factory;
 import org.opendaylight.transportpce.tapi.frequency.Frequency;
 import org.opendaylight.transportpce.tapi.frequency.TeraHertz;
 import org.opendaylight.transportpce.tapi.frequency.TeraHertzFactory;
+import org.opendaylight.transportpce.tapi.frequency.grid.Available;
+import org.opendaylight.transportpce.tapi.frequency.grid.AvailableGrid;
 import org.opendaylight.transportpce.tapi.frequency.grid.FrequencyMath;
+import org.opendaylight.transportpce.tapi.frequency.grid.Numeric;
 import org.opendaylight.transportpce.tapi.frequency.grid.NumericFrequency;
 import org.opendaylight.transportpce.tapi.frequency.range.FrequencyRangeFactory;
-import org.opendaylight.transportpce.tapi.openroadm.topology.terminationpoint.spectrum.DefaultOpenRoadmSpectrumRangeExtractor;
-import org.opendaylight.transportpce.tapi.openroadm.topology.terminationpoint.spectrum.DefaultTapiSpectrumCapabilityPacFactory;
-import org.opendaylight.transportpce.tapi.openroadm.topology.terminationpoint.spectrum.OpenRoadmSpectrumRangeExtractor;
-import org.opendaylight.transportpce.tapi.openroadm.topology.terminationpoint.spectrum.TapiSpectrumCapabilityPacFactory;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.TerminationPoint1;
+import org.opendaylight.transportpce.tapi.frequency.range.Range;
+import org.opendaylight.transportpce.tapi.frequency.range.RangeFactory;
+import org.opendaylight.transportpce.tapi.frequency.range.SortedRange;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250110.TerminationPoint1;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.state.types.rev191129.State;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.degree.rev250110.degree.used.wavelengths.UsedWavelengths;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.degree.rev250110.degree.used.wavelengths.UsedWavelengthsKey;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.equipment.states.types.rev191129.AdminStates;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.types.rev250530.xpdr.odu.switching.pools.OduSwitchingPools;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.types.rev250530.xpdr.odu.switching.pools.OduSwitchingPoolsBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.types.rev250530.xpdr.odu.switching.pools.OduSwitchingPoolsKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.types.rev250530.xpdr.odu.switching.pools.odu.switching.pools.NonBlockingList;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.types.rev250530.xpdr.odu.switching.pools.odu.switching.pools.NonBlockingListBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.types.rev250530.xpdr.odu.switching.pools.odu.switching.pools.NonBlockingListKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.OpenroadmNodeType;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.OpenroadmTpType;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.available.freq.map.AvailFreqMaps;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.available.freq.map.AvailFreqMapsBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.xpdr.tp.supported.interfaces.SupportedInterfaceCapability;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.network.topology.rev250530.Node1;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250110.networks.network.node.termination.point.PpAttributes;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250110.networks.network.node.termination.point.TxTtpAttributes;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250110.networks.network.node.termination.point.XpdrNetworkAttributes;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.types.rev250110.xpdr.odu.switching.pools.OduSwitchingPools;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.types.rev250110.xpdr.odu.switching.pools.OduSwitchingPoolsBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.types.rev250110.xpdr.odu.switching.pools.OduSwitchingPoolsKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.types.rev250110.xpdr.odu.switching.pools.odu.switching.pools.NonBlockingList;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.types.rev250110.xpdr.odu.switching.pools.odu.switching.pools.NonBlockingListBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.types.rev250110.xpdr.odu.switching.pools.odu.switching.pools.NonBlockingListKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250110.OpenroadmNodeType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250110.OpenroadmTpType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250110.available.freq.map.AvailFreqMapsKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250110.xpdr.tp.supported.interfaces.SupportedInterfaceCapability;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.network.topology.rev250110.Node1;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.switching.pool.types.rev191129.SwitchingPoolTypes;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.xponder.rev250530.xpdr.mode.attributes.supported.operational.modes.OperationalModeKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.xponder.rev250110.xpdr.mode.attributes.supported.operational.modes.OperationalModeKey;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.networks.network.Node;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.TpId;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.networks.network.node.TerminationPoint;
@@ -61,7 +67,6 @@ import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.Dire
 import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.LAYERPROTOCOLQUALIFIER;
 import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.LayerProtocolName;
 import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.LifecycleState;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.NameAndValue;
 import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.OperationalState;
 import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.PortRole;
 import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.Uuid;
@@ -97,7 +102,6 @@ import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.digital.otn.rev221121
 import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.dsr.rev221121.DIGITALSIGNALTYPE100GigE;
 import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.dsr.rev221121.DIGITALSIGNALTYPE10GigELAN;
 import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.dsr.rev221121.DIGITALSIGNALTYPEGigE;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.photonic.media.rev221121.ConnectionEndPoint2;
 import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.photonic.media.rev221121.ConnectionEndPoint2Builder;
 import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.photonic.media.rev221121.PHOTONICLAYERQUALIFIERMC;
 import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.photonic.media.rev221121.PHOTONICLAYERQUALIFIEROMS;
@@ -107,7 +111,6 @@ import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.photonic.media.rev221
 import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.photonic.media.rev221121.context.topology.context.topology.node.owned.node.edge.point.PhotonicMediaNodeEdgePointSpec;
 import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.photonic.media.rev221121.context.topology.context.topology.node.owned.node.edge.point.PhotonicMediaNodeEdgePointSpecBuilder;
 import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.photonic.media.rev221121.context.topology.context.topology.node.owned.node.edge.point.cep.list.connection.end.point.OtsMediaConnectionEndPointSpec;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.photonic.media.rev221121.photonic.media.node.edge.point.spec.SpectrumCapabilityPac;
 import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.photonic.media.rev221121.photonic.media.node.edge.point.spec.SpectrumCapabilityPacBuilder;
 import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.photonic.media.rev221121.spectrum.capability.pac.AvailableSpectrum;
 import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.photonic.media.rev221121.spectrum.capability.pac.AvailableSpectrumBuilder;
@@ -190,10 +193,10 @@ public class ORtoTapiTopoConversionTools {
     private Map<LinkKey, Link> tapiLinks;
     private Map<ServiceInterfacePointKey, ServiceInterfacePoint> tapiSips;
     private Map<String, Uuid> uuidMap;
+    private final Numeric numericFrequency;
     private Map<InterRuleGroupKey, InterRuleGroup> irgMap;
+    private final RangeFactory rangeFactory;
     private final Factory frequencyFactory;
-    private final TapiSpectrumCapabilityPacFactory tapiSpectrumCapabilityPacFactory;
-    private final OpenRoadmSpectrumRangeExtractor openRoadmSpectrumRangeExtractor;
 
     static {
         OPMODE_LOOPRATE_MAP = new TreeMap<>(Comparator.reverseOrder());
@@ -276,38 +279,25 @@ public class ORtoTapiTopoConversionTools {
     public ORtoTapiTopoConversionTools(Uuid tapiTopoUuid) {
         this(
                 tapiTopoUuid,
-                new TeraHertzFactory(),
-                new DefaultTapiSpectrumCapabilityPacFactory(new TeraHertzFactory()),
-                new DefaultOpenRoadmSpectrumRangeExtractor(
-                        new NumericFrequency(
-                                GridConstant.START_EDGE_FREQUENCY_THZ,
-                                GridConstant.EFFECTIVE_BITS,
-                                new FrequencyMath()
-                        ),
-                        new TeraHertzFactory(),
-                        new FrequencyRangeFactory()
-                )
+                new NumericFrequency(
+                        GridConstant.START_EDGE_FREQUENCY,
+                        GridConstant.EFFECTIVE_BITS,
+                        new FrequencyMath()
+                ),
+                new FrequencyRangeFactory(),
+                new TeraHertzFactory()
         );
     }
 
     /**
-     * Creates a conversion helper for building TAPI topology objects from OpenROADM topology data.
-     *
-     * @param tapiTopoUuid
-     *     UUID of the generated TAPI topology, used when building identifiers
-     * @param frequencyFactory
-     *     factory for creating {@link org.opendaylight.transportpce.tapi.frequency.Frequency} instances
-     * @param tapiSpectrumCapabilityPacFactory
-     *     factory for building TAPI {@code SpectrumCapabilityPac} instances from extracted spectrum ranges
-     * @param openRoadmSpectrumRangeExtractor
-     *     component responsible for extracting occupied/available spectrum ranges from OpenROADM termination points
+     * Instantiate an ORToTapiTopoConversionFactory Object.
+     * @param tapiTopoUuid Uuid of the generated topology used in Builders.
+     * @param numericFrequency NumericFrequency instance facilitating the management of the flex grid.
+     * @param rangeFactory Simplifies creation of frequency ranges.
+     * @param frequencyFactory Simplifies creation of Frequency objects.
      */
-    public ORtoTapiTopoConversionTools(
-            Uuid tapiTopoUuid,
-            Factory frequencyFactory,
-            TapiSpectrumCapabilityPacFactory tapiSpectrumCapabilityPacFactory,
-            OpenRoadmSpectrumRangeExtractor openRoadmSpectrumRangeExtractor) {
-
+    public ORtoTapiTopoConversionTools(Uuid tapiTopoUuid, Numeric numericFrequency, RangeFactory rangeFactory,
+            Factory frequencyFactory) {
         this.tapiTopoUuid = tapiTopoUuid;
         this.tapiNodes = new HashMap<>();
         this.tapiLinks = new HashMap<>();
@@ -315,9 +305,9 @@ public class ORtoTapiTopoConversionTools {
         this.tapiSips = new HashMap<>();
         this.oorOduSwitchingPool = new HashMap<>();
         this.irgMap = new HashMap<>();
+        this.numericFrequency = numericFrequency;
+        this.rangeFactory = rangeFactory;
         this.frequencyFactory = frequencyFactory;
-        this.tapiSpectrumCapabilityPacFactory = tapiSpectrumCapabilityPacFactory;
-        this.openRoadmSpectrumRangeExtractor =  openRoadmSpectrumRangeExtractor;
     }
 
     /**
@@ -328,7 +318,7 @@ public class ORtoTapiTopoConversionTools {
     public void convertNode(Node ietfNode, List<String> networkPorts) {
         this.ietfNodeId = ietfNode.getNodeId().getValue();
         var ietfAug =
-            ietfNode.augmentation(org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.Node1.class);
+            ietfNode.augmentation(org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250110.Node1.class);
         if (ietfAug == null) {
             return;
         }
@@ -666,11 +656,10 @@ public class ORtoTapiTopoConversionTools {
             OperationalState operState, AdministrativeState adminState) {
         // add them to SIP context
         Map<MappedServiceInterfacePointKey, MappedServiceInterfacePoint> msipl = new HashMap<>();
-        LOG.info("Creating {} SIPs for node {}", nb, nodeid);
         for (int i = 0; i < nb; i++) {
             String sipName = nb == 1 ? String.join("+", "SIP", nodeid, tpId)
                     : String.join("+", "SIP", nodeid, tpId, "Nber", String.valueOf(i));
-            LOG.info("Creating SIP {}/{} with name {}", i + 1, nb, sipName);
+            LOG.info("SIP = {}", sipName);
             Uuid sipUuid = new Uuid(UUID.nameUUIDFromBytes(sipName.getBytes(StandardCharsets.UTF_8)).toString());
             MappedServiceInterfacePoint msip =
                 new MappedServiceInterfacePointBuilder().setServiceInterfacePointUuid(sipUuid).build();
@@ -775,8 +764,7 @@ public class ORtoTapiTopoConversionTools {
             .setCapacity(
                 new CapacityBuilder()
                     .setUnit(CAPACITYUNITGBPS.VALUE)
-                    //.setValue(Decimal64.valueOf((rate * (isProvisioned ? 0 : 1)), RoundingMode.DOWN))
-                    .setValue(Decimal64.valueOf(rate, RoundingMode.DOWN))
+                    .setValue(Decimal64.valueOf((rate * (isProvisioned ? 0 : 1)), RoundingMode.DOWN))
                     .build())
             .build());
 
@@ -903,18 +891,15 @@ public class ORtoTapiTopoConversionTools {
      */
     public ConnectionEndPoint createCepRoadm(int lowerFreqIndex, int higherFreqIndex, String id, String qualifier,
         OtsMediaConnectionEndPointSpec omCepSpec, boolean srg) {
-        LOG.info("Create CEP for id {}, Lower/Higher freq index: {}-{})", id, lowerFreqIndex, higherFreqIndex);
-
         String nepId = String.join("+", id.split("\\+")[0], qualifier, id.split("\\+")[1]);
         String nodeNepId = String.join("+",id.split("\\+")[0], TapiConstants.PHTNC_MEDIA);
         String extendedNepId = lowerFreqIndex == 0 && higherFreqIndex == 0
             ? nepId
             : String.join("-",nepId, ("[" + lowerFreqIndex + "-" + higherFreqIndex + "]"));
-        String cepNameValue = String.join("+", "CEP", extendedNepId);
-        LOG.debug("NEP id: {}, with CEP id: {}", nepId, cepNameValue);
+        LOG.info("NEP = {}", nepId);
         Name cepName = new NameBuilder()
             .setValueName("ConnectionEndPoint name")
-            .setValue(cepNameValue)
+            .setValue(String.join("+", "CEP", extendedNepId))
             .build();
         ParentNodeEdgePoint pnep = new ParentNodeEdgePointBuilder()
             .setNodeEdgePointUuid(new Uuid(UUID.nameUUIDFromBytes(
@@ -959,7 +944,7 @@ public class ORtoTapiTopoConversionTools {
         ConnectionEndPoint2Builder cep2builder = new ConnectionEndPoint2Builder();
         ConnectionEndPointBuilder cepBldr = new ConnectionEndPointBuilder()
             .setUuid(new Uuid(UUID.nameUUIDFromBytes(
-                    cepNameValue.getBytes(StandardCharsets.UTF_8))
+                    (String.join("+", "CEP", extendedNepId)).getBytes(StandardCharsets.UTF_8))
                 .toString()))
             .setParentNodeEdgePoint(pnep)
             .setName(Map.of(cepName.key(), cepName))
@@ -972,10 +957,8 @@ public class ORtoTapiTopoConversionTools {
             case TapiConstants.PHTNC_MEDIA_OTS:
                 cepBldr.setLayerProtocolQualifier(PHOTONICLAYERQUALIFIEROTS.VALUE);
                 if (omCepSpec != null) {
-                    ConnectionEndPoint2 augmentation = cep2builder.setOtsMediaConnectionEndPointSpec(omCepSpec).build();
-                    LOG.debug("Connection endpoint OTS augmentation: {}", augmentation);
-                    cepBldr.addAugmentation(augmentation);
-                    LOG.info("Added OTS augmentation to CEP {}", connectionEndPointName(cepBldr.getName()));
+                    cepBldr.addAugmentation(cep2builder.setOtsMediaConnectionEndPointSpec(omCepSpec).build());
+                    LOG.info("In ConverTORToTapiTopology LINE599, add Augment to cep {}", cepBldr.build());
                 }
                 break;
             case TapiConstants.PHTNC_MEDIA_OMS:
@@ -994,22 +977,6 @@ public class ORtoTapiTopoConversionTools {
         return TapiConstants.OTSI_MC.equals(qualifier)
             ? cepBldr.build()
             : cepBldr.setClientNodeEdgePoint(Map.of(cnep.key(), cnep)).build();
-    }
-
-    /**
-     * Extracts all CEP name values from the provided TAPI name map.
-     *
-     * @param name map of {@link NameKey} to {@link Name}
-     * @return a String of comma separated names (may be empty)
-     */
-    String connectionEndPointName(Map<NameKey, Name> name) {
-        Set<String> names = name
-                .values()
-                .stream()
-                .map(NameAndValue::getValue)
-                .collect(Collectors.toSet());
-
-        return String.join(", ", names);
     }
 
     public ConnectionEndPoint createOTSCepXpdr(String nepId) {
@@ -1049,8 +1016,7 @@ public class ORtoTapiTopoConversionTools {
             .setDirection(Direction.BIDIRECTIONAL)
             .setOperationalState(OperationalState.ENABLED)
             .setLifecycleState(LifecycleState.INSTALLED)
-            .setLayerProtocolName(LayerProtocolName.PHOTONICMEDIA)
-            .setLayerProtocolQualifier(PHOTONICLAYERQUALIFIEROTS.VALUE);
+            .setLayerProtocolName(LayerProtocolName.PHOTONICMEDIA);
         return cepBldr.setClientNodeEdgePoint(Map.of(cnep.key(), cnep)).build();
     }
 
@@ -1099,24 +1065,292 @@ public class ORtoTapiTopoConversionTools {
                     .build());
             }
         }
-        if (key.contains(TapiConstants.OTSI_MC)) {
-            sclpqiList = sclpqiList.stream()
-                .filter(sclpqi -> !sclpqi.getLayerProtocolQualifier().equals(PHOTONICLAYERQUALIFIEROTS.VALUE))
-                .collect(Collectors.toList());
-        }
         return sclpqiList.stream().distinct().toList();
     }
 
     /**
-     * Creates an empty frequency maps.
-     * @return an AvailFreqMaps object with only a name, and a freqMap with no bytes.
+     * Retrieves from OpenROADM tp the information on the wavelength used (when a service is provisioned).
+     * Returns a Map of Min and Max Frequency corresponding to occupied-slot low and high boundaries.
+     * @param tp OpenROADM Termination Point (ietf/openROADM topology Object).
      */
-    @VisibleForTesting
-    public AvailFreqMaps emptyFreqMap() {
-        return new AvailFreqMapsBuilder()
-                .setFreqMap(new byte[0])
-                .setMapName("emptymap")
-                .build();
+    public Map<Frequency, Frequency> getXpdrUsedWavelength(TerminationPoint tp) {
+        var tpAug = tp.augmentation(
+            org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250110.TerminationPoint1.class);
+        if (tpAug == null) {
+            return new HashMap<>();
+        }
+        XpdrNetworkAttributes xnatt = tpAug.getXpdrNetworkAttributes();
+        if (xnatt == null) {
+            return new HashMap<>();
+        }
+        var xnattWvlgth = xnatt.getWavelength();
+        if (xnattWvlgth == null) {
+            return new HashMap<>();
+        }
+        var freq = xnattWvlgth.getFrequency();
+        if (freq == null) {
+            return new HashMap<>();
+        }
+        var width = xnattWvlgth.getWidth();
+        if (width == null) {
+            return new HashMap<>();
+        }
+        Double centerFrequencyTHz = freq.getValue().doubleValue();
+        Double widthGHz = width.getValue().doubleValue();
+        return rangeFactory.range(centerFrequencyTHz, widthGHz).ranges();
+    }
+
+    /**
+     * Retrieves from OpenROADM tp (ROADM SRG-PP)the information on the wavelength used on the tp.
+     * Returns a Map of Min and Max Frequency corresponding to the different occupied-slots low and high boundaries.
+     * @param tp OpenROADM Termination Point (ietf/openROADM topology Object),
+     */
+    public Map<Frequency, Frequency> getPPUsedWavelength(TerminationPoint tp) {
+        var tpAug = tp.augmentation(
+            org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250110.TerminationPoint1.class);
+        if (tpAug == null) {
+            return new HashMap<>();
+        }
+        PpAttributes ppAtt = tpAug.getPpAttributes();
+        if (ppAtt == null) {
+            return new HashMap<>();
+        }
+        var usedWvl = ppAtt.getUsedWavelength();
+        if (usedWvl == null || usedWvl.isEmpty()) {
+            return new HashMap<>();
+        }
+        var usedWvlfirstValue = usedWvl.entrySet().iterator().next().getValue();
+        Double centFreq = usedWvlfirstValue.getFrequency().getValue().doubleValue();
+        Double width = usedWvlfirstValue.getWidth().getValue().doubleValue();
+
+        return rangeFactory.range(centFreq, width).ranges();
+    }
+
+
+    /**
+     * Retrieves from OpenROADM tp (ROADM DEG-TTP)the information on the wavelength provisioned in the MW interface.
+     * Returns a Map of Min and Max Frequency corresponding to the different occupied-slots low and high boundaries.
+     * @param tp OpenROADM Termination Point (ietf/openROADM topology Object),
+     */
+    public Range getTTPUsedFreqMap(TerminationPoint tp) {
+        byte[] byteArray = new byte[GridConstant.NB_OCTECTS];
+        Arrays.fill(byteArray, (byte) GridConstant.AVAILABLE_SLOT_VALUE);
+        var termPoint1 = tp.augmentation(org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250110
+            .TerminationPoint1.class);
+        if (termPoint1 == null) {
+            return new SortedRange();
+        }
+        TxTtpAttributes txttpAtt = termPoint1.getTxTtpAttributes();
+        if (txttpAtt  == null) {
+            return new SortedRange();
+        }
+        var txttpAttUsedWvl = txttpAtt.getUsedWavelengths();
+        if (txttpAttUsedWvl == null || txttpAttUsedWvl.isEmpty()) {
+            var txttpAttAvlFreqMaps = txttpAtt.getAvailFreqMaps();
+            if (txttpAttAvlFreqMaps == null || !txttpAttAvlFreqMaps.keySet().toString().contains(GridConstant.C_BAND)) {
+                return new SortedRange();
+            }
+            byte[] freqByteSet = new byte[GridConstant.NB_OCTECTS];
+            LOG.debug("Creation of Bitset {}", freqByteSet);
+            AvailFreqMapsKey availFreqMapsKey = new AvailFreqMapsKey(GridConstant.C_BAND);
+            freqByteSet = txttpAttAvlFreqMaps.entrySet().stream()
+                .filter(afm -> afm.getKey().equals(availFreqMapsKey))
+                .findFirst().orElseThrow().getValue().getFreqMap();
+
+            LOG.debug("TTP used frequency byte set ({} bytes, 0 represents 8 used frequencies): {} ",
+                    freqByteSet.length,
+                    freqByteSet
+            );
+            Available bitMap = new AvailableGrid(freqByteSet);
+
+            LOG.debug("TTP used frequency bit set (min=0, max={}, each number represents a used frequency): {} ",
+                    GridConstant.EFFECTIVE_BITS,
+                    bitMap.assignedFrequencies()
+            );
+            Map<Double, Double> assignedFrequencyRanges = numericFrequency.assignedFrequency(bitMap);
+            LOG.info("TTP used frequency map {}", assignedFrequencyRanges);
+
+            return new SortedRange(assignedFrequencyRanges);
+
+        }
+        Range range = new SortedRange();
+        for (Map.Entry<UsedWavelengthsKey, UsedWavelengths> usedLambdas : txttpAttUsedWvl.entrySet()) {
+            Double centFreq = usedLambdas.getValue().getFrequency().getValue().doubleValue();
+            Double width = usedLambdas.getValue().getWidth().getValue().doubleValue();
+            range.add(centFreq, width, frequencyFactory);
+        }
+        return range;
+    }
+
+    /**
+     * Retrieves the BitMap containing the information on spectrum used on the ROADM-TTP MW interface from tp.
+     * Returns a Map of Min and Max Frequency corresponding to the different occupied-slots low and high boundaries.
+     * @param tp OpenROADM Termination Point (ietf/openROADM topology Object),
+     */
+    public Range getTTPAvailableFreqMap(TerminationPoint tp) {
+        var termPoint1 = tp.augmentation(org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250110
+            .TerminationPoint1.class);
+        if (termPoint1 == null) {
+            return new SortedRange();
+        }
+        TxTtpAttributes txttpAtt = termPoint1.getTxTtpAttributes();
+        if (txttpAtt == null) {
+            return new SortedRange();
+        }
+        var avlFreqMaps = txttpAtt.getAvailFreqMaps();
+        if (avlFreqMaps == null || !avlFreqMaps.keySet().toString().contains(GridConstant.C_BAND)) {
+            return new SortedRange();
+        }
+        byte[] freqByteSet = new byte[GridConstant.NB_OCTECTS];
+        LOG.debug("Creation of Bitset {}", freqByteSet);
+        AvailFreqMapsKey availFreqMapsKey = new AvailFreqMapsKey(GridConstant.C_BAND);
+        freqByteSet = avlFreqMaps.entrySet().stream()
+                .filter(afm -> afm.getKey().equals(availFreqMapsKey))
+                .findFirst().orElseThrow().getValue().getFreqMap();
+
+        LOG.debug("TTP available frequency byte set ({} bytes, 0 represents 8 available frequencies): {} ",
+                freqByteSet.length,
+                freqByteSet
+        );
+        Available bitMap = new AvailableGrid(freqByteSet);
+
+        LOG.debug("TTP available frequency bit set (min=0, max={}, each number represents an available frequency): {}",
+                GridConstant.EFFECTIVE_BITS,
+                bitMap.availableFrequencies()
+        );
+        Map<Double, Double> availableFrequencyRanges = numericFrequency.availableFrequency(bitMap);
+
+        LOG.info("TTP available frequency map {}", availableFrequencyRanges);
+        return new SortedRange(availableFrequencyRanges);
+
+    }
+
+
+    /**
+     * Retrieves the BitMap containing the information on spectrum used on the ROADM-TTP MW interface.
+     * Done from TerminationPoint1 Augmentation.
+     * Returns a Map of Min and Max Frequency corresponding to the different occupied-slots low and high boundaries.
+     * @param tp OpenROADM Termination Point (ietf/openROADM topology Object)
+     */
+    public Range getTTP11AvailableFreqMap(
+            org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250110.TerminationPoint1 tp) {
+        if (tp == null) {
+            return new SortedRange();
+        }
+        TxTtpAttributes txttpAtt = tp.getTxTtpAttributes();
+        if (txttpAtt == null) {
+            return new SortedRange();
+        }
+        var avlFreqMaps = txttpAtt.getAvailFreqMaps();
+        if (avlFreqMaps == null || !avlFreqMaps.keySet().toString().contains(GridConstant.C_BAND)) {
+            return new SortedRange();
+        }
+        byte[] freqByteSet = new byte[GridConstant.NB_OCTECTS];
+        LOG.debug("Creation of Bitset {}", freqByteSet);
+        AvailFreqMapsKey availFreqMapsKey = new AvailFreqMapsKey(GridConstant.C_BAND);
+        freqByteSet = avlFreqMaps.entrySet().stream()
+                .filter(afm -> afm.getKey().equals(availFreqMapsKey))
+                .findFirst().orElseThrow().getValue().getFreqMap();
+
+        LOG.debug("TTP11 available frequency byte set ({} bytes, 0 represents 8 available frequencies): {} ",
+                freqByteSet.length,
+                freqByteSet
+        );
+        Available bitMap = new AvailableGrid(freqByteSet);
+
+        LOG.debug("TTP11 available frequency bit set (min=0, max={}, "
+                        + "each number represents an available frequency): {}",
+                GridConstant.EFFECTIVE_BITS,
+                bitMap.availableFrequencies()
+        );
+        Map<Double, Double> availableFrequencyRanges = numericFrequency.availableFrequency(bitMap);
+
+        LOG.info("TTP11 available frequency map {}", availableFrequencyRanges);
+        return new SortedRange(availableFrequencyRanges);
+    }
+
+    /**
+     * Retrieves from OpenROADM tp (ROADM SRG-PP)the information on the wavelength used on the tp.
+     * Done directly from TerminationPoint1 Augmentation.
+     * Returns a map of Min and Max Frequency corresponding to the different occupied-slots low and high boundaries.
+     * @param tp OpenROADM Termination Point (ietf/openROADM topology Object),
+     */
+    public Map<Frequency, Frequency> getPP11UsedWavelength(
+            org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250110.TerminationPoint1 tp) {
+        if (tp == null) {
+            return new HashMap<>();
+        }
+        PpAttributes ppAtt = tp.getPpAttributes();
+        if (ppAtt == null) {
+            return new HashMap<>();
+        }
+        var usedWvl = ppAtt.getUsedWavelength();
+        if (usedWvl == null || usedWvl.isEmpty()) {
+            return new HashMap<>();
+        }
+        var usedWvlFirstValue = usedWvl.entrySet().iterator().next().getValue();
+        Double centFreq = usedWvlFirstValue.getFrequency().getValue().doubleValue();
+        Double width = usedWvlFirstValue.getWidth().getValue().doubleValue();
+        return rangeFactory.range(centFreq, width).ranges();
+    }
+
+    /**
+     * Retrieves from OpenROADM tp (ROADM SRG-PP)the information on the available spectrum (BitMap) on the tp.
+     * Done directly from TerminationPoint1 Augmentation.
+     * Returns a Map of Min and Max Frequency corresponding to the different occupied-slots low and high boundaries.
+     * @param tp OpenROADM Termination Point (ietf/openROADM topology Object),
+     */
+    public Range getTTP11UsedFreqMap(
+            org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250110.TerminationPoint1 tp) {
+        byte[] byteArray = new byte[GridConstant.NB_OCTECTS];
+        Arrays.fill(byteArray, (byte) GridConstant.AVAILABLE_SLOT_VALUE);
+        if (tp == null) {
+            return new SortedRange();
+        }
+        TxTtpAttributes txttpAtt = tp.getTxTtpAttributes();
+        if (txttpAtt == null) {
+            return new SortedRange();
+        }
+        var txttpAttUsedWvl = txttpAtt.getUsedWavelengths();
+        if (txttpAttUsedWvl == null || txttpAttUsedWvl.isEmpty()) {
+            var txttpAttAvlFreqMaps = txttpAtt.getAvailFreqMaps();
+            if (txttpAttAvlFreqMaps == null || !txttpAttAvlFreqMaps.keySet().toString().contains(GridConstant.C_BAND)) {
+                return new SortedRange();
+            }
+            byte[] freqByteSet = new byte[GridConstant.NB_OCTECTS];
+            LOG.debug("Creation of Bitset {}", freqByteSet);
+            AvailFreqMapsKey availFreqMapsKey = new AvailFreqMapsKey(GridConstant.C_BAND);
+            freqByteSet = txttpAttAvlFreqMaps.entrySet().stream()
+                .filter(afm -> afm.getKey().equals(availFreqMapsKey))
+                .findFirst().orElseThrow().getValue().getFreqMap();
+
+            LOG.debug("TTP11 used frequency byte set ({} bytes, 0 represents 8 used frequencies): {} ",
+                    freqByteSet.length,
+                    freqByteSet
+            );
+            Available bitMap = new AvailableGrid(freqByteSet);
+
+            LOG.debug("TTP11 used frequency bit set (min=0, max={}, each number represents a used frequency): {}",
+                    GridConstant.EFFECTIVE_BITS,
+                    bitMap.assignedFrequencies()
+            );
+            Map<Double, Double> assignedFrequencyRanges = numericFrequency.assignedFrequency(bitMap);
+
+            LOG.info("TTP11 used frequency map {}", assignedFrequencyRanges);
+            return new SortedRange(assignedFrequencyRanges);
+        }
+        return getRange(txttpAttUsedWvl);
+    }
+
+    private Range getRange(Map<UsedWavelengthsKey, UsedWavelengths> txttpAttUsedWvl) {
+        Range range = new SortedRange();
+        for (Map.Entry<UsedWavelengthsKey, UsedWavelengths> usedLambdas : txttpAttUsedWvl.entrySet()) {
+            var usedLambdasValue = usedLambdas.getValue();
+            Double centFreq = usedLambdasValue.getFrequency().getValue().doubleValue();
+            Double width = usedLambdasValue.getWidth().getValue().doubleValue();
+            range.add(centFreq, width, frequencyFactory);
+        }
+        return range;
     }
 
     /**
@@ -1144,9 +1378,9 @@ public class ORtoTapiTopoConversionTools {
                 createTotalSizeForCommonNeps(Double.valueOf(rate))).build());
         SpectrumCapabilityPacBuilder spectrumPac = new SpectrumCapabilityPacBuilder();
         OccupiedSpectrumBuilder ospecBd = new OccupiedSpectrumBuilder();
-        Frequency lowSupFreq = new TeraHertz(GridConstant.START_EDGE_FREQUENCY_THZ);
+        Frequency lowSupFreq = new TeraHertz(GridConstant.START_EDGE_FREQUENCY);
         Frequency upSupFreq =  frequencyFactory.frequency(
-                GridConstant.START_EDGE_FREQUENCY_THZ,
+                GridConstant.START_EDGE_FREQUENCY,
                 GridConstant.GRANULARITY,
                 GridConstant.EFFECTIVE_BITS
         );
@@ -1213,53 +1447,91 @@ public class ORtoTapiTopoConversionTools {
     public OwnedNodeEdgePointBuilder addPhotSpecToRoadmOnep(String nodeId,
             Map<Frequency, Frequency> usedFreqMap, Map<Frequency, Frequency> availableFreqMap,
             OwnedNodeEdgePointBuilder onepBldr, String keyword) {
-
-        LOG.debug("Entering Add PhotSpec to Roadm, availfreqmap is {} Used FreqMap {}",
-                availableFreqMap, usedFreqMap);
-
-        boolean isOtsOrOms = String.join("+", nodeId, TapiConstants.PHTNC_MEDIA_OTS).equals(keyword)
-                || String.join("+", nodeId, TapiConstants.PHTNC_MEDIA_OMS).equals(keyword);
-
-        if (!isOtsOrOms) {
-            return onepBldr;
-        }
-
-        SpectrumCapabilityPac spectrumCapabilityPac = buildSpectrumCapabilityPac(usedFreqMap, availableFreqMap);
-
-        PhotonicMediaNodeEdgePointSpec pnepSpec = new PhotonicMediaNodeEdgePointSpecBuilder()
-                .setSpectrumCapabilityPac(spectrumCapabilityPac)
+        LOG.debug("Entering Add PhotSpec to Roadm, ConvertToTopology LINE 1050 , availfreqmap is {} Used FreqMap {}",
+            availableFreqMap, usedFreqMap);
+        if (String.join("+", nodeId, TapiConstants.PHTNC_MEDIA_OTS).equals(keyword)
+                || String.join("+", nodeId, TapiConstants.PHTNC_MEDIA_OMS).equals(keyword)) {
+            // Creating OTS/OMS NEP specific attributes
+            SpectrumCapabilityPacBuilder spectrumPac = new SpectrumCapabilityPacBuilder();
+            if ((usedFreqMap == null || usedFreqMap.isEmpty())
+                    && (availableFreqMap == null || availableFreqMap.isEmpty())) {
+                AvailableSpectrum  aspec = new AvailableSpectrumBuilder()
+                    .setLowerFrequency(new TeraHertz(GridConstant.START_EDGE_FREQUENCY).hertz())
+                    .setUpperFrequency(
+                            frequencyFactory.frequency(
+                                    GridConstant.START_EDGE_FREQUENCY,
+                                    GridConstant.GRANULARITY,
+                                    GridConstant.EFFECTIVE_BITS).hertz()
+                    ).build();
+                Map<AvailableSpectrumKey, AvailableSpectrum> aspecMap = new HashMap<>();
+                aspecMap.put(new AvailableSpectrumKey(aspec.getLowerFrequency(),
+                    aspec.getUpperFrequency()), aspec);
+                spectrumPac.setAvailableSpectrum(aspecMap);
+            } else {
+                if (availableFreqMap != null && !availableFreqMap.isEmpty()) {
+                    Map<AvailableSpectrumKey, AvailableSpectrum> aspecMap = new HashMap<>();
+                    AvailableSpectrumBuilder  aspecBd = new AvailableSpectrumBuilder();
+                    for (Map.Entry<Frequency, Frequency> frequency : availableFreqMap.entrySet()) {
+                        aspecBd
+                            .setLowerFrequency(frequency.getKey().hertz())
+                            .setUpperFrequency(frequency.getValue().hertz());
+                        AvailableSpectrum aspec = aspecBd.build();
+                        aspecMap.put(new AvailableSpectrumKey(aspec.getLowerFrequency(),
+                            aspec.getUpperFrequency()), aspec);
+                    }
+                    spectrumPac.setAvailableSpectrum(aspecMap);
+                }
+                if (usedFreqMap != null && !usedFreqMap.isEmpty()) {
+                    Map<OccupiedSpectrumKey, OccupiedSpectrum> ospecMap = new HashMap<>();
+                    OccupiedSpectrumBuilder ospecBd = new OccupiedSpectrumBuilder();
+                    for (Map.Entry<Frequency, Frequency> frequency : usedFreqMap.entrySet()) {
+                        ospecBd
+                            .setLowerFrequency(frequency.getKey().hertz())
+                            .setUpperFrequency(frequency.getValue().hertz());
+                        OccupiedSpectrum ospec = ospecBd.build();
+                        ospecMap.put(new OccupiedSpectrumKey(ospec.getLowerFrequency(),
+                            ospec.getUpperFrequency()), ospec);
+                    }
+                    spectrumPac.setOccupiedSpectrum(ospecMap);
+                }
+            }
+            SupportableSpectrum  sspec = new SupportableSpectrumBuilder()
+                .setLowerFrequency(new TeraHertz(GridConstant.START_EDGE_FREQUENCY).hertz())
+                .setUpperFrequency(frequencyFactory.frequency(
+                        GridConstant.START_EDGE_FREQUENCY,
+                        GridConstant.GRANULARITY,
+                        GridConstant.EFFECTIVE_BITS).hertz()
+                ).build();
+            Map<SupportableSpectrumKey, SupportableSpectrum> sspecMap = new HashMap<>();
+            sspecMap.put(new SupportableSpectrumKey(sspec.getLowerFrequency(),
+                sspec.getUpperFrequency()), sspec);
+            spectrumPac.setSupportableSpectrum(sspecMap);
+            PhotonicMediaNodeEdgePointSpec pnepSpec = new PhotonicMediaNodeEdgePointSpecBuilder()
+                .setSpectrumCapabilityPac(spectrumPac.build())
                 .build();
-
-        var onep1 = new org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.photonic.media.rev221121
-                .OwnedNodeEdgePoint1Builder()
-                .setPhotonicMediaNodeEdgePointSpec(pnepSpec)
-                .build();
-
-        onepBldr.addAugmentation(onep1);
-
-        LOG.debug("Added photonic NEP spec to {}. availableSpectrum={}",
+            org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.photonic.media.rev221121.OwnedNodeEdgePoint1 onep1 =
+                new org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.photonic.media.rev221121
+                        .OwnedNodeEdgePoint1Builder()
+                    .setPhotonicMediaNodeEdgePointSpec(pnepSpec)
+                    .build();
+            onepBldr.addAugmentation(onep1);
+            LOG.debug("Add Photonic Node Edge point Spec to {} including available Spectrum {} = ",
                 onepBldr.getName(),
-                spectrumCapabilityPac.getAvailableSpectrum());
-
+                onep1.getPhotonicMediaNodeEdgePointSpec().getSpectrumCapabilityPac().getAvailableSpectrum());
+        }
         return onepBldr;
-    }
-
-    private SpectrumCapabilityPac buildSpectrumCapabilityPac(
-            Map<Frequency, Frequency> usedFreqMap,
-            Map<Frequency, Frequency> availableFreqMap) {
-
-        return  tapiSpectrumCapabilityPacFactory.create(usedFreqMap, availableFreqMap);
     }
 
     /**
      * Create an OpenROADM Odu Switching pool for 100G transponder that rely on a connection map.
+     * @param OduSwitchingPools OduSwitchingPool returned by the method.
      */
     private OduSwitchingPools createOduSwitchingPoolForTp100G() {
         Map<NonBlockingListKey, NonBlockingList> nblMap = new HashMap<>();
         int count = 1;
         for (TerminationPoint tp : this.oorNetworkPortList) {
             Set<TpId> nblTpId = new HashSet<>();
-            nblTpId.addAll(tp.augmentation(org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530
+            nblTpId.addAll(tp.augmentation(org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250110
                 .TerminationPoint1.class).getAssociatedConnectionMapTp());
             nblTpId.add(tp.getTpId());
             NonBlockingList nbl = new NonBlockingListBuilder()
@@ -1278,7 +1550,7 @@ public class ORtoTapiTopoConversionTools {
 
     /**
      * Create Tapi Node from class parameters setting automatically some mandatory default parameters.
-     * @param nodeNames Map of NameKey and Name provided as an input of the method.
+     * @param nodeName Map of NameKey and Name provided as an input of the method.
      * @param layerProtocols Set of layer protocol names supported by the Node.
      */
     private org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev221121.topology.Node createTapiNode(
@@ -1344,8 +1616,9 @@ public class ORtoTapiTopoConversionTools {
      * Main method used to populate and create the Node Neps, node rule groups of a Xponder.
      * Done scanning all OpenROADM termination points and switching pool.
      * Returns the Uuid of the Node returned by the method in case of successfull Nep and NRG creation.
-     * @param onepl A map of owned node edge point filled scanning the Node OpenROADM tps.
+     * @param onepList A map of owned node edge point filled scanning the Node OpenROADM tps.
      * @param nodeRuleGroupList A map of Node Rule Group filled scanning the Node Odu Switching Pool.
+     * @param ruleList Map of Rules to be used for the creation of the NRGs.
      */
     private Uuid getNodeUuid4Dsr(
             Map<OwnedNodeEdgePointKey, OwnedNodeEdgePoint> onepl,
@@ -1675,7 +1948,7 @@ public class ORtoTapiTopoConversionTools {
     private List<OwnedNodeEdgePoint> createNep(TerminationPoint oorTp, Map<NameKey, Name> nepNames,
             LayerProtocolName nepProtocol, LayerProtocolName nodeProtocol, boolean withSip, String keyword) {
         var tp1 = oorTp.augmentation(
-            org.opendaylight.yang.gen.v1.http.org.openroadm.otn.network.topology.rev250530.TerminationPoint1.class);
+            org.opendaylight.yang.gen.v1.http.org.openroadm.otn.network.topology.rev250110.TerminationPoint1.class);
         var oorTpId = oorTp.getTpId();
         var oorTpIdValue = oorTpId.getValue();
         if (tp1.getTpSupportedInterfaces() == null) {
@@ -1689,7 +1962,7 @@ public class ORtoTapiTopoConversionTools {
         List<OperationalModeKey> opModeList = new ArrayList<>();
         if (oorTpAug.getTpType().equals(OpenroadmTpType.XPONDERNETWORK)) {
             var tp11 = oorTp.augmentation(
-                org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.TerminationPoint1.class);
+                org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250110.TerminationPoint1.class);
             if (tp11 == null || tp11.getXpdrNetworkAttributes() == null) {
                 for (SupportedInterfaceCapability sic : sicColl) {
                     String ifCapType = sic.getIfCapType().toString().split("\\{")[0];
@@ -1941,14 +2214,7 @@ public class ORtoTapiTopoConversionTools {
         }
         if (oorTpAug.getTpType().equals(OpenroadmTpType.XPONDERNETWORK)) {
             onepBldr = addPayloadStructureAndPhotSpecToOnep(
-                    this.ietfNodeId,
-                    rate,
-                    openRoadmSpectrumRangeExtractor.extract(oorTp).occupied(),
-                    opModeList,
-                    sicColl,
-                    onepBldr,
-                    keyword);
-
+                this.ietfNodeId, rate, getXpdrUsedWavelength(oorTp), opModeList, sicColl, onepBldr, keyword);
         }
         if (keyword.contains(TapiConstants.PHTNC_MEDIA_OTS)) {
             String nepId = nepNames.entrySet().stream()
@@ -2014,7 +2280,7 @@ public class ORtoTapiTopoConversionTools {
      * @param sipUuid The SIP Uuid,
      * @param layerProtocol Layer protocol the SIP is associated to,
      * @param tpId OpenROADM termination Point Id,
-     * @param nodeid OpenROADM Node Id,
+     * @param nodeId OpenROADM Node Id,
      * @param supportedInterfaceCapability Collection of supported interface capabilities,
      * @param operState Operational state of the SIP,
      * @param adminState Administrative state of the SIP,
@@ -2045,7 +2311,9 @@ public class ORtoTapiTopoConversionTools {
     /**
      * Generates a list of Supported Cep Layer Protocol Qualifier Instances supported by a Service Interface Point.
      * @param supportedInterfaceCapability Collection of supported interface capabilities,
-     * @param lpn Layer protocol the SIP is associated to,
+     * @param layerProtocolName Layer protocol the SIP is associated to,
+     * @param operState Operational state of the SIP,
+     * @param adminState Administrative state of the SIP,
      */
     private List<org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121
                 .service._interface.point.SupportedCepLayerProtocolQualifierInstances>

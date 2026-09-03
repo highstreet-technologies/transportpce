@@ -9,7 +9,6 @@
 package org.opendaylight.transportpce.pce.spectrum.slot;
 
 import java.math.BigDecimal;
-import java.util.BitSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import org.opendaylight.transportpce.pce.spectrum.observer.Observer;
@@ -45,26 +44,5 @@ public class McCapabilityCollection implements CapabilityCollection {
         }
 
         return true;
-    }
-
-    @Override
-    public BitSet usableFrequencyRange(
-            BitSet availableFrequencyGrid,
-            double slotWidthGranularityGHz,
-            double edgeFrequencyTHz,
-            int effectiveBits) {
-
-        BitSet result = (BitSet) availableFrequencyGrid.clone();
-
-        for (McCapability mcCapability : slots) {
-            BitSet usableFrequencyRange = mcCapability.supportableFrequencyRange(
-                    slotWidthGranularityGHz,
-                    edgeFrequencyTHz,
-                    effectiveBits);
-
-            result.and(usableFrequencyRange);
-        }
-
-        return result;
     }
 }

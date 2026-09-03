@@ -10,7 +10,9 @@ package org.opendaylight.transportpce.olm.service;
 
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
@@ -32,6 +34,7 @@ import org.opendaylight.transportpce.common.mapping.PortMapping;
 import org.opendaylight.transportpce.common.openroadminterfaces.OpenRoadmInterfaceException;
 import org.opendaylight.transportpce.common.openroadminterfaces.OpenRoadmInterfaces;
 import org.opendaylight.transportpce.common.openroadminterfaces.OpenRoadmInterfacesImpl;
+import org.opendaylight.transportpce.common.openroadminterfaces.OpenRoadmInterfacesImpl121;
 import org.opendaylight.transportpce.common.openroadminterfaces.OpenRoadmInterfacesImpl221;
 import org.opendaylight.transportpce.common.openroadminterfaces.OpenRoadmInterfacesImpl710;
 import org.opendaylight.transportpce.olm.power.PowerMgmt;
@@ -40,7 +43,7 @@ import org.opendaylight.transportpce.olm.util.OlmTransactionUtils;
 import org.opendaylight.transportpce.test.AbstractTest;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev210618.CalculateSpanlossBaseInput;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.olm.rev210618.CalculateSpanlossBaseOutput;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.network.Nodes;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905.network.Nodes;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.types.rev181019.RatioDB;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.interfaces.grp.Interface;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.interfaces.grp.InterfaceBuilder;
@@ -71,6 +74,8 @@ class OlmPowerServiceImplSpanLossBaseTest extends AbstractTest {
     @Mock
     private OpenRoadmInterfacesImpl221 openRoadmInterfacesImpl221;
     @Mock
+    private OpenRoadmInterfacesImpl121 openRoadmInterfacesImpl121;
+    @Mock
     private OpenRoadmInterfacesImpl710 openRoadmInterfacesImpl710;
 
     private OpenRoadmInterfaces openRoadmInterfaces;
@@ -80,7 +85,7 @@ class OlmPowerServiceImplSpanLossBaseTest extends AbstractTest {
     @BeforeEach
     void setUp() throws OpenRoadmInterfaceException {
         this.openRoadmInterfaces = new OpenRoadmInterfacesImpl(this.deviceTransactionManager, this.mappingUtils,
-                this.openRoadmInterfacesImpl221, this.openRoadmInterfacesImpl710);
+                this.openRoadmInterfacesImpl121, this.openRoadmInterfacesImpl221, this.openRoadmInterfacesImpl710);
         this.olmPowerService = new OlmPowerServiceImpl(getDataBroker(), this.powerMgmt,
                 this.deviceTransactionManager, this.portMapping, this.mappingUtils, this.openRoadmInterfaces);
         this.dataBroker = getDataBroker();
@@ -105,8 +110,8 @@ class OlmPowerServiceImplSpanLossBaseTest extends AbstractTest {
             .thenReturn(OlmTransactionUtils.getCurrentPmListC());
 
         Ots otsValue = new OtsBuilder()
-            .setSpanLossTransmit(new RatioDB(Decimal64.valueOf(3, 25)))
-            .setSpanLossReceive(new RatioDB(Decimal64.valueOf(3, 25)))
+            .setSpanLossTransmit(new RatioDB(Decimal64.valueOf("25")))
+            .setSpanLossReceive(new RatioDB(Decimal64.valueOf("25")))
             .build();
         Interface1 ots = new Interface1Builder().setOts(otsValue).build();
         Interface interA = new InterfaceBuilder().setName("OTS-DEG2-TTP-TXRX").setType(OpticalTransport.VALUE)
@@ -117,6 +122,9 @@ class OlmPowerServiceImplSpanLossBaseTest extends AbstractTest {
         Optional<Interface> interOptC = Optional.of(interC);
         when(this.openRoadmInterfacesImpl221.getInterface("ROADM-A1", "OTS-DEG2-TTP-TXRX")).thenReturn(interOptA);
         when(this.openRoadmInterfacesImpl221.getInterface("ROADM-C1", "OTS-DEG1-TTP-TXRX")).thenReturn(interOptC);
+
+        doNothing().when(this.openRoadmInterfacesImpl221).postInterface(anyString(), any());
+
     }
 
     @Test

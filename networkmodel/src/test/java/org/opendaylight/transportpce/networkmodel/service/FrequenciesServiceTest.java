@@ -25,8 +25,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.opendaylight.mdsal.binding.api.NotificationPublishService;
 import org.opendaylight.mdsal.binding.api.ReadTransaction;
 import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
 import org.opendaylight.transportpce.common.InstanceIdentifiers;
@@ -38,10 +36,10 @@ import org.opendaylight.transportpce.test.AbstractTest;
 import org.opendaylight.transportpce.test.converter.DataObjectConverter;
 import org.opendaylight.transportpce.test.converter.JSONDataObjectConverter;
 import org.opendaylight.transportpce.test.utils.TopologyDataUtils;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.stub.rev260422.PathDescription;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.Node1;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.TerminationPoint1;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.available.freq.map.AvailFreqMapsKey;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.stub.rev230228.PathDescription;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250110.Node1;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250110.TerminationPoint1;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250110.available.freq.map.AvailFreqMapsKey;
 import org.opendaylight.yangtools.binding.DataObjectIdentifier;
 import org.opendaylight.yangtools.yang.data.api.YangInstanceIdentifier;
 import org.opendaylight.yangtools.yang.data.api.schema.NormalizedNode;
@@ -81,8 +79,7 @@ public class FrequenciesServiceTest extends AbstractTest {
 
     @Test
     void allocateFrequenciesTest() {
-        FrequenciesService service = new FrequenciesServiceImpl(getDataBroker(),
-                Mockito.mock(NotificationPublishService.class));
+        FrequenciesService service = new FrequenciesServiceImpl(getDataBroker());
         service.allocateFrequencies(pathDescription.getAToZDirection(), pathDescription.getZToADirection());
         TerminationPoint1 terminationPoint = getNetworkTerminationPointFromDatastore("ROADM-A1-DEG2", "DEG2-CTP-TXRX");
         assertEquals(
@@ -107,8 +104,7 @@ public class FrequenciesServiceTest extends AbstractTest {
 
     @Test
     void releaseFrequenciesTest() {
-        FrequenciesService service = new FrequenciesServiceImpl(getDataBroker(),
-                Mockito.mock(NotificationPublishService.class));
+        FrequenciesService service = new FrequenciesServiceImpl(getDataBroker());
         service.allocateFrequencies(pathDescription.getAToZDirection(), pathDescription.getZToADirection());
         service.releaseFrequencies(pathDescription.getAToZDirection(), pathDescription.getZToADirection());
         TerminationPoint1 terminationPoint = getNetworkTerminationPointFromDatastore("ROADM-A1-DEG2", "DEG2-CTP-TXRX");

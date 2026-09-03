@@ -22,12 +22,12 @@ import org.opendaylight.transportpce.networkmodel.util.TopologyUtils;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev250902.InitInterDomainLinksInput;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev250902.InitRoadmNodesInput;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.or.network.augmentation.rev250902.LinkClassEnum;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.Link1Builder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.TerminationPoint1;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.TerminationPoint1Builder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250110.Link1Builder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250110.TerminationPoint1;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250110.TerminationPoint1Builder;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.state.types.rev191129.State;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.equipment.states.types.rev191129.AdminStates;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.OpenroadmLinkType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250110.OpenroadmLinkType;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.NetworkId;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.Networks;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.NodeId;
@@ -123,7 +123,6 @@ final class OrdLink {
      */
     public static boolean createInterDomainLinks(InitInterDomainLinksInput input, DataBroker dataBroker) {
         // Determination of the node that belongs to the TAPI domain
-        LOG.info("Entering create InterdomainLink with input: {} ", input);
         String tapiDomainNode = "A";
         String aendUuid = input.getAEnd().getRdmTopologyUuid();
         String zendUuid = input.getZEnd().getRdmTopologyUuid();
@@ -149,7 +148,7 @@ final class OrdLink {
             srcTp = input.getAEnd().getTerminationPoint();
             rdmSrcTp = getTpofNode(srcNode, srcTp, dataBroker);
             destNode = "TAPI-SBI-ABS-NODE";
-            destTp = input.getZEnd().getTerminationPoint();
+            destTp = input.getZEnd().getRdmNode() + "-" + input.getZEnd().getTerminationPoint();
             linkId = LinkIdUtil.buildLinkId(srcNode, srcTp, destNode, destTp);
             oppLinkId = LinkIdUtil.buildLinkId(destNode, destTp, srcNode, srcTp);
             orTpState = rdmSrcTp.augmentation(TerminationPoint1.class).getOperationalState();
@@ -161,19 +160,15 @@ final class OrdLink {
             destTp = input.getZEnd().getTerminationPoint();
             rdmDestTp = getTpofNode(destNode, destTp, dataBroker);
             srcNode = "TAPI-SBI-ABS-NODE";
-            srcTp = input.getAEnd().getTerminationPoint();
-            linkId = LinkIdUtil.buildLinkId(srcNode, srcTp, destNode, destTp);
-            oppLinkId = LinkIdUtil.buildLinkId(destNode, destTp, srcNode, srcTp);
+            srcTp = input.getAEnd().getRdmNode() + "-" + input.getAEnd().getTerminationPoint();
+            oppLinkId = LinkIdUtil.buildLinkId(srcNode, srcTp, destNode, destTp);
+            linkId = LinkIdUtil.buildLinkId(destNode, destTp, srcNode, srcTp);
             orTpState = rdmDestTp.augmentation(TerminationPoint1.class).getOperationalState();
             addTpsToTapiExtNode(srcTp, input.getAEnd().getRdmNepUuid(), input.getAEnd().getRdmNode(),
                 input.getAEnd().getRdmNodeUuid(), input.getAEnd().getRdmTopologyUuid(), linkId.getValue(), dataBroker);
         }
-        LOG.info("Handling InterdomainLink with linkId: {} ", linkId);
         // IETF link builder
-
         LinkBuilder linkBuilderFW = TopologyUtils.createLink(srcNode, destNode, srcTp, destTp, null);
-        LOG.info("Creating InterdomainLink with linkId: {} through TopologyUtils", linkId);
-        LOG.info("InterdomainLink {} has LinkBuilder processed by TopologyUtils.createLink: {}", linkId, linkBuilderFW);
         linkBuilderFW.addAugmentation(
                 new Link1Builder()
                     .setOppositeLink(oppLinkId)
@@ -203,7 +198,6 @@ final class OrdLink {
         linkBuilderBW.addAugmentation(tpceAugmLink11Bd.build());
 
         // Building link instance identifier
-        LOG.info("Building DataObjectIdentifier for InterdomainLink with linkId: {} through TopologyUtils", linkId);
         DataObjectIdentifier<Link> linkIIDFW = DataObjectIdentifier.builder(Networks.class)
             .child(Network.class, new NetworkKey(new NetworkId(StringConstants.OPENROADM_TOPOLOGY)))
             .augmentation(Network1.class).child(Link.class, new LinkKey(linkId))
@@ -213,8 +207,8 @@ final class OrdLink {
         writeTransaction.merge(LogicalDatastoreType.CONFIGURATION, linkIIDFW, linkBuilderFW.build());
         try {
             writeTransaction.commit().get();
-            LOG.info("InterdomainLink creation : A new link with linkId: {} added into {} layer. Link = {}",
-                linkId.getValue(), StringConstants.OPENROADM_TOPOLOGY, linkBuilderFW.build());
+            LOG.info("A new link with linkId: {} added into {} layer.",
+                linkId.getValue(), StringConstants.OPENROADM_TOPOLOGY);
         } catch (InterruptedException | ExecutionException e) {
             LOG.error("Failed to create Direct Inter-domain-Link between Node {} tp {} and Node {} tp {} ",
                 srcNode, srcTp, destNode, destTp, e);
@@ -229,8 +223,8 @@ final class OrdLink {
         writeTransaction.merge(LogicalDatastoreType.CONFIGURATION, linkIIDBW, linkBuilderBW.build());
         try {
             writeTransaction.commit().get();
-            LOG.info("InterdomainLink creation : A new link with linkId: {} added into {} layer. Link = {}",
-                oppLinkId.getValue(), StringConstants.OPENROADM_TOPOLOGY, linkBuilderBW.build());
+            LOG.info("A new link with linkId: {} added into {} layer.",
+                oppLinkId.getValue(), StringConstants.OPENROADM_TOPOLOGY);
             return true;
         } catch (InterruptedException | ExecutionException e) {
             LOG.error("Failed to create reverse Inter-domain-Link between Node {} tp {} and Node {} tp {} ",
@@ -263,9 +257,9 @@ final class OrdLink {
                 .setSupportingNodeTopologyUuid(topoUuid)
                 .setSupportingNodeUuid(nodeUuid)
                 .setTpUuid(tpUuid);
-        org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530
+        org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250110
                 .TerminationPoint1Builder orAugmTp11Bd =
-            new org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.TerminationPoint1Builder();
+            new org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250110.TerminationPoint1Builder();
 
         TerminationPointBuilder tpBuilder = new TerminationPointBuilder()
                 .addAugmentation(orAugmTp11Bd.build()).addAugmentation(tpceAugmTp111Bd.build())

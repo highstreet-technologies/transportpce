@@ -86,8 +86,8 @@ public class OlmUtils221Test {
         Map<CurrentPmEntryKey, CurrentPmEntry> pmMap = new HashMap<>();
         pmMap.put(cpe.key(), cpe);
 
-        org.opendaylight.yang.gen.v1.http.org.transportpce.common.types.rev260707.PmGranularity
-                granularity = org.opendaylight.yang.gen.v1.http.org.transportpce.common.types.rev260707
+        org.opendaylight.yang.gen.v1.http.org.transportpce.common.types.rev251022.PmGranularity
+                granularity = org.opendaylight.yang.gen.v1.http.org.transportpce.common.types.rev251022
                 .PmGranularity._15min;
 
         CurrentPmList pmList = new CurrentPmListBuilder().setCurrentPmEntry(pmMap).build();
@@ -95,7 +95,7 @@ public class OlmUtils221Test {
         GetPmInput input = org.opendaylight.transportpce.olm.util.rev210618.OlmUtilsTestObjects
                 .newGetPmInput210618("ROADM-TEST",
                         org.opendaylight.yang.gen.v1.http
-                                .org.openroadm.resource.types.rev181019.ResourceTypeEnum.Interface,
+                                .org.openroadm.resource.types.rev161014.ResourceTypeEnum.Interface,
                         granularity
                 );
 
@@ -110,3 +110,4 @@ public class OlmUtils221Test {
         assertEquals(3, result.get("test-interface-name").size());
     }
 }
+

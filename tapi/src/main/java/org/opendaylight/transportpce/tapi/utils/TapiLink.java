@@ -9,13 +9,8 @@ package org.opendaylight.transportpce.tapi.utils;
 
 import java.util.Map;
 import java.util.Set;
-import org.opendaylight.transportpce.tapi.openroadm.topology.link.LinkResolver;
-import org.opendaylight.transportpce.tapi.openroadm.topology.link.LinkTerminationPointsFactory;
-import org.opendaylight.transportpce.tapi.openroadm.topology.link.state.OpenRoadmLinkStateMapper;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.state.types.rev191129.State;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.equipment.states.types.rev191129.AdminStates;
-import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.networks.Network;
-import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.LinkId;
 import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.AdministrativeState;
 import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.LayerProtocolName;
 import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.OperationalState;
@@ -23,209 +18,24 @@ import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.Uuid
 import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev221121.cep.list.ConnectionEndPoint;
 import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev221121.topology.Link;
 
-/**
- * Service for building TAPI links and resolving their associated state and CEP data.
- *
- * <p>This interface provides utility methods to:
- * <ul>
- *   <li>create a TAPI {@link Link} between two node edge points,</li>
- *   <li>translate OpenROADM administrative and operational states into TAPI states,</li>
- *   <li>retrieve the effective state of a link from its endpoint NEPs, and</li>
- *   <li>expose the map of generated TAPI connection end points (CEPs).</li>
- * </ul>
- */
-@SuppressWarnings("checkstyle:LineLength")
 public interface TapiLink {
 
-    /**
-     * Creates a TAPI link between a source and destination termination point.
-     *
-     * @param srcOpenRoadmTopologyNodeId node id (e.g. ROADM-A1-SRG1)
-     * @param srcOpenRoadmTopologyTerminationPointId Relative to srcOpenRoadmTopologyNodeId (e.g. SRG1-PP2-TXRX)
-     * @param destOpenRoadmTopologyNodeId node id (ROADM-B1-SRG2)
-     * @param destOpenRoadmTopologyTerminationPointId Relative to destOpenRoadmTopologyNodeId (e.g. SRG2-PP3-TXRX)
-     * @param network OpenROADM topology (i.e. openroadm-topology)
-     * @param tapiTopoUuid UUID of the TAPI topology that will contain the link
-     * @param linkResolver resolver used to find the OpenROADM link in the topology
-     * @return the created TAPI link, or {@code null} if the link type is not recognized
-     *         or the link cannot be created
-     * @see #createTapiLink(
-     *     org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.networks.network.Link,
-     *     Network,
-     *     Uuid,
-     *     LinkTerminationPointsFactory)
-     */
-    Link createTapiLink(
-            String srcOpenRoadmTopologyNodeId,
-            String srcOpenRoadmTopologyTerminationPointId,
-            String destOpenRoadmTopologyNodeId,
-            String destOpenRoadmTopologyTerminationPointId,
-            Network network,
-            Uuid tapiTopoUuid,
-            LinkResolver linkResolver);
+    Link createTapiLink(String srcNodeid, String srcTpId, String dstNodeId, String dstTpId, String linkType,
+            String srcNodeQual, String dstNodeQual, String srcTpQual, String dstTpQual,
+            String adminState, String operState, Set<LayerProtocolName> layerProtoNameList,
+            Set<String> transLayerNameList, Uuid tapiTopoUuid);
 
-    /**
-     * Creates a TAPI link between a source and destination termination point.
-     *
-     * <p>The link is built from the supplied openroadm link,
-     * and the UUID of the target TAPI topology.
-     *
-     * @param openRoadmLink The openroadm link being translated into a TAPI link
-     * @param network OpenROADM topology
-     * @param tapiTopoUuid UUID of the TAPI topology that will contain the link
-     * @param linkTerminationPointsFactory Primarily used to validate the given link against the topology.
-     * @return the created TAPI link, or {@code null} if the link type is not recognized
-     *         or the link cannot be created
-     */
-    Link createTapiLink(
-            org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226
-                    .networks.network.Link openRoadmLink,
-            Network network,
-            Uuid tapiTopoUuid,
-            LinkTerminationPointsFactory linkTerminationPointsFactory);
-
-    /**
-     * Creates a TAPI link between a source and destination termination point.
-     *
-     * <p>The link is built from the supplied source/destination node and TP identifiers,
-     * link type, qualifiers, administrative/operational state, supported layer protocols,
-     * and the UUID of the target TAPI topology.
-     *
-     * @param srcNodeId source node identifier
-     * @param srcTpId source termination point identifier
-     * @param dstNodeId destination node identifier
-     * @param dstTpId destination termination point identifier
-     * @param linkType link type used to determine how the TAPI link is built
-     * @param srcNodeQual qualifier associated with the source node
-     * @param dstNodeQual qualifier associated with the destination node
-     * @param srcTpQual qualifier associated with the source termination point
-     * @param dstTpQual qualifier associated with the destination termination point
-     * @param adminState administrative state as a string
-     * @param operState operational state as a string
-     * @param layerProtoNameList set of layer protocols supported by the link
-     * @param transLayerNameList set of transition layer protocol names
-     * @param tapiTopoUuid UUID of the TAPI topology that will contain the link
-     * @return the created TAPI link, or {@code null} if the link type is not recognized
-     *         or the link cannot be created
-     * @deprecated use one of the other two alternatives instead
-     * @see #createTapiLink(String, String, String, String, Network, Uuid, LinkResolver)
-     * @see #createTapiLink(
-     *     org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.networks.network.Link,
-     *     Network,
-     *     Uuid,
-     *     LinkTerminationPointsFactory)
-     */
-    @Deprecated(forRemoval = true)
-    Link createTapiLink(
-            String srcNodeId,
-            String srcTpId,
-            String dstNodeId,
-            String dstTpId,
-            String linkType,
-            String srcNodeQual,
-            String dstNodeQual,
-            String srcTpQual,
-            String dstTpQual,
-            String adminState,
-            String operState,
-            Set<LayerProtocolName> layerProtoNameList,
-            Set<String> transLayerNameList,
-            Uuid tapiTopoUuid);
-
-    /**
-     * Converts a textual administrative state into the corresponding TAPI administrative state.
-     *
-     * @param adminState administrative state expressed as a string
-     * @return {@link AdministrativeState#UNLOCKED}, {@link AdministrativeState#LOCKED},
-     *         or {@code null} if the input is {@code null}
-     * @deprecated use {@link OpenRoadmLinkStateMapper#toTapiAdminState(String)} instead.
-     */
-    @Deprecated(forRemoval = true)
     AdministrativeState setTapiAdminState(String adminState);
 
-    /**
-     * Converts two OpenROADM administrative states into a single effective TAPI administrative state.
-     *
-     * <p>The effective state is typically derived from both link endpoints.
-     *
-     * @param adminState1 administrative state of the first endpoint
-     * @param adminState2 administrative state of the second endpoint
-     * @return {@link AdministrativeState#UNLOCKED} when both endpoints are in service,
-     *         otherwise {@link AdministrativeState#LOCKED}; {@code null} if either input is {@code null}
-     * @deprecated use {@link OpenRoadmLinkStateMapper#toTapiAdminState(AdminStates, AdminStates)} instead.
-     */
-    @Deprecated(forRemoval = true)
     AdministrativeState setTapiAdminState(AdminStates adminState1, AdminStates adminState2);
 
-    /**
-     * Converts a textual operational state into the corresponding TAPI operational state.
-     *
-     * @param operState operational state expressed as a string
-     * @return {@link OperationalState#ENABLED}, {@link OperationalState#DISABLED},
-     *         or {@code null} if the input is {@code null}
-     * @deprecated use {@link OpenRoadmLinkStateMapper#toTapiOperationalState(String)} instead.
-     */
-    @Deprecated(forRemoval = true)
     OperationalState setTapiOperationalState(String operState);
 
-    /**
-     * Converts two OpenROADM operational states into a single effective TAPI operational state.
-     *
-     * <p>The effective state is typically derived from both link endpoints.
-     *
-     * @param operState1 operational state of the first endpoint
-     * @param operState2 operational state of the second endpoint
-     * @return {@link OperationalState#ENABLED} when both endpoints are in service,
-     *         otherwise {@link OperationalState#DISABLED}; {@code null} if either input is {@code null}
-     * @deprecated use {@link OpenRoadmLinkStateMapper#toTapiOperationalState(State, State)} instead.
-     */
-    @Deprecated(forRemoval = true)
     OperationalState setTapiOperationalState(State operState1, State operState2);
 
-    /**
-     * Retrieves the effective operational state of a link from the corresponding source and destination NEPs.
-     *
-     * @param srcNodeId source node identifier
-     * @param destNodeId destination node identifier
-     * @param sourceTpId source termination point identifier
-     * @param destTpId destination termination point identifier
-     * @param topoUuid UUID of the TAPI topology containing the source and destination NEPs
-     * @return the effective operational state name, or {@code null} if it cannot be resolved
-     */
-    String getOperState(String srcNodeId, String destNodeId, String sourceTpId, String destTpId, Uuid topoUuid);
+    String getOperState(String srcNodeId, String destNodeId, String sourceTpId, String destTpId);
 
-    /**
-     * Retrieves the effective administrative state of a link from the corresponding source and destination NEPs.
-     *
-     * @param srcNodeId source node identifier
-     * @param destNodeId destination node identifier
-     * @param sourceTpId source termination point identifier
-     * @param destTpId destination termination point identifier
-     * @param topoUuid UUID of the TAPI topology containing the source and destination NEPs
-     * @return the effective administrative state name, or {@code null} if it cannot be resolved
-     */
-    String getAdminState(String srcNodeId, String destNodeId, String sourceTpId, String destTpId, Uuid topoUuid);
+    String getAdminState(String srcNodeId, String destNodeId, String sourceTpId, String destTpId);
 
-    /**
-     * Returns the map of generated TAPI connection end points indexed by their associated UUID mapping.
-     *
-     * @return a map containing generated CEPs
-     */
     Map<Map<String, String>, ConnectionEndPoint> getCepMap();
-
-    /**
-     * Builds and returns an inter-domain TAPI Unidirectional link from input parameters.
-     *
-     * @param orlinkId linkId as it appears in OpenRoadm Topology
-     * @param tapilinkId used as the name value of Tapi Link Name (value-name = "tapi-interdomain-link")
-     * @param srcNodeUuid Uuid of source node
-     * @param srcTpUuid source termination point Uuid
-     * @param dstNodeUuid Uuid of destination node
-     * @param dstTpUuid destination termination point Uuid
-     * @param srcTapiTopoUuid UUID of the TAPI topology containing the source NEP
-     * @param dstTapiTopoUuid UUID of the TAPI topology containing the destination NEP
-     * @return a Tapi interdomain Link
-     */
-    Link createInterDomainTapiLink(LinkId orlinkId, String tapilinkId, Uuid srcNodeUuid, Uuid srcTpUuid,
-            Uuid dstNodeUuid, Uuid dstTpUuid, Uuid srcTapiTopoUuid, Uuid dstTapiTopoUuid);
 }

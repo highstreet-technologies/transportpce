@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
-import java.util.regex.Pattern;
 import org.opendaylight.mdsal.binding.api.NotificationPublishService;
 import org.opendaylight.transportpce.common.mapping.PortMapping;
 import org.opendaylight.transportpce.common.network.NetworkTransactionService;
@@ -48,9 +47,9 @@ import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev24
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.path.performance.path.properties.PathMetricBuilder;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.service.path.rpc.result.PathDescription;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.service.path.rpc.result.PathDescriptionBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.configuration.response.common.ConfigurationResponseCommonBuilder;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.path.description.AToZDirection;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.path.description.ZToADirection;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250110.configuration.response.common.ConfigurationResponseCommonBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev230501.path.description.AToZDirection;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev230501.path.description.ZToADirection;
 import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.RpcStatusEx;
 import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.ServicePathNotificationTypes;
 import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.response.parameters.sp.ResponseParametersBuilder;
@@ -72,9 +71,6 @@ public class PathComputationServiceImpl implements PathComputationService {
     private ServicePathRpcResult notification = null;
     private final GnpyConsumer gnpyConsumer;
     private PortMapping portMapping;
-    private static String pceOperationalMode;
-    public static final String OR_PCE_OPER_MODE = "OpenROADM-PCE-Operation-Mode";
-    public static final String TAPI_PCE_OPER_MODE = "T-API-PCE-Operation-Mode";
 
     @Activate
     public PathComputationServiceImpl(@Reference NetworkTransactionService networkTransactionService,
@@ -115,25 +111,9 @@ public class PathComputationServiceImpl implements PathComputationService {
         }
     }
 
-    private void evaluatePceOperType(String serviceName) throws IllegalArgumentException {
-        //check whether service name corresponds to an Uuid or not
-        PathComputationServiceImpl.setPceOperationalMode(PathComputationServiceImpl.OR_PCE_OPER_MODE);
-        if (serviceName == null) {
-            LOG.info("serviceName null, PCE operational mode set as OpenROADM by default");
-            return;
-        }
-        Pattern uuidRegex =
-            Pattern.compile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
-        if (uuidRegex.matcher(serviceName).matches()) {
-            PathComputationServiceImpl.setPceOperationalMode(PathComputationServiceImpl.TAPI_PCE_OPER_MODE);
-            LOG.info("serviceName {} identified as an UUID, PCE operational mode set as TAPI", serviceName);
-        }
-    }
-
     @Override
     public ListenableFuture<CancelResourceReserveOutput> cancelResourceReserve(CancelResourceReserveInput input) {
         LOG.info("cancelResourceReserve");
-        evaluatePceOperType(input.getServiceName());
         return executor.submit(new Callable<CancelResourceReserveOutput>() {
 
             @Override
@@ -144,7 +124,7 @@ public class PathComputationServiceImpl implements PathComputationService {
                         RpcStatusEx.Pending,
                         "Service compliant, submitting cancelResourceReserve Request ...",
                         null);
-                PceSendingPceRPCs sendingPCE = new PceSendingPceRPCs(gnpyConsumer, getPceOperationalMode());
+                PceSendingPceRPCs sendingPCE = new PceSendingPceRPCs(gnpyConsumer);
                 sendingPCE.cancelResourceReserve();
                 LOG.info("in PathComputationServiceImpl : {}",
                         Boolean.TRUE.equals(sendingPCE.getSuccess())
@@ -172,7 +152,6 @@ public class PathComputationServiceImpl implements PathComputationService {
     @Override
     public ListenableFuture<PathComputationRequestOutput> pathComputationRequest(PathComputationRequestInput input) {
         LOG.debug("input parameters are : input = {}", input.toString());
-        evaluatePceOperType(input.getServiceName());
         return executor.submit(new Callable<PathComputationRequestOutput>() {
 
             @Override
@@ -210,8 +189,7 @@ public class PathComputationServiceImpl implements PathComputationService {
                     "Service compliant, submitting pathComputation Request ...",
                     null);
                 PceSendingPceRPCs sendingPCE =
-                    new PceSendingPceRPCs(input, networkTransactionService, gnpyConsumer, portMapping,
-                        getPceOperationalMode());
+                    new PceSendingPceRPCs(input, networkTransactionService, gnpyConsumer, portMapping);
                 sendingPCE.pathComputation();
                 String message = sendingPCE.getMessage();
                 String responseCode = sendingPCE.getResponseCode();
@@ -285,7 +263,7 @@ public class PathComputationServiceImpl implements PathComputationService {
                 AToZDirection atoz = pathDescription.getAToZDirection();
                 if ((atoz != null) && (atoz.getAToZ() != null)) {
                     LOG.debug("Impl AtoZ Notification: [{}] elements in description", atoz.getAToZ().size());
-                    for (org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422
+                    for (org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev230501
                             .path.description.atoz.direction.AToZKey key : atoz.getAToZ().keySet()) {
                         LOG.debug("Impl AtoZ Notification: [{}] {}", key, atoz.getAToZ().get(key));
                     }
@@ -293,7 +271,7 @@ public class PathComputationServiceImpl implements PathComputationService {
                 ZToADirection ztoa = pathDescription.getZToADirection();
                 if ((ztoa != null) && (ztoa.getZToA() != null)) {
                     LOG.debug("Impl ZtoA Notification: [{}] elements in description", ztoa.getZToA().size());
-                    for (org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422
+                    for (org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev230501
                             .path.description.ztoa.direction.ZToAKey key : ztoa.getZToA().keySet()) {
                         LOG.debug("Impl ZtoA Notification: [{}] {}", key, ztoa.getZToA().get(key));
                     }
@@ -306,7 +284,6 @@ public class PathComputationServiceImpl implements PathComputationService {
     @Override
     public ListenableFuture<PathComputationRerouteRequestOutput> pathComputationRerouteRequest(
             PathComputationRerouteRequestInput input) {
-        evaluatePceOperType("NotAUuid");
         return executor.submit(() -> {
             PathComputationRerouteRequestOutputBuilder output = new PathComputationRerouteRequestOutputBuilder();
             ConfigurationResponseCommonBuilder configurationResponseCommon = new ConfigurationResponseCommonBuilder()
@@ -335,7 +312,7 @@ public class PathComputationServiceImpl implements PathComputationService {
                     .setRoutingMetric(input.getRoutingMetric())
                     .build();
             PceSendingPceRPCs sendingPCE = new PceSendingPceRPCs(pathComputationInput, networkTransactionService,
-                    gnpyConsumer, portMapping, input.getEndpoints(), getPceOperationalMode());
+                    gnpyConsumer, portMapping, input.getEndpoints());
             sendingPCE.pathComputation();
             String message = sendingPCE.getMessage();
             String responseCode = sendingPCE.getResponseCode();
@@ -410,14 +387,6 @@ public class PathComputationServiceImpl implements PathComputationService {
             .setResponseType(null)
             .setFeasibility(true)
             .build();
-    }
-
-    public static String getPceOperationalMode() {
-        return pceOperationalMode;
-    }
-
-    public static void setPceOperationalMode(String pceOperMode) {
-        PathComputationServiceImpl.pceOperationalMode = pceOperMode;
     }
 
 }

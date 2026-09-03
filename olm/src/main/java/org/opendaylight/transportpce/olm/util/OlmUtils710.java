@@ -59,12 +59,12 @@ import org.opendaylight.yang.gen.v1.http.org.openroadm.pm.rev200529.current.pm.g
 import org.opendaylight.yang.gen.v1.http.org.openroadm.pm.rev200529.current.pm.list.CurrentPmEntry;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.pm.rev200529.current.pm.list.CurrentPmEntryKey;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.pm.rev200529.current.pm.val.group.Measurement;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.resource.types.rev181019.ResourceTypeEnum;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.common.types.rev260707.Direction;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.common.types.rev260707.Location;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.common.types.rev260707.PmNamesEnum;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.common.types.rev260707.olm.get.pm.input.ResourceIdentifier;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.common.types.rev260707.olm.get.pm.input.ResourceIdentifierBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.resource.types.rev161014.ResourceTypeEnum;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.common.types.rev251022.Direction;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.common.types.rev251022.Location;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.common.types.rev251022.PmNamesEnum;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.common.types.rev251022.olm.get.pm.input.ResourceIdentifier;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.common.types.rev251022.olm.get.pm.input.ResourceIdentifierBuilder;
 import org.opendaylight.yangtools.binding.DataObjectIdentifier;
 import org.opendaylight.yangtools.yang.common.Decimal64;
 import org.opendaylight.yangtools.yang.common.Uint16;
@@ -172,20 +172,20 @@ final class OlmUtils710 {
                     spanLossRx = ots.getSpanLossReceive();
                     spanLossTx = ots.getSpanLossTransmit();
                 } else {
-                    spanLossRx = new RatioDB(Decimal64.valueOf(spanLoss).scaleTo(3));
-                    spanLossTx = new RatioDB(Decimal64.valueOf(spanLoss).scaleTo(3));
+                    spanLossRx = new RatioDB(Decimal64.valueOf(spanLoss));
+                    spanLossTx = new RatioDB(Decimal64.valueOf(spanLoss));
                 }
                 org.opendaylight.yang.gen.v1.http.org.openroadm.optical.transport.interfaces
                         .rev200529.Interface1Builder intf1Builder =
                         new Interface1Builder();
                 if (direction.equals(TX)) {
-                    otsBuilder.setSpanLossTransmit(new RatioDB(Decimal64.valueOf(spanLoss).scaleTo(3)));
+                    otsBuilder.setSpanLossTransmit(new RatioDB(Decimal64.valueOf(spanLoss)));
                     otsBuilder.setSpanLossReceive(spanLossRx);
                 } else {
                     otsBuilder
                             .setSpanLossTransmit(spanLossTx)
                             .setSpanLossReceive(
-                                    new RatioDB(Decimal64.valueOf(spanLoss).scaleTo(3)));
+                                    new RatioDB(Decimal64.valueOf(spanLoss)));
                 }
                 interfaceBuilder.addAugmentation(intf1Builder.setOts(otsBuilder.build()).build());
                 openRoadmInterfaces.postInterface(realNodeId,interfaceBuilder);
@@ -406,3 +406,4 @@ final class OlmUtils710 {
         }
     }
 }
+

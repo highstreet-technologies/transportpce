@@ -10,12 +10,7 @@ package org.opendaylight.transportpce.tapi.listeners;
 import java.util.Set;
 import org.opendaylight.mdsal.binding.api.DataBroker;
 import org.opendaylight.mdsal.binding.api.NotificationService.CompositeListener;
-import org.opendaylight.transportpce.tapi.openroadm.TopologyUpdate;
-import org.opendaylight.transportpce.tapi.openroadm.service.OpenRoadmServiceCopier;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkmodel.rev201116.TopologyUpdateResult;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.servicehandler.rev201125.ServiceRpcResultSh;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.ServiceNotificationTypes;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.RpcStatusEx;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,36 +18,17 @@ public class TapiServiceNotificationHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(TapiServiceNotificationHandler.class);
     private final DataBroker dataBroker;
-    private final OpenRoadmServiceCopier openRoadmServiceCopier;
-    private final TopologyUpdate openRoadmTopologyUpdate;
 
-    public TapiServiceNotificationHandler(
-            DataBroker dataBroker,
-            OpenRoadmServiceCopier openRoadmServiceCopier,
-            TopologyUpdate openRoadmTopologyUpdate) {
-
+    public TapiServiceNotificationHandler(DataBroker dataBroker) {
         this.dataBroker = dataBroker;
-        this.openRoadmServiceCopier = openRoadmServiceCopier;
-        this.openRoadmTopologyUpdate = openRoadmTopologyUpdate;
     }
 
     public CompositeListener getCompositeListener() {
         return new CompositeListener(Set.of(
-                new CompositeListener.Component<>(ServiceRpcResultSh.class, this::onServiceRpcResultSh),
-                new CompositeListener.Component<>(TopologyUpdateResult.class, this::onTopologyChange)));
+            new CompositeListener.Component<>(ServiceRpcResultSh.class, this::onServiceRpcResultSh)));
     }
 
     private void onServiceRpcResultSh(ServiceRpcResultSh notification) {
         LOG.info("Avoid dataBroker error {}", dataBroker.getClass().getCanonicalName());
-        LOG.debug("Received notification: {}", notification);
-        if (notification.getStatus().equals(RpcStatusEx.Successful)
-                && notification.getNotificationType().equals(ServiceNotificationTypes.ServiceCreateResult)) {
-            openRoadmServiceCopier.copyToTapi(notification.getServiceName());
-        }
-    }
-
-    private void onTopologyChange(TopologyUpdateResult notification) {
-        // Handle topology change notification
-        openRoadmTopologyUpdate.copyToTAPI(notification);
     }
 }

@@ -18,11 +18,11 @@ import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
 import org.opendaylight.transportpce.common.StringConstants;
 import org.opendaylight.transportpce.common.network.NetworkTransactionService;
 import org.opendaylight.transportpce.networkmodel.dto.TopologyShard;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mapping.Mapping;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.Link1;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.Link1Builder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.TerminationPoint1;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.TerminationPoint1Builder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905.mapping.Mapping;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250110.Link1;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250110.Link1Builder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250110.TerminationPoint1;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250110.TerminationPoint1Builder;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.state.types.rev191129.State;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.equipment.states.types.rev191129.AdminStates;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.NetworkId;
@@ -217,16 +217,12 @@ public final class TopologyUtils {
         List<TerminationPoint> topoTps = new ArrayList<>();
         TerminationPoint tp = nodes.get(new NodeKey(new NodeId(abstractNodeid))).augmentation(Node1.class)
             .getTerminationPoint().get(new TerminationPointKey(new TpId(mapping.getLogicalConnectionPoint())));
-        if (tp == null) {
-            LOG.error("Util TopologyUtils: TP is null while updating openroadm topology..");
-            return new TopologyShard(null, null, topoTps);
-        }
         TerminationPoint1Builder tp1Bldr = new TerminationPoint1Builder(tp.augmentation(TerminationPoint1.class));
         if (!tp1Bldr.getAdministrativeState().getName().equals(mapping.getPortAdminState())) {
-            tp1Bldr.setAdministrativeState(setNetworkAdminState(mapping.getPortAdminState()));
+            tp1Bldr.setAdministrativeState(AdminStates.valueOf(mapping.getPortAdminState()));
         }
         if (!tp1Bldr.getOperationalState().getName().equals(mapping.getPortOperState())) {
-            tp1Bldr.setOperationalState(setNetworkOperState(mapping.getPortOperState()));
+            tp1Bldr.setOperationalState(State.valueOf(mapping.getPortOperState()));
         }
         TerminationPointBuilder tpBldr = new TerminationPointBuilder(tp).addAugmentation(tp1Bldr.build());
         topoTps.add(tpBldr.build());

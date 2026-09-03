@@ -9,17 +9,9 @@
 package org.opendaylight.transportpce.pce.spectrum.slot;
 
 import java.math.BigDecimal;
-import java.util.BitSet;
 import org.opendaylight.transportpce.pce.spectrum.observer.Observer;
 
 public interface McCapability {
-
-    /**
-     * Granularity of allowed center frequencies in GHz.
-     * The base reference frequency is 193.1 THz (ITU-T G.694.1).
-     * May return null for node types that do not constrain optical spectrum (e.g. OTN).
-     */
-    BigDecimal centerFrequencyGranularity();
 
     /**
      * Determine if this MC interface is compatible with the required
@@ -51,15 +43,4 @@ public interface McCapability {
      * @see McCapability#isCompatibleWithServiceFrequency(BigDecimal, Observer)
      */
     boolean isCompatibleWithServiceFrequency(double requiredFrequencyWidthGHz, Observer observer);
-
-    /**
-     * Returns a bitset of frequencies that are supported by this MC interface.
-     *
-     * <p>0 = not supported, 1 = supported.
-     * @param slotWidthGranularityGHz frequency width of each slot.
-     * @param edgeFrequencyTHz lowest frequency on the spectrum grid.
-     * @param effectiveBits nr of bits in the spectrum grid.
-     * @return a bitset of frequencies that are supported by this MC interface.
-     */
-    BitSet supportableFrequencyRange(double slotWidthGranularityGHz, double edgeFrequencyTHz, int effectiveBits);
 }

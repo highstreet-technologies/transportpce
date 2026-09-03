@@ -24,13 +24,13 @@ import org.opendaylight.transportpce.networkmodel.util.TopologyUtils;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev250902.links.input.grouping.LinksInput;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.or.network.augmentation.rev250902.DataModelEnum;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.or.network.augmentation.rev250902.LinkClassEnum;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.Link1Builder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250110.Link1Builder;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.state.types.rev191129.State;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.equipment.states.types.rev191129.AdminStates;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.TerminationPoint1;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.TerminationPoint1Builder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.networks.network.node.termination.point.XpdrNetworkAttributesBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.OpenroadmLinkType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250110.TerminationPoint1;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250110.TerminationPoint1Builder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250110.networks.network.node.termination.point.XpdrNetworkAttributesBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250110.OpenroadmLinkType;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.NetworkId;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.Networks;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.NodeId;
@@ -72,13 +72,12 @@ final class Rdm2XpdrLink {
         String destTp;
         boolean isRdmTapiNode = false;
         if (linksInput.getRdmTopologyUuid() != null) {
-            rdmTp = OrdLink.addTpsToTapiExtNode(linksInput.getTerminationPointNum(),
+            rdmTp = OrdLink.addTpsToTapiExtNode(linksInput.getRdmNode() + "-" + linksInput.getTerminationPointNum(),
                 linksInput.getRdmNepUuid(), linksInput.getRdmNode(), linksInput.getRdmNodeUuid(),
                 linksInput.getRdmTopologyUuid(),
-                (linksInput.getXpdrNode() + "to" + "TAPI-SBI-ABS-NODE-" + linksInput.getTerminationPointNum()),
-                dataBroker);
+                ("link from " + linksInput.getXpdrNode() + "to" + linksInput.getRdmNode()), dataBroker);
             destNode = linksInput.getRdmNode();
-            destTp = (linksInput.getTerminationPointNum());
+            destTp = (linksInput.getRdmNode() + "-" + linksInput.getTerminationPointNum());
             isRdmTapiNode = true;
         } else {
             destNode =
@@ -131,13 +130,12 @@ final class Rdm2XpdrLink {
         String srcTp;
         boolean isRdmTapiNode = false;
         if (linksInput.getRdmTopologyUuid() != null) {
-            rdmTp = OrdLink.addTpsToTapiExtNode(linksInput.getTerminationPointNum(),
+            rdmTp = OrdLink.addTpsToTapiExtNode(linksInput.getRdmNode() + "-" + linksInput.getTerminationPointNum(),
                 linksInput.getRdmNepUuid(), linksInput.getRdmNode(), linksInput.getRdmNodeUuid(),
                 linksInput.getRdmTopologyUuid(),
-                ("TAPI-SBI-ABS-NODE-" + linksInput.getTerminationPointNum() + "to" + linksInput.getXpdrNode()),
-                dataBroker);
+                ("link from " + linksInput.getRdmNode() + "to" + linksInput.getXpdrNode()), dataBroker);
             srcNode = linksInput.getRdmNode();
-            srcTp = (linksInput.getTerminationPointNum());
+            srcTp = (linksInput.getRdmNode() + "-" + linksInput.getTerminationPointNum());
             isRdmTapiNode = true;
         } else {
             srcNode =
@@ -204,17 +202,8 @@ final class Rdm2XpdrLink {
         } else {
             nodeBldr.setNodeId(new NodeId(srcNode));
         }
-        LinkId oppositeLinkId;
-        if (isRdmTapiNode) {
-            if (isXponderInput) {
-                oppositeLinkId = LinkIdUtil.buildLinkId(destNode, destTp, "TAPI-SBI-ABS-NODE", srcTp);
-            } else {
-                oppositeLinkId = LinkIdUtil.buildLinkId("TAPI-SBI-ABS-NODE", destTp, srcNode, srcTp);
-            }
-        } else {
-            oppositeLinkId = LinkIdUtil.getOppositeLinkId(srcNode, srcTp, destNode, destTp);
-        }
-
+        LinkId oppositeLinkId = isRdmTapiNode ? LinkIdUtil.buildLinkId(destNode, destTp, srcNode, srcTp)
+            : LinkIdUtil.getOppositeLinkId(srcNode, srcTp, destNode, destTp);
         Link1Builder lnk2bldr
             = new Link1Builder()
                 .setLinkType(isXponderInput ? OpenroadmLinkType.XPONDERINPUT : OpenroadmLinkType.XPONDEROUTPUT)
@@ -222,9 +211,9 @@ final class Rdm2XpdrLink {
 
         // If both TPs of the Xpdr2Rdm link are inService --> link inService. Otherwise outOfService
         if (State.InService.equals(xpdrTp.augmentation(org.opendaylight.yang.gen.v1.http
-                    .org.openroadm.common.network.rev250530.TerminationPoint1.class).getOperationalState())
+                    .org.openroadm.common.network.rev250110.TerminationPoint1.class).getOperationalState())
                 && State.InService.equals(rdmTp.augmentation(org.opendaylight.yang.gen.v1.http
-                    .org.openroadm.common.network.rev250530.TerminationPoint1.class).getOperationalState())) {
+                    .org.openroadm.common.network.rev250110.TerminationPoint1.class).getOperationalState())) {
             lnk2bldr.setOperationalState(State.InService).setAdministrativeState(AdminStates.InService);
         } else {
             lnk2bldr.setOperationalState(State.OutOfService).setAdministrativeState(AdminStates.OutOfService);

@@ -18,49 +18,47 @@ import org.opendaylight.mdsal.binding.api.DataBroker;
 import org.opendaylight.mdsal.binding.api.ReadTransaction;
 import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
 import org.opendaylight.transportpce.common.StringConstants;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.Network;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.OpenconfigNodeVersion;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.OpenroadmNodeVersion;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mc.capabilities.McCapabilities;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.network.Nodes;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.network.NodesKey;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.network.nodes.NodeInfo;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.If100GE;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.If100GEODU4;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.If100GEOduflexgfp;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.If10GE;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.If10GEODU2;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.If10GEODU2e;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.If10GEOduflexgfp;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.If1GE;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.If1GEODU0;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.If200GE;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.If200GEOduflexcbr;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.If25GEOduflexcbr;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.If400GE;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.If400GEOduflexcbr;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.If400GEOdufleximp;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.If40GE;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.If40GEODU3;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.If40GEOduflexgfp;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.IfOCH;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.IfOCHOTU1ODU1;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.IfOCHOTU2EODU2E;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.IfOCHOTU2ODU2;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.IfOCHOTU3ODU3;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.IfOCHOTU4ODU4;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.IfOCHOTU4ODU4Regen;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.IfOCHOTU4ODU4Uniregen;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.IfOTU1ODU1;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.IfOTU2ODU2;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.IfOTU3ODU3;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.IfOTU4ODU4;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.IfOTUCnODUCn;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.IfOTUCnODUCnRegen;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.IfOTUCnODUCnUniregen;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.IfOtsiOtsigroup;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.IfOtsiOtucnOducn;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.SupportedIfCapability;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905.Network;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905.mc.capabilities.McCapabilities;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905.network.Nodes;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905.network.NodesKey;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905.network.nodes.NodeInfo;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250110.If100GE;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250110.If100GEODU4;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250110.If100GEOduflexgfp;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250110.If10GE;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250110.If10GEODU2;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250110.If10GEODU2e;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250110.If10GEOduflexgfp;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250110.If1GE;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250110.If1GEODU0;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250110.If200GE;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250110.If200GEOduflexcbr;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250110.If25GEOduflexcbr;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250110.If400GE;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250110.If400GEOduflexcbr;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250110.If400GEOdufleximp;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250110.If40GE;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250110.If40GEODU3;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250110.If40GEOduflexgfp;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250110.IfOCH;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250110.IfOCHOTU1ODU1;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250110.IfOCHOTU2EODU2E;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250110.IfOCHOTU2ODU2;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250110.IfOCHOTU3ODU3;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250110.IfOCHOTU4ODU4;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250110.IfOCHOTU4ODU4Regen;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250110.IfOCHOTU4ODU4Uniregen;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250110.IfOTU1ODU1;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250110.IfOTU2ODU2;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250110.IfOTU3ODU3;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250110.IfOTU4ODU4;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250110.IfOTUCnODUCn;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250110.IfOTUCnODUCnRegen;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250110.IfOTUCnODUCnUniregen;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250110.IfOtsiOtsigroup;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250110.IfOtsiOtucnOducn;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250110.SupportedIfCapability;
 import org.opendaylight.yangtools.binding.DataObjectIdentifier;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -233,10 +231,14 @@ public final class MappingUtilsImpl implements MappingUtils {
 
     private static final ImmutableMap<String, String> OC_CAP_MAP =
             ImmutableMap.<String, String>builder()
-                    .put("PROT_100GE", "100GE")
-                    .put("PROT_ODU4", "ODU4")
-                    .put("PROT_OTUCN", "OTUCN")
-                    .put("PROT_ODUCN", "ODUCN").build();
+                    .put("PROT100GE{qname=(http://openconfig.net/yang/transport-types?revision=2021-07-29)PROT_100GE}",
+                            "100GE")
+                    .put("PROTODU4{qname=(http://openconfig.net/yang/transport-types?revision=2021-07-29)PROT_ODU4}",
+                            "ODU4")
+                    .put("PROTOTUCN{qname=(http://openconfig.net/yang/transport-types?revision=2021-07-29)PROT_OTUCN}",
+                            "OTUCN")
+                    .put("PROTODUCN{qname=(http://openconfig.net/yang/transport-types?revision=2021-07-29)PROT_ODUCN}",
+                            "ODUCN").build();
     private final DataBroker dataBroker;
 
     @Activate
@@ -256,16 +258,13 @@ public final class MappingUtilsImpl implements MappingUtils {
                     readTx.read(LogicalDatastoreType.CONFIGURATION, nodeInfoIID).get();
             if (nodeInfoObj.isPresent()) {
                 NodeInfo nodInfo = nodeInfoObj.orElseThrow();
-                OpenroadmNodeVersion version = nodInfo.getOpenroadmVersion();
-                if (version == null) {
-                    LOG.warn("OpenRoadm version is null for nodeId {}", nodeId);
-                    return null;
-                }
-                switch (version) {
+                switch (nodInfo.getOpenroadmVersion()) {
                     case _71:
                         return StringConstants.OPENROADM_DEVICE_VERSION_7_1;
                     case _221:
                         return StringConstants.OPENROADM_DEVICE_VERSION_2_2_1;
+                    case _121:
+                        return StringConstants.OPENROADM_DEVICE_VERSION_1_2_1;
                     default:
                         LOG.warn("unknown openROADM device version");
                 }
@@ -278,17 +277,6 @@ public final class MappingUtilsImpl implements MappingUtils {
         return null;
     }
 
-    /**
-     * Retrieves the OpenConfig version string for the specified node ID.
-     * This method reads the NodeInfo data from the configuration datastore
-     * using the given nodeId, then checks the OpenConfig version.
-     * It returns a corresponding version string constant if recognized.
-     * If the OpenConfig version is unknown, or the node info is not found,
-     * it logs warnings. In case of read failures, it logs errors.
-     *
-     * @param nodeId the identifier of the node to query
-     * @return a string representing the OpenConfig device version if found; otherwise null
-     */
     public String getOpenConfigVersion(String nodeId) {
         /*
          * Getting physical mapping corresponding to logical connection point
@@ -301,23 +289,18 @@ public final class MappingUtilsImpl implements MappingUtils {
                     readTx.read(LogicalDatastoreType.CONFIGURATION, nodeInfoIID).get();
             if (nodeInfoObj.isPresent()) {
                 NodeInfo nodInfo = nodeInfoObj.orElseThrow();
-                OpenconfigNodeVersion version = nodInfo.getOpenconfigVersion();
-                if (version == null) {
-                    LOG.warn("OpenConfig version is null for nodeId {}", nodeId);
-                    return null;
-                }
-                switch (version) {
-                    case _200:
-                        return StringConstants.OPENCONFIG_DEVICE_VERSION_2_0_0;
+                switch (nodInfo.getOpenconfigVersion()) {
+                    case _190:
+                        return StringConstants.OPENCONFIG_DEVICE_VERSION_1_9_0;
                     case PROTOTYPE:
                     default:
-                        LOG.warn("unknown openConfig device version");
+                        LOG.warn("unknown openCONFIG device version");
                 }
             } else {
                 LOG.warn("Could not find mapping for nodeId {}", nodeId);
             }
         } catch (InterruptedException | ExecutionException ex) {
-            LOG.error("Unable to read mapping for nodeId {}", nodeId, ex);
+            LOG.error("Unable to read mapping for nodeId {}",nodeId, ex);
         }
         return null;
     }

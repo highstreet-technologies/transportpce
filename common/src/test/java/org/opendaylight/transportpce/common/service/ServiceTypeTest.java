@@ -13,70 +13,58 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.junit.jupiter.api.Test;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mapping.Mapping;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mapping.MappingBuilder;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905.mapping.Mapping;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905.mapping.MappingBuilder;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.types.rev191129.PortQual;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.types.rev191129.XpdrNodeTypes;
 import org.opendaylight.yangtools.yang.common.Uint32;
 
 public class ServiceTypeTest {
 
     @Test
     void getServiceTypeForServiceFormatUnknownTest() {
-        String serviceType = ServiceTypes.getServiceType("toto", null, null, null);
+        String serviceType = ServiceTypes.getServiceType("toto", null, null);
         assertNull(serviceType, "service-type should be null");
     }
 
     @Test
     void getServiceTypeForServiceFormatOCTest() {
-        String serviceType = ServiceTypes.getServiceType("OC", Uint32.valueOf(100), null, null);
+        String serviceType = ServiceTypes.getServiceType("OC", Uint32.valueOf(100), null);
         assertEquals("100GEt", serviceType, "service-type should be 100GEt");
-        serviceType = ServiceTypes.getServiceType("OC", null, null, null);
+        serviceType = ServiceTypes.getServiceType("OC", null, null);
         assertNull(serviceType, "service-type should be null");
     }
 
     @Test
-    void getServiceTypeForServiceFormatOther100GTapiTest() {
-        String serviceType = ServiceTypes.getServiceType("other", Uint32.valueOf(100),
-            null, "T-API-PCE-Operation-Mode");
-        assertEquals("100GEs", serviceType, "service-type associated with serviceFormat OTHER, 100G, and"
-            + " TAPIpceOperMode should be 100GEs");
-        serviceType = ServiceTypes.getServiceType("other", Uint32.valueOf(100),
-            null, null);
-        assertEquals("other", serviceType, "service-type associated with serviceFormat OTHER, 100G, and"
-            + " null pceOperMode should be other");
-    }
-
-    @Test
     void getServiceTypeForServiceFormatEthernetTest() {
-        String serviceType = ServiceTypes.getServiceType("Ethernet", Uint32.valueOf(400), null, null);
+        String serviceType = ServiceTypes.getServiceType("Ethernet", Uint32.valueOf(400), null);
         assertEquals("400GE", serviceType, "service-type should be 400GE");
-        serviceType = ServiceTypes.getServiceType("Ethernet", Uint32.valueOf(100), null, null);
+        serviceType = ServiceTypes.getServiceType("Ethernet", Uint32.valueOf(100), null);
         assertEquals("100GEt", serviceType, "service-type should be 100GEt");
         Mapping mapping = new MappingBuilder()
             .setLogicalConnectionPoint("logicalConnectionPoint")
             .setPortQual(PortQual.XpdrClient.getName())
             .build();
-        serviceType = ServiceTypes.getServiceType("Ethernet", Uint32.valueOf(100), mapping, null);
+        serviceType = ServiceTypes.getServiceType("Ethernet", Uint32.valueOf(100), mapping);
         assertEquals("100GEt", serviceType, "service-type should be 100GEt");
 
         mapping = new MappingBuilder()
             .setLogicalConnectionPoint("logicalConnectionPoint")
             .setPortQual(PortQual.SwitchClient.getName())
             .build();
-        serviceType = ServiceTypes.getServiceType("Ethernet", Uint32.valueOf(100), mapping, null);
+        serviceType = ServiceTypes.getServiceType("Ethernet", Uint32.valueOf(100), mapping);
         assertEquals("100GEm", serviceType, "service-type should be 100GEm");
-        serviceType = ServiceTypes.getServiceType("Ethernet", Uint32.TEN, mapping, null);
+        serviceType = ServiceTypes.getServiceType("Ethernet", Uint32.TEN, mapping);
         assertEquals("10GE", serviceType, "service-type should be 10GE");
-        serviceType = ServiceTypes.getServiceType("Ethernet", Uint32.ONE, mapping, null);
+        serviceType = ServiceTypes.getServiceType("Ethernet", Uint32.ONE, mapping);
         assertEquals("1GE", serviceType, "service-type should be 1GE");
 
         mapping = new MappingBuilder()
             .setLogicalConnectionPoint("logicalConnectionPoint")
             .setPortQual(PortQual.SwitchClient.getName())
-            .setXpdrType(org.opendaylight.yang.gen.v1.http.org.openroadm.common
-                    .node.types.rev210528.XpdrNodeTypes.Switch)
+            .setXpdrType(XpdrNodeTypes.Switch)
             .build();
-        serviceType = ServiceTypes.getServiceType("Ethernet", Uint32.valueOf(100), mapping, null);
+        serviceType = ServiceTypes.getServiceType("Ethernet", Uint32.valueOf(100), mapping);
         assertEquals("100GEs", serviceType, "service-type should be 100GEs");
     }
 

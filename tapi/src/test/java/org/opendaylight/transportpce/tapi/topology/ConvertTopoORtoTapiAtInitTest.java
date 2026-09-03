@@ -27,7 +27,6 @@ import org.junit.jupiter.api.Test;
 import org.opendaylight.mdsal.binding.api.DataBroker;
 import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
 import org.opendaylight.transportpce.common.InstanceIdentifiers;
-import org.opendaylight.transportpce.common.StringConstants;
 import org.opendaylight.transportpce.common.network.NetworkTransactionImpl;
 import org.opendaylight.transportpce.common.network.NetworkTransactionService;
 import org.opendaylight.transportpce.tapi.TapiConstants;
@@ -37,13 +36,13 @@ import org.opendaylight.transportpce.tapi.utils.TapiLinkImpl;
 import org.opendaylight.transportpce.tapi.utils.TapiTopologyDataUtils;
 import org.opendaylight.transportpce.test.AbstractTest;
 import org.opendaylight.transportpce.test.utils.TopologyDataUtils;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.Link1;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.TerminationPoint1;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.TerminationPoint1Builder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250110.Link1;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250110.TerminationPoint1;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250110.TerminationPoint1Builder;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.state.types.rev191129.State;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.equipment.states.types.rev191129.AdminStates;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.OpenroadmLinkType;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.OpenroadmTpType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250110.OpenroadmLinkType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250110.OpenroadmTpType;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.NetworkId;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.Networks;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.NodeId;
@@ -108,7 +107,6 @@ public class ConvertTopoORtoTapiAtInitTest extends AbstractTest {
     private static Node roadmA;
     private static Node roadmC;
     private static Network openroadmNet;
-    private static Network openroadmTop;
     private static Map<LinkKey, org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226
         .networks.network.Link> ortopoLinks;
     private static Uuid topologyUuid;
@@ -200,14 +198,6 @@ public class ConvertTopoORtoTapiAtInitTest extends AbstractTest {
                     .build())
             .get().orElseThrow();
 
-        openroadmTop = dataBroker.newReadOnlyTransaction()
-                .read(
-                        LogicalDatastoreType.CONFIGURATION,
-                        DataObjectIdentifier
-                                .builder(Networks.class)
-                                .child(Network.class, new NetworkKey(new NetworkId(StringConstants.OPENROADM_TOPOLOGY)))
-                                .build())
-                .get().orElseThrow();
         topologyUuid = new Uuid(UUID.nameUUIDFromBytes(
                 TapiConstants.T0_FULL_MULTILAYER.getBytes(StandardCharsets.UTF_8))
             .toString());
@@ -317,10 +307,9 @@ public class ConvertTopoORtoTapiAtInitTest extends AbstractTest {
         tapiFullFactory.convertRdmToRdmLinks(
             ortopoLinks.values().stream()
                 .filter(lk -> lk.augmentation(Link1.class).getLinkType().equals(OpenroadmLinkType.ROADMTOROADM))
-                .collect(Collectors.toList()),
-                openroadmNet);
+                .collect(Collectors.toList()));
         assertEquals(2, tapiFullFactory.getTapiNodes().size(), "Node list size should be 2");
-        assertEquals(2, tapiFullFactory.getTapiLinks().size(), "Link list size should be 2");
+        assertEquals(1, tapiFullFactory.getTapiLinks().size(), "Link list size should be 1");
         List<org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev221121.topology.Node> tapiNodes =
             tapiFullFactory.getTapiNodes().values().stream().collect(Collectors.toList());
         int myInt = -1;
@@ -379,13 +368,11 @@ public class ConvertTopoORtoTapiAtInitTest extends AbstractTest {
                         || lk1.getSource().getSourceNode().getValue().contains(roadmA.getNodeId().getValue()))
                     && (lk1.getDestination().getDestNode().equals(otnMuxA.getNodeId())
                         || lk1.getDestination().getDestNode().getValue().contains(roadmA.getNodeId().getValue()))))
-                .collect(Collectors.toList()),
-                openroadmTop
-        );
+                .collect(Collectors.toList()));
         assertEquals(2, tapiFullFactory.getTapiNodes().size(),
             "Node list size should be 2 (XPDR, DSR-ODU merged; ROADM)");
-        assertEquals(2, tapiFullFactory.getTapiLinks().size(),
-            "Link list size should be 2 : no more transitional link, but moved to unidirectional links");
+        assertEquals(1, tapiFullFactory.getTapiLinks().size(),
+            "Link list size should be 1 : no more transitional link");
         Map<org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev221121.topology.NodeKey,
             org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev221121.topology.Node> nodeMap =
                 tapiFactory.getTapiNodes();
@@ -404,7 +391,7 @@ public class ConvertTopoORtoTapiAtInitTest extends AbstractTest {
         String roadmA1seed = "ROADM-A1+PHOTONIC_MEDIA";
         String spdrSA1tpseed = spdrSA1seed + "+PHOTONIC_MEDIA_OTS+XPDR1-NETWORK1";
         String roadmA1tpseed = roadmA1seed + "_OTS+SRG1-PP2-TXRX";
-        String linkseed = roadmA1tpseed + "to" + spdrSA1tpseed;
+        String linkseed = spdrSA1tpseed + "to" + roadmA1tpseed;
         Uuid node2Uuid = new Uuid(UUID.nameUUIDFromBytes(roadmA1seed.getBytes(StandardCharsets.UTF_8)).toString());
         LOG.info("{} UUID is {}",roadmA1seed, node2Uuid);
         checkXpdrRdmLink(
@@ -1059,7 +1046,7 @@ public class ConvertTopoORtoTapiAtInitTest extends AbstractTest {
     private void checkXpdrRdmLink(
             org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev221121.topology.Link link,
             Uuid node1Uuid, Uuid node2Uuid, Uuid tp1Uuid, Uuid tp2Uuid, Uuid linkUuid, String linkName) {
-        assertEquals(linkName, link.getName().get(new NameKey("roadm to xpdr link name")).getValue(),
+        assertEquals(linkName, link.getName().get(new NameKey("XPDR-RDM link name")).getValue(),
             "bad name for the link");
         linkNepsCheck(link, node1Uuid, node2Uuid, tp1Uuid, tp2Uuid, linkUuid);
     }
@@ -1072,8 +1059,8 @@ public class ConvertTopoORtoTapiAtInitTest extends AbstractTest {
             LayerProtocolName.PHOTONICMEDIA.getName(),
             link.getLayerProtocolName().stream().findFirst().orElseThrow().getName(),
             "oms link should be between 2 nodes of protocol layers PHOTONIC_MEDIA");
-        assertEquals(ForwardingDirection.UNIDIRECTIONAL, link.getDirection(),
-            "oms tapi link should be UNIDIRECTIONAL");
+        assertEquals(ForwardingDirection.BIDIRECTIONAL, link.getDirection(),
+            "otn tapi link should be BIDIRECTIONAL");
         var nodeEdgePointList = link.nonnullNodeEdgePoint().values().stream().collect(Collectors.toList());
         assertEquals(2 , nodeEdgePointList.size(), "oms link should be between 2 neps");
         var nep0 = nodeEdgePointList.get(0);
@@ -1147,6 +1134,21 @@ public class ConvertTopoORtoTapiAtInitTest extends AbstractTest {
         }
         LOG.info("pattern '{}' not found in list of nodes", searchedChar);
         return null;
+    }
+
+    @Test
+    void getIdBasedOnModelVersion() {
+        ConvertTopoORtoTapiAtInit convertORTopoToTapiFullTopo = new ConvertTopoORtoTapiAtInit(
+                topologyUuid,
+                tapiLink);
+
+        assertTrue(
+                "ROADM-A".equals(convertORTopoToTapiFullTopo.getIdBasedOnModelVersion("ROADM-A-SRG1"))
+        );
+
+        assertTrue(
+                "ROADMA".equals(convertORTopoToTapiFullTopo.getIdBasedOnModelVersion("ROADMA-SRG1"))
+        );
     }
 
 }

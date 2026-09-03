@@ -24,21 +24,21 @@ import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkmo
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkmodel.rev201116.topology.update.result.TopologyChanges;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkmodel.rev201116.topology.update.result.TopologyChangesKey;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.state.types.rev191129.State;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.service.list.Services;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.path.description.AToZDirection;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.path.description.AToZDirectionBuilder;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.path.description.ZToADirection;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.path.description.ZToADirectionBuilder;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.path.description.atoz.direction.AToZ;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.path.description.atoz.direction.AToZBuilder;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.path.description.atoz.direction.AToZKey;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.path.description.ztoa.direction.ZToA;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.path.description.ztoa.direction.ZToABuilder;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.path.description.ztoa.direction.ZToAKey;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.pce.resource.Resource;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.pce.resource.ResourceBuilder;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.pce.resource.resource.resource.Link;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.pce.resource.resource.resource.TerminationPoint;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250110.service.list.Services;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev230501.path.description.AToZDirection;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev230501.path.description.AToZDirectionBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev230501.path.description.ZToADirection;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev230501.path.description.ZToADirectionBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev230501.path.description.atoz.direction.AToZ;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev230501.path.description.atoz.direction.AToZBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev230501.path.description.atoz.direction.AToZKey;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev230501.path.description.ztoa.direction.ZToA;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev230501.path.description.ztoa.direction.ZToABuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev230501.path.description.ztoa.direction.ZToAKey;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev230501.pce.resource.Resource;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev230501.pce.resource.ResourceBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev230501.pce.resource.resource.resource.Link;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev230501.pce.resource.resource.resource.TerminationPoint;
 import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.service.path.PathDescription;
 import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.service.path.PathDescriptionBuilder;
 import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.servicepath.rev171017.ServicePathList;
@@ -163,10 +163,8 @@ public class NetworkModelNotificationHandler implements NetworkListener {
             State ztoAState = ztoA.getResource().getState();
             TerminationPoint tp = (TerminationPoint) ztoA.getResource().getResource();
             if (topologyChanges.containsKey(new TopologyChangesKey(tp.getTpNodeId(), tp.getTpId()))
-                    && topologyChanges.get(new TopologyChangesKey(tp.getTpNodeId(), tp.getTpId())) != null
-                    && topologyChanges.get(new TopologyChangesKey(tp.getTpNodeId(), tp.getTpId())).getState() != null
-                    && !topologyChanges.get(new TopologyChangesKey(tp.getTpNodeId(), tp.getTpId())).getState()
-                        .equals(ztoAState)) {
+                && !topologyChanges.get(new TopologyChangesKey(tp.getTpNodeId(), tp.getTpId())).getState()
+                .equals(ztoAState)) {
                 LOG.debug("updating ztoa tp {}", ztoA);
                 State updatedState = topologyChanges.get(new TopologyChangesKey(tp.getTpNodeId(), tp.getTpId()))
                     .getState();
@@ -213,14 +211,9 @@ public class NetworkModelNotificationHandler implements NetworkListener {
             String atoZid = atoZ.getId();
             State atoZState = atoZ.getResource().getState();
             TerminationPoint tp = (TerminationPoint) atoZ.getResource().getResource();
-            LOG.info("atoZState={}", atoZState);
-            LOG.info("topologyChanges.get(new TopologyChangesKey(tp.getTpNodeId(), tp.getTpId())) = {}",
-                    topologyChanges.get(new TopologyChangesKey(tp.getTpNodeId(), tp.getTpId())));
             if (topologyChanges.containsKey(new TopologyChangesKey(tp.getTpNodeId(), tp.getTpId()))
-                    && topologyChanges.get(new TopologyChangesKey(tp.getTpNodeId(), tp.getTpId())) != null
-                    && topologyChanges.get(new TopologyChangesKey(tp.getTpNodeId(), tp.getTpId())).getState() != null
-                    && !topologyChanges.get(new TopologyChangesKey(tp.getTpNodeId(), tp.getTpId())).getState()
-                        .equals(atoZState)) {
+                && !topologyChanges.get(new TopologyChangesKey(tp.getTpNodeId(), tp.getTpId())).getState()
+                .equals(atoZState)) {
                 LOG.debug("updating atoz tp {}", atoZ);
                 State updatedState = topologyChanges.get(new TopologyChangesKey(tp.getTpNodeId(), tp.getTpId()))
                     .getState();
@@ -285,7 +278,6 @@ public class NetworkModelNotificationHandler implements NetworkListener {
 
     private boolean compareTopologyUpdateResult(TopologyUpdateResult notification) {
         return topologyUpdateResult != null
-                && topologyUpdateResult.getTopologyChanges() != null
                 && topologyUpdateResult.getTopologyChanges().equals(notification.getTopologyChanges());
     }
 

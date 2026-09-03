@@ -26,7 +26,6 @@ import org.opendaylight.transportpce.test.utils.TopologyDataUtils;
 import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.Context;
 import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev221121.context.TopologyContext;
 import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev221121.topology.context.Topology;
-import org.opendaylight.yangtools.yang.parser.api.YangParserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +35,7 @@ public class TapiSbiImplTest extends AbstractTest {
     @BeforeAll
     static void setUp() throws InterruptedException, ExecutionException {
         TopologyDataUtils.writeTapiTopologyFromFileToDatastore(getDataStoreContextUtil(),
-                TapiTopologyDataUtils.TAPI_SBI_TOPOLOGY_FILE, TapiConstants.TAPI_TOPOLOGY_T0_FULL_IID);
+                TapiTopologyDataUtils.TAPI_SBI_TOPOLOGY_FILE, TapiConstants.TAPI_TOPOLOGY_II);
         LOG.info("setup done");
     }
 
@@ -62,13 +61,13 @@ public class TapiSbiImplTest extends AbstractTest {
     void getTapiTopology() throws InterruptedException, ExecutionException {
         LOG.info("test getTapiTopologyContext");
         Topology topology = (Topology) TopologyDataUtils.readTapiTopologyFromDatastore(getDataStoreContextUtil(),
-                TapiConstants.TAPI_TOPOLOGY_T0_FULL_IID);
+                TapiConstants.TAPI_TOPOLOGY_II);
         assertNotNull(topology, "TAPI Topology should not be null");
         LOG.info(topology.toString());
     }
 
     @Test
-    void saveTapiContextToFile() throws InterruptedException, ExecutionException, IOException, YangParserException {
+    void saveTapiContextToFile() throws InterruptedException, ExecutionException {
         LOG.info("test save Tapi Topology to JSON file");
         final Path filePath = Path.of("testSerializeContextToJSONFile.json");
         JsonDataConverter converter = new JsonDataConverter(null);

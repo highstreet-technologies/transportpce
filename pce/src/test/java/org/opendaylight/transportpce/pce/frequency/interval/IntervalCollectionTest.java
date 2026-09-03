@@ -19,7 +19,7 @@ import java.util.BitSet;
 import org.junit.jupiter.api.Test;
 import org.opendaylight.transportpce.pce.frequency.spectrum.Spectrum;
 import org.opendaylight.transportpce.pce.frequency.spectrum.index.FrequencySpectrumSet;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.optical.channel.types.rev250328.FrequencyTHz;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.optical.channel.types.rev250110.FrequencyTHz;
 
 class IntervalCollectionTest {
 
@@ -43,10 +43,8 @@ class IntervalCollectionTest {
 
         //Wiring up the mock to return the (fake) BitSet one in case the input
         // is the range 194.1 - 194.2.
-        when(spectrum.frequencySlots(
-                startOne.getValue().decimalValue().stripTrailingZeros(),
-                endOne.getValue().decimalValue().stripTrailingZeros()
-        )).thenReturn(one);
+        when(spectrum.frequencySlots(startOne.getValue().decimalValue(), endOne.getValue().decimalValue()))
+            .thenReturn(one);
 
         intervalCollection.add(new FrequencyInterval(startOne, endOne));
 
@@ -71,9 +69,7 @@ class IntervalCollectionTest {
         //Even though we've added two ranges, we don't expect more than one range to be processed
         //because the ranges are identical.
         verify(spectrum, times(1))
-            .frequencySlots(
-                    startOne.getValue().decimalValue().stripTrailingZeros(),
-                    endOne.getValue().decimalValue().stripTrailingZeros());
+            .frequencySlots(startOne.getValue().decimalValue(), endOne.getValue().decimalValue());
     }
 
     @Test
@@ -149,10 +145,8 @@ class IntervalCollectionTest {
 
         BitSet one = new BitSet();
         one.set(10, 20);
-        when(spectrum.frequencySlots(
-                startOne.getValue().decimalValue().stripTrailingZeros(),
-                endOne.getValue().decimalValue().stripTrailingZeros()
-        )).thenReturn(one);
+        when(spectrum.frequencySlots(startOne.getValue().decimalValue(), endOne.getValue().decimalValue()))
+            .thenReturn(one);
 
         intervalCollection.add(new FrequencyInterval(startOne, endOne));
 
@@ -176,10 +170,8 @@ class IntervalCollectionTest {
 
         BitSet one = new BitSet();
         one.set(15, 20);
-        when(spectrum.frequencySlots(
-                startOne.getValue().decimalValue().stripTrailingZeros(),
-                endOne.getValue().decimalValue().stripTrailingZeros()
-        )).thenReturn(one);
+        when(spectrum.frequencySlots(startOne.getValue().decimalValue(), endOne.getValue().decimalValue()))
+            .thenReturn(one);
 
         intervalCollection.add(new FrequencyInterval(startOne, endOne));
 

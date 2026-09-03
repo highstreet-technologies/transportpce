@@ -25,7 +25,6 @@ import org.opendaylight.mdsal.binding.api.NotificationPublishService;
 import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
 import org.opendaylight.transportpce.common.InstanceIdentifiers;
 import org.opendaylight.transportpce.common.StringConstants;
-import org.opendaylight.transportpce.common.Timeouts;
 import org.opendaylight.transportpce.common.device.DeviceTransactionManager;
 import org.opendaylight.transportpce.common.mapping.PortMapping;
 import org.opendaylight.transportpce.common.network.NetworkTransactionService;
@@ -45,18 +44,18 @@ import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkmo
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkutils.rev250902.OtnLinkType;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.or.network.augmentation.rev250902.DataModelEnum;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.or.network.augmentation.rev250902.LinkClassEnum;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.OpenroadmNodeVersion;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mapping.Mapping;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.network.Nodes;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.network.nodes.NodeInfo;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905.OpenroadmNodeVersion;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905.mapping.Mapping;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905.network.Nodes;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905.network.nodes.NodeInfo;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.state.types.rev191129.State;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.types.rev191129.NodeTypes;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.equipment.states.types.rev191129.AdminStates;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.OpenroadmNodeType;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.network.topology.rev250530.Link1;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.network.topology.rev250530.TerminationPoint1;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.common.types.rev260707.link.tp.LinkTp;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.common.types.rev260707.link.tp.LinkTpBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250110.OpenroadmNodeType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.network.topology.rev250110.Link1;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.otn.network.topology.rev250110.TerminationPoint1;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.common.types.rev251022.link.tp.LinkTp;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.common.types.rev251022.link.tp.LinkTpBuilder;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev130715.IpAddress;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.NetworkId;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.Networks;
@@ -158,7 +157,7 @@ public class NetworkModelServiceImpl implements NetworkModelService {
             // nodes/links creation in openroadm-topology
             addNodeInOpenroadmTopology(mappingNode, firstMount);
             // nodes/links creation in otn-topology
-            if (NodeTypes.Xpdr.getName().equals(nodeInfo.getNodeType().getName())
+            if (NodeTypes.Xpdr.equals(nodeInfo.getNodeType())
                     && !OpenroadmNodeVersion._121.equals(nodeInfo.getOpenroadmVersion())) {
                 addNodeInOtnTopology(nodeId);
             }
@@ -189,7 +188,7 @@ public class NetworkModelServiceImpl implements NetworkModelService {
         // nodes/links creation in openroadm-topology
         addNodeInOpenroadmTopology(mappingNode, true);
         // nodes/links creation in otn-topology
-        if (NodeTypes.Xpdr.getName().equals(nodeInfo.getNodeType().getName())) {
+        if (NodeTypes.Xpdr.equals(nodeInfo.getNodeType())) {
             addNodeInOtnTopology(nodeId);
         }
 
@@ -217,37 +216,26 @@ public class NetworkModelServiceImpl implements NetworkModelService {
      */
     @Override
     public boolean deleteOpenRoadmnode(String nodeId) {
-        Nodes portmappingNode = this.portMapping.getNode(nodeId);
-        if (portmappingNode == null) {
-            // The portmapping entry is deleted last, so it may already be gone if a previous
-            // deletion attempt failed halfway through. Proceed anyway so the remaining datastores
-            // get cleaned up and the deletion can be retried to completion.
-            LOG.warn("deleteOpenROADMnode: no portmapping data for {}, cleaning up remaining datastores", nodeId);
-        } else {
-            LOG.info("deleteOpenROADMnode: {} version {}", nodeId,
-                portmappingNode.getNodeInfo().getOpenroadmVersion().getName());
+        if (!this.portMapping.isNodeExist(nodeId)) {
+            return false;
         }
+        OpenroadmNodeVersion deviceVersion = this.portMapping.getNode(nodeId).getNodeInfo().getOpenroadmVersion();
+        LOG.info("deleteOpenROADMnode: {} version {}", nodeId, deviceVersion.getName());
         removeNodeFromOpenroadmNetwork(nodeId);
         removeNodeFromOpenroadmTopology(nodeId);
-        // Without portmapping data the node type is unknown; removeNodeFromOtnTopology is a no-op
-        // for nodes without an OTN topology shard, so call it for the cleanup-retry case too.
-        if (portmappingNode == null
-                || (NodeTypes.Xpdr.getName().equals(portmappingNode.getNodeInfo().getNodeType().getName())
-                    && !OpenroadmNodeVersion._121.equals(portmappingNode.getNodeInfo().getOpenroadmVersion()))) {
+        NodeTypes nodeType = this.portMapping.getNode(nodeId).getNodeInfo().getNodeType();
+        if (NodeTypes.Xpdr.equals(nodeType) && !OpenroadmNodeVersion._121.equals(deviceVersion)) {
             removeNodeFromOtnTopology(nodeId);
         }
         try {
-            this.networkTransactionService.commit().get(Timeouts.NODE_CLEANUP_COMMIT_TIMEOUT,
-                Timeouts.NODE_CLEANUP_COMMIT_TIMEOUT_UNIT);
+            this.networkTransactionService.commit().get(1, TimeUnit.SECONDS);
             LOG.info("all nodes and links deleted in topologies! ");
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            if (e instanceof InterruptedException) {
-                Thread.currentThread().interrupt();
-            }
             LOG.error("Error when trying to delete node : {}", nodeId, e);
             return false;
         }
-        return this.portMapping.deletePortMappingNode(nodeId);
+        this.portMapping.deletePortMappingNode(nodeId);
+        return true;
     }
 
     /**
@@ -255,38 +243,27 @@ public class NetworkModelServiceImpl implements NetworkModelService {
      */
     @Override
     public boolean deleteOpenConfignode(String nodeId) {
-        Nodes portmappingNode = this.portMapping.getNode(nodeId);
-        if (portmappingNode == null) {
-            // The portmapping entry is deleted last, so it may already be gone if a previous
-            // deletion attempt failed halfway through. Proceed anyway so the remaining datastores
-            // get cleaned up and the deletion can be retried to completion.
-            LOG.warn("deleteOpenConfignode: no portmapping data for {}, cleaning up remaining datastores", nodeId);
-        } else {
-            LOG.info("deleteOpenConfignode: {} version {}", nodeId,
-                portmappingNode.getNodeInfo().getOpenconfigVersion().getName());
+        if (!this.portMapping.isNodeExist(nodeId)) {
+            return false;
         }
+        NodeInfo nodeInfo = this.portMapping.getNode(nodeId).getNodeInfo();
+        LOG.info("deleteOpenConfignode: {} version {}", nodeId, nodeInfo.getOpenconfigVersion().getName());
 
         removeNodeFromOpenroadmNetwork(nodeId);
         removeNodeFromOpenroadmTopology(nodeId);
-        // Without portmapping data the node type is unknown; removeNodeFromOtnTopology is a no-op
-        // for nodes without an OTN topology shard, so call it for the cleanup-retry case too.
-        if (portmappingNode == null || NodeTypes.Xpdr.getName()
-                .equals(portmappingNode.getNodeInfo().getNodeType().getName())) {
+        if (NodeTypes.Xpdr.equals(nodeInfo.getNodeType())) {
             removeNodeFromOtnTopology(nodeId);
         }
         try {
-            this.networkTransactionService.commit().get(Timeouts.NODE_CLEANUP_COMMIT_TIMEOUT,
-                Timeouts.NODE_CLEANUP_COMMIT_TIMEOUT_UNIT);
+            this.networkTransactionService.commit().get(1, TimeUnit.SECONDS);
             LOG.info("all nodes and links deleted in topologies! ");
 
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            if (e instanceof InterruptedException) {
-                Thread.currentThread().interrupt();
-            }
             LOG.error("Error when trying to delete node : {}", nodeId, e);
             return false;
         }
-        return this.portMapping.deletePortMappingNode(nodeId);
+        this.portMapping.deletePortMappingNode(nodeId);
+        return true;
     }
 
     @Override
@@ -349,7 +326,7 @@ public class NetworkModelServiceImpl implements NetworkModelService {
                         .setNodeId(abstractNodeid)
                         .setTpId(tp.getTpId().getValue())
                         .setState(tp.augmentation(
-                            org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.TerminationPoint1
+                            org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250110.TerminationPoint1
                                 .class).getOperationalState())
                         .build();
                     if (!this.topologyChanges.containsKey(tc.key())) {
@@ -390,7 +367,7 @@ public class NetworkModelServiceImpl implements NetworkModelService {
                         .setNodeId(abstractNodeid)
                         .setTpId(tp.getTpId().getValue())
                         .setState(tp.augmentation(
-                            org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.TerminationPoint1
+                            org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250110.TerminationPoint1
                                 .class).getOperationalState())
                         .build();
                     if (!this.topologyChanges.containsKey(tc.key())) {
@@ -680,7 +657,7 @@ public class NetworkModelServiceImpl implements NetworkModelService {
     public void createTapiExtNodeAtInit() {
         var clliExt1 = new org.opendaylight.yang.gen.v1.http.org.openroadm.clli.network.rev191129.Node1Builder()
             .setClli("TAPI-SBI-ABS-NODE").build();
-        var commonExt1 = new org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.Node1Builder()
+        var commonExt1 = new org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250110.Node1Builder()
             .setAdministrativeState(AdminStates.InService)
             .setOperationalState(State.InService)
             .setNodeType(OpenroadmNodeType.ROADM)
@@ -1149,24 +1126,16 @@ public class NetworkModelServiceImpl implements NetworkModelService {
             String tp = linkTp.getTpId();
             String nodeId = new StringBuilder(linkTp.getNodeId()).append("-")
                 .append(tp.split("-")[0]).toString();
-            odu4links.stream().filter(lk -> lk.getSource().getSourceNode().getValue().equals(nodeId)
-                            && lk.getSource().getSourceTp().getValue().equals(tp)).findFirst()
-                    .ifPresent(lk -> {
-                        if (!links.contains(lk)) {
-                            links.add(lk);
-                        }
-                    });
-
-            odu4links.stream()
-                    .filter(lk -> lk.getDestination().getDestNode().getValue().equals(nodeId)
-                            && lk.getDestination().getDestTp().getValue().equals(tp))
-                    .findFirst()
-                    .ifPresent(lk -> {
-                        if (!links.contains(lk)) {
-                            links.add(lk);
-                        }
-                    });
-
+            Link slink = odu4links.stream().filter(lk -> lk.getSource().getSourceNode().getValue()
+                .equals(nodeId) && lk.getSource().getSourceTp().getValue().equals(tp)).findFirst().orElseThrow();
+            if (!links.contains(slink)) {
+                links.add(slink);
+            }
+            Link dlink = odu4links.stream().filter(lk -> lk.getDestination().getDestNode().getValue()
+                .equals(nodeId) && lk.getDestination().getDestTp().getValue().equals(tp)).findFirst().orElseThrow();
+            if (!links.contains(dlink)) {
+                links.add(dlink);
+            }
         }
         LOG.debug("odu4oduC4links = {}", links);
         return links;

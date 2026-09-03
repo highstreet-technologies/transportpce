@@ -13,13 +13,13 @@ import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.device.renderer.rev260212.ServicePathInput;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.optical.channel.types.rev250328.FrequencyGHz;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.optical.channel.types.rev250328.FrequencyTHz;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.optical.channel.types.rev250328.ModulationFormat;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.available.freq.map.AvailFreqMaps;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.available.freq.map.AvailFreqMapsBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.available.freq.map.AvailFreqMapsKey;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.device.renderer.rev251001.ServicePathInput;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.optical.channel.types.rev250110.FrequencyGHz;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.optical.channel.types.rev250110.FrequencyTHz;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.types.rev181019.ModulationFormat;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250110.available.freq.map.AvailFreqMaps;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250110.available.freq.map.AvailFreqMapsBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250110.available.freq.map.AvailFreqMapsKey;
 import org.opendaylight.yangtools.yang.common.Decimal64;
 import org.opendaylight.yangtools.yang.common.Uint16;
 import org.opendaylight.yangtools.yang.common.Uint32;
@@ -46,10 +46,9 @@ public final class GridUtils {
         Map<AvailFreqMapsKey, AvailFreqMaps> waveMap = new HashMap<>();
         AvailFreqMaps availFreqMaps = new AvailFreqMapsBuilder().setMapName(GridConstant.C_BAND)
                 .setFreqMapGranularity(
-                    new FrequencyGHz(Decimal64.valueOf(BigDecimal.valueOf(GridConstant.GRANULARITY)).scaleTo(5)))
+                    new FrequencyGHz(Decimal64.valueOf(BigDecimal.valueOf(GridConstant.GRANULARITY))))
                 .setStartEdgeFreq(
-                    new FrequencyTHz(Decimal64.valueOf(BigDecimal.valueOf(GridConstant.START_EDGE_FREQUENCY_THZ))
-                            .scaleTo(8)))
+                    new FrequencyTHz(Decimal64.valueOf(BigDecimal.valueOf(GridConstant.START_EDGE_FREQUENCY))))
                 .setEffectiveBits(Uint16.valueOf(GridConstant.EFFECTIVE_BITS))
                 .setFreqMap(byteArray)
                 .build();
@@ -75,7 +74,7 @@ public final class GridUtils {
     public static BigDecimal getStartFrequencyFromIndex(int index) {
         int nvalue = index - 284;
 
-        return BigDecimal.valueOf(GridConstant.CENTRAL_FREQUENCY_THZ).add(
+        return BigDecimal.valueOf(GridConstant.CENTRAL_FREQUENCY).add(
                         BigDecimal.valueOf(GridConstant.GRANULARITY)
                                 .multiply(BigDecimal.valueOf(nvalue))
                                 .divide(BigDecimal.valueOf(1000))
@@ -102,7 +101,7 @@ public final class GridUtils {
     public static int getIndexFromFrequency(Decimal64 atozMinFrequency) {
 
         BigDecimal nvalue = (BigDecimal.valueOf(atozMinFrequency.doubleValue())
-                                .subtract(BigDecimal.valueOf(GridConstant.CENTRAL_FREQUENCY_THZ))
+                                .subtract(BigDecimal.valueOf(GridConstant.CENTRAL_FREQUENCY))
                             ).multiply(
                                     BigDecimal.valueOf(1000)
                                     .divide(BigDecimal.valueOf(GridConstant.GRANULARITY))
@@ -139,7 +138,7 @@ public final class GridUtils {
      * @return central frequency in THz compatible with models 10.1
      */
     public static FrequencyTHz getCentralFrequency(BigDecimal minFrequency, BigDecimal maxFrequency) {
-        return new FrequencyTHz(Decimal64.valueOf(computeCentralFrequency(minFrequency, maxFrequency)).scaleTo(8));
+        return new FrequencyTHz(Decimal64.valueOf(computeCentralFrequency(minFrequency, maxFrequency)));
     }
 
     /**
@@ -153,9 +152,8 @@ public final class GridUtils {
         getCentralFrequencyWithPrecision(BigDecimal minFrequency,
             BigDecimal maxFrequency, int precision) {
         return new org.opendaylight.yang.gen.v1.http.org.openroadm.common.types.rev181019.FrequencyTHz(
-                Decimal64.valueOf(
-                        computeCentralFrequency(minFrequency, maxFrequency).setScale(precision, RoundingMode.HALF_EVEN))
-                        .scaleTo(8));
+                Decimal64.valueOf(computeCentralFrequency(minFrequency, maxFrequency)
+                    .setScale(precision, RoundingMode.HALF_EVEN)));
     }
 
     /**
@@ -180,7 +178,7 @@ public final class GridUtils {
                                                       int precision) {
         return new org.opendaylight.yang.gen.v1.http.org.openroadm.common.types.rev181019.FrequencyTHz(
                 Decimal64.valueOf(computeCentralFrequencyForOpenConfig(minFrequency, maxFrequency)
-                        .setScale(precision, RoundingMode.HALF_EVEN)).scaleTo(8));
+                        .setScale(precision, RoundingMode.HALF_EVEN)));
     }
 
     /**

@@ -8,7 +8,8 @@
 
 package org.opendaylight.transportpce.common.mapping;
 
-import static org.opendaylight.transportpce.common.StringConstants.OPENCONFIG_DEVICE_VERSION_2_0_0;
+import static org.opendaylight.transportpce.common.StringConstants.OPENCONFIG_DEVICE_VERSION_1_9_0;
+import static org.opendaylight.transportpce.common.StringConstants.OPENROADM_DEVICE_VERSION_1_2_1;
 import static org.opendaylight.transportpce.common.StringConstants.OPENROADM_DEVICE_VERSION_2_2_1;
 import static org.opendaylight.transportpce.common.StringConstants.OPENROADM_DEVICE_VERSION_7_1;
 
@@ -22,19 +23,18 @@ import org.opendaylight.mdsal.binding.api.DataBroker;
 import org.opendaylight.mdsal.binding.api.ReadTransaction;
 import org.opendaylight.mdsal.binding.api.WriteTransaction;
 import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
-import org.opendaylight.transportpce.common.Timeouts;
 import org.opendaylight.transportpce.common.device.DeviceTransactionManager;
 import org.opendaylight.transportpce.common.metadata.OCMetaDataTransaction;
 import org.opendaylight.transportpce.common.network.NetworkTransactionService;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.Network;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.NodeDatamodelType;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.OpenroadmNodeVersion;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mapping.Mapping;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mapping.MappingKey;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mc.capabilities.McCapabilities;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mc.capabilities.McCapabilitiesKey;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.network.Nodes;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.network.NodesKey;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905.Network;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905.NodeDatamodelType;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905.OpenroadmNodeVersion;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905.mapping.Mapping;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905.mapping.MappingKey;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905.mc.capabilities.McCapabilities;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905.mc.capabilities.McCapabilitiesKey;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905.network.Nodes;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905.network.NodesKey;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.org.openroadm.device.container.org.openroadm.device.OduSwitchingPools;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.org.openroadm.device.container.org.openroadm.device.odu.switching.pools.non.blocking.list.PortList;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev130715.IpAddress;
@@ -55,7 +55,8 @@ public class PortMappingImpl implements PortMapping {
     private final DataBroker dataBroker;
     private final PortMappingVersion710 portMappingVersion710;
     private final PortMappingVersion221 portMappingVersion22;
-    private final OCPortMappingVersion200 ocPortMappingVersion200;
+    private final PortMappingVersion121 portMappingVersion121;
+    private final OCPortMappingVersion190 ocPortMappingVersion190;
 
     @Activate
     public PortMappingImpl(@Reference DataBroker dataBroker,
@@ -65,16 +66,20 @@ public class PortMappingImpl implements PortMapping {
         this(dataBroker,
             new PortMappingVersion710(dataBroker, deviceTransactionManager),
             new PortMappingVersion221(dataBroker, deviceTransactionManager),
-            new OCPortMappingVersion200(dataBroker,deviceTransactionManager,ocMetaDataTransaction,
+            new PortMappingVersion121(dataBroker, deviceTransactionManager),
+            new OCPortMappingVersion190(dataBroker,deviceTransactionManager,ocMetaDataTransaction,
                         networkTransactionService));
     }
 
     public PortMappingImpl(DataBroker dataBroker, PortMappingVersion710 portMappingVersion710,
-        PortMappingVersion221 portMappingVersion22, OCPortMappingVersion200 ocPortMappingVersion200) {
+        PortMappingVersion221 portMappingVersion22, PortMappingVersion121 portMappingVersion121,
+                           OCPortMappingVersion190 ocPortMappingVersion190) {
+
         this.dataBroker = dataBroker;
         this.portMappingVersion710 = portMappingVersion710;
         this.portMappingVersion22 = portMappingVersion22;
-        this.ocPortMappingVersion200 = ocPortMappingVersion200;
+        this.portMappingVersion121 = portMappingVersion121;
+        this.ocPortMappingVersion190 = ocPortMappingVersion190;
     }
 
     @Override
@@ -90,9 +95,10 @@ public class PortMappingImpl implements PortMapping {
     @Override
     public boolean createMappingData(String nodeId, String nodeVersion, IpAddress ipAddress) {
         return switch (nodeVersion) {
+            case OPENROADM_DEVICE_VERSION_1_2_1 -> portMappingVersion121.createMappingData(nodeId);
             case OPENROADM_DEVICE_VERSION_2_2_1 -> portMappingVersion22.createMappingData(nodeId);
             case OPENROADM_DEVICE_VERSION_7_1 -> portMappingVersion710.createMappingData(nodeId);
-            case OPENCONFIG_DEVICE_VERSION_2_0_0 -> ocPortMappingVersion200.createMappingData(nodeId, ipAddress);
+            case OPENCONFIG_DEVICE_VERSION_1_9_0 -> ocPortMappingVersion190.createMappingData(nodeId, ipAddress);
             default -> {
                 LOG.error("Unable to create mapping data for unmanaged device version");
                 yield false;
@@ -194,25 +200,19 @@ public class PortMappingImpl implements PortMapping {
 
 
     @Override
-    public boolean deletePortMappingNode(String nodeId) {
+    public void deletePortMappingNode(String nodeId) {
         LOG.info("Deleting Mapping Data corresponding at node '{}'", nodeId);
-        boolean success = true;
         WriteTransaction rw = this.dataBroker.newWriteOnlyTransaction();
         DataObjectIdentifier<Nodes> nodesIID = DataObjectIdentifier.builder(Network.class)
             .child(Nodes.class, new NodesKey(nodeId))
             .build();
         rw.delete(LogicalDatastoreType.CONFIGURATION, nodesIID);
         try {
-            rw.commit().get(Timeouts.NODE_CLEANUP_COMMIT_TIMEOUT, Timeouts.NODE_CLEANUP_COMMIT_TIMEOUT_UNIT);
+            rw.commit().get(1, TimeUnit.SECONDS);
             LOG.info("Port mapping removal for node '{}'", nodeId);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            if (e instanceof InterruptedException) {
-                Thread.currentThread().interrupt();
-            }
             LOG.error("Error for removing port mapping infos for node '{}'", nodeId, e);
-            success = false;
         }
-        return success;
     }
 
     @Override
@@ -222,9 +222,10 @@ public class PortMappingImpl implements PortMapping {
         NodeDatamodelType datamodelType = getNode(nodeId).getDatamodelType();
 
         if (datamodelType != null && datamodelType.equals(NodeDatamodelType.OPENCONFIG)) {
-            return ocPortMappingVersion200.updateMapping(nodeId, oldMapping);
+            return ocPortMappingVersion190.updateMapping(nodeId, oldMapping);
         } else {
             return switch (openROADMversion) {
+                case _121 -> portMappingVersion121.updateMapping(nodeId, oldMapping);
                 case _221 -> portMappingVersion22.updateMapping(nodeId, oldMapping);
                 case _71 -> portMappingVersion710.updateMapping(nodeId, oldMapping);
                 default -> false;

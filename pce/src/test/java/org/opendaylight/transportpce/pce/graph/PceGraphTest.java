@@ -37,22 +37,21 @@ import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
 import org.opendaylight.transportpce.common.StringConstants;
 import org.opendaylight.transportpce.common.device.DeviceTransactionManager;
 import org.opendaylight.transportpce.common.device.DeviceTransactionManagerImpl;
-import org.opendaylight.transportpce.common.mapping.OCPortMappingVersion200;
+import org.opendaylight.transportpce.common.mapping.OCPortMappingVersion190;
 import org.opendaylight.transportpce.common.mapping.PortMapping;
 import org.opendaylight.transportpce.common.mapping.PortMappingImpl;
+import org.opendaylight.transportpce.common.mapping.PortMappingVersion121;
 import org.opendaylight.transportpce.common.mapping.PortMappingVersion221;
 import org.opendaylight.transportpce.common.mapping.PortMappingVersion710;
 import org.opendaylight.transportpce.common.metadata.OCMetaDataTransaction;
 import org.opendaylight.transportpce.common.network.NetworkTransactionImpl;
 import org.opendaylight.transportpce.common.network.NetworkTransactionService;
-import org.opendaylight.transportpce.pce.PceSendingPceRPCs;
 import org.opendaylight.transportpce.pce.constraints.PceConstraints;
 import org.opendaylight.transportpce.pce.frequency.interval.EntireSpectrum;
 import org.opendaylight.transportpce.pce.input.ClientInput;
 import org.opendaylight.transportpce.pce.networkanalyzer.PceCalculation;
 import org.opendaylight.transportpce.pce.networkanalyzer.PceLink;
 import org.opendaylight.transportpce.pce.networkanalyzer.PceNode;
-import org.opendaylight.transportpce.pce.networkanalyzer.PceORLink;
 import org.opendaylight.transportpce.pce.networkanalyzer.PceOtnNode;
 import org.opendaylight.transportpce.pce.networkanalyzer.PceResult;
 import org.opendaylight.transportpce.pce.utils.NodeUtils;
@@ -67,20 +66,20 @@ import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev24
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.PceConstraintMode;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.path.computation.request.input.ServiceAEndBuilder;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.path.computation.request.input.ServiceZEndBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.service.port.PortBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250110.service.port.PortBuilder;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.state.types.rev191129.State;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.types.rev250530.OpenroadmVersionType;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.rev250530.Node1Builder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.TerminationPoint1Builder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.networks.network.node.termination.point.XpdrNetworkAttributesBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.OpenroadmNodeType;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.OpenroadmTpType;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.constraints.CoRoutingBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.constraints.co.routing.ServiceIdentifierListBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.routing.constraints.HardConstraintsBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329.routing.constraints.SoftConstraintsBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.format.rev250530.ServiceFormat;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.OperationalModeCatalog;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.types.rev250110.OpenroadmVersionType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.rev250110.Node1Builder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250110.TerminationPoint1Builder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250110.networks.network.node.termination.point.XpdrNetworkAttributesBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250110.OpenroadmNodeType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250110.OpenroadmTpType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev221209.constraints.CoRoutingBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev221209.constraints.co.routing.ServiceIdentifierListBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev221209.routing.constraints.HardConstraintsBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev221209.routing.constraints.SoftConstraintsBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.format.rev191129.ServiceFormat;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250110.OperationalModeCatalog;
 import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.PceMetric;
 import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.service.endpoint.sp.RxDirectionBuilder;
 import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.service.endpoint.sp.TxDirectionBuilder;
@@ -106,7 +105,6 @@ import org.opendaylight.yangtools.binding.DataObjectIdentifier;
 import org.opendaylight.yangtools.yang.common.Uint32;
 import org.opendaylight.yangtools.yang.data.api.YangInstanceIdentifier;
 import org.opendaylight.yangtools.yang.data.api.schema.NormalizedNode;
-import org.opendaylight.yangtools.yang.parser.api.YangParserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -120,22 +118,22 @@ public class PceGraphTest extends AbstractTest {
     private PceResult rc = null;
     private Map<NodeId, PceNode> allPceNodes = null;
     private Map<LinkId, PceLink> allPceLinks = null;
-    private static final String CATALOG_FILE = "src/test/resources/"
-            + "apidoc-operational-modes-to-catalog-17_0-optical-spec-9_0.json";
+    private static final String CATALOG_FILE = "src/test/resources/apidocCatalog12_0-OptSpecV5_1.json";
     private static final String MAPPING_FILE = "src/test/resources/topologyData/portMapping2.json";
     private static OperationalModeCatalog omCatalog;
     private static org.opendaylight.yang.gen.v1.http.org.opendaylight
-            .transportpce.portmapping.rev260612.Network networkNode;
+            .transportpce.portmapping.rev250905.Network networkNode;
     private DataBroker dataBroker;
     private MountPoint mountPoint;
     private MountPointService mountPointService;
     private DeviceTransactionManager deviceTransactionManager;
     private PortMappingVersion710 portMappingVersion710;
     private PortMappingVersion221 portMappingVersion22;
+    private PortMappingVersion121 portMappingVersion121;
     private PortMapping portMapping;
     private NetworkTransactionService netTransServ;
     private ClientInput clientInput;
-    private OCPortMappingVersion200 ocPortMappingVersion200;
+    private OCPortMappingVersion190 ocPortMappingVersion190;
     private OCMetaDataTransaction ocMetaDataTransaction;
     private NetworkTransactionService networkTransactionService;
 
@@ -149,11 +147,12 @@ public class PceGraphTest extends AbstractTest {
         this.mountPointService = new MountPointServiceStub(mountPoint);
         this.deviceTransactionManager = new DeviceTransactionManagerImpl(mountPointService, 3000);
         this.portMappingVersion22 = new PortMappingVersion221(dataBroker, deviceTransactionManager);
+        this.portMappingVersion121 = new PortMappingVersion121(dataBroker, deviceTransactionManager);
         this.portMappingVersion710 = new PortMappingVersion710(dataBroker, deviceTransactionManager);
-        this.ocPortMappingVersion200 = new OCPortMappingVersion200(dataBroker, deviceTransactionManager,
+        this.ocPortMappingVersion190 = new OCPortMappingVersion190(dataBroker, deviceTransactionManager,
                 ocMetaDataTransaction, networkTransactionService);
         this.portMapping = new PortMappingImpl(dataBroker, this.portMappingVersion710,  this.portMappingVersion22,
-                this.ocPortMappingVersion200);
+                this.portMappingVersion121, this.ocPortMappingVersion190);
         this.clientInput = mock(ClientInput.class);
         when(this.clientInput.clientRangeWishListIntersection()).thenReturn(new EntireSpectrum(768));
         when(this.clientInput.clientRangeWishListSubset()).thenReturn(new EntireSpectrum(768));
@@ -187,18 +186,18 @@ public class PceGraphTest extends AbstractTest {
         try (Reader reader = Files.newBufferedReader(Path.of(MAPPING_FILE), StandardCharsets.UTF_8)) {
             NormalizedNode normalizedNode = dataObjectConverter.transformIntoNormalizedNode(reader).orElseThrow();
             networkNode = (org.opendaylight.yang.gen.v1.http.org.opendaylight
-                    .transportpce.portmapping.rev260612.Network) getDataStoreContextUtil()
+                    .transportpce.portmapping.rev250905.Network) getDataStoreContextUtil()
                 .getBindingDOMCodecServices()
                 .fromNormalizedNode(
                     YangInstanceIdentifier.of(org.opendaylight.yang.gen.v1.http.org.opendaylight
-                        .transportpce.portmapping.rev260612.Network.QNAME), normalizedNode)
+                        .transportpce.portmapping.rev250905.Network.QNAME), normalizedNode)
                 .getValue();
             @NonNull
             WriteTransaction newWriteOnlyTransaction = dataBroker.newWriteOnlyTransaction();
             newWriteOnlyTransaction
                 .put(LogicalDatastoreType.CONFIGURATION,
                     DataObjectIdentifier.builder(org.opendaylight.yang.gen.v1.http.org.opendaylight
-                        .transportpce.portmapping.rev260612.Network.class).build(), networkNode);
+                        .transportpce.portmapping.rev250905.Network.class).build(), networkNode);
             newWriteOnlyTransaction.commit().get();
         } catch (IOException e) {
             LOG.error("Cannot load OpenROADM part of Operational Mode Catalog ", e);
@@ -218,7 +217,7 @@ public class PceGraphTest extends AbstractTest {
                     StandardCharsets.UTF_8);
             networks = (Networks) new JsonDataConverter(null).deserialize(gnpyTopo, Networks.QNAME);
             saveOpenRoadmNetwork(networks.getNetwork().values().iterator().next(), StringConstants.OPENROADM_TOPOLOGY);
-        } catch (IOException | InterruptedException | ExecutionException | YangParserException e) {
+        } catch (IOException | InterruptedException | ExecutionException e) {
             LOG.error("Cannot init test ", e);
             fail("Cannot init test ");
         }
@@ -252,7 +251,7 @@ public class PceGraphTest extends AbstractTest {
         pceGraph = new PceGraph(pceCalc.getaendPceNode(), pceCalc.getzendPceNode(),
             pceCalc.getAllPceNodes(), pceCalc.getAllPceLinks(), pceHardConstraints,
             rc, StringConstants.SERVICE_TYPE_100GE_T, netTransServ, PceConstraintMode.Loose, null,
-            clientInput, pceCalc.getServiceLayer());
+            clientInput);
         assertEquals(pceGraph.calcPath(), true);
         assertEquals(Optional.ofNullable(pceGraph.getmargin()), Optional.of(3.0919881995992924));
     }
@@ -266,7 +265,7 @@ public class PceGraphTest extends AbstractTest {
         pceGraph = new PceGraph(pceCalc.getaendPceNode(), pceCalc.getzendPceNode(),
             pceCalc.getAllPceNodes(), pceCalc.getAllPceLinks(), pceHardConstraints,
             rc, StringConstants.SERVICE_TYPE_OTUC2, netTransServ, PceConstraintMode.Loose, null,
-            clientInput, pceCalc.getServiceLayer());
+            clientInput);
         assertEquals(pceGraph.calcPath(), true);
         assertEquals(Optional.ofNullable(pceGraph.getmargin()), Optional.of(1.1559963686478447));
     }
@@ -280,7 +279,7 @@ public class PceGraphTest extends AbstractTest {
         pceGraph = new PceGraph(pceCalc.getaendPceNode(), pceCalc.getzendPceNode(),
             pceCalc.getAllPceNodes(), pceCalc.getAllPceLinks(), pceHardConstraints,
             rc, StringConstants.SERVICE_TYPE_OTUC3, netTransServ, PceConstraintMode.Loose, null,
-            clientInput, pceCalc.getServiceLayer());
+            clientInput);
         assertEquals(pceGraph.calcPath(), true);
         assertEquals(Optional.ofNullable(pceGraph.getmargin()), Optional.of(0.3351048800367167));
     }
@@ -294,7 +293,7 @@ public class PceGraphTest extends AbstractTest {
         pceGraph = new PceGraph(pceCalc.getaendPceNode(), pceCalc.getzendPceNode(),
             pceCalc.getAllPceNodes(), pceCalc.getAllPceLinks(), pceHardConstraints,
             rc, StringConstants.SERVICE_TYPE_400GE, netTransServ, PceConstraintMode.Loose, null,
-            clientInput, pceCalc.getServiceLayer());
+            clientInput);
         assertEquals(pceGraph.calcPath(), false);
         assertEquals(Optional.ofNullable(pceGraph.getmargin()), Optional.of(0.0));
     }
@@ -308,7 +307,7 @@ public class PceGraphTest extends AbstractTest {
         pceGraph = new PceGraph(pceCalc.getaendPceNode(), pceCalc.getzendPceNode(),
             pceCalc.getAllPceNodes(), pceCalc.getAllPceLinks(), pceHardConstraints,
             rc, StringConstants.SERVICE_TYPE_400GE, netTransServ, PceConstraintMode.Loose, null,
-            clientInput, pceCalc.getServiceLayer());
+            clientInput);
         assertEquals(pceGraph.calcPath(), true);
         assertEquals(Optional.ofNullable(pceGraph.getmargin()), Optional.of(1.4432381874659086));
     }
@@ -322,7 +321,7 @@ public class PceGraphTest extends AbstractTest {
         pceGraph = new PceGraph(pceCalc.getaendPceNode(), pceCalc.getzendPceNode(),
             pceCalc.getAllPceNodes(), pceCalc.getAllPceLinks(), pceHardConstraints,
             rc, StringConstants.SERVICE_TYPE_OTUC4, netTransServ, PceConstraintMode.Loose, null,
-            clientInput, pceCalc.getServiceLayer());
+            clientInput);
         assertEquals(pceGraph.calcPath(), true);
         assertEquals(Optional.ofNullable(pceGraph.getmargin()), Optional.of(1.4432381874659086));
     }
@@ -336,7 +335,7 @@ public class PceGraphTest extends AbstractTest {
         pceGraph = new PceGraph(pceCalc.getaendPceNode(), pceCalc.getzendPceNode(),
             pceCalc.getAllPceNodes(), pceCalc.getAllPceLinks(), pceHardConstraints,
             rc, StringConstants.SERVICE_TYPE_OTUC4, netTransServ, PceConstraintMode.Loose, null,
-            clientInput, pceCalc.getServiceLayer());
+            clientInput);
         assertEquals(pceGraph.calcPath(), true);
         assertEquals(Optional.ofNullable(pceGraph.getmargin()), Optional.of(0.0));
     }
@@ -350,7 +349,7 @@ public class PceGraphTest extends AbstractTest {
         pceGraph = new PceGraph(pceCalc.getaendPceNode(), pceCalc.getzendPceNode(),
             pceCalc.getAllPceNodes(), pceCalc.getAllPceLinks(), pceHardConstraints,
             rc, StringConstants.SERVICE_TYPE_100GE_T, netTransServ, PceConstraintMode.Loose, null,
-            clientInput, pceCalc.getServiceLayer());
+            clientInput);
         assertEquals(pceGraph.calcPath(), true);
         assertEquals(Optional.ofNullable(pceGraph.getmargin()), Optional.of(3.0919881995992924));
     }
@@ -365,7 +364,7 @@ public class PceGraphTest extends AbstractTest {
         pceGraph = new PceGraph(pceCalc.getaendPceNode(), pceCalc.getzendPceNode(),
             pceCalc.getAllPceNodes(), pceCalc.getAllPceLinks(), pceHardConstraints,
             rc, StringConstants.SERVICE_TYPE_100GE_T, netTransServ, PceConstraintMode.Loose, null,
-            clientInput, pceCalc.getServiceLayer());
+            clientInput);
         pceGraph.setConstrains(pceHardConstraints);
 
         assertEquals(pceGraph.calcPath(), true);
@@ -414,7 +413,7 @@ public class PceGraphTest extends AbstractTest {
         pceOtnNode2.checkAvailableTribPort();
         pceOtnNode2.checkAvailableTribSlot();
 
-        pceLink1 = new PceORLink(link1, pceOtnNode, pceOtnNode2);
+        pceLink1 = new PceLink(link1, pceOtnNode, pceOtnNode2);
         pceLink1.setClientA("XPONDER-CLIENT");
 
         pceLink1.getDestId();
@@ -428,7 +427,7 @@ public class PceGraphTest extends AbstractTest {
             new NodeId("optical2"), pceOtnNode2);
         return new PceGraph(pceOtnNode, pceOtnNode2, allPceNodes, allPceLinks, pceHardConstraints,
                 new PceResult(), type, null, PceConstraintMode.Loose, null,
-                clientInput, PceSendingPceRPCs.SERVICE_LAYER_OTN);
+                clientInput);
     }
 
     private void saveOpenRoadmNetwork(Network network, String networkId)
@@ -455,7 +454,7 @@ public class PceGraphTest extends AbstractTest {
             .addAugmentation(
                 new Node1Builder().setOpenroadmVersion(OpenroadmVersionType._221).build())
             .addAugmentation(
-                new org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.Node1Builder()
+                new org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250110.Node1Builder()
                     .setNodeType(nodeType).build())
             .build();
     }
@@ -483,10 +482,10 @@ public class PceGraphTest extends AbstractTest {
             .withKey(new NodeKey(new NodeId(nodeId)))
             .setSupportingNode(ImmutableMap.of(supportingNode.key(), supportingNode))
             .addAugmentation(
-                new org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.Node1Builder()
+                new org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250110.Node1Builder()
                     .setXpdrAttributes(null).build())
             .addAugmentation(
-                new org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.Node1Builder()
+                new org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250110.Node1Builder()
                     .setNodeType(nodeType).build())
             .build();
     }
@@ -560,7 +559,7 @@ public class PceGraphTest extends AbstractTest {
                 .setCustomerCode(Set.of("Some customer-code"))
                 .setCoRouting(new CoRoutingBuilder()
                     .setServiceIdentifierList(Map.of(
-                        new org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329
+                        new org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev221209
                                 .constraints.co.routing.ServiceIdentifierListKey("Some existing-service"),
                         new ServiceIdentifierListBuilder().setServiceIdentifier("Some existing-service").build()))
                     .build())
@@ -569,7 +568,7 @@ public class PceGraphTest extends AbstractTest {
                 .setCustomerCode(Set.of("Some customer-code"))
                 .setCoRouting(new CoRoutingBuilder()
                     .setServiceIdentifierList(Map.of(
-                        new org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329
+                        new org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev221209
                                 .constraints.co.routing.ServiceIdentifierListKey("Some existing-service"),
                         new ServiceIdentifierListBuilder().setServiceIdentifier("Some existing-service").build()))
                     .build())
@@ -610,7 +609,7 @@ public class PceGraphTest extends AbstractTest {
                 .setCustomerCode(Set.of("Some customer-code"))
                 .setCoRouting(new CoRoutingBuilder()
                     .setServiceIdentifierList(Map.of(
-                        new org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329
+                        new org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev221209
                                 .constraints.co.routing.ServiceIdentifierListKey("Some existing-service"),
                         new ServiceIdentifierListBuilder().setServiceIdentifier("Some existing-service").build()))
                     .build())
@@ -619,7 +618,7 @@ public class PceGraphTest extends AbstractTest {
                 .setCustomerCode(Set.of("Some customer-code"))
                 .setCoRouting(new CoRoutingBuilder()
                     .setServiceIdentifierList(Map.of(
-                        new org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev240329
+                        new org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev221209
                                 .constraints.co.routing.ServiceIdentifierListKey("Some existing-service"),
                         new ServiceIdentifierListBuilder().setServiceIdentifier("Some existing-service").build()))
                     .build())

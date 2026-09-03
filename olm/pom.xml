@@ -13,17 +13,17 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
   <parent>
     <groupId>org.opendaylight.mdsal</groupId>
     <artifactId>binding-parent</artifactId>
-    <version>16.0.3</version>
+    <version>15.0.4</version>
     <relativePath/>
   </parent>
 
   <groupId>org.opendaylight.transportpce</groupId>
   <artifactId>transportpce-olm</artifactId>
-  <version>13.0.0-SNAPSHOT</version>
+  <version>12.1.0</version>
   <packaging>bundle</packaging>
 
   <properties>
-    <transportpce.models.version>24.0.1</transportpce.models.version>
+    <transportpce.models.version>23.1.0</transportpce.models.version>
   </properties>
 
   <dependencyManagement>
@@ -41,6 +41,10 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
   <dependencies>
     <dependency>
       <groupId>org.opendaylight.transportpce.models</groupId>
+      <artifactId>openroadm-common-1.2.1</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.opendaylight.transportpce.models</groupId>
       <artifactId>openroadm-common-2.2.1</artifactId>
     </dependency>
     <dependency>
@@ -49,7 +53,11 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
     </dependency>
     <dependency>
       <groupId>org.opendaylight.transportpce.models</groupId>
-      <artifactId>openroadm-common-17.1.0</artifactId>
+      <artifactId>openroadm-common-13.1.1</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.opendaylight.transportpce.models</groupId>
+      <artifactId>openroadm-device-1.2.1</artifactId>
     </dependency>
     <dependency>
       <groupId>org.opendaylight.transportpce.models</groupId>
@@ -61,11 +69,7 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
     </dependency>
     <dependency>
       <groupId>org.opendaylight.transportpce.models</groupId>
-      <artifactId>openroadm-network-17.1.0</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.opendaylight.transportpce.models</groupId>
-      <artifactId>openconfig-200</artifactId>
+      <artifactId>openroadm-network-13.1.1</artifactId>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>

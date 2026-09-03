@@ -17,10 +17,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import org.opendaylight.mdsal.binding.api.DataObjectDeleted;
 import org.opendaylight.mdsal.binding.api.DataObjectModification;
-import org.opendaylight.mdsal.binding.api.DataObjectModified;
-import org.opendaylight.mdsal.binding.api.DataObjectWritten;
 import org.opendaylight.mdsal.binding.api.DataTreeChangeListener;
 import org.opendaylight.mdsal.binding.api.DataTreeModification;
 import org.opendaylight.mdsal.binding.api.NotificationPublishService;
@@ -28,28 +25,28 @@ import org.opendaylight.mdsal.binding.api.RpcService;
 import org.opendaylight.transportpce.common.ResponseCodes;
 import org.opendaylight.transportpce.servicehandler.ServiceInput;
 import org.opendaylight.transportpce.servicehandler.service.ServiceDataStoreOperations;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.Restorable;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.RpcActions;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.routing.metric.RoutingMetric;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.sdnc.request.header.SdncRequestHeaderBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.service.resiliency.ServiceResiliency;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250110.Restorable;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250110.RpcActions;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250110.routing.metric.RoutingMetric;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250110.sdnc.request.header.SdncRequestHeaderBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250110.service.resiliency.ServiceResiliency;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.state.types.rev191129.State;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.equipment.states.types.rev191129.AdminStates;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.ServiceCreate;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.ServiceCreateInputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.ServiceCreateOutput;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.ServiceDelete;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.ServiceDeleteInputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.ServiceDeleteOutput;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.ServiceReroute;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.ServiceRerouteInput;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.ServiceRerouteInputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.ServiceRerouteOutput;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.service.create.input.ServiceAEndBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.service.create.input.ServiceZEndBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.service.delete.input.ServiceDeleteReqInfo;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.service.delete.input.ServiceDeleteReqInfoBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.service.list.Services;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250110.ServiceCreate;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250110.ServiceCreateInputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250110.ServiceCreateOutput;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250110.ServiceDelete;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250110.ServiceDeleteInputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250110.ServiceDeleteOutput;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250110.ServiceReroute;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250110.ServiceRerouteInput;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250110.ServiceRerouteInputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250110.ServiceRerouteOutput;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250110.service.create.input.ServiceAEndBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250110.service.create.input.ServiceZEndBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250110.service.delete.input.ServiceDeleteReqInfo;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250110.service.delete.input.ServiceDeleteReqInfoBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250110.service.list.Services;
 import org.opendaylight.yang.gen.v1.nbi.notifications.rev230728.PublishNotificationAlarmService;
 import org.opendaylight.yang.gen.v1.nbi.notifications.rev230728.PublishNotificationAlarmServiceBuilder;
 import org.opendaylight.yangtools.yang.common.RpcResult;
@@ -86,25 +83,20 @@ public class ServiceListener implements DataTreeChangeListener<Services> {
         LOG.info("onDataTreeChanged - {}", this.getClass().getSimpleName());
         for (DataTreeModification<Services> change : changes) {
             DataObjectModification<Services> rootService = change.getRootNode();
-            switch (rootService) {
-                case DataObjectModified<Services> writtenService -> {
-                    String serviceInputName = writtenService.dataAfter().key().getServiceName();
-                    LOG.info("Service {} modified in controller", serviceInputName);
-                }
-                case DataObjectDeleted<Services> deletedService -> {
-                    String serviceInputName = deletedService.dataBefore().key().getServiceName();
+            if (rootService.dataBefore() == null) {
+                continue;
+            }
+            String serviceInputName = rootService.dataBefore().key().getServiceName();
+            switch (rootService.modificationType()) {
+                case DELETE:
                     LOG.info("Service {} correctly deleted from controller", serviceInputName);
                     if (mapServiceInputReroute.get(serviceInputName) != null) {
                         serviceRerouteStep2(serviceInputName);
                     }
-                }
-                case DataObjectWritten<Services> modifiedService -> {
-                    Services inputBefore = modifiedService.dataBefore();
-                    Services inputAfter = modifiedService.dataAfter();
-                    String serviceInputName = inputAfter.key().getServiceName();
-                    if (inputBefore == null) {
-                        continue;
-                    }
+                    break;
+                case WRITE:
+                    Services inputBefore = rootService.dataBefore();
+                    Services inputAfter = rootService.dataAfter();
                     if (inputBefore.getOperationalState() == State.InService
                             && inputAfter.getOperationalState() == State.OutOfService) {
                         LOG.info("Service {} is becoming outOfService", serviceInputName);
@@ -162,7 +154,10 @@ public class ServiceListener implements DataTreeChangeListener<Services> {
                             mapServiceInputReroute.remove(serviceInputName);
                         }
                     }
-                }
+                    break;
+                default:
+                    LOG.debug("Unknown modification type {}", rootService.modificationType().name());
+                    break;
             }
         }
     }

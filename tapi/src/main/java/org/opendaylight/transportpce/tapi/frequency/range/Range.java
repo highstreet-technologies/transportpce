@@ -16,43 +16,49 @@ import org.opendaylight.yangtools.yang.common.Uint64;
 public interface Range {
 
     /**
-     * Adds a frequency interval to this range set.
+     * Add a range to the current range.
      *
-     * <p>Implementations may normalize the stored ranges (e.g. merge overlapping
-     * or adjacent intervals).
+     * <p>It is up to the implementing class what to consider a valid range.
+     * Meaning, how to handle the addition of a range that overlaps with
+     * an existing range, or if the lower frequency is equal to the upper frequency.
      *
-     * @return {@code true} if this call changed the stored ranges, {@code false} if it was a no-op
-     * @throws InvalidFrequencyRangeException if {@code lowerBound > upperBound}
+     * <p>If the range already exists, it will not be added again and false may be returned.
+     *
+     * @return true if the range was added, false otherwise
+     * @throws InvalidFrequencyRangeException if the range is invalid
      */
-    boolean add(Frequency lowerBound, Frequency upperBound);
+    boolean add(Frequency lowerInclusive, Frequency upperInclusive);
 
     /**
-     * Adds a frequency interval (in THz) to this range set.
+     * Add a range to the current range.
      *
-     * <p>Implementations may normalize the stored ranges (e.g. merge overlapping
-     * or adjacent intervals).
+     * <p>It is up to the implementing class what to consider a valid range.
+     * Meaning, how to handle the addition of a range that overlaps with
+     * an existing range, or if the lower frequency is equal to the upper frequency.
      *
-     * @return {@code true} if this call changed the stored ranges, {@code false} if it was a no-op
-     * @throws InvalidFrequencyRangeException if {@code lowerBound > upperBound}
+     * <p>If the range already exists, it will not be added again and false may be returned.
+     *
+     * @return true if the range was added, false otherwise
+     * @throws InvalidFrequencyRangeException if the range is invalid
      */
-    boolean add(Double lowerBound, Double upperBound);
+    boolean add(Double lower, Double upper);
 
     /**
-     * Adds all intervals from {@code range} into this range set.
+     * Add a range to the current range.
      *
-     * <p>The effect of overlaps/adjacency is implementation-defined (e.g. may merge).
+     * <p>Any overlapping ranges found in range will be ignored.
      *
-     * @return {@code true} if this call changed the stored ranges, {@code false} otherwise
+     * @return true if the range was added, false otherwise
      */
     boolean add(Range range);
 
     /**
-     * Adds an interval specified by a center frequency and width.
+     * Add a range to the current range.
      *
-     * <p>The interval is added as
-     * {@code [centerFrequencyTHz - widthGHz/2, centerFrequencyTHz + widthGHz/2]}.
+     * <p>The range is specified by a center frequency and a width and will be added
+     * as a range from centerFrequencyTHz - widthGHz/2 to centerFrequencyTHz + widthGHz/2.
      *
-     * @return {@code true} if this call changed the stored ranges, {@code false} otherwise
+     * @return true if the range was added, false otherwise
      */
     boolean add(Double centerFrequencyTHz, Double widthGHz, Factory factory);
 

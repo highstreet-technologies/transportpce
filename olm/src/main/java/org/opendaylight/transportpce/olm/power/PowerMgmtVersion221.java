@@ -166,7 +166,7 @@ public final class PowerMgmtVersion221 {
                 new InterfaceBuilder(interfaceObj);
         OchBuilder ochBuilder = new OchBuilder(ochInterfaceBuilder.augmentation(
                 Interface1.class).getOch());
-        ochBuilder.setTransmitPower(new PowerDBm(Decimal64.valueOf(txPower).scaleTo(2)));
+        ochBuilder.setTransmitPower(new PowerDBm(Decimal64.valueOf(txPower)));
         ochInterfaceBuilder.addAugmentation(new Interface1Builder().setOch(ochBuilder.build()).build());
         Future<Optional<DeviceTransaction>> deviceTxFuture = deviceTransactionManager.getDeviceTransaction(nodeId);
         DeviceTransaction deviceTx;
@@ -193,7 +193,7 @@ public final class PowerMgmtVersion221 {
             deviceTx.commit(Timeouts.DEVICE_WRITE_TIMEOUT, Timeouts.DEVICE_WRITE_TIMEOUT_UNIT);
         try {
             commit.get();
-            LOG.info("Transponder Power update is committed for {}", nodeId);
+            LOG.info("Transponder Power update is committed");
             return true;
         } catch (InterruptedException | ExecutionException e) {
             LOG.error("Setting transponder power failed: ", e);
@@ -230,7 +230,7 @@ public final class PowerMgmtVersion221 {
             RoadmConnectionsBuilder rdmConnBldr = new RoadmConnectionsBuilder(rdmConnOpt.orElseThrow());
             rdmConnBldr.setOpticalControlMode(mode);
             if (powerValue != null) {
-                rdmConnBldr.setTargetOutputPower(new PowerDBm(Decimal64.valueOf(powerValue).scaleTo(2)));
+                rdmConnBldr.setTargetOutputPower(new PowerDBm(Decimal64.valueOf(powerValue)));
             }
             RoadmConnections newRdmConn = rdmConnBldr.build();
             Future<Optional<DeviceTransaction>> deviceTxFuture =
@@ -258,7 +258,7 @@ public final class PowerMgmtVersion221 {
                 deviceTx.commit(Timeouts.DEVICE_WRITE_TIMEOUT, Timeouts.DEVICE_WRITE_TIMEOUT_UNIT);
             try {
                 commit.get();
-                LOG.info("Roadm connection power level successfully set for Node {}", deviceId);
+                LOG.info("Roadm connection power level successfully set ");
                 return true;
             } catch (InterruptedException | ExecutionException ex) {
                 LOG.warn("Failed to post {}", newRdmConn, ex);

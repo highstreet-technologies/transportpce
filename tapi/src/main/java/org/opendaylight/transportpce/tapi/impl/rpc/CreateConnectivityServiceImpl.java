@@ -8,12 +8,10 @@
 package org.opendaylight.transportpce.tapi.impl.rpc;
 
 import com.google.common.util.concurrent.ListenableFuture;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 import org.opendaylight.mdsal.binding.api.RpcService;
 import org.opendaylight.transportpce.common.OperationResult;
 import org.opendaylight.transportpce.common.ResponseCodes;
@@ -22,9 +20,9 @@ import org.opendaylight.transportpce.tapi.listeners.TapiPceNotificationHandler;
 import org.opendaylight.transportpce.tapi.listeners.TapiRendererNotificationHandler;
 import org.opendaylight.transportpce.tapi.utils.TapiContext;
 import org.opendaylight.transportpce.tapi.validation.CreateConnectivityServiceValidation;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.ServiceCreate;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.ServiceCreateInput;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.ServiceCreateOutput;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250110.ServiceCreate;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250110.ServiceCreateInput;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250110.ServiceCreateOutput;
 import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.AdministrativeState;
 import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.ForwardingDirection;
 import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.LifecycleState;
@@ -79,15 +77,7 @@ public class CreateConnectivityServiceImpl implements CreateConnectivityService 
     public ListenableFuture<RpcResult<CreateConnectivityServiceOutput>> invoke(CreateConnectivityServiceInput input) {
         // TODO: later version of TAPI models include Name as an input parameter in connectivity.yang
         LOG.info("RPC create-connectivity received: {}", input.getEndPoint());
-        String serviceName = null;
-        Uuid serviceUuid = null;
-        if (input.getName() != null && !input.getName().entrySet().isEmpty()
-                && input.getName().entrySet().stream().findFirst().orElseThrow().getValue() != null) {
-            serviceName = input.getName().entrySet().stream().findFirst().orElseThrow().getValue().getValue();
-            serviceUuid = new Uuid(UUID.nameUUIDFromBytes(serviceName.getBytes(StandardCharsets.UTF_8)).toString());
-        } else {
-            serviceUuid = new Uuid(UUID.randomUUID().toString());
-        }
+        Uuid serviceUuid = new Uuid(UUID.randomUUID().toString());
         this.pceListenerImpl.setInput(input);
         this.pceListenerImpl.setServiceUuid(serviceUuid);
         this.rendererListenerImpl.setServiceUuid(serviceUuid);
@@ -118,8 +108,7 @@ public class CreateConnectivityServiceImpl implements CreateConnectivityService 
         }
         LOG.info("SIPs found in sipMap");
         // TODO: differentiate between OTN service and GbE service in TAPI
-        ServiceCreateInput sci = this.connectivityUtils.createORServiceInput(input,
-            serviceName == null ? serviceUuid.getValue() : serviceName);
+        ServiceCreateInput sci = this.connectivityUtils.createORServiceInput(input, serviceUuid);
         if (sci == null) {
             return RpcResultBuilder.<CreateConnectivityServiceOutput>failed()
                 .withError(ErrorType.RPC, "Couldnt map Service create input")
@@ -147,9 +136,7 @@ public class CreateConnectivityServiceImpl implements CreateConnectivityService 
         // Connections and states should be created/updated when the pce and renderer are done :)
         Name name = new NameBuilder()
             .setValueName("Connectivity Service Name")
-            .setValue((input.getName() == null || input.getName().isEmpty()) ? serviceUuid.getValue()
-                : input.getName().entrySet().stream().map(Map.Entry::getValue).collect(Collectors.toList())
-                    .iterator().next().getValue())
+            .setValue(serviceUuid.getValue())
             .build();
         ConnectivityService service = new ConnectivityServiceBuilder()
             .setUuid(serviceUuid)

@@ -2,7 +2,7 @@
 
 #set -x
 
-PLUGIN_VERSION=${1:-22.1.0.7}
+PLUGIN_VERSION=${1:-20.1.0.5}
 
 #check if curl exists
 if ! [ -x "$(command -v curl)" ];then
@@ -50,3 +50,7 @@ curl --retry-delay 10 --retry 3 -sS --fail --location --request GET $TARGET_URL 
 unzip -q -o $ARTIFACT_ZIPFILE -d $TARGET_DIR
 rm -f $ARTIFACT_ZIPFILE
 mv $TARGET_DIR/lighty-openroadm-device-$PLUGIN_VERSION $INSTALL_DIR
+
+#update 1.2.1 openroadm device configuration samples to be compliant with 1.2.1
+#device models ("multi-wavelegnth" instead of "multi-wavelength" whose typo has been solved with 2.2.1 device models)
+sed -i_ 's/multi-wavelength/multi-wavelegnth/g' $(dirname $0)/sample_configs/openroadm/1.2.1/oper-ROADM*.xml

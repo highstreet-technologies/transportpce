@@ -19,7 +19,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import org.opendaylight.mdsal.binding.api.DataBroker;
-import org.opendaylight.mdsal.binding.api.NotificationPublishService;
 import org.opendaylight.mdsal.binding.api.ReadTransaction;
 import org.opendaylight.mdsal.binding.api.WriteTransaction;
 import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
@@ -30,40 +29,36 @@ import org.opendaylight.transportpce.common.Timeouts;
 import org.opendaylight.transportpce.common.fixedflex.GridConstant;
 import org.opendaylight.transportpce.common.fixedflex.GridUtils;
 import org.opendaylight.transportpce.networkmodel.util.OpenRoadmTopology;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkmodel.rev201116.TopologyUpdateResultBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkmodel.rev201116.topology.update.result.TopologyChanges;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkmodel.rev201116.topology.update.result.TopologyChangesBuilder;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.networkmodel.rev201116.topology.update.result.TopologyChangesKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.optical.channel.types.rev250328.ModulationFormat;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.Node1;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.Node1Builder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.TerminationPoint1;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.TerminationPoint1Builder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.networks.network.node.DegreeAttributes;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.networks.network.node.DegreeAttributesBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.networks.network.node.SrgAttributes;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.networks.network.node.SrgAttributesBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.networks.network.node.termination.point.CpAttributes;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.networks.network.node.termination.point.CpAttributesBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.networks.network.node.termination.point.CtpAttributes;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.networks.network.node.termination.point.CtpAttributesBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.networks.network.node.termination.point.PpAttributes;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.networks.network.node.termination.point.PpAttributesBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.networks.network.node.termination.point.RxTtpAttributes;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.networks.network.node.termination.point.RxTtpAttributesBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.networks.network.node.termination.point.TxTtpAttributes;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.networks.network.node.termination.point.TxTtpAttributesBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.networks.network.node.termination.point.XpdrNetworkAttributes;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.networks.network.node.termination.point.XpdrNetworkAttributesBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.networks.network.node.termination.point.XpdrPortAttributes;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250530.networks.network.node.termination.point.XpdrPortAttributesBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.available.freq.map.AvailFreqMaps;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.available.freq.map.AvailFreqMapsBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.available.freq.map.AvailFreqMapsKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.xponder.rev250530.xpdr.port.connection.attributes.WavelengthBuilder;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.path.description.AToZDirection;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.path.description.ZToADirection;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev260422.pce.resource.resource.resource.TerminationPoint;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.types.rev181019.ModulationFormat;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250110.Node1;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250110.Node1Builder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250110.TerminationPoint1;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250110.TerminationPoint1Builder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250110.networks.network.node.DegreeAttributes;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250110.networks.network.node.DegreeAttributesBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250110.networks.network.node.SrgAttributes;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250110.networks.network.node.SrgAttributesBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250110.networks.network.node.termination.point.CpAttributes;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250110.networks.network.node.termination.point.CpAttributesBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250110.networks.network.node.termination.point.CtpAttributes;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250110.networks.network.node.termination.point.CtpAttributesBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250110.networks.network.node.termination.point.PpAttributes;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250110.networks.network.node.termination.point.PpAttributesBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250110.networks.network.node.termination.point.RxTtpAttributes;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250110.networks.network.node.termination.point.RxTtpAttributesBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250110.networks.network.node.termination.point.TxTtpAttributes;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250110.networks.network.node.termination.point.TxTtpAttributesBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250110.networks.network.node.termination.point.XpdrNetworkAttributes;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250110.networks.network.node.termination.point.XpdrNetworkAttributesBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250110.networks.network.node.termination.point.XpdrPortAttributes;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.topology.rev250110.networks.network.node.termination.point.XpdrPortAttributesBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250110.available.freq.map.AvailFreqMaps;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250110.available.freq.map.AvailFreqMapsBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250110.available.freq.map.AvailFreqMapsKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.xponder.rev250110.xpdr.port.connection.attributes.WavelengthBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev230501.path.description.AToZDirection;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev230501.path.description.ZToADirection;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev230501.pce.resource.resource.resource.TerminationPoint;
 import org.opendaylight.yangtools.binding.DataObjectIdentifier;
 import org.opendaylight.yangtools.yang.common.Decimal64;
 import org.opendaylight.yangtools.yang.common.Uint32;
@@ -82,7 +77,6 @@ public class FrequenciesServiceImpl implements FrequenciesService {
     private static final Logger LOG = LoggerFactory.getLogger(FrequenciesServiceImpl.class);
     private final DataBroker dataBroker;
     private final AvailFreqMapsKey availFreqMapKey = new AvailFreqMapsKey(GridConstant.C_BAND);
-    private final NotificationPublishService notificationPublishService;
 
     /**
      * Create instance of the FrequenciesService.
@@ -90,10 +84,8 @@ public class FrequenciesServiceImpl implements FrequenciesService {
      * @param dataBroker Provides access to the conceptual data tree store used by the implementation.
      */
     @Activate
-    public FrequenciesServiceImpl(@Reference DataBroker dataBroker,
-            @Reference NotificationPublishService notificationPublishService) {
+    public FrequenciesServiceImpl(@Reference DataBroker dataBroker) {
         this.dataBroker = dataBroker;
-        this.notificationPublishService = notificationPublishService;
     }
 
     /** {@inheritDoc} */
@@ -192,12 +184,12 @@ public class FrequenciesServiceImpl implements FrequenciesService {
      * @param nodeId String
      * @return Node1, null otherwise.
      */
-    private org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.Node1
+    private org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250110.Node1
             getCommonNetworkNodeFromDatastore(String nodeId) {
-        DataObjectIdentifier<org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.Node1> nodeIID =
+        DataObjectIdentifier<org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250110.Node1> nodeIID =
             OpenRoadmTopology.createCommonNetworkNodeIID(nodeId);
         try (ReadTransaction nodeReadTx = this.dataBroker.newReadOnlyTransaction()) {
-            Optional<org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.Node1> optionalNode =
+            Optional<org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250110.Node1> optionalNode =
                 nodeReadTx
                     .read(LogicalDatastoreType.CONFIGURATION, nodeIID)
                     .get(Timeouts.DATASTORE_READ, TimeUnit.MILLISECONDS);
@@ -264,12 +256,12 @@ public class FrequenciesServiceImpl implements FrequenciesService {
      * @param tpId String
      * @return common network termination point, null otherwise
      */
-    private org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.TerminationPoint1
+    private org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250110.TerminationPoint1
             getCommonNetworkTerminationPointFromDatastore(String nodeId, String tpId) {
-        DataObjectIdentifier<org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.TerminationPoint1>
+        DataObjectIdentifier<org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250110.TerminationPoint1>
             tpIID = OpenRoadmTopology.createCommonNetworkTerminationPointIIDBuilder(nodeId, tpId);
         try (ReadTransaction readTx = this.dataBroker.newReadOnlyTransaction()) {
-            Optional<org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.TerminationPoint1>
+            Optional<org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250110.TerminationPoint1>
                 optionalTerminationPoint = readTx
                     .read(LogicalDatastoreType.CONFIGURATION, tpIID)
                     .get(Timeouts.DATASTORE_READ, TimeUnit.MILLISECONDS);
@@ -298,13 +290,10 @@ public class FrequenciesServiceImpl implements FrequenciesService {
      * @param rate Uint32
      * @param modulationFormat ModulationFormat
      * @param tpIds List of NodeIdPair
-     * @param used boolean true if min and max frequencies are used, false otherwise.
+     * @param sed boolean true if min and max frequencies are used, false otherwise.
      */
     private void setFrequencies4Tps(Decimal64 atozMinFrequency, Decimal64 atozMaxFrequency, Uint32 rate,
             ModulationFormat modulationFormat, List<NodeIdPair> tpIds, boolean used) {
-
-        TopologyUpdateResultBuilder topologyUpdateResultBuilder = new TopologyUpdateResultBuilder();
-        Map<TopologyChangesKey, TopologyChanges> topologyChangesMap = new HashMap<>();
         String strTpIdsList = String.join(", ", tpIds.stream().map(NodeIdPair::toString).collect(Collectors.toList()));
         LOG.debug(
             "Update frequencies for termination points {}, rate {}, modulation format {},"
@@ -312,7 +301,7 @@ public class FrequenciesServiceImpl implements FrequenciesService {
             strTpIdsList, rate, modulationFormat, atozMinFrequency, atozMaxFrequency, used);
         WriteTransaction updateFrequenciesTransaction = this.dataBroker.newWriteOnlyTransaction();
         for (NodeIdPair idPair : tpIds) {
-            org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.TerminationPoint1
+            org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250110.TerminationPoint1
                     commonNetworkTerminationPoint =
                 getCommonNetworkTerminationPointFromDatastore(idPair.getNodeID(), idPair.getTpID());
             if (commonNetworkTerminationPoint == null) {
@@ -370,28 +359,12 @@ public class FrequenciesServiceImpl implements FrequenciesService {
                     LOG.warn("Termination point type {} not managed", commonNetworkTerminationPoint.getTpType());
                     return;
             }
-            TopologyChanges topologyChanges = new TopologyChangesBuilder()
-                    .setNodeId(idPair.getNodeID())
-                    .setTpId(idPair.getTpID())
-                    .build();
-            topologyChangesMap.put(topologyChanges.key(), topologyChanges);
-            DataObjectIdentifier<TerminationPoint1> networkTerminationPoint1IIDBuilder =
-                    InstanceIdentifiers.createNetworkTerminationPoint1IIDBuilder(
-                            idPair.getNodeID(),
-                            idPair.getTpID()
-            );
-            updateFrequenciesTransaction.put(
-                    LogicalDatastoreType.CONFIGURATION,
-                    networkTerminationPoint1IIDBuilder,
-                    networkTerminationPointBuilder.build()
-            );
+            updateFrequenciesTransaction.put(LogicalDatastoreType.CONFIGURATION, InstanceIdentifiers
+                    .createNetworkTerminationPoint1IIDBuilder(idPair.getNodeID(),
+                            idPair.getTpID()), networkTerminationPointBuilder.build());
         }
-
         try {
             updateFrequenciesTransaction.commit().get(Timeouts.DATASTORE_WRITE, TimeUnit.MILLISECONDS);
-            LOG.info("Successfully updated frequencies for termination points {}", strTpIdsList);
-            topologyUpdateResultBuilder.setTopologyChanges(topologyChangesMap);
-            notificationPublishService.putNotification(topologyUpdateResultBuilder.build());
         } catch (ExecutionException | TimeoutException e) {
             LOG.error(
                 "Something went wrong for frequencies update (min frequency {}, max frequency {}, used {} for TPs {}",
@@ -419,7 +392,7 @@ public class FrequenciesServiceImpl implements FrequenciesService {
         WriteTransaction updateFrequenciesTransaction = this.dataBroker.newWriteOnlyTransaction();
         for (String nodeId : nodeIds) {
             Node1 networkNode = getNetworkNodeFromDatastore(nodeId);
-            org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.Node1 commonNetworkNode =
+            org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250110.Node1 commonNetworkNode =
                     getCommonNetworkNodeFromDatastore(nodeId);
             if (networkNode == null || commonNetworkNode == null) {
                 LOG.warn(

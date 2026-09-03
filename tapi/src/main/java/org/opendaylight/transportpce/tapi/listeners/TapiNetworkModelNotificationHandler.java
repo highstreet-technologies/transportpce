@@ -442,12 +442,6 @@ public class TapiNetworkModelNotificationHandler {
                                 changedOneps.indexOf(connectionNeps.get(1)))) : null) == OperationalState.DISABLED) {
                 return OperationalState.DISABLED;
             }
-            if ((changedOneps.contains(connectionNeps.get(0)) ? transformOperState(operState.get(
-                    changedOneps.indexOf(connectionNeps.get(0)))) : null) == OperationalState.ENABLED
-                        || (changedOneps.contains(connectionNeps.get(1)) ? transformOperState(operState.get(
-                                changedOneps.indexOf(connectionNeps.get(1)))) : null) == OperationalState.ENABLED) {
-                return OperationalState.ENABLED;
-            }
             LOG.info("Didnt transform correctly the states");
             for (Uuid connectionNep : connectionNeps) {
                 Optional<org.opendaylight.yang.gen.v1.urn
@@ -460,7 +454,7 @@ public class TapiNetworkModelNotificationHandler {
                 }
                 DataObjectIdentifier<OwnedNodeEdgePoint> onepIID = DataObjectIdentifier.builder(Context.class)
                     .augmentation(Context1.class).child(TopologyContext.class)
-                    .child(Topology.class, new TopologyKey(ocep.orElseThrow().getTopologyUuid()))
+                    .child(Topology.class, new TopologyKey(tapiTopoUuid))
                     .child(Node.class, new NodeKey(ocep.orElseThrow().getNodeUuid()))
                     .child(OwnedNodeEdgePoint.class, new OwnedNodeEdgePointKey(connectionNep))
                     .build();

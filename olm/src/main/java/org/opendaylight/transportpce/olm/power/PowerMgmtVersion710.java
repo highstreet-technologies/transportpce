@@ -22,7 +22,7 @@ import org.opendaylight.transportpce.common.Timeouts;
 import org.opendaylight.transportpce.common.crossconnect.CrossConnect;
 import org.opendaylight.transportpce.common.device.DeviceTransaction;
 import org.opendaylight.transportpce.common.device.DeviceTransactionManager;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mapping.Mapping;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905.mapping.Mapping;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.link.types.rev191129.OpticalControlMode;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.link.types.rev191129.PowerDBm;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.OrgOpenroadmDeviceData;
@@ -41,9 +41,9 @@ import org.opendaylight.yang.gen.v1.http.org.openroadm.optical.channel.interface
 import org.opendaylight.yang.gen.v1.http.org.openroadm.optical.channel.tributary.signal.interfaces.rev200529.Interface1;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.optical.channel.tributary.signal.interfaces.rev200529.Interface1Builder;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.optical.channel.tributary.signal.interfaces.rev200529.otsi.container.OtsiBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.IfOCH;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.IfOCHOTU4ODU4;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250530.IfOtsiOtsigroup;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250110.IfOCH;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250110.IfOCHOTU4ODU4;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.port.types.rev250110.IfOtsiOtsigroup;
 import org.opendaylight.yangtools.binding.DataObjectIdentifier;
 import org.opendaylight.yangtools.yang.common.Decimal64;
 import org.slf4j.Logger;
@@ -178,7 +178,7 @@ public final class PowerMgmtVersion710 {
                                         .augmentation(org.opendaylight.yang.gen.v1.http
                                             .org.openroadm.optical.channel.interfaces.rev200529.Interface1.class)
                                         .getOch())
-                                .setTransmitPower(new PowerDBm(Decimal64.valueOf(txPower).scaleTo(2)))
+                                .setTransmitPower(new PowerDBm(Decimal64.valueOf(txPower)))
                                 .build())
                         .build());
         } else if (portMap.getSupportedInterfaceCapability().contains(IfOtsiOtsigroup.VALUE)) {
@@ -187,7 +187,7 @@ public final class PowerMgmtVersion710 {
                     new Interface1Builder()
                         .setOtsi(
                             new OtsiBuilder(ochOtsiInterfaceBuilder.augmentation(Interface1.class).getOtsi())
-                                .setTransmitPower(new PowerDBm(Decimal64.valueOf(txPower).scaleTo(2)))
+                                .setTransmitPower(new PowerDBm(Decimal64.valueOf(txPower)))
                                 .build())
                         .build());
         }
@@ -253,7 +253,7 @@ public final class PowerMgmtVersion710 {
         RoadmConnectionsBuilder rdmConnBldr = new RoadmConnectionsBuilder(rdmConnOpt.orElseThrow());
         rdmConnBldr.setOpticalControlMode(mode);
         if (powerValue != null) {
-            rdmConnBldr.setTargetOutputPower(new PowerDBm(Decimal64.valueOf(powerValue).scaleTo(2)));
+            rdmConnBldr.setTargetOutputPower(new PowerDBm(Decimal64.valueOf(powerValue)));
         }
         RoadmConnections newRdmConn = rdmConnBldr.build();
         Future<Optional<DeviceTransaction>> deviceTxFuture = deviceTransactionManager.getDeviceTransaction(deviceId);

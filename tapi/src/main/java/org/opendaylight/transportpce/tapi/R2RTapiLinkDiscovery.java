@@ -11,34 +11,31 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.opendaylight.mdsal.binding.api.MountPoint;
 import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
-import org.opendaylight.transportpce.common.InstanceIdentifiers;
 import org.opendaylight.transportpce.common.Timeouts;
 import org.opendaylight.transportpce.common.device.DeviceTransactionManager;
 import org.opendaylight.transportpce.common.network.NetworkTransactionService;
-import org.opendaylight.transportpce.tapi.openroadm.topology.datastore.OpenRoadmTopologyRepository;
-import org.opendaylight.transportpce.tapi.openroadm.topology.link.LinkResolver;
-import org.opendaylight.transportpce.tapi.openroadm.topology.link.OpenRoadmLinkResolver;
 import org.opendaylight.transportpce.tapi.utils.TapiLink;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.Network;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.cp.to.degree.CpToDegree;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mapping.Mapping;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.network.Nodes;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.network.NodesKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.OrgOpenroadmDeviceData;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.org.openroadm.device.container.OrgOpenroadmDevice;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.org.openroadm.device.container.org.openroadm.device.Protocols;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.lldp.rev181019.Protocols1;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.lldp.rev181019.lldp.container.lldp.NbrList;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.lldp.rev181019.lldp.container.lldp.nbr.list.IfName;
-import org.opendaylight.yang.gen.v1.http.org.transportpce.common.types.rev260707.Direction;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905.Network;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905.cp.to.degree.CpToDegree;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905.mapping.Mapping;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905.network.Nodes;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905.network.NodesKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev170206.OrgOpenroadmDeviceData;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev170206.org.openroadm.device.container.OrgOpenroadmDevice;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev170206.org.openroadm.device.container.org.openroadm.device.Protocols;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.lldp.rev161014.Protocols1;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.lldp.rev161014.lldp.container.lldp.NbrList;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.lldp.rev161014.lldp.container.lldp.nbr.list.IfName;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.common.types.rev251022.Direction;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.NodeId;
+import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.LayerProtocolName;
 import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.Uuid;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.global._class.Name;
 import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev221121.topology.Link;
 import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.topology.rev221121.topology.LinkKey;
 import org.opendaylight.yangtools.binding.DataObjectIdentifier;
@@ -52,7 +49,6 @@ public class R2RTapiLinkDiscovery {
     private final NetworkTransactionService networkTransactionService;
     private final DeviceTransactionManager deviceTransactionManager;
     private final TapiLink tapiLink;
-    private final LinkResolver linkResolver = new OpenRoadmLinkResolver();
 
     public R2RTapiLinkDiscovery(NetworkTransactionService networkTransactionService,
             DeviceTransactionManager deviceTransactionManager, TapiLink tapiLink) {
@@ -61,19 +57,42 @@ public class R2RTapiLinkDiscovery {
         this.tapiLink = tapiLink;
     }
 
-    public Map<LinkKey, Link> readLLDP(NodeId nodeId, int nodeVersion, Uuid tapiTopoUuid,
-            OpenRoadmTopologyRepository topologyRepository) {
-        LOG.info("Read from device {} R2R Link Node version = {}", nodeId, nodeVersion);
+    public Map<LinkKey, Link> readLLDP(NodeId nodeId, int nodeVersion, Uuid tapiTopoUuid) {
+        LOG.info("Tapi R2R Link Node version = {}", nodeVersion);
         // TODO -> waiting for device 7.1 in network model to change this to a switch statement and include
         //  support for 7.1 devices
         switch (nodeVersion) {
+            case 1:
+                // 1.2.1
+                DataObjectIdentifier<Protocols> protocols121IID = DataObjectIdentifier
+                    .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
+                    .child(Protocols.class)
+                    .build();
+                Optional<Protocols> protocol121Object = this.deviceTransactionManager.getDataFromDevice(
+                    nodeId.getValue(), LogicalDatastoreType.OPERATIONAL, protocols121IID, Timeouts.DEVICE_READ_TIMEOUT,
+                    Timeouts.DEVICE_READ_TIMEOUT_UNIT);
+                if (hasNoNeighbor121(protocol121Object)) {
+                    LOG.warn("LLDP subtree is missing or incomplete: isolated openroadm device");
+                    return new HashMap<>();
+                }
+                // get neighbor list
+                NbrList nbr121List = protocol121Object.orElseThrow().augmentation(Protocols1.class).getLldp()
+                    .getNbrList();
+                LOG.info("LLDP subtree is present. Device has {} neighbours", nbr121List.getIfName().size());
+                // try to create rdm2rdm link
+                return rdm2rdmLinkCreatev121(nodeId, tapiTopoUuid, nbr121List);
             case 2:
                 // 2.2.1
-                DataObjectIdentifier<Protocols>
+                DataObjectIdentifier<org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019
+                        .org.openroadm.device.container.org.openroadm.device.Protocols>
                         protocols221IID = DataObjectIdentifier
-                        .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
-                        .child(Protocols.class)
-                        .build();
+                    .builderOfInherited(
+                        org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.OrgOpenroadmDeviceData.class,
+                        org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.org.openroadm.device.container
+                            .OrgOpenroadmDevice.class)
+                    .child(org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev181019.org.openroadm.device
+                        .container.org.openroadm.device.Protocols.class)
+                    .build();
                 var protocol221Object = this.deviceTransactionManager
                     .getDataFromDevice(nodeId.getValue(), LogicalDatastoreType.OPERATIONAL, protocols221IID,
                         Timeouts.DEVICE_READ_TIMEOUT, Timeouts.DEVICE_READ_TIMEOUT_UNIT);
@@ -81,9 +100,11 @@ public class R2RTapiLinkDiscovery {
                     LOG.warn("LLDP subtree is missing or incomplete: isolated openroadm device");
                     return new HashMap<>();
                 }
-                var nbr221List = protocol221Object.orElseThrow().augmentation(Protocols1.class).getLldp().getNbrList();
+                var nbr221List = protocol221Object.orElseThrow().augmentation(
+                        org.opendaylight.yang.gen.v1.http.org.openroadm.lldp.rev181019.Protocols1.class)
+                    .getLldp().getNbrList();
                 LOG.info("LLDP subtree is present. Device has {} neighbours", nbr221List.getIfName().size());
-                return rdm2rdmLinkCreatev221(nodeId, tapiTopoUuid, nbr221List, topologyRepository);
+                return rdm2rdmLinkCreatev221(nodeId, tapiTopoUuid, nbr221List);
             case 3:
                 // 7.1.0
                 LOG.info("Not yet supported?");
@@ -92,6 +113,13 @@ public class R2RTapiLinkDiscovery {
                 LOG.error("Unable to read LLDP data for unmanaged openroadm device version");
                 return new HashMap<>();
         }
+    }
+
+    private boolean hasNoNeighbor121(Optional<Protocols> protocol121Object) {
+        return protocol121Object.isEmpty()
+                || protocol121Object.orElseThrow().augmentation(Protocols1.class) == null
+                || protocol121Object.orElseThrow().augmentation(Protocols1.class).getLldp() == null
+                || protocol121Object.orElseThrow().augmentation(Protocols1.class).getLldp().getNbrList() == null;
     }
 
     private boolean hasNoNeighbor221(Optional<
@@ -108,10 +136,11 @@ public class R2RTapiLinkDiscovery {
                     .getLldp().getNbrList() == null;
     }
 
-    private Map<LinkKey, Link> rdm2rdmLinkCreatev221(NodeId nodeId, Uuid tapiTopoUuid, NbrList nbrList,
-            OpenRoadmTopologyRepository topologyRepository) {
+    private Map<LinkKey, Link> rdm2rdmLinkCreatev221(NodeId nodeId, Uuid tapiTopoUuid,
+            org.opendaylight.yang.gen.v1.http.org.openroadm.lldp.rev181019.lldp.container.lldp.NbrList nbrList) {
         Map<LinkKey, Link> linkMap = new HashMap<>();
-        for (IfName ifName : nbrList.nonnullIfName().values()) {
+        for (org.opendaylight.yang.gen.v1.http.org.openroadm.lldp.rev181019.lldp.container.lldp.nbr.list.IfName
+                ifName : nbrList.nonnullIfName().values()) {
             if (ifName.getRemoteSysName() == null) {
                 LOG.warn("Tapi R2R Link LLDP subtree neighbour is empty for nodeId: {}, ifName: {}",
                     nodeId.getValue(),ifName.getIfName());
@@ -126,7 +155,7 @@ public class R2RTapiLinkDiscovery {
                 continue;
             }
             Link omsLink = createR2RTapiLink(nodeId, ifName.getIfName(), ifName.getRemoteSysName(),
-                ifName.getRemotePortId(), tapiTopoUuid, topologyRepository);
+                ifName.getRemotePortId(), tapiTopoUuid);
             if (omsLink != null) {
                 linkMap.put(omsLink.key(), omsLink);
             } else {
@@ -136,14 +165,36 @@ public class R2RTapiLinkDiscovery {
         return linkMap;
     }
 
-    public Link createR2RTapiLink(
-            NodeId nodeId,
-            String interfaceName,
-            String remoteSystemName,
-            String remoteInterfaceName,
-            Uuid tapiTopoUuid,
-            OpenRoadmTopologyRepository topologyRepository) {
+    private Map<LinkKey, Link> rdm2rdmLinkCreatev121(NodeId nodeId, Uuid tapiTopoUuid, NbrList nbrList) {
+        Map<LinkKey, Link> linkMap = new HashMap<>();
+        for (IfName ifName : nbrList.nonnullIfName().values()) {
+            if (ifName.getRemoteSysName() == null) {
+                LOG.warn("Tapi R2R Link LLDP subtree neighbour is empty for nodeId: {}, ifName: {}",
+                    nodeId.getValue(),ifName.getIfName());
+                continue;
+            }
+            Optional<MountPoint> mps = this.deviceTransactionManager.getDeviceMountPoint(ifName
+                .getRemoteSysName());
+            if (!mps.isPresent()) {
+                LOG.warn("Tapi R2R Link Neighbouring nodeId: {} is not mounted yet", ifName.getRemoteSysName());
+                // The controller raises a warning rather than an error because the first node to
+                // mount cannot see its neighbors yet. The link will be detected when processing
+                // the neighbor node.
+                continue;
+            }
+            Link omsLink = createR2RTapiLink(nodeId, ifName.getIfName(), ifName.getRemoteSysName(),
+                ifName.getRemotePortId(), tapiTopoUuid);
+            if (omsLink != null) {
+                linkMap.put(omsLink.key(), omsLink);
+            } else {
+                LOG.error("Link was not created");
+            }
+        }
+        return linkMap;
+    }
 
+    public Link createR2RTapiLink(NodeId nodeId, String interfaceName, String remoteSystemName,
+                                 String remoteInterfaceName, Uuid tapiTopoUuid) {
         String srcTpTx = null;
         String srcTpRx = null;
         // Find which degree is associated with ethernet interface
@@ -194,67 +245,20 @@ public class R2RTapiLinkDiscovery {
         // Todo -> only handling for the bidirectional case. I assume all tps are of the type bidirectional
         LOG.debug("Tapi R2R Link DstTPTx {}, DstTPRx {}", destTpTx, srcTpRx);
 
-        var openRoadmTopology = getTopology(topologyRepository, nodeId, interfaceName, destNodeId, remoteInterfaceName);
-
         // Create OMS Tapi Link
-        LOG.debug("Tapi R2R Link Found a neighbor SrcNodeId: {} , SrcDegId: {} , SrcTPId: {}, DestNodeId:{} , "
-            + "DestDegId: {}, DestTPId: {}", nodeId.getValue(), srcDegId, srcTpTx,
-            destNodeId.getValue(), destDegId, destTpRx);
-        Link omsLink = this.tapiLink.createTapiLink(
-                nodeId.getValue() + "-DEG" + srcDegId,
-                srcTpTx,
-                destNodeId.getValue() + "-DEG" + destDegId,
-                destTpTx,
-                openRoadmTopology,
-                tapiTopoUuid,
-                linkResolver
-            );
-        logNewR2RLink(omsLink);
+        LOG.info("Tapi R2R Link Found a neighbor SrcNodeId: {} , SrcDegId: {} , SrcTPId: {}, DestNodeId:{} , "
+            + "DestDegId: {}, DestTPId: {}", nodeId.getValue(), srcDegId, srcTpTx, destNodeId, destDegId, destTpRx);
+        Link omsLink = this.tapiLink.createTapiLink(nodeId.getValue(), srcTpTx, destNodeId.getValue(), destTpTx,
+            TapiConstants.OMS_RDM_RDM_LINK, TapiConstants.PHTNC_MEDIA, TapiConstants.PHTNC_MEDIA,
+            TapiConstants.PHTNC_MEDIA_OTS, TapiConstants.PHTNC_MEDIA_OTS,
+            this.tapiLink.getAdminState(nodeId.getValue(), destNodeId.getValue(), srcTpTx, destTpTx),
+            this.tapiLink.getOperState(nodeId.getValue(), destNodeId.getValue(), srcTpTx, destTpTx),
+            Set.of(LayerProtocolName.PHOTONICMEDIA), Set.of(LayerProtocolName.PHOTONICMEDIA.getName()), tapiTopoUuid);
+        LOG.info("Tapi R2R Link OMS link created = {}", omsLink);
+        LOG.debug("inputAdminstate= {}, inputoperstate = {}",
+            this.tapiLink.getAdminState(nodeId.getValue(), destNodeId.getValue(), srcTpTx, destTpTx),
+            this.tapiLink.getOperState(nodeId.getValue(), destNodeId.getValue(), srcTpTx, destTpTx));
         return omsLink;
-    }
-
-    private static org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.networks.Network
-            getTopology(
-                    OpenRoadmTopologyRepository topologyRepository,
-                    NodeId nodeId,
-                    String interfaceName,
-                    NodeId destNodeId,
-                    String remoteInterfaceName) {
-
-        return topologyRepository.read(
-                LogicalDatastoreType.CONFIGURATION,
-                InstanceIdentifiers.OPENROADM_TOPOLOGY_II
-        ).orElseThrow(() -> new IllegalStateException(
-                String.format(
-                        "Cannot create R2R TAPI link: OpenROADM topology is missing. srcNode=%s, interface=%s, "
-                                + "dstNode=%s, remoteInterface=%s, datastore=%s, iid=%s",
-                        nodeId.getValue(),
-                        interfaceName,
-                        destNodeId.getValue(),
-                        remoteInterfaceName,
-                        LogicalDatastoreType.CONFIGURATION,
-                        InstanceIdentifiers.OPENROADM_TOPOLOGY_II
-                )
-        ));
-    }
-
-    /**
-     * Logs creation of a new TAPI ROADM-to-ROADM (R2R) OMS link, including its name (or "&lt;unnamed&gt;")
-     * and the full link details at DEBUG level.
-     *
-     * @param link the newly created link
-     */
-    private void logNewR2RLink(Link link) {
-        String name = Optional.ofNullable(link.getName())
-                .flatMap(m -> m.values().stream().findFirst())
-                .map(Name::getValue)
-                .orElse("<unnamed>");
-
-        LOG.info("Tapi R2R Link OMS created link {}", name);
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Tapi R2R Link OMS link created = {}", link);
-        }
     }
 
     private Integer getDegFromInterface(NodeId nodeId, String interfaceName) {

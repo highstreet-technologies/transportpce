@@ -1,9 +1,0 @@
-@startuml
-'https://plantuml.com/sequence-diagram
-
-autonumber
-
-NotificationService -> TapiNotificationSerivceHandler: OnServiceRpcResultSh
-== status == successful && notificationType == ServiceCreate ==
-TapiNotificationSerivceHandler -> OpenRoadmService: copyServiceToTAPI()
-@enduml

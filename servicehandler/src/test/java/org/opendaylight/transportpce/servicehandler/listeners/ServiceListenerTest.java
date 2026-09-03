@@ -15,6 +15,9 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.opendaylight.mdsal.binding.api.DataObjectModification.ModificationType.DELETE;
+import static org.opendaylight.mdsal.binding.api.DataObjectModification.ModificationType.SUBTREE_MODIFIED;
+import static org.opendaylight.mdsal.binding.api.DataObjectModification.ModificationType.WRITE;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,33 +37,33 @@ import org.opendaylight.transportpce.common.ResponseCodes;
 import org.opendaylight.transportpce.pce.service.PathComputationService;
 import org.opendaylight.transportpce.servicehandler.service.ServiceDataStoreOperations;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.node.types.rev210528.NodeIdType;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.ConnectionType;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.Restorable;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.configuration.response.common.ConfigurationResponseCommonBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.sdnc.request.header.SdncRequestHeaderBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.service.ServiceAEndBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.service.ServiceZEndBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.service.endpoint.RxDirection;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.service.endpoint.RxDirectionBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.service.endpoint.RxDirectionKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.service.endpoint.TxDirection;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.service.endpoint.TxDirectionBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.service.endpoint.TxDirectionKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.service.lgx.LgxBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.service.port.PortBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.service.resiliency.ServiceResiliency;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250530.service.resiliency.ServiceResiliencyBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250110.ConnectionType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250110.Restorable;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250110.configuration.response.common.ConfigurationResponseCommonBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250110.sdnc.request.header.SdncRequestHeaderBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250110.service.ServiceAEndBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250110.service.ServiceZEndBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250110.service.endpoint.RxDirection;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250110.service.endpoint.RxDirectionBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250110.service.endpoint.RxDirectionKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250110.service.endpoint.TxDirection;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250110.service.endpoint.TxDirectionBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250110.service.endpoint.TxDirectionKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250110.service.lgx.LgxBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250110.service.port.PortBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250110.service.resiliency.ServiceResiliency;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.service.types.rev250110.service.resiliency.ServiceResiliencyBuilder;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.state.types.rev191129.State;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.equipment.states.types.rev191129.AdminStates;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.format.rev250530.ServiceFormat;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.ServiceCreate;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.ServiceCreateOutputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.ServiceDelete;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.ServiceDeleteOutputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.ServiceReroute;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.ServiceRerouteOutputBuilder;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.service.list.Services;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.service.list.ServicesBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.format.rev191129.ServiceFormat;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250110.ServiceCreate;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250110.ServiceCreateOutputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250110.ServiceDelete;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250110.ServiceDeleteOutputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250110.ServiceReroute;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250110.ServiceRerouteOutputBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250110.service.list.Services;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250110.service.list.ServicesBuilder;
 import org.opendaylight.yang.gen.v1.nbi.notifications.rev230728.PublishNotificationAlarmService;
 import org.opendaylight.yang.gen.v1.nbi.notifications.rev230728.PublishNotificationAlarmServiceBuilder;
 import org.opendaylight.yangtools.yang.common.RpcResultBuilder;
@@ -93,12 +96,15 @@ public class ServiceListenerTest {
         changes.add(ch);
         when(ch.getRootNode()).thenReturn(service);
 
+        when(service.modificationType()).thenReturn(DELETE);
         when(service.dataBefore()).thenReturn(buildService(State.InService, AdminStates.InService));
         ServiceListener listener = new ServiceListener(rpcService, serviceDataStoreOperations,
                 notificationPublishService);
         listener.onDataTreeChanged(changes);
         verify(ch, times(1)).getRootNode();
-        verify(service, times(1)).dataBefore();
+        verify(service, times(1)).modificationType();
+        verify(service, times(2)).dataBefore();
+        verify(service, never()).dataAfter();
         try {
             verify(notificationPublishService, never()).putNotification(any(PublishNotificationAlarmService.class));
         } catch (InterruptedException e) {
@@ -115,14 +121,15 @@ public class ServiceListenerTest {
         when(ch.getRootNode()).thenReturn(service);
 
         Services serviceDown = buildService(State.OutOfService, AdminStates.InService);
+        when(service.modificationType()).thenReturn(WRITE);
         when(service.dataBefore()).thenReturn(buildService(State.InService, AdminStates.InService));
         when(service.dataAfter()).thenReturn(serviceDown);
         ServiceListener listener = new ServiceListener(rpcService, serviceDataStoreOperations,
                 notificationPublishService);
-
         listener.onDataTreeChanged(changes);
         verify(ch, times(1)).getRootNode();
-        verify(service, times(1)).dataBefore();
+        verify(service, times(1)).modificationType();
+        verify(service, times(3)).dataBefore();
         verify(service, times(1)).dataAfter();
         try {
             verify(notificationPublishService, times(1))
@@ -139,14 +146,16 @@ public class ServiceListenerTest {
         @SuppressWarnings("unchecked") final DataTreeModification<Services> ch = mock(DataTreeModification.class);
         changes.add(ch);
         when(ch.getRootNode()).thenReturn(service);
-        when(service.dataAfter()).thenReturn(buildService(State.InService, AdminStates.InService));
 
+        when(service.modificationType()).thenReturn(SUBTREE_MODIFIED);
+        when(service.dataBefore()).thenReturn(buildService(State.InService, AdminStates.InService));
         ServiceListener listener = new ServiceListener(rpcService, serviceDataStoreOperations,
                 notificationPublishService);
         listener.onDataTreeChanged(changes);
         verify(ch, times(1)).getRootNode();
-        verify(service, never()).dataBefore();
-        verify(service, times(1)).dataAfter();
+        verify(service, times(2)).modificationType();
+        verify(service, times(2)).dataBefore();
+        verify(service, never()).dataAfter();
         try {
             verify(notificationPublishService, never()).putNotification(any(PublishNotificationAlarmService.class));
         } catch (InterruptedException e) {
@@ -166,6 +175,7 @@ public class ServiceListenerTest {
         Services serviceAfter = new ServicesBuilder(buildService(State.OutOfService, AdminStates.InService))
                 .setServiceResiliency(serviceResiliency)
                 .build();
+        when(service.modificationType()).thenReturn(WRITE);
         when(service.dataBefore())
             .thenReturn(new ServicesBuilder(buildService(State.InService, AdminStates.InService))
                         .setServiceResiliency(serviceResiliency)
@@ -200,18 +210,14 @@ public class ServiceListenerTest {
                 notificationPublishService);
         listener.onDataTreeChanged(changes);
         verify(ch, times(1)).getRootNode();
-        verify(service, times(1)).dataBefore();
+        verify(service, times(1)).modificationType();
+        verify(service, times(3)).dataBefore();
         verify(service, times(1)).dataAfter();
-        verify(serviceDelete, times(1)).invoke(any());
+//        verify(servicehandler, times(1)).serviceDelete(any());
 
-        final DataObjectDeleted<Services> serviceStep2 = mock();
-        when(ch.getRootNode()).thenReturn(serviceStep2);
-        when(serviceStep2.dataBefore())
-                .thenReturn(new ServicesBuilder(buildService(State.OutOfService, AdminStates.InService))
-                        .setServiceResiliency(serviceResiliency)
-                        .build());
+        when(service.modificationType()).thenReturn(DELETE);
         listener.onDataTreeChanged(changes);
-        verify(serviceCreate, times(1)).invoke(any());
+//        verify(servicehandler, times(1)).serviceCreate(any());
     }
 
     @Test
@@ -223,18 +229,21 @@ public class ServiceListenerTest {
         when(ch.getRootNode()).thenReturn(service);
 
         Services serviceAfter = buildService(State.OutOfService, AdminStates.InService);
+        when(service.modificationType()).thenReturn(WRITE);
         when(service.dataBefore()).thenReturn(buildService(State.InService, AdminStates.InService));
         when(service.dataAfter()).thenReturn(serviceAfter);
         ServiceListener listener = new ServiceListener(rpcService, serviceDataStoreOperations,
                 notificationPublishService);
         listener.onDataTreeChanged(changes);
         verify(ch, times(1)).getRootNode();
-        verify(service, times(1)).dataBefore();
+        verify(service, times(1)).modificationType();
+        verify(service, times(3)).dataBefore();
         verify(service, times(1)).dataAfter();
-        verify(serviceDelete, never()).invoke(any());
+//        verify(servicehandler, times(0)).serviceDelete(any());
 
+        when(service.modificationType()).thenReturn(DELETE);
         listener.onDataTreeChanged(changes);
-        verify(serviceCreate, never()).invoke(any());
+//        verify(servicehandler, times(0)).serviceCreate(any());
     }
 
     private Services buildService(State state, AdminStates adminStates) {

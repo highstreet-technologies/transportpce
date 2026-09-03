@@ -32,7 +32,6 @@ import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.OrgOpenr
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.org.openroadm.device.container.OrgOpenroadmDevice;
 import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.Context;
 import org.opendaylight.yangtools.binding.DataObjectIdentifier;
-import org.opendaylight.yangtools.yang.parser.api.YangParserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -53,20 +52,24 @@ class XmlDataConverterTest {
     }
 
     @Test
-    void serializeOrgOpenroadmDeviceTest() throws IOException, YangParserException {
+    void serializeOrgOpenroadmDeviceTest() {
         XmlDataConverter converter = new XmlDataConverter(null);
-        assertEquals(
-                Files.readString(Path.of("src/test/resources/device.xml")),
-                converter.serialize(
-                        DataObjectIdentifier
-                            .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
-                            .build(),
-                        device),
-                "OrgOpenroadmDevice should be as in the device.json file");
+        try {
+            assertEquals(
+                    Files.readString(Path.of("src/test/resources/device.xml")),
+                    converter.serialize(
+                            DataObjectIdentifier
+                                .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
+                                .build(),
+                            device),
+                    "OrgOpenroadmDevice should be as in the device.json file");
+        } catch (IOException e1) {
+            fail("Cannot load xml file with expected result");
+        }
     }
 
     @Test
-    void serializeOrgOpenroadmDeviceToFileTest() throws IOException, YangParserException {
+    void serializeOrgOpenroadmDeviceToFileTest() {
         final Path filePath = Path.of("testSerializeDeviceToXmlFile.xml");
         XmlDataConverter converter = new XmlDataConverter(null);
         try {
@@ -89,7 +92,7 @@ class XmlDataConverterTest {
     }
 
     @Test
-    void deserializeXmlToOrgOpenroadmDeviceTest() throws IOException, YangParserException {
+    void deserializeXmlToOrgOpenroadmDeviceTest() {
         XmlDataConverter converter = new XmlDataConverter(ModelsUtils.OPENROADM_MODEL_PATHS_71);
         try {
             OrgOpenroadmDevice deserializedDevice = (OrgOpenroadmDevice) converter.deserialize(
@@ -99,11 +102,13 @@ class XmlDataConverterTest {
             assertEquals(this.device, deserializedDevice);
         } catch (ProcessingException e) {
             fail("Error deserializing xml to OrgOpenroadmDevice object");
+        } catch (IOException e) {
+            fail("Cannot load xml file with input xml data");
         }
     }
 
     @Test
-    void deserializeXmlReaderToOrgOpenroadmDeviceTest() throws IOException, YangParserException {
+    void deserializeXmlReaderToOrgOpenroadmDeviceTest() {
         XmlDataConverter converter = new XmlDataConverter(ModelsUtils.OPENROADM_MODEL_PATHS_71);
         try {
             OrgOpenroadmDevice deserializedDevice = (OrgOpenroadmDevice) converter.deserialize(
@@ -113,30 +118,36 @@ class XmlDataConverterTest {
             assertEquals(this.device, deserializedDevice);
         } catch (ProcessingException e) {
             fail("Error deserializing xml to OrgOpenroadmDevice object");
+        } catch (IOException e) {
+            fail("Cannot load xml file with input xml data");
         }
     }
 
     @Test
-    void serializeContextTest() throws IOException, YangParserException {
+    void serializeContextTest() {
         XmlDataConverter converter = new XmlDataConverter(null);
-        String actualXml = converter.serialize(DataObjectIdentifier.builder(Context.class).build(), context);
-        String expectedXml = Files.readString(Path.of("src/test/resources/context.xml"));
+        try {
+            String actualXml = converter.serialize(DataObjectIdentifier.builder(Context.class).build(), context);
+            String expectedXml = Files.readString(Path.of("src/test/resources/context.xml"));
 
-        // Parse XML to retrieve layer-protocol-name fragments
-        List<String> actualLpnList = extractLayerProtocolNames(actualXml);
-        List<String> expectedLpnList = extractLayerProtocolNames(expectedXml);
-        // Compare layer-protocol-name lists ignoring item order)
-        assertThat(new HashSet<>(actualLpnList)).isEqualTo(new HashSet<>(expectedLpnList));
+            // Parse XML to retrieve layer-protocol-name fragments
+            List<String> actualLpnList = extractLayerProtocolNames(actualXml);
+            List<String> expectedLpnList = extractLayerProtocolNames(expectedXml);
+            // Compare layer-protocol-name lists ignoring item order)
+            assertThat(new HashSet<>(actualLpnList)).isEqualTo(new HashSet<>(expectedLpnList));
 
-        // Remove list of "layer-protocol-name" given that their order may vary
-        String regex = "<layer-protocol-name>.*?</layer-protocol-name>";
-        actualXml = actualXml.replaceAll(regex, "");
-        expectedXml = expectedXml.replaceAll(regex, "");
-        assertThat(actualXml).isEqualToIgnoringWhitespace(expectedXml);
+            // Remove list of "layer-protocol-name" given that their order may vary
+            String regex = "<layer-protocol-name>.*?</layer-protocol-name>";
+            actualXml = actualXml.replaceAll(regex, "");
+            expectedXml = expectedXml.replaceAll(regex, "");
+            assertThat(actualXml).isEqualToIgnoringWhitespace(expectedXml);
+        } catch (IOException e1) {
+            fail("Cannot load xml file with expected result");
+        }
     }
 
     @Test
-    void serializeContextToFileTest() throws IOException, YangParserException {
+    void serializeContextToFileTest() {
         final Path filePath = Path.of("testSerializeContextToXmlFile.xml");
         XmlDataConverter converter = new XmlDataConverter(null);
         try {
@@ -154,7 +165,7 @@ class XmlDataConverterTest {
     }
 
     @Test
-    void deserializeXmlToContextTest() throws IOException, YangParserException {
+    void deserializeXmlToContextTest() {
         XmlDataConverter converter = new XmlDataConverter(null);
         try {
             Context deserializedContext = (Context) converter.deserialize(
@@ -163,11 +174,13 @@ class XmlDataConverterTest {
             assertEquals(this.context, deserializedContext);
         } catch (ProcessingException e) {
             fail("Error deserializing xml to TAPI Context object");
+        } catch (IOException e) {
+            fail("Cannot load xml file with input xml data");
         }
     }
 
     @Test
-    void deserializeXmlReaderToContextTest() throws IOException, YangParserException {
+    void deserializeXmlReaderToContextTest() {
         XmlDataConverter converter = new XmlDataConverter(null);
         try {
             Context deserializedContext = (Context) converter.deserialize(
@@ -177,6 +190,8 @@ class XmlDataConverterTest {
             assertEquals(this.context, deserializedContext);
         } catch (ProcessingException e) {
             fail("Error deserializing xml to TAPI Context object");
+        } catch (IOException e) {
+            fail("Cannot load xml file with input xml data");
         }
     }
 

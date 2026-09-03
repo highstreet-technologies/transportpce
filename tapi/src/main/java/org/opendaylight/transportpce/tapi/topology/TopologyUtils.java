@@ -15,7 +15,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -30,15 +29,15 @@ import org.opendaylight.transportpce.common.network.NetworkTransactionService;
 import org.opendaylight.transportpce.tapi.TapiConstants;
 import org.opendaylight.transportpce.tapi.impl.TapiProvider;
 import org.opendaylight.transportpce.tapi.utils.TapiLink;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mapping.Mapping;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mapping.MappingKey;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.network.Nodes;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.network.NodesKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.Link1;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.TerminationPoint1;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.OpenroadmLinkType;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.OpenroadmNodeType;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250530.OpenroadmTpType;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905.mapping.Mapping;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905.mapping.MappingKey;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905.network.Nodes;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905.network.NodesKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250110.Link1;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250110.TerminationPoint1;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250110.OpenroadmLinkType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250110.OpenroadmNodeType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250110.OpenroadmTpType;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.NodeId;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.networks.Network;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.Network1;
@@ -229,7 +228,7 @@ public final class TopologyUtils {
                     .filter(nt -> !nt.getNodeId().getValue().equals("TAPI-SBI-ABS-NODE"))
                     .filter(nt -> nt
                         .augmentation(
-                            org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.Node1.class)
+                            org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250110.Node1.class)
                         .getNodeType()
                         .equals(OpenroadmNodeType.ROADM))
                     .collect(Collectors.toList());
@@ -247,13 +246,10 @@ public final class TopologyUtils {
                 tapiLinkList.putAll(tapiFullFactory.getTapiLinks());
                 // map roadm to roadm link
                 List<Link> rdmTordmLinkList = linkList.stream()
-                        .filter(Objects::nonNull)
-                        .filter(lk -> Optional.ofNullable(lk.augmentation(Link1.class))
-                                .map(Link1::getLinkType)
-                                .filter(OpenroadmLinkType.ROADMTOROADM::equals)
-                                .isPresent())
-                        .collect(Collectors.toList());
-                tapiFullFactory.convertRdmToRdmLinks(rdmTordmLinkList, openroadmTopo);
+                    .filter(lk -> lk.augmentation(Link1.class).getLinkType()
+                        .equals(OpenroadmLinkType.ROADMTOROADM))
+                    .collect(Collectors.toList());
+                tapiFullFactory.convertRdmToRdmLinks(rdmTordmLinkList);
             } else {
                 tapiFullFactory.convertRoadmNode(null, openroadmTopo, "Abstracted");
                 this.tapiSips.putAll(tapiFullFactory.getTapiSips());
@@ -263,7 +259,7 @@ public final class TopologyUtils {
         }
         // map xpdr_input to roadm and xpdr_output to roadm links.
         xponderInLinkList.addAll(xponderOutLinkList);
-        tapiFullFactory.convertXpdrToRdmLinks(xponderInLinkList, openroadmTopo);
+        tapiFullFactory.convertXpdrToRdmLinks(xponderInLinkList);
         tapiLinkList.putAll(tapiFullFactory.getTapiLinks());
         // Retrieve created sips map in TapiFactory when mapping all the nodes
         this.tapiSips.putAll(tapiFullFactory.getTapiSips());
@@ -275,7 +271,7 @@ public final class TopologyUtils {
         LOG.info("Inside Checktp for node {}-{}", nodeIdTopo, nodeIdPortMap);
         String networkLcp = tp.augmentation(TerminationPoint1.class).getTpType().equals(OpenroadmTpType.XPONDERCLIENT)
             ? tp.augmentation(
-                    org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250530.TerminationPoint1.class)
+                    org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250110.TerminationPoint1.class)
                 .getAssociatedConnectionMapTp().iterator().next().getValue()
             : tp.getTpId().getValue();
         LOG.info("Network LCP associated = {}", networkLcp);
@@ -283,7 +279,7 @@ public final class TopologyUtils {
         FluentFuture<Optional<Mapping>> mappingOpt = this.dataBroker.newReadOnlyTransaction().read(
                 LogicalDatastoreType.CONFIGURATION,
                 DataObjectIdentifier.builder(
-                    org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.Network.class)
+                    org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905.Network.class)
                 .child(Nodes.class, new NodesKey(nodeIdPortMap))
                 .child(Mapping.class, new MappingKey(networkLcp))
                 .build());

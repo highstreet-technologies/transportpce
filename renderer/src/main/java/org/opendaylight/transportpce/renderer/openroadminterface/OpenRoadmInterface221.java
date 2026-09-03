@@ -20,9 +20,9 @@ import org.opendaylight.transportpce.common.fixedflex.SpectrumInformation;
 import org.opendaylight.transportpce.common.mapping.PortMapping;
 import org.opendaylight.transportpce.common.openroadminterfaces.OpenRoadmInterfaceException;
 import org.opendaylight.transportpce.common.openroadminterfaces.OpenRoadmInterfaces;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.device.renderer.rev260212.az.api.info.AEndApiInfo;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.device.renderer.rev260212.az.api.info.ZEndApiInfo;
-import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev260612.mapping.Mapping;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.device.renderer.rev251001.az.api.info.AEndApiInfo;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.device.renderer.rev251001.az.api.info.ZEndApiInfo;
+import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905.mapping.Mapping;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.types.rev181019.FrequencyGHz;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.types.rev181019.FrequencyTHz;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.types.rev181019.ModulationFormat;
@@ -155,10 +155,8 @@ public class OpenRoadmInterface221 {
                             .Interface1Builder()
                         .setMcTtp(
                             new McTtpBuilder()
-                                .setMinFreq(new FrequencyTHz(Decimal64.valueOf(spectrumInformation.getMinFrequency())
-                                        .scaleTo(8)))
-                                .setMaxFreq(new FrequencyTHz(Decimal64.valueOf(spectrumInformation.getMaxFrequency())
-                                        .scaleTo(8)))
+                                .setMinFreq(new FrequencyTHz(Decimal64.valueOf(spectrumInformation.getMinFrequency())))
+                                .setMaxFreq(new FrequencyTHz(Decimal64.valueOf(spectrumInformation.getMaxFrequency())))
                                 .build())
                         .build());
         // Post interface on the device
@@ -189,9 +187,8 @@ public class OpenRoadmInterface221 {
                      .Interface1Builder()
                 .setNmcCtp(
                     new NmcCtpBuilder()
-                        .setFrequency(new FrequencyTHz(
-                                Decimal64.valueOf(spectrumInformation.getCenterFrequency()).scaleTo(8)))
-                        .setWidth(new FrequencyGHz(Decimal64.valueOf(spectrumInformation.getWidth()).scaleTo(5)))
+                        .setFrequency(new FrequencyTHz(Decimal64.valueOf(spectrumInformation.getCenterFrequency())))
+                        .setWidth(new FrequencyGHz(Decimal64.valueOf(spectrumInformation.getWidth())))
                         .build())
                 .build());
         // Post interface on the device
@@ -224,10 +221,10 @@ public class OpenRoadmInterface221 {
                         .setOch(
                             // OCH interface specific data
                             new OchBuilder()
-                                .setFrequency(new FrequencyTHz(
-                                        Decimal64.valueOf(spectrumInformation.getCenterFrequency()).scaleTo(8)))
+                                .setFrequency(
+                                    new FrequencyTHz(Decimal64.valueOf(spectrumInformation.getCenterFrequency())))
                                 .setRate(R100G.VALUE)
-                                .setTransmitPower(new PowerDBm(Decimal64.valueOf(2, -5)))
+                                .setTransmitPower(new PowerDBm(Decimal64.valueOf("-5")))
                                 .setModulationFormat(modulationFormat)
                                 .build())
                         .build());
@@ -267,8 +264,7 @@ public class OpenRoadmInterface221 {
         oduInterfaceBldr.addAugmentation(
                 createOdu4HOInterface1(
                         // For TPDR it can be both CTP and TTP - For switch-ponder we still use TTP
-                        mapping.getXpdrType().getName()
-                                .equals(XpdrNodeTypes.Tpdr.getName()) ? ODUTTPCTP.VALUE : ODUTTP.VALUE,
+                        mapping.getXpdrType() == XpdrNodeTypes.Tpdr ? ODUTTPCTP.VALUE : ODUTTP.VALUE,
                         MonitoringMode.Terminated,
                         new OpuBuilder()
                                 .setPayloadType(PayloadTypeDef.getDefaultInstance(payloadType))

@@ -23,10 +23,4 @@ public interface RangeFactory {
      */
     Range range(Double centerFrequencyTHz, Double bandwidthGHz);
 
-    /**
-     * Creates an empty {@link Range}.
-     *
-     * @return an empty range
-     */
-    Range empty();
 }

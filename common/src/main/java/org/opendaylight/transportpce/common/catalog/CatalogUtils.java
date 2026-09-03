@@ -7,7 +7,6 @@
  */
 package org.opendaylight.transportpce.common.catalog;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,35 +16,33 @@ import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
 import org.opendaylight.transportpce.common.StringConstants;
 import org.opendaylight.transportpce.common.catalog.CatalogConstant.CatalogNodeType;
 import org.opendaylight.transportpce.common.network.NetworkTransactionService;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.link.types.rev241213.RatioDB;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.common.optical.channel.types.rev250328.FrequencyGHz;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250530.ImpairmentType;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250530.operational.mode.amplifier.parameters.Amplifier;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250530.operational.mode.catalog.OpenroadmOperationalModes;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250530.operational.mode.catalog.SpecificOperationalModes;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250530.operational.mode.catalog.openroadm.operational.modes.Amplifiers;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250530.operational.mode.catalog.openroadm.operational.modes.Roadms;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250530.operational.mode.catalog.openroadm.operational.modes.XpondersPluggables;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250530.operational.mode.catalog.openroadm.operational.modes.xponders.pluggables.XponderPluggableOpenroadmOperationalMode;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250530.operational.mode.catalog.openroadm.operational.modes.xponders.pluggables.XponderPluggableOpenroadmOperationalModeKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250530.operational.mode.catalog.specific.operational.modes.SpecificOperationalMode;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250530.operational.mode.catalog.specific.operational.modes.SpecificOperationalModeKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250530.operational.mode.roadm.add.parameters.Add;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250530.operational.mode.roadm.drop.parameters.Drop;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250530.operational.mode.roadm.drop.parameters.drop.OpenroadmOperationalMode;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250530.operational.mode.roadm.drop.parameters.drop.OpenroadmOperationalModeKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250530.operational.mode.roadm.express.parameters.Express;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250530.operational.mode.transponder.parameters.OutputPowerRange;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250530.operational.mode.transponder.parameters.OutputPowerRangeKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250530.operational.mode.transponder.parameters.Penalties;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250530.operational.mode.transponder.parameters.PenaltiesKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250530.operational.mode.transponder.parameters.TXOOBOsnrKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250530.power.mask.MaskPowerVsPin;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250530.power.mask.MaskPowerVsPinKey;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250530.OperationalModeCatalog;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.link.types.rev191129.RatioDB;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.optical.channel.types.rev200529.FrequencyGHz;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250110.ImpairmentType;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250110.operational.mode.amplifier.parameters.Amplifier;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250110.operational.mode.catalog.OpenroadmOperationalModes;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250110.operational.mode.catalog.SpecificOperationalModes;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250110.operational.mode.catalog.openroadm.operational.modes.Amplifiers;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250110.operational.mode.catalog.openroadm.operational.modes.Roadms;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250110.operational.mode.catalog.openroadm.operational.modes.XpondersPluggables;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250110.operational.mode.catalog.openroadm.operational.modes.xponders.pluggables.XponderPluggableOpenroadmOperationalMode;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250110.operational.mode.catalog.openroadm.operational.modes.xponders.pluggables.XponderPluggableOpenroadmOperationalModeKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250110.operational.mode.catalog.specific.operational.modes.SpecificOperationalMode;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250110.operational.mode.catalog.specific.operational.modes.SpecificOperationalModeKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250110.operational.mode.roadm.add.parameters.Add;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250110.operational.mode.roadm.add.parameters.add.AddOpenroadmOperationalMode;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250110.operational.mode.roadm.add.parameters.add.AddOpenroadmOperationalModeKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250110.operational.mode.roadm.drop.parameters.Drop;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250110.operational.mode.roadm.drop.parameters.drop.OpenroadmOperationalMode;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250110.operational.mode.roadm.drop.parameters.drop.OpenroadmOperationalModeKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250110.operational.mode.roadm.express.parameters.Express;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250110.operational.mode.transponder.parameters.Penalties;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250110.operational.mode.transponder.parameters.PenaltiesKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250110.operational.mode.transponder.parameters.TXOOBOsnrKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250110.power.mask.MaskPowerVsPin;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250110.power.mask.MaskPowerVsPinKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250110.OperationalModeCatalog;
 import org.opendaylight.yangtools.binding.DataObjectIdentifier;
-import org.opendaylight.yangtools.yang.common.Decimal64;
-import org.opendaylight.yangtools.yang.common.Uint32;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -127,7 +124,7 @@ public class CatalogUtils {
     public double getPceTxTspChannelSpacing(String operationalModeId) {
         double baudRate;
         double maxRollOff;
-        if (operationalModeId.split("-")[0].equals(StringConstants.OPENROADM_MODE_PREFIX)) {
+        if (operationalModeId.startsWith("OR")) {
             DataObjectIdentifier<XponderPluggableOpenroadmOperationalMode> omCatalogIid = DataObjectIdentifier
                 .builder(OperationalModeCatalog.class)
                 .child(OpenroadmOperationalModes.class)
@@ -205,7 +202,7 @@ public class CatalogUtils {
         SpecificOperationalMode speTspOM = null;
         RatioDB minOOBOsnrSingleChannelValue;
         RatioDB minOOBOsnrMultiChannelValue;
-        if (operationalModeId.split("-")[0].equals(StringConstants.OPENROADM_MODE_PREFIX)) {
+        if (operationalModeId.startsWith("OR")) {
             DataObjectIdentifier<XponderPluggableOpenroadmOperationalMode> omCatalogIid = DataObjectIdentifier
                 .builder(OperationalModeCatalog.class)
                 .child(OpenroadmOperationalModes.class)
@@ -306,7 +303,7 @@ public class CatalogUtils {
         XponderPluggableOpenroadmOperationalMode orTspOM = null;
         SpecificOperationalMode speTspOM = null;
         Map<PenaltiesKey, Penalties> penaltiesMap = null;
-        if (operationalModeId.split("-")[0].equals(StringConstants.OPENROADM_MODE_PREFIX)) {
+        if (operationalModeId.startsWith("OR")) {
             var omCatalogIid = DataObjectIdentifier
                 .builder(OperationalModeCatalog.class)
                 .child(OpenroadmOperationalModes.class)
@@ -412,8 +409,8 @@ public class CatalogUtils {
      */
 
     private double getRxTspPenalty(double calculatedParameter, ImpairmentType impairmentType,
-            Map<PenaltiesKey, Penalties> penaltiesMap) {
-        Penalties penalty = penaltiesMap.values().stream()
+            Map<PenaltiesKey, Penalties> penalitiesMap) {
+        Penalties penalty = penalitiesMap.values().stream()
             // We only keep penalties corresponding to the calculated Parameter
             .filter(val -> val.getParameterAndUnit().getName().equals(impairmentType.getName()))
             // we sort it according to the comparator (based on up-to-boundary)
@@ -481,15 +478,11 @@ public class CatalogUtils {
                     .child(OpenroadmOperationalModes.class)
                     .child(Roadms.class)
                     .child(Add.class)
-                    .child(org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250530
-                            .operational.mode.roadm.add.parameters.add.OpenroadmOperationalMode.class,
-                        new org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250530
-                                .operational.mode.roadm.add.parameters.add.OpenroadmOperationalModeKey(
-                                        operationalModeId))
+                    .child(AddOpenroadmOperationalMode.class, new AddOpenroadmOperationalModeKey(operationalModeId))
                     .build();
                 try {
-                    var omOptional = networkTransactionService.read(LogicalDatastoreType.CONFIGURATION, omCatalogIid)
-                            .get();
+                    var omOptional =
+                        networkTransactionService.read(LogicalDatastoreType.CONFIGURATION, omCatalogIid).get();
                     if (omOptional.isEmpty()) {
                         LOG.error(OPMODE_MISMATCH_MSG, operationalModeId);
                         return new HashMap<>();
@@ -556,10 +549,10 @@ public class CatalogUtils {
                     .child(Express.class)
                     .child(
                         org.opendaylight.yang.gen.v1.http
-                            .org.openroadm.operational.mode.catalog.rev250530
+                            .org.openroadm.operational.mode.catalog.rev250110
                             .operational.mode.roadm.express.parameters.express.OpenroadmOperationalMode.class,
                         new org.opendaylight.yang.gen.v1.http
-                            .org.openroadm.operational.mode.catalog.rev250530
+                            .org.openroadm.operational.mode.catalog.rev250110
                             .operational.mode.roadm.express.parameters.express.OpenroadmOperationalModeKey(
                                 operationalModeId))
                     .build();
@@ -598,9 +591,9 @@ public class CatalogUtils {
                     .child(Amplifiers.class)
                     .child(Amplifier.class)
                     .child(
-                        org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250530
+                        org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250110
                             .operational.mode.amplifier.parameters.amplifier.OpenroadmOperationalMode.class,
-                        new org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250530
+                        new org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250110
                             .operational.mode.amplifier.parameters.amplifier.OpenroadmOperationalModeKey(
                                     operationalModeId))
                     .build();
@@ -711,10 +704,7 @@ public class CatalogUtils {
                     .child(OpenroadmOperationalModes.class)
                     .child(Roadms.class)
                     .child(Add.class)
-                    .child(org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250530
-                            .operational.mode.roadm.add.parameters.add.OpenroadmOperationalMode.class,
-                        new org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250530
-                            .operational.mode.roadm.add.parameters.add.OpenroadmOperationalModeKey(operationalModeId))
+                    .child(AddOpenroadmOperationalMode.class, new AddOpenroadmOperationalModeKey(operationalModeId))
                     .build();
                 try {
                     var omOptional =
@@ -753,10 +743,10 @@ public class CatalogUtils {
                     .child(Express.class)
                     .child(
                         org.opendaylight.yang.gen.v1.http
-                            .org.openroadm.operational.mode.catalog.rev250530
+                            .org.openroadm.operational.mode.catalog.rev250110
                             .operational.mode.roadm.express.parameters.express.OpenroadmOperationalMode.class,
                         new org.opendaylight.yang.gen.v1.http
-                            .org.openroadm.operational.mode.catalog.rev250530
+                            .org.openroadm.operational.mode.catalog.rev250110
                             .operational.mode.roadm.express.parameters.express.OpenroadmOperationalModeKey(
                                 operationalModeId))
                     .build();
@@ -838,10 +828,7 @@ public class CatalogUtils {
             .child(OpenroadmOperationalModes.class)
             .child(Roadms.class)
             .child(Add.class)
-            .child(org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250530
-                    .operational.mode.roadm.add.parameters.add.OpenroadmOperationalMode.class,
-                new org.opendaylight.yang.gen.v1.http.org.openroadm.operational.mode.catalog.rev250530
-                    .operational.mode.roadm.add.parameters.add.OpenroadmOperationalModeKey(CatalogConstant.MWWRCORE))
+            .child(AddOpenroadmOperationalMode.class, new AddOpenroadmOperationalModeKey(CatalogConstant.MWWRCORE))
             .build();
         try {
             if (networkTransactionService.read(LogicalDatastoreType.CONFIGURATION, omCatalogIid).get().isEmpty()) {
@@ -857,13 +844,13 @@ public class CatalogUtils {
     }
 
     /**
-     * Returns specific operational mode from catalog based on the given operational mode.
-     *
-     * @param operationalModeId operational-mode-id of a specific-operational-mode
-     *
-     * @return specific operational mode
+     * This method is to get central frequency granularity.
+     * @param operationalModeId
+     *            operational-mode-id of a specific-operational-mode
+     * @return String central frequency
      */
-    public Optional<SpecificOperationalMode> readOperationalModeFromCatalog(String operationalModeId) {
+    public String getCFGranularity(String operationalModeId) {
+        FrequencyGHz centralFrequencyGranularity;
         DataObjectIdentifier<SpecificOperationalMode> omCatalogIid = DataObjectIdentifier
                 .builder(OperationalModeCatalog.class)
                 .child(SpecificOperationalModes.class)
@@ -872,96 +859,20 @@ public class CatalogUtils {
         try {
             var somOptional =
                     networkTransactionService.read(LogicalDatastoreType.CONFIGURATION, omCatalogIid).get();
-
             if (somOptional.isEmpty()) {
-                LOG.error("Operational Mode '{}' not found in catalog", operationalModeId);
-                return Optional.empty();
+                LOG.error("readMdSal: Error reading Specific Operational Mode Catalog for operational-mode-id {}",
+                        operationalModeId);
+                return null;
             }
-
-            return somOptional;
+            SpecificOperationalMode speTspOM = somOptional.orElseThrow();
+            centralFrequencyGranularity = FrequencyGHz.getDefaultInstance(speTspOM.getCentralFrequencyGranularity()
+                    .getValue().toString());
 
         } catch (InterruptedException | ExecutionException e) {
             LOG.error("readMdSal: Error reading Specific Operational Mode Catalog {} , Mode does not exist",
                     omCatalogIid);
             throw new RuntimeException("Operational mode not populated in Catalog : " + omCatalogIid + " :" + e);
         }
-    }
-
-
-    /**
-     * This method is to get central frequency granularity.
-     * @param operationalModeId
-     *            operational-mode-id of a specific-operational-mode
-     * @return String central frequency
-     */
-    public String getCFGranularity(String operationalModeId) {
-        FrequencyGHz centralFrequencyGranularity;
-        Optional<SpecificOperationalMode> somOptional = readOperationalModeFromCatalog(operationalModeId);
-
-        if (somOptional.isEmpty()) {
-            LOG.error("readMdSal: Error reading Specific Operational Mode Catalog for operational-mode-id {}",
-                    operationalModeId);
-            return null;
-        }
-
-        SpecificOperationalMode speTspOM = somOptional.orElseThrow();
-        centralFrequencyGranularity = FrequencyGHz.getDefaultInstance(
-                speTspOM.getCentralFrequencyGranularity().getValue().toString());
-
         return centralFrequencyGranularity.getValue().toString();
     }
-
-
-    /**
-     * This method computes the mix and max slots based on the given operational mode.
-     * @param operationalModeId
-     *              operational-mode-id of a specific-operational-mode
-     * @return min and max slots
-     */
-    public Map<String, Uint32> getMinMaxSlots(String operationalModeId) {
-        Optional<SpecificOperationalMode> somOptional = readOperationalModeFromCatalog(operationalModeId);
-
-        if (somOptional.isEmpty()) {
-            LOG.error("readMdSal: Error reading Specific Operational Mode Catalog for operational-mode-id {}",
-                    operationalModeId);
-            return Collections.emptyMap();
-        }
-
-        SpecificOperationalMode om = somOptional.orElseThrow();
-        Decimal64 minFreq = om.getMinEdgeFrequency().getValue();
-        Decimal64 maxFreq = om.getMaxEdgeFrequency().getValue();
-        Decimal64 centralFreqGranularity = om.getCentralFrequencyGranularity().getValue();
-        double maxSlotValue =
-                ((maxFreq.doubleValue() - minFreq.doubleValue()) / (centralFreqGranularity.doubleValue() * 2)) * 1000;
-        Map<String, Uint32> slotMap = new HashMap<>();
-        slotMap.put("min", Uint32.valueOf("1"));
-        slotMap.put("max", Uint32.valueOf(Math.round(maxSlotValue)));
-        return slotMap;
-    }
-
-    /**
-     * This method computes the mix and max power for a given operational mode.
-     * @param operationalModeId operational-mode-id of a specific-operational-mode.
-     *
-     * @return min and max output power.
-     */
-    public Map<String, Double> getMinMaxOutputPower(String operationalModeId) {
-        Optional<SpecificOperationalMode> somOptional = readOperationalModeFromCatalog(operationalModeId);
-        if (somOptional.isEmpty()) {
-            LOG.error("readMdSal: Error reading Specific Operational Mode Catalog for operational-mode-id {}",
-                    operationalModeId);
-            return Collections.emptyMap();
-        }
-        SpecificOperationalMode om = somOptional.orElseThrow();
-        Map<OutputPowerRangeKey, OutputPowerRange> outputPowerRange = om.getOutputPowerRange();
-        OutputPowerRange range = outputPowerRange.values().stream().findFirst().orElse(null);
-        double minOutputPower = range != null ? range.getMinOutputPower().getValue().doubleValue() : -5.00;
-        double maxOutputPower = range != null ? range.getMaxOutputPower().getValue().doubleValue() : 0.00;
-
-        Map<String, Double> powerRangeMap = new HashMap<>();
-        powerRangeMap.put("MinTx", minOutputPower);
-        powerRangeMap.put("MaxTx", maxOutputPower);
-        return powerRangeMap;
-    }
-
 }

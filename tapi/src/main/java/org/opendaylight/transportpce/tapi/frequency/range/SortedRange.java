@@ -8,12 +8,9 @@
 
 package org.opendaylight.transportpce.tapi.frequency.range;
 
-import static com.google.common.collect.Range.closed;
-
-import com.google.common.collect.RangeSet;
-import com.google.common.collect.TreeRangeSet;
 import java.util.Map;
 import java.util.Objects;
+import java.util.SortedMap;
 import java.util.TreeMap;
 import org.opendaylight.transportpce.tapi.frequency.Factory;
 import org.opendaylight.transportpce.tapi.frequency.Frequency;
@@ -21,32 +18,21 @@ import org.opendaylight.transportpce.tapi.frequency.TeraHertz;
 import org.opendaylight.yangtools.yang.common.Uint64;
 
 /**
- * A {@link Range} implementation that stores frequency ranges in sorted,
- * normalized form.
+ * This implementation of Range interface is used to store frequency ranges in a sorted order.
+ * This implementation does not allow overlapping ranges or a range where
+ * the lower frequency is greater than the upper frequency.
  *
- * <p>Ranges added to this implementation may overlap or be adjacent.
- * Internally, all ranges are automatically merged so that the stored
- * representation consists of non-overlapping, connected ranges.
- *
- * <p>For example, adding the following ranges:
- * <pre>
- *   191.35 - 191.45
- *   191.45 - 191.55
- * </pre>
- * results in a single stored range:
- * <pre>
- *   191.35 - 191.55
- * </pre>
- *
- * <p>If a newly added range is fully enclosed by an existing range,
- * the operation is a no-op and {@code false} is returned.
- *
- * <p>All ranges are treated as closed intervals, i.e. both lower and
- * upper bounds are inclusive.
+ * <p>The frequency ranges are treated as exclusive, i.e. the lower and upper frequency is not included in the range.
+ * These ranges are therefore treated as valid:
+ *    191.35 - 191.45
+ *    191.45 - 191.55
+ * These ranges will not be added, given the existing range 191.35 - 191.45:
+ *    191.35 - 191.45
+ *    191.35 - 191.39
  */
 public class SortedRange implements Range {
 
-    private final RangeSet<Frequency> frequencyRanges = TreeRangeSet.create();
+    private final SortedMap<Frequency, Frequency> frequencyRanges = new TreeMap<>();
 
     public SortedRange() {
     }
@@ -58,25 +44,30 @@ public class SortedRange implements Range {
     }
 
     @Override
-    public boolean add(Frequency lowerBound, Frequency upperBound) {
-        if (lowerBound.compareTo(upperBound) > 0) {
+    public boolean add(Frequency lowerExclusive, Frequency upperExclusive) {
+
+        if (lowerExclusive.compareTo(upperExclusive) > 0) {
             throw new InvalidFrequencyRangeException(
-                    String.format("Invalid frequency range: %s > %s", lowerBound, upperBound));
+                    String.format("Invalid frequency range: %s > %s", lowerExclusive, upperExclusive));
         }
 
-        if (frequencyRanges.encloses(closed(lowerBound, upperBound))) {
-            // New range is fully contained in an existing range -> no change.
-            return false;
+        for (Map.Entry<Frequency, Frequency> range : frequencyRanges.entrySet()) {
+            if (range.getKey().compareTo(upperExclusive) >= 0) {
+                break;
+            }
+            if (range.getValue().compareTo(lowerExclusive) > 0) {
+                return false;
+            }
         }
 
-        frequencyRanges.add(closed(lowerBound, upperBound));
+        frequencyRanges.put(lowerExclusive, upperExclusive);
 
         return true;
     }
 
     @Override
-    public boolean add(Double lowerBound, Double upperBound) {
-        return this.add(new TeraHertz(lowerBound), new TeraHertz(upperBound));
+    public boolean add(Double lower, Double upper) {
+        return this.add(new TeraHertz(lower), new TeraHertz(upper));
     }
 
     @Override
@@ -99,7 +90,7 @@ public class SortedRange implements Range {
     public Map<Frequency, Frequency> ranges() {
         Map<Frequency, Frequency> range = new TreeMap<>();
 
-        frequencyRanges.asRanges().forEach(r -> range.put(r.lowerEndpoint(), r.upperEndpoint()));
+        range.putAll(frequencyRanges);
 
         return range;
     }
@@ -108,10 +99,9 @@ public class SortedRange implements Range {
     public Map<Double, Double> asTeraHertz() {
         Map<Double, Double> ranges = new TreeMap<>();
 
-        frequencyRanges.asRanges().forEach(r -> ranges.put(
-                r.lowerEndpoint().teraHertz().doubleValue(),
-                r.upperEndpoint().teraHertz().doubleValue())
-        );
+        for (Map.Entry<Frequency, Frequency> range : frequencyRanges.entrySet()) {
+            ranges.put(range.getKey().teraHertz().doubleValue(), range.getValue().teraHertz().doubleValue());
+        }
 
         return ranges;
     }
@@ -120,10 +110,9 @@ public class SortedRange implements Range {
     public Map<Uint64, Uint64> asHertz() {
         Map<Uint64, Uint64> ranges = new TreeMap<>();
 
-        frequencyRanges.asRanges().forEach(r -> ranges.put(
-                r.lowerEndpoint().hertz(),
-                r.upperEndpoint().hertz())
-        );
+        for (Map.Entry<Frequency, Frequency> range : frequencyRanges.entrySet()) {
+            ranges.put(range.getKey().hertz(), range.getValue().hertz());
+        }
 
         return ranges;
     }

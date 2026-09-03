@@ -34,7 +34,6 @@ import org.opendaylight.yangtools.yang.data.impl.schema.ImmutableNormalizedNodeS
 import org.opendaylight.yangtools.yang.data.impl.schema.NormalizationResultHolder;
 import org.opendaylight.yangtools.yang.model.util.SchemaInferenceStack;
 import org.opendaylight.yangtools.yang.model.util.SchemaInferenceStack.Inference;
-import org.opendaylight.yangtools.yang.parser.api.YangParserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +44,7 @@ public class JsonDataConverter extends AbstractDataConverter<DataObject> {
     private final JSONCodecFactory codecFactory;
     private final ConstantAdapterContext codec;
 
-    public JsonDataConverter(Set<YangModuleInfo> models) throws IOException, YangParserException {
+    public JsonDataConverter(Set<YangModuleInfo> models) {
         super(models);
         this.codecFactory = JSONCodecFactorySupplier.RFC7951.createLazy(runtimeContext.modelContext());
         this.codec = new ConstantAdapterContext(bindingCodecContext);

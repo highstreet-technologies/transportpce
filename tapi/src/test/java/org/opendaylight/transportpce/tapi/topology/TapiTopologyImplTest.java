@@ -119,7 +119,7 @@ public class TapiTopologyImplTest extends AbstractTest {
         topologyUtils = new TopologyUtils(networkTransactionService, getDataStoreContextUtil().getDataBroker(),
             tapiLink);
         connectivityUtils = new ConnectivityUtils(serviceDataStoreOperations, new HashMap<>(), tapiContext,
-            networkTransactionService, new Uuid(TapiConstants.T0_FULL_MULTILAYER_UUID), topologyUtils);
+            networkTransactionService, new Uuid(TapiConstants.T0_FULL_MULTILAYER_UUID));
         tapiInitialORMapping = new TapiInitialORMapping(topologyUtils, connectivityUtils,
             tapiContext, serviceDataStoreOperations);
         tapiInitialORMapping.performTopoInitialMapping();
@@ -274,7 +274,7 @@ public class TapiTopologyImplTest extends AbstractTest {
         long nbOtsLinks = topology.getLink().values().stream()
             .filter(l -> l.getName().containsKey(new NameKey("OTS link name"))).count();
         long nbOtnLinks = topology.getLink().values().stream()
-            .filter(l -> l.getName().containsKey(new NameKey("OTN link name"))).count();
+            .filter(l -> l.getName().containsKey(new NameKey("otn link name"))).count();
         assertEquals(8, nbOtsLinks, "Link list should contain 8 OTS links");
         assertEquals(2, nbOtnLinks, "Link list should contain 2 OTN links");
 
@@ -302,7 +302,7 @@ public class TapiTopologyImplTest extends AbstractTest {
                 .getBytes(StandardCharsets.UTF_8)).toString());
 
         List<Link> links = topology.nonnullLink().values().stream()
-            .filter(l -> l.getName().containsKey(new NameKey("OTN link name")))
+            .filter(l -> l.getName().containsKey(new NameKey("otn link name")))
             .sorted((l1, l2) -> l1.getUuid().getValue().compareTo(l2.getUuid().getValue()))
             .collect(Collectors.toList());
         checkOtnLink(links.get(0), topoUuid, node3Uuid, node4Uuid, tp3Uuid, tp4Uuid, link1Uuid,
@@ -469,7 +469,7 @@ public class TapiTopologyImplTest extends AbstractTest {
         for (Map.Entry<LinkKey, Link> entry : topology.getLink().entrySet()) {
             linkList.add(entry.getValue().getName().entrySet().iterator().next().getValue().toString());
         }
-        assertEquals(18, topology.getLink().size(), "Link list size should be 8x2 XPDR-SRG + DEG2A-DEG1C/DEG1C-DEG2A");
+        assertEquals(9, topology.getLink().size(), "Link list size should be 8 XPDR To SRG and 1 DEG2A-DEG1C");
         Uuid topoUuid = new Uuid(UUID.nameUUIDFromBytes("T0 - Full Multi-layer topology".getBytes()).toString());
         assertEquals(topoUuid, topology.getUuid(), "incorrect topology uuid");
         assertEquals(
@@ -490,12 +490,9 @@ public class TapiTopologyImplTest extends AbstractTest {
             .filter(l -> l.getName().containsKey(new NameKey("OMS link name"))).count();
         // Xpdr-to-Roadm
         long nbOmsLinks1 = topology.getLink().values().stream()
-            .filter(l -> l.getName().containsKey(new NameKey("xpdr to roadm link name"))
-                || l.getName().containsKey(new NameKey("roadm to xpdr link name"))).count();
-        // 1 OMS per ROADM-to-ROADM link in openroadm topology
-        assertEquals(2, nbOmsLinks, "Link list should contain 2 OMS links");
-       // OTS Existing XPDR-tp-ROADM link in openroadm topology
-        assertEquals(16, nbOmsLinks1, "Link list should contain 16 OTS links");
+            .filter(l -> l.getName().containsKey(new NameKey("XPDR-RDM link name"))).count();
+        // 1 OMS per ROADM-to-ROADM link + Existing XPDR-tp-ROADM link in openroadm topology
+        assertEquals(9, nbOmsLinks + nbOmsLinks1, "Link list should contain 9 OMS links");
     }
 
     @Test
@@ -580,7 +577,7 @@ public class TapiTopologyImplTest extends AbstractTest {
 
     private void checkOtnLink(Link link, Uuid topoUuid, Uuid node1Uuid, Uuid node2Uuid, Uuid tp1Uuid, Uuid tp2Uuid,
             Uuid linkUuid, String linkName) {
-        assertEquals(linkName, link.getName().get(new NameKey("OTN link name")).getValue(), "bad name for the link");
+        assertEquals(linkName, link.getName().get(new NameKey("otn link name")).getValue(), "bad name for the link");
         assertEquals(linkUuid, link.getUuid(), "bad uuid for link");
         assertEquals(CAPACITYUNITGBPS.VALUE, link.getAvailableCapacity().getTotalSize().getUnit(),
             "Available capacity unit should be MBPS");
@@ -594,7 +591,7 @@ public class TapiTopologyImplTest extends AbstractTest {
         }
         assertEquals(CAPACITYUNITGBPS.VALUE, link.getTotalPotentialCapacity().getTotalSize().getUnit(),
             "Total capacity unit should be GBPS");
-        assertEquals(Decimal64.valueOf(7, 100), link.getTotalPotentialCapacity().getTotalSize().getValue(),
+        assertEquals(Decimal64.valueOf("100"), link.getTotalPotentialCapacity().getTotalSize().getValue(),
             "Total capacity -total size value should be 100");
         if ("OTU4".equals(prefix)) {
             assertEquals("otn link should be between 2 nodes of protocol layers PHOTONIC_MEDIA",

@@ -10,13 +10,11 @@ package org.opendaylight.transportpce.tapi.listeners;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 import org.opendaylight.mdsal.binding.api.DataBroker;
 import org.opendaylight.mdsal.binding.api.NotificationService.CompositeListener;
 import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
@@ -28,14 +26,12 @@ import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev24
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.service.path.rpc.result.PathDescriptionBuilder;
 import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.RpcStatusEx;
 import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.Context;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.NameAndValue;
 import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.common.rev221121.Uuid;
 import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev221121.Context1;
 import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev221121.CreateConnectivityServiceInput;
 import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev221121.OwnedNodeEdgePoint1;
 import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev221121.OwnedNodeEdgePoint1Builder;
 import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev221121.cep.list.ConnectionEndPoint;
-import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev221121.cep.list.ConnectionEndPointKey;
 import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev221121.connectivity.context.ConnectivityService;
 import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev221121.connectivity.context.ConnectivityServiceBuilder;
 import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.connectivity.rev221121.connectivity.context.ConnectivityServiceKey;
@@ -107,25 +103,24 @@ public class TapiPceNotificationHandler {
      */
     private void onPathComputationResult(ServicePathRpcResult notification) {
         this.connectionFullMap.clear();
-        LOG.debug("PCE '{}' Notification received: {}", servicePathRpcResult.getNotificationType().getName(),
+        LOG.info("PCE '{}' Notification received : {}",servicePathRpcResult.getNotificationType().getName(),
             notification);
         if (servicePathRpcResult.getStatus() == RpcStatusEx.Failed) {
-            LOG.debug("PCE path computation failed! Ignoring this notification: {}", notification);
+            LOG.error("PCE path computation failed !");
             return;
         } else if (servicePathRpcResult.getStatus() == RpcStatusEx.Pending) {
-            LOG.debug("PCE path computation returned a pending RpcStatusEx code! Ignoring this notification: {}",
-                    notification);
+            LOG.warn("PCE path computation returned a Penging RpcStatusEx code!");
             return;
         } else if (servicePathRpcResult.getStatus() != RpcStatusEx.Successful) {
-            LOG.error("PCE path computation returned an unknown RpcStatusEx code. Ignoring this notification: {}",
-                    notification);
+            LOG.error("PCE path computation returned an unknown RpcStatusEx code!");
             return;
         }
+
+        LOG.info("PCE calculation done OK !");
         if (servicePathRpcResult.getPathDescription() == null) {
-            LOG.error("PathDescription is null. Ignoring this notification: {}", notification);
+            LOG.error("'PathDescription' parameter is null ");
             return;
         }
-        LOG.info("TAPI - Received successful Path Computation Calculation!");
         PathDescription pathDescription = new PathDescriptionBuilder()
             .setAToZDirection(servicePathRpcResult.getPathDescription().getAToZDirection())
             .setZToADirection(servicePathRpcResult.getPathDescription().getZToADirection())
@@ -133,21 +128,19 @@ public class TapiPceNotificationHandler {
         LOG.info("PathDescription for TAPI gets : {}", pathDescription);
         String serviceName = servicePathRpcResult.getServiceName();
         if (input == null) {
-            LOG.warn("TAPI - Unable to process Path Computation Calculation result due to Connectivity Service Input"
-                    + " is null. Aborting!");
+            LOG.error("Input is null !");
             return;
         }
         // TODO: check kind of service: based on the device Id of the input,
         //  verify the type of XPDR and the capacity and determine if it is an OTN service or pure WDM service
         // Create connections and ceps for the connectivity service.
         //  Connections must be with a locked stated. As the renderer hasnt implemented yet the oc's
-        LOG.info("TapiPceNotificationHandler Line 141 : calls createConnectionsForService for Service {}, Uuid {}",
+        LOG.debug("TapiPceNotificationHandler Line 141 : calls createConnectionsForService for Service {}, Uuid {}",
             serviceName, serviceUuid);
-        connectivityUtils.setConnectionCreationModeToActive(false);
         Map<ConnectionKey, Connection> connectionMap = connectivityUtils.createConnectionsFromService(
                 pathDescription, input.getLayerProtocolName(), serviceName, serviceUuid);
         this.connectionFullMap.putAll(connectivityUtils.getConnectionFullMap());
-        LOG.info("TapiPceNotificationHandler Line 144 : Connection Map from createConnectionsAndCepsForService is {},"
+        LOG.debug("TapiPceNotificationHandler Line 144 : Connection Map from createConnectionsAndCepsForService is {},"
             + "for Service {} of Uuid {} and LAYERPROTOCOL  {} ",
             serviceName, serviceUuid, connectionMap.toString(), input.getLayerProtocolName());
         // add connections to connection context and to connectivity context
@@ -214,9 +207,7 @@ public class TapiPceNotificationHandler {
                 new NodeKey(nodeUuid))
             .child(OwnedNodeEdgePoint.class, new OwnedNodeEdgePointKey(nepUuid))
             .build();
-        LOG.info("Updating ONEP with id {}", onepIID);
         try {
-            LOG.debug("Searching for ONEP...");
             Optional<OwnedNodeEdgePoint> optionalOnep = this.networkTransactionService.read(
                 LogicalDatastoreType.OPERATIONAL, onepIID).get();
             if (!optionalOnep.isPresent()) {
@@ -224,88 +215,32 @@ public class TapiPceNotificationHandler {
                 return;
             }
             OwnedNodeEdgePoint onep = optionalOnep.orElseThrow();
-            LOG.debug("Found ONEP with name = {}", onep.getName());
-            LOG.debug("ONEP = {}", onep.toString());
+            LOG.info("ONEP found = {}", onep.toString());
             // TODO -> If cep exists -> skip merging to datasore
             OwnedNodeEdgePoint1 onep1 = onep.augmentation(OwnedNodeEdgePoint1.class);
             if (onep1 != null && onep1.getCepList() != null && onep1.getCepList().getConnectionEndPoint() != null) {
-                ConnectionEndPointKey key = new ConnectionEndPointKey(cep.key());
-                Map<ConnectionEndPointKey, ConnectionEndPoint> cep1 = onep1.getCepList().getConnectionEndPoint();
-                if (cep1.containsKey(key)) {
-                    LOG.info("CEP {} already in topology, skipping merge", connectionEndPointName(cep1.get(key)));
+                if (onep1.getCepList().getConnectionEndPoint().containsKey(
+                        new org.opendaylight.yang.gen.v1
+                            .urn.onf.otcc.yang.tapi.connectivity.rev221121.cep.list.ConnectionEndPointKey(cep.key()))) {
+                    LOG.info("CEP already in topology, skipping merge");
                     return;
                 }
             }
+            // Updated ONEP
             CepList cepList = new CepListBuilder().setConnectionEndPoint(Map.of(cep.key(), cep)).build();
             OwnedNodeEdgePoint1 onep1Bldr = new OwnedNodeEdgePoint1Builder().setCepList(cepList).build();
             OwnedNodeEdgePoint newOnep = new OwnedNodeEdgePointBuilder(onep)
                 .addAugmentation(onep1Bldr)
                 .build();
-            LOG.debug("Merging CEP and ONEP to the datastore...");
+            LOG.info("New ONEP is {}", newOnep.toString());
             // merge in datastore
-            this.networkTransactionService.merge(LogicalDatastoreType.OPERATIONAL, onepIID, newOnep);
+            this.networkTransactionService.merge(LogicalDatastoreType.OPERATIONAL, onepIID,
+                newOnep);
             this.networkTransactionService.commit().get();
-            logCreatedCepInOnepInTopology(cep, newOnep);
+            LOG.info("CEP added successfully.");
         } catch (InterruptedException | ExecutionException e) {
             LOG.error("Couldnt update cep in topology", e);
         }
-    }
-
-    /**
-     * Logs that a {@link ConnectionEndPoint} (CEP) was added to an {@link OwnedNodeEdgePoint} (ONEP)
-     * in the topology, including additional debug details when debug logging is enabled.
-     *
-     * @param cep the connection end point that was added
-     * @param newOnep the owned node edge point the CEP was added to
-     */
-    private void logCreatedCepInOnepInTopology(ConnectionEndPoint cep, OwnedNodeEdgePoint newOnep) {
-        String cepNames = connectionEndPointName(cep);
-        String onepNames = ownedNodeEdgePointName(newOnep);
-
-        LOG.info("CEP {} successfully added to ONEP {} in the topology.", cepNames, onepNames);
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("CEP: {}", cepNames);
-            LOG.debug("ONEP: {}", onepNames);
-        }
-    }
-
-    /**
-     * Extracts all name values from the given {@link OwnedNodeEdgePoint} and returns them as a
-     * comma-separated string, preserving insertion order and removing duplicates.
-     *
-     * @param ownedNodeEdgePoint the edge point to read names from
-     * @return comma-separated name values, or an empty string if no names are present
-     */
-    private String ownedNodeEdgePointName(OwnedNodeEdgePoint ownedNodeEdgePoint) {
-        Set<String> names = Optional.ofNullable(ownedNodeEdgePoint
-                        .getName())
-                .orElse(Map.of())
-                .values()
-                .stream()
-                .map(NameAndValue::getValue)
-                .collect(Collectors.toCollection(LinkedHashSet::new));
-
-        return String.join(", ", names);
-    }
-
-    /**
-     * Extracts all name values from the given {@link ConnectionEndPoint} and returns them as a
-     * comma-separated string, preserving insertion order and removing duplicates.
-     *
-     * @param connectionEndPoint the connection end point to read names from
-     * @return comma-separated name values, or an empty string if no names are present
-     */
-    private String connectionEndPointName(ConnectionEndPoint connectionEndPoint) {
-        Set<String> names = Optional.ofNullable(connectionEndPoint
-                .getName())
-                .orElse(Map.of())
-                .values()
-                .stream()
-                .map(NameAndValue::getValue)
-                .collect(Collectors.toCollection(LinkedHashSet::new));
-
-        return String.join(", ", names);
     }
 
     public void updateTopologyWithNep(Uuid topoUuid, Uuid nodeUuid, Uuid nepUuid, OwnedNodeEdgePoint onep) {
@@ -345,7 +280,6 @@ public class TapiPceNotificationHandler {
         // TODO: verify this is correct. Should we identify the context IID with the context UUID??
         try {
             ConnectivityService connServ = getConnectivityService(suuid);
-            LOG.info("TAPI connectivity Service Line 283 {} retrieved from DataStore : {}",suuid, connServ);
             ConnectivityService updtConnServ = new ConnectivityServiceBuilder(connServ)
                 .setConnection(connMap)
                 .build();
@@ -367,7 +301,7 @@ public class TapiPceNotificationHandler {
             this.networkTransactionService.merge(LogicalDatastoreType.OPERATIONAL, connectivitycontextIID,
                 connectivityContext);
             this.networkTransactionService.commit().get();
-            LOG.info("TAPI connectivity Line 305 for Service {} merged successfully.", suuid);
+            LOG.info("TAPI connectivity merged successfully.");
         } catch (InterruptedException | ExecutionException e) {
             LOG.error("Failed to merge TAPI connectivity", e);
         }
@@ -386,12 +320,12 @@ public class TapiPceNotificationHandler {
             Optional<ConnectivityService> optConnServ =
                 this.networkTransactionService.read(LogicalDatastoreType.OPERATIONAL, connectivityServIID).get();
             if (optConnServ.isEmpty()) {
-                LOG.error("TapiPceNotificationHandler Line323 :Connectivity service not found in tapi context");
+                LOG.error("Connectivity service not found in tapi context");
                 return null;
             }
             return optConnServ.orElseThrow();
         } catch (InterruptedException | ExecutionException e) {
-            LOG.error("TapiPceNotificationHandler Line328 Connectivity service not found in tapi context. Error:", e);
+            LOG.error("Connectivity service not found in tapi context. Error:", e);
             return null;
         }
     }
