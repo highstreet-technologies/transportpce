@@ -1,7 +1,8 @@
 *.class
 *.iml
 **/target
-bin/
+bin/*
+!integration/bin
 dist
 **/logs
 *~
@@ -19,6 +20,9 @@ yang-gen-sal
 classes
 .DS_STORE
 .metadata
+.vscode
+venv
+.venv
 ordmodels/src/main/java
 tests/allure-report/
 tests/config.xml
@@ -51,3 +55,19 @@ __pycache__/
 *.py[cod]
 .tox/
 *.egg-info/
+__init__.py
+
+# integration - generated files
+integration/demo-adva*
+integration/remote logs
+integration/configs/sims/demo*
+integration/configs/controllers/demo*
+integration/**/conf-generated/*
+.env.*
+issues/
+integration/**/docker-compose-generated.yml
+integration/**/*-running.xml
+integration/**/*-operational.xml
+integration/bin/codetest.py
+integration/**/gnpy
+integration/**/env

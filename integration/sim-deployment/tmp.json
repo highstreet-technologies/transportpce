@@ -1,0 +1,267 @@
+[
+    {
+        "Id": "e72d6b69fa08d7f57d41c2811fa778a7e3f5094b611cf5b76bd3ffe42505bc6f",
+        "Created": "2022-05-16T07:53:42.960077417Z",
+        "Path": "/bin/sh",
+        "Args": [
+            "-c",
+            "$ODL_HOME/bin/startODL.sh"
+        ],
+        "State": {
+            "Status": "running",
+            "Running": true,
+            "Paused": false,
+            "Restarting": false,
+            "OOMKilled": false,
+            "Dead": false,
+            "Pid": 3142521,
+            "ExitCode": 0,
+            "Error": "",
+            "StartedAt": "2022-05-16T07:53:44.231037999Z",
+            "FinishedAt": "0001-01-01T00:00:00Z"
+        },
+        "Image": "sha256:9ee2314fe470e6424f73e1f49944b45470ef6a52ec5563130e0331ffd7070722",
+        "ResolvConfPath": "/var/lib/docker/containers/e72d6b69fa08d7f57d41c2811fa778a7e3f5094b611cf5b76bd3ffe42505bc6f/resolv.conf",
+        "HostnamePath": "/var/lib/docker/containers/e72d6b69fa08d7f57d41c2811fa778a7e3f5094b611cf5b76bd3ffe42505bc6f/hostname",
+        "HostsPath": "/var/lib/docker/containers/e72d6b69fa08d7f57d41c2811fa778a7e3f5094b611cf5b76bd3ffe42505bc6f/hosts",
+        "LogPath": "/var/lib/docker/containers/e72d6b69fa08d7f57d41c2811fa778a7e3f5094b611cf5b76bd3ffe42505bc6f/e72d6b69fa08d7f57d41c2811fa778a7e3f5094b611cf5b76bd3ffe42505bc6f-json.log",
+        "Name": "/transportpce",
+        "RestartCount": 0,
+        "Driver": "overlay2",
+        "Platform": "linux",
+        "MountLabel": "",
+        "ProcessLabel": "",
+        "AppArmorProfile": "docker-default",
+        "ExecIDs": null,
+        "HostConfig": {
+            "Binds": [
+                "/home/jack/odl/transportpce/integration/demo-standalone/conf/org.opendaylight.transportpce.cfg:/opt/opendaylight/etc/org.opendaylight.transportpce.cfg:rw"
+            ],
+            "ContainerIDFile": "",
+            "LogConfig": {
+                "Type": "json-file",
+                "Config": {
+                    "max-file": "9",
+                    "max-size": "10m"
+                }
+            },
+            "NetworkMode": "demo-standalone_default",
+            "PortBindings": {
+                "8181/tcp": [
+                    {
+                        "HostIp": "",
+                        "HostPort": "18181"
+                    }
+                ]
+            },
+            "RestartPolicy": {
+                "Name": "",
+                "MaximumRetryCount": 0
+            },
+            "AutoRemove": false,
+            "VolumeDriver": "",
+            "VolumesFrom": [],
+            "CapAdd": null,
+            "CapDrop": null,
+            "CgroupnsMode": "host",
+            "Dns": null,
+            "DnsOptions": null,
+            "DnsSearch": null,
+            "ExtraHosts": null,
+            "GroupAdd": null,
+            "IpcMode": "private",
+            "Cgroup": "",
+            "Links": null,
+            "OomScoreAdj": 0,
+            "PidMode": "",
+            "Privileged": false,
+            "PublishAllPorts": false,
+            "ReadonlyRootfs": false,
+            "SecurityOpt": null,
+            "UTSMode": "",
+            "UsernsMode": "",
+            "ShmSize": 67108864,
+            "Runtime": "runc",
+            "ConsoleSize": [
+                0,
+                0
+            ],
+            "Isolation": "",
+            "CpuShares": 0,
+            "Memory": 0,
+            "NanoCpus": 0,
+            "CgroupParent": "",
+            "BlkioWeight": 0,
+            "BlkioWeightDevice": null,
+            "BlkioDeviceReadBps": null,
+            "BlkioDeviceWriteBps": null,
+            "BlkioDeviceReadIOps": null,
+            "BlkioDeviceWriteIOps": null,
+            "CpuPeriod": 0,
+            "CpuQuota": 0,
+            "CpuRealtimePeriod": 0,
+            "CpuRealtimeRuntime": 0,
+            "CpusetCpus": "",
+            "CpusetMems": "",
+            "Devices": null,
+            "DeviceCgroupRules": null,
+            "DeviceRequests": null,
+            "KernelMemory": 0,
+            "KernelMemoryTCP": 0,
+            "MemoryReservation": 0,
+            "MemorySwap": 0,
+            "MemorySwappiness": null,
+            "OomKillDisable": false,
+            "PidsLimit": null,
+            "Ulimits": null,
+            "CpuCount": 0,
+            "CpuPercent": 0,
+            "IOMaximumIOps": 0,
+            "IOMaximumBandwidth": 0,
+            "MaskedPaths": [
+                "/proc/asound",
+                "/proc/acpi",
+                "/proc/kcore",
+                "/proc/keys",
+                "/proc/latency_stats",
+                "/proc/timer_list",
+                "/proc/timer_stats",
+                "/proc/sched_debug",
+                "/proc/scsi",
+                "/sys/firmware"
+            ],
+            "ReadonlyPaths": [
+                "/proc/bus",
+                "/proc/fs",
+                "/proc/irq",
+                "/proc/sys",
+                "/proc/sysrq-trigger"
+            ]
+        },
+        "GraphDriver": {
+            "Data": {
+                "LowerDir": "/var/lib/docker/overlay2/3c659e44296571169018c64e20202f12ce27bc48714a50a3c9eab3630a763464-init/diff:/var/lib/docker/overlay2/9dae92899bf6cc18353fec4af1a528b40e908f9cc5868de5b1605e29f7056c20/diff:/var/lib/docker/overlay2/42aafcc7405b0ce0d205946f1b7103a1cc041a0834ae2ffa35eec217a70df8fb/diff:/var/lib/docker/overlay2/389611812f100e84ff74522cafc4cda4f8bdb36d23a7d1f6092fac8c3cdddd2d/diff:/var/lib/docker/overlay2/83f4408ece6192a2a9dc6130d67cea51c744620208f5cae865d435fa82cafe38/diff:/var/lib/docker/overlay2/ba9e7f15d67f90c61c07ed2ec2da4f8d72d23c0b3d080754a083ff1efa89f2f9/diff:/var/lib/docker/overlay2/0252d0f8d0616cf7f5fe97794a7f32bacecc7916c419010a2df2186110595147/diff:/var/lib/docker/overlay2/c176226e2c04de898abd1a880d2162f1dd179478f711446c12ee9712c055aec0/diff:/var/lib/docker/overlay2/8c4d314b311f42df0a809c7f7e6b86d9916b1d9d14a785399063307d0bf335f5/diff:/var/lib/docker/overlay2/c30163947b8d6d16d19578da88d0de25dbdde73f60e1c545d5a2488f5a55e877/diff:/var/lib/docker/overlay2/f557418f166dcfd9030925e78514a6529243b2d08a3298973a9c8dc46db85b38/diff:/var/lib/docker/overlay2/8ab7e4af144ec7388d928e1c6b897b1adba4aa323297c97d765b2a449626096e/diff:/var/lib/docker/overlay2/97dc68b65b5ccd3bfb5c402651461a657be887aee570bc8272330adab5bf3b30/diff:/var/lib/docker/overlay2/3ebf37516c429d7ab91f9f2645ab84c2778cd288448ec32ecd61a6ca9e1c912e/diff:/var/lib/docker/overlay2/78dd34284e7ae9c466577f76eb284c1222eb0bf25621b1b3c0b22782278aa5be/diff:/var/lib/docker/overlay2/a68fe6daa79ade7313182ecd413a58edee414efc4164e28a10d0669abc66218b/diff:/var/lib/docker/overlay2/198b5fb1182f8ae0026afdc176a789adbbcff75748d5a174d91974d2857b9acf/diff:/var/lib/docker/overlay2/881e6f3a8fd3e059c31a2fd14c2681606b72d4fe2bf66e6795624de2e3c6f33a/diff",
+                "MergedDir": "/var/lib/docker/overlay2/3c659e44296571169018c64e20202f12ce27bc48714a50a3c9eab3630a763464/merged",
+                "UpperDir": "/var/lib/docker/overlay2/3c659e44296571169018c64e20202f12ce27bc48714a50a3c9eab3630a763464/diff",
+                "WorkDir": "/var/lib/docker/overlay2/3c659e44296571169018c64e20202f12ce27bc48714a50a3c9eab3630a763464/work"
+            },
+            "Name": "overlay2"
+        },
+        "Mounts": [
+            {
+                "Type": "bind",
+                "Source": "/home/jack/odl/transportpce/integration/demo-standalone/conf/org.opendaylight.transportpce.cfg",
+                "Destination": "/opt/opendaylight/etc/org.opendaylight.transportpce.cfg",
+                "Mode": "rw",
+                "RW": true,
+                "Propagation": "rprivate"
+            }
+        ],
+        "Config": {
+            "Hostname": "e72d6b69fa08",
+            "Domainname": "",
+            "User": "",
+            "AttachStdin": false,
+            "AttachStdout": false,
+            "AttachStderr": false,
+            "ExposedPorts": {
+                "2550/tcp": {},
+                "8181/tcp": {}
+            },
+            "Tty": false,
+            "OpenStdin": false,
+            "StdinOnce": false,
+            "Env": [
+                "REMOTE_SDNRURL=http://sdnr:8181",
+                "REMOTE_WSURL=ws://sdnr:8181/websocket",
+                "REMOTE_ODL_USERNAME=admin",
+                "REMOTE_ODL_PASSWORD=Kp8bJ4SXszM0WXlhak3eHlcse2gAw84vaoGGmJvUy2U",
+                "REMOTE_ODL_ENABLED=false",
+                "REMOTE_ODL_TRUSTALL=false",
+                "TRANSPORTPCE_SIMULATOR_MODE=false",
+                "PATH=/opt/java/openjdk/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                "LANG=en_US.UTF-8",
+                "LANGUAGE=en_US:en",
+                "LC_ALL=en_US.UTF-8",
+                "JAVA_VERSION=jdk-11.0.14.1+1",
+                "JAVA_HOME=/opt/java/openjdk",
+                "ODL_HOME=/opt/opendaylight",
+                "TRPCE_REPO=mvn:org.opendaylight.transportpce/odl-transportpce/2.3.0-SNAPSHOT/xml/features",
+                "JAVA_SECURITY_DIR=/etc/ssl/certs/java"
+            ],
+            "Cmd": null,
+            "Image": "odl/transportpce:2.3-SNAPSHOT-latest",
+            "Volumes": {
+                "/opt/opendaylight/etc/org.opendaylight.transportpce.cfg": {}
+            },
+            "WorkingDir": "/opt/opendaylight",
+            "Entrypoint": [
+                "/bin/sh",
+                "-c",
+                "$ODL_HOME/bin/startODL.sh"
+            ],
+            "OnBuild": null,
+            "Labels": {
+                "com.docker.compose.config-hash": "709126c289e493aaf8562b86b5ba010ba04366416f9d4cfac433cdf2ffb6e14a",
+                "com.docker.compose.container-number": "1",
+                "com.docker.compose.oneoff": "False",
+                "com.docker.compose.project": "demo-standalone",
+                "com.docker.compose.project.config_files": "docker-compose.yml",
+                "com.docker.compose.project.working_dir": "/home/jack/odl/transportpce/integration/demo-standalone",
+                "com.docker.compose.service": "transportpce",
+                "com.docker.compose.version": "1.27.4"
+            }
+        },
+        "NetworkSettings": {
+            "Bridge": "",
+            "SandboxID": "d5984dc61bee6acf43dfb396d47d51f3a5c6d1b264204468073b4c63f95dfac3",
+            "HairpinMode": false,
+            "LinkLocalIPv6Address": "",
+            "LinkLocalIPv6PrefixLen": 0,
+            "Ports": {
+                "2550/tcp": null,
+                "8181/tcp": [
+                    {
+                        "HostIp": "0.0.0.0",
+                        "HostPort": "18181"
+                    },
+                    {
+                        "HostIp": "::",
+                        "HostPort": "18181"
+                    }
+                ]
+            },
+            "SandboxKey": "/var/run/docker/netns/d5984dc61bee",
+            "SecondaryIPAddresses": null,
+            "SecondaryIPv6Addresses": null,
+            "EndpointID": "",
+            "Gateway": "",
+            "GlobalIPv6Address": "",
+            "GlobalIPv6PrefixLen": 0,
+            "IPAddress": "",
+            "IPPrefixLen": 0,
+            "IPv6Gateway": "",
+            "MacAddress": "",
+            "Networks": {
+                "demo-standalone_default": {
+                    "IPAMConfig": null,
+                    "Links": null,
+                    "Aliases": [
+                        "e72d6b69fa08",
+                        "transportpce"
+                    ],
+                    "NetworkID": "5f8d749054efbc992b9030ea257b55724f39c6bb5d78c7d2ec906701d2ef115b",
+                    "EndpointID": "efdc64f13af451ef6f7d7e8d005da8147068af1514cbe388d2786a9d55e76eac",
+                    "Gateway": "172.24.0.1",
+                    "IPAddress": "172.24.0.2",
+                    "IPPrefixLen": 16,
+                    "IPv6Gateway": "",
+                    "GlobalIPv6Address": "",
+                    "GlobalIPv6PrefixLen": 0,
+                    "MacAddress": "02:42:ac:18:00:02",
+                    "DriverOpts": null
+                }
+            }
+        }
+    }
+]

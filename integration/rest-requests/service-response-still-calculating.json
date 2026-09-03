@@ -1,0 +1,94 @@
+{
+    "services": [
+        {
+            "service-name": "service1",
+            "service-z-end": {
+                "tx-direction": {
+                    "port": {
+                        "port-type": "router",
+                        "port-rack": "000000.00",
+                        "port-name": "Gigabit Ethernet_Tx.ge-1/0/0.0",
+                        "port-device-name": "ROUTER_SNJSCAMCJT4_000000.00_00",
+                        "port-shelf": "00"
+                    },
+                    "lgx": {
+                        "lgx-port-name": "LGX Back.29",
+                        "lgx-device-name": "LGX Panel_SNJSCAMCJT4_000000.00_00",
+                        "lgx-port-shelf": "00",
+                        "lgx-port-rack": "000000.00"
+                    }
+                },
+                "optic-type": "gray",
+                "clli": "SNJSCAMCJT4",
+                "service-format": "Ethernet",
+                "rx-direction": {
+                    "port": {
+                        "port-type": "router",
+                        "port-rack": "000000.00",
+                        "port-name": "Gigabit Ethernet_Rx.ge-1/0/0.0",
+                        "port-device-name": "ROUTER_SNJSCAMCJT4_000000.00_00",
+                        "port-shelf": "00"
+                    },
+                    "lgx": {
+                        "lgx-port-name": "LGX Back.30",
+                        "lgx-device-name": "LGX Panel_SNJSCAMCJT4_000000.00_00",
+                        "lgx-port-shelf": "00",
+                        "lgx-port-rack": "000000.00"
+                    }
+                },
+                "node-id": "XPDR-C1",
+                "service-rate": 100
+            },
+            "administrative-state": "outOfService",
+            "connection-type": "service",
+            "service-a-end": {
+                "tx-direction": {
+                    "port": {
+                        "port-type": "router",
+                        "port-rack": "000000.00",
+                        "port-name": "Gigabit Ethernet_Tx.ge-5/0/0.0",
+                        "port-device-name": "ROUTER_SNJSCAMCJP8_000000.00_00",
+                        "port-shelf": "00"
+                    },
+                    "lgx": {
+                        "lgx-port-name": "LGX Back.3",
+                        "lgx-device-name": "LGX Panel_SNJSCAMCJP8_000000.00_00",
+                        "lgx-port-shelf": "00",
+                        "lgx-port-rack": "000000.00"
+                    }
+                },
+                "optic-type": "gray",
+                "clli": "SNJSCAMCJP8",
+                "service-format": "Ethernet",
+                "rx-direction": {
+                    "port": {
+                        "port-type": "router",
+                        "port-rack": "000000.00",
+                        "port-name": "Gigabit Ethernet_Rx.ge-5/0/0.0",
+                        "port-device-name": "ROUTER_SNJSCAMCJP8_000000.00_00",
+                        "port-shelf": "00"
+                    },
+                    "lgx": {
+                        "lgx-port-name": "LGX Back.4",
+                        "lgx-device-name": "LGX Panel_SNJSCAMCJP8_000000.00_00",
+                        "lgx-port-shelf": "00",
+                        "lgx-port-rack": "000000.00"
+                    }
+                },
+                "node-id": "XPDR-A1",
+                "service-rate": 100
+            },
+            "sdnc-request-header": {
+                "notification-url": "http://localhost:8585/NotificationServer/notify",
+                "request-id": "e3028bae-a90f-4ddd-a83f-cf224eba0e58",
+                "rpc-action": "service-create",
+                "request-system-id": "appname"
+            },
+            "is-bandwidth-locked": false,
+            "service-layer": "wdm",
+            "lifecycle-state": "planned",
+            "common-id": "ASATT1234567",
+            "operational-state": "outOfService"
+        }
+    ]
+}

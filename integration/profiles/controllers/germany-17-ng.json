@@ -1,0 +1,22 @@
+{
+    "sdnr": [
+        {
+            "scheme": "http",
+            "host": "",
+            "port": 8181,
+            "username": "${SDNR_USERNAME}",
+            "password": "${SDNR_PASSWORD}",
+            "container": "sdnr",
+            "primary": true
+        }
+    ],
+    "transportpce": {
+        "scheme": "http",
+        "host": "",
+        "port": 8181,
+        "username": "admin",
+        "password": "admin",
+        "container": "transportpce",
+        "primary": true
+    }
+}
