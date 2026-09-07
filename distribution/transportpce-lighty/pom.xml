@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Copyright © 2026 Highstreet Technologies GmbH and others. All rights reserved.
+
+This program and the accompanying materials are made available under the
+terms of the Eclipse Public License v1.0 which accompanies this distribution,
+and is available at http://www.eclipse.org/legal/epl-v10.html
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.opendaylight.odlparent</groupId>
+    <artifactId>odlparent-lite</artifactId>
+    <version>14.3.1</version>
+    <relativePath/>
+  </parent>
+
+  <groupId>org.opendaylight.transportpce</groupId>
+  <artifactId>distribution-transportpce-lighty</artifactId>
+  <version>12.1.0</version>
+  <packaging>pom</packaging>
+  <name>TransportPCE :: Distribution (Lighty)</name>
+  <description>
+    Creates a Docker container image running TransportPCE on Lighty.io
+    without Karaf. Uses a Java base image and the lighty tpce-bin.zip
+    produced by the lighty module.
+  </description>
+
+  <properties>
+    <docker.image.name>highstreet/transportpce-lighty</docker.image.name>
+    <java.base.image>eclipse-temurin:21-jre-alpine</java.base.image>
+    <transportpce.version>12.1.0</transportpce.version>
+    <lighty.module.artifact>tpce</lighty.module.artifact>
+    <lighty.module.version>12.1.0</lighty.module.version>
+    <maven.build.timestamp.format>yyyyMMdd'T'HHmmss'Z'</maven.build.timestamp.format>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <dependencies>
+    <!-- The lighty module produces tpce-bin.zip via attach.zip -->
+    <dependency>
+      <groupId>io.lighty.controllers</groupId>
+      <artifactId>${lighty.module.artifact}</artifactId>
+      <version>${lighty.module.version}</version>
+      <type>zip</type>
+      <classifier>bin</classifier>
+    </dependency>
+    <!-- Device discovery config file -->
+    <dependency>
+      <groupId>org.opendaylight.transportpce</groupId>
+      <artifactId>transportpce-device-discovery</artifactId>
+      <version>${transportpce.version}</version>
+      <type>cfg</type>
+      <classifier>config</classifier>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <!-- Unpack the lighty zip and copy config + Dockerfile into docker-stage -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>unpack-lighty-zip</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>unpack-dependencies</goal>
+            </goals>
+            <configuration>
+              <includeClassifiers>bin</includeClassifiers>
+              <includeTypes>zip</includeTypes>
+              <outputDirectory>${project.build.directory}/docker-stage</outputDirectory>
+              <overWriteReleases>true</overWriteReleases>
+              <overWriteSnapshots>true</overWriteSnapshots>
+              <overWriteIfNewer>true</overWriteIfNewer>
+            </configuration>
+          </execution>
+          <execution>
+            <id>copy-device-discovery-config</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>org.opendaylight.transportpce</groupId>
+                  <artifactId>transportpce-device-discovery</artifactId>
+                  <version>${transportpce.version}</version>
+                  <type>cfg</type>
+                  <classifier>config</classifier>
+                  <destFileName>org.opendaylight.transportpce.devicediscovery.cfg</destFileName>
+                </artifactItem>
+              </artifactItems>
+              <outputDirectory>${project.build.directory}/docker-stage/tpce/etc</outputDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Copy Dockerfile to docker-stage with filtering -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-dockerfile</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/docker-stage</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>src/main/docker</directory>
+                  <includes>
+                    <include>Dockerfile</include>
+                  </includes>
+                  <filtering>true</filtering>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+          <execution>
+            <id>copy-entrypoint</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/docker-stage/tpce</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>src/main/resources</directory>
+                  <includes>
+                    <include>start-tpce.sh</include>
+                  </includes>
+                  <filtering>false</filtering>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Build the Docker image -->
+      <plugin>
+        <groupId>io.fabric8</groupId>
+        <artifactId>docker-maven-plugin</artifactId>
+        <version>0.45.1</version>
+        <configuration>
+          <images>
+            <image>
+              <name>${docker.image.name}:${project.version}</name>
+              <build>
+                <dockerFileDir>${project.build.directory}/docker-stage</dockerFileDir>
+                <tags>
+                  <tag>${project.version}</tag>
+                  <tag>latest</tag>
+                </tags>
+              </build>
+            </image>
+          </images>
+        </configuration>
+        <executions>
+          <execution>
+            <id>build-image</id>
+            <phase>package</phase>
+            <goals>
+              <goal>build</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>
