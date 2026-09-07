@@ -1,0 +1,2175 @@
+---
+openapi: "3.0.3"
+info:
+  version: "2024-10-09"
+  title: "Controller modules of RESTCONF"
+servers:
+- url: "http://localhost/"
+paths:
+  /rests/data/network-topology:network-topology/topology={topology-id}:
+    get:
+      deprecated: false
+      tags:
+      - "controller network-topology"
+      parameters:
+      - name: "topology-id"
+        description: "\nIt is presumed that a datastore will contain many topologies.\
+          \ To\ndistinguish between topologies it is vital to have UNIQUE\ntopology\
+          \ identifiers.\n"
+        schema:
+          type: "string"
+        in: "path"
+        required: true
+      - in: "query"
+        name: "content"
+        schema:
+          type: "string"
+          enum:
+          - "all"
+          - "nonconfig"
+          - "config"
+      - name: "depth"
+        schema:
+          type: "integer"
+        in: "query"
+      - name: "fields"
+        schema:
+          type: "string"
+        in: "query"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/network-topology_network-topology_topology_TOP"
+            application/xml:
+              schema:
+                $ref: "#/components/schemas/network-topology_network-topology_topology"
+          description: "OK"
+      description: "\nThis is the model of an abstract topology.\nA topology contains\
+        \ nodes and links.\nEach topology MUST be identified by\nunique topology-id\
+        \ for reason that a network could contain many\ntopologies.\n"
+      summary: "GET - network-topology - topology"
+    put:
+      deprecated: false
+      tags:
+      - "controller network-topology"
+      parameters:
+      - name: "topology-id"
+        description: "\nIt is presumed that a datastore will contain many topologies.\
+          \ To\ndistinguish between topologies it is vital to have UNIQUE\ntopology\
+          \ identifiers.\n"
+        schema:
+          type: "string"
+        in: "path"
+        required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/network-topology_network-topology_topology_TOP"
+          application/xml:
+            schema:
+              $ref: "#/components/schemas/network-topology_network-topology_config_topology"
+        description: "topology_config"
+      responses:
+        "201":
+          description: "Created"
+        "204":
+          description: "Updated"
+      description: "\nThis is the model of an abstract topology.\nA topology contains\
+        \ nodes and links.\nEach topology MUST be identified by\nunique topology-id\
+        \ for reason that a network could contain many\ntopologies.\n"
+      summary: "PUT - network-topology - topology"
+    delete:
+      deprecated: false
+      tags:
+      - "controller network-topology"
+      parameters:
+      - name: "topology-id"
+        description: "\nIt is presumed that a datastore will contain many topologies.\
+          \ To\ndistinguish between topologies it is vital to have UNIQUE\ntopology\
+          \ identifiers.\n"
+        schema:
+          type: "string"
+        in: "path"
+        required: true
+      responses:
+        "204":
+          description: "Deleted"
+      description: "\nThis is the model of an abstract topology.\nA topology contains\
+        \ nodes and links.\nEach topology MUST be identified by\nunique topology-id\
+        \ for reason that a network could contain many\ntopologies.\n"
+      summary: "DELETE - network-topology - topology"
+    patch:
+      deprecated: false
+      tags:
+      - "controller network-topology"
+      parameters:
+      - name: "topology-id"
+        description: "\nIt is presumed that a datastore will contain many topologies.\
+          \ To\ndistinguish between topologies it is vital to have UNIQUE\ntopology\
+          \ identifiers.\n"
+        schema:
+          type: "string"
+        in: "path"
+        required: true
+      requestBody:
+        content:
+          application/yang-data+json:
+            schema:
+              $ref: "#/components/schemas/network-topology_network-topology_topology_TOP"
+          application/yang-data+xml:
+            schema:
+              $ref: "#/components/schemas/network-topology_network-topology_config_topology"
+        description: "topology_config"
+      responses:
+        "200":
+          description: "OK"
+        "204":
+          description: "Updated"
+      description: "\nThis is the model of an abstract topology.\nA topology contains\
+        \ nodes and links.\nEach topology MUST be identified by\nunique topology-id\
+        \ for reason that a network could contain many\ntopologies.\n"
+      summary: "PATCH - network-topology - topology"
+  /rests/data/network-topology:network-topology/topology={topology-id}/node={node-id}:
+    get:
+      deprecated: false
+      tags:
+      - "controller network-topology"
+      parameters:
+      - name: "topology-id"
+        description: "\nIt is presumed that a datastore will contain many topologies.\
+          \ To\ndistinguish between topologies it is vital to have UNIQUE\ntopology\
+          \ identifiers.\n"
+        schema:
+          type: "string"
+        in: "path"
+        required: true
+      - name: "node-id"
+        description: "The identifier of a node in the topology.\nA node is specific\
+          \ to a topology to which it belongs."
+        schema:
+          type: "string"
+        in: "path"
+        required: true
+      - in: "query"
+        name: "content"
+        schema:
+          type: "string"
+          enum:
+          - "all"
+          - "nonconfig"
+          - "config"
+      - name: "depth"
+        schema:
+          type: "integer"
+        in: "query"
+      - name: "fields"
+        schema:
+          type: "string"
+        in: "query"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/network-topology_network-topology_topology_node_TOP"
+            application/xml:
+              schema:
+                $ref: "#/components/schemas/network-topology_network-topology_topology_node"
+          description: "OK"
+      description: "The list of network nodes defined for the topology."
+      summary: "GET - network-topology - node"
+    put:
+      deprecated: false
+      tags:
+      - "controller network-topology"
+      parameters:
+      - name: "topology-id"
+        description: "\nIt is presumed that a datastore will contain many topologies.\
+          \ To\ndistinguish between topologies it is vital to have UNIQUE\ntopology\
+          \ identifiers.\n"
+        schema:
+          type: "string"
+        in: "path"
+        required: true
+      - name: "node-id"
+        description: "The identifier of a node in the topology.\nA node is specific\
+          \ to a topology to which it belongs."
+        schema:
+          type: "string"
+        in: "path"
+        required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/network-topology_network-topology_topology_node_TOP"
+          application/xml:
+            schema:
+              $ref: "#/components/schemas/network-topology_network-topology_topology_node"
+        description: "node_config"
+      responses:
+        "201":
+          description: "Created"
+        "204":
+          description: "Updated"
+      description: "The list of network nodes defined for the topology."
+      summary: "PUT - network-topology - node"
+    delete:
+      deprecated: false
+      tags:
+      - "controller network-topology"
+      parameters:
+      - name: "topology-id"
+        description: "\nIt is presumed that a datastore will contain many topologies.\
+          \ To\ndistinguish between topologies it is vital to have UNIQUE\ntopology\
+          \ identifiers.\n"
+        schema:
+          type: "string"
+        in: "path"
+        required: true
+      - name: "node-id"
+        description: "The identifier of a node in the topology.\nA node is specific\
+          \ to a topology to which it belongs."
+        schema:
+          type: "string"
+        in: "path"
+        required: true
+      responses:
+        "204":
+          description: "Deleted"
+      description: "The list of network nodes defined for the topology."
+      summary: "DELETE - network-topology - node"
+    patch:
+      deprecated: false
+      tags:
+      - "controller network-topology"
+      parameters:
+      - name: "topology-id"
+        description: "\nIt is presumed that a datastore will contain many topologies.\
+          \ To\ndistinguish between topologies it is vital to have UNIQUE\ntopology\
+          \ identifiers.\n"
+        schema:
+          type: "string"
+        in: "path"
+        required: true
+      - name: "node-id"
+        description: "The identifier of a node in the topology.\nA node is specific\
+          \ to a topology to which it belongs."
+        schema:
+          type: "string"
+        in: "path"
+        required: true
+      requestBody:
+        content:
+          application/yang-data+json:
+            schema:
+              $ref: "#/components/schemas/network-topology_network-topology_topology_node_TOP"
+          application/yang-data+xml:
+            schema:
+              $ref: "#/components/schemas/network-topology_network-topology_topology_node"
+        description: "node_config"
+      responses:
+        "200":
+          description: "OK"
+        "204":
+          description: "Updated"
+      description: "The list of network nodes defined for the topology."
+      summary: "PATCH - network-topology - node"
+components:
+  schemas:
+    network-topology_network-topology_topology_node_netconf-node_config_non-module-capabilities:
+      x-yang-type: "container"
+      properties:
+        override:
+          description: "Whether to override or merge this list of non-module based\
+            \ capabilities with non-module\nbased capabilities from device"
+          default: false
+          example: true
+          x-yang-type: "boolean"
+          type: "boolean"
+          xml:
+            name: "override"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        capability:
+          type: "array"
+          items:
+            example: "Some capability"
+            x-yang-type: "string"
+            type: "string"
+          description: "Set a list of non-module based capabilities to override or\
+            \ merge non-module capabilities\nprovided in device's hello message. Can\
+            \ be used for devices that do not report or\nincorrectly report non-module\
+            \ based capabilities in their hello message"
+          xml:
+            name: "capability"
+      xml:
+        name: "non-module-capabilities"
+        namespace: "urn:opendaylight:netconf-node-topology"
+      description: ""
+      title: "network-topology_network-topology_topology_node_netconf-node_config_non-module-capabilities"
+      type: "object"
+    network-topology_network-topology_topology_node_config_supporting-node:
+      x-yang-type: "container"
+      properties:
+        topology-ref:
+          description: ""
+          example: "Some topology-ref"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "topology-ref"
+            namespace: "urn:TBD:params:xml:ns:yang:network-topology"
+        node-ref:
+          description: ""
+          example: "Some node-ref"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "node-ref"
+            namespace: "urn:TBD:params:xml:ns:yang:network-topology"
+      xml:
+        name: "supporting-node"
+        namespace: "urn:TBD:params:xml:ns:yang:network-topology"
+      description: "This list defines vertical layering information for nodes.\nIt\
+        \ allows to capture for any given node, which node (or nodes)\nin the corresponding\
+        \ underlay topology it maps onto.\nA node can map to zero, one, or more nodes\
+        \ below it;\naccordingly there can be zero, one, or more elements in the list.\n\
+        If there are specific layering requirements, for example\nspecific to a particular\
+        \ type of topology that only allows\nfor certain layering relationships, the\
+        \ choice\nbelow can be augmented with additional cases.\nA list has been chosen\
+        \ rather than a leaf-list in order\nto provide room for augmentations, e.g.\
+        \ for\nstatistics or priorization information associated with\nsupporting\
+        \ nodes."
+      title: "network-topology_network-topology_topology_node_config_supporting-node"
+      type: "object"
+    network-topology_network-topology_topology_link_supporting-link:
+      x-yang-type: "container"
+      properties:
+        link-ref:
+          description: ""
+          example: "Some link-ref"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "link-ref"
+            namespace: "urn:TBD:params:xml:ns:yang:network-topology"
+      xml:
+        name: "supporting-link"
+        namespace: "urn:TBD:params:xml:ns:yang:network-topology"
+      description: ""
+      title: "network-topology_network-topology_topology_link_supporting-link"
+      type: "object"
+    network-topology_network-topology_topology_node_netconf-node_unavailable-capabilities_unavailable-capability:
+      x-yang-type: "container"
+      properties:
+        capability:
+          description: ""
+          example: "Some capability"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "capability"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        failure-reason:
+          description: ""
+          enum:
+          - "missing-source"
+          - "unable-to-resolve"
+          example: "missing-source"
+          x-yang-type: "enum"
+          type: "string"
+          xml:
+            name: "failure-reason"
+            namespace: "urn:opendaylight:netconf-node-topology"
+      xml:
+        name: "unavailable-capability"
+        namespace: "urn:opendaylight:netconf-node-topology"
+      description: ""
+      title: "network-topology_network-topology_topology_node_netconf-node_unavailable-capabilities_unavailable-capability"
+      type: "object"
+    network-topology_network-topology_topology_topology-types:
+      x-yang-type: "container"
+      properties:
+        netconf-node-topology:topology-netconf:
+          $ref: "#/components/schemas/network-topology_network-topology_topology_topology-types_topology-netconf"
+          x-yang-type: "container"
+      xml:
+        name: "topology-types"
+        namespace: "urn:TBD:params:xml:ns:yang:network-topology"
+      description: "This container is used to identify the type, or types\n(as a topology\
+        \ can support several types simultaneously),\nof the topology.\nTopology types\
+        \ are the subject of several integrity constraints\nthat an implementing server\
+        \ can validate in order to\nmaintain integrity of the datastore.\nTopology\
+        \ types are indicated through separate data nodes;\nthe set of topology types\
+        \ is expected to increase over time.\nTo add support for a new topology, an\
+        \ augmenting module\nneeds to augment this container with a new empty optional\n\
+        container to indicate the new topology type.\nThe use of a container allows\
+        \ to indicate a subcategorization\nof topology types.\nThe container SHALL\
+        \ NOT be augmented with any data nodes\nthat serve a purpose other than identifying\
+        \ a particular\ntopology type.\n"
+      title: "network-topology_network-topology_topology_topology-types"
+      type: "object"
+    network-topology_network-topology_topology_topology-types_config_topology-netconf:
+      x-yang-type: "container"
+      properties: {}
+      xml:
+        name: "topology-netconf"
+        namespace: "urn:opendaylight:netconf-node-topology"
+      description: ""
+      title: "network-topology_network-topology_topology_topology-types_config_topology-netconf"
+      type: "object"
+    network-topology_network-topology_topology_node_netconf-node_config_pass-through:
+      x-yang-type: "container"
+      x-yang-when-key: "../connection-status = connected"
+      properties: {}
+      xml:
+        name: "pass-through"
+        namespace: "urn:opendaylight:netconf-node-topology"
+      description: "When the underlying node is connected, its NETCONF context\nis\
+        \ available verbatim under this container through the\nmount extension."
+      title: "network-topology_network-topology_topology_node_netconf-node_config_pass-through"
+      type: "object"
+    network-topology_network-topology_topology:
+      x-yang-type: "container"
+      properties:
+        topology-id:
+          description: "\nIt is presumed that a datastore will contain many topologies.\
+            \ To\ndistinguish between topologies it is vital to have UNIQUE\ntopology\
+            \ identifiers.\n"
+          example: "Some topology-id"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "topology-id"
+            namespace: "urn:TBD:params:xml:ns:yang:network-topology"
+        server-provided:
+          description: "\nIndicates whether the topology is configurable by clients,\n\
+            or whether it is provided by the server.  This leaf is\n\npopulated by\
+            \ the server implementing the model.\nIt is set to false for topologies\
+            \ that are created by a client;\nit is set to true otherwise.  If it is\
+            \ set to true, any\nattempt to edit the topology MUST be rejected.\n"
+          example: true
+          x-yang-type: "boolean"
+          type: "boolean"
+          xml:
+            name: "server-provided"
+            namespace: "urn:TBD:params:xml:ns:yang:network-topology"
+        topology-types:
+          $ref: "#/components/schemas/network-topology_network-topology_topology_topology-types"
+          x-yang-type: "container"
+        underlay-topology:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/network-topology_network-topology_topology_underlay-topology"
+          description: "Identifies the topology, or topologies, that this topology\n\
+            is dependent on."
+          x-yang-type: "list"
+          x-yang-list-key: "topology-ref"
+        node:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/network-topology_network-topology_topology_node"
+          description: "The list of network nodes defined for the topology."
+          x-yang-type: "list"
+          x-yang-list-key: "node-id"
+        link:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/network-topology_network-topology_topology_link"
+          description: "\nA Network Link connects a by Local (Source) node and\na\
+            \ Remote (Destination) Network Nodes via a set of the\nnodes' termination\
+            \ points.\nAs it is possible to have several links between the same\n\
+            source and destination nodes, and as a link could potentially\nbe re-homed\
+            \ between termination points, to ensure that we\nwould always know to\
+            \ distinguish between links, every link\nis identified by a dedicated\
+            \ link identifier.\nNote that a link models a point-to-point link, not\
+            \ a multipoint\nlink.\nLayering dependencies on links in underlay topologies\
+            \ are\nnot represented as the layering information of nodes and of\ntermination\
+            \ points is sufficient.\n"
+          x-yang-type: "list"
+          x-yang-list-key: "link-id"
+      xml:
+        name: "topology"
+        namespace: "urn:TBD:params:xml:ns:yang:network-topology"
+      description: "\nThis is the model of an abstract topology.\nA topology contains\
+        \ nodes and links.\nEach topology MUST be identified by\nunique topology-id\
+        \ for reason that a network could contain many\ntopologies.\n"
+      title: "network-topology_network-topology_topology"
+      type: "object"
+    network-topology_network-topology_topology_node_netconf-node:
+      x-yang-type: "container"
+      properties:
+        login-password:
+          $ref: "#/components/schemas/network-topology_network-topology_topology_node_netconf-node_login-password"
+          x-yang-type: "container"
+          x-yang-choice-key: "credentials"
+        login-password-unencrypted:
+          $ref: "#/components/schemas/network-topology_network-topology_topology_node_netconf-node_login-password-unencrypted"
+          x-yang-type: "container"
+          x-yang-choice-key: "credentials"
+        key-based:
+          $ref: "#/components/schemas/network-topology_network-topology_topology_node_netconf-node_key-based"
+          x-yang-type: "container"
+          x-yang-choice-key: "credentials"
+        session-id:
+          description: ""
+          format: "int64"
+          x-yang-type: "int64"
+          example: 1
+          type: "integer"
+          xml:
+            name: "session-id"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        connection-status:
+          description: ""
+          enum:
+          - "connecting"
+          - "connected"
+          - "unable-to-connect"
+          example: "connecting"
+          x-yang-type: "enum"
+          type: "string"
+          xml:
+            name: "connection-status"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        clustered-connection-status:
+          $ref: "#/components/schemas/network-topology_network-topology_topology_node_netconf-node_clustered-connection-status"
+          x-yang-type: "container"
+        connected-message:
+          description: ""
+          example: "Some connected-message"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "connected-message"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        available-capabilities:
+          $ref: "#/components/schemas/network-topology_network-topology_topology_node_netconf-node_available-capabilities"
+          x-yang-type: "container"
+        unavailable-capabilities:
+          $ref: "#/components/schemas/network-topology_network-topology_topology_node_netconf-node_unavailable-capabilities"
+          x-yang-type: "container"
+        pass-through:
+          $ref: "#/components/schemas/network-topology_network-topology_topology_node_netconf-node_pass-through"
+          x-yang-type: "container"
+        lock-datastore:
+          description: "The operation allows the client to lock the entire configuration\
+            \ datastore\nsystem of a device.\nWARNING - With blocking the lock/unlock\
+            \ operations, the user is coming to operate\nin a manner which is not\
+            \ supported. Concurrent access to the data store may interfere\nwith data\
+            \ consistency."
+          default: true
+          example: true
+          x-yang-type: "boolean"
+          type: "boolean"
+          xml:
+            name: "lock-datastore"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        schema-cache-directory:
+          description: "The destination schema repository for yang files relative\
+            \ to the cache directory.\nThis may be specified per netconf mount so\
+            \ that the loaded yang files are stored\nto a distinct directory to avoid\
+            \ potential conflict."
+          example: "Some schema-cache-directory"
+          default: "schema"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "schema-cache-directory"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        yang-library:
+          $ref: "#/components/schemas/network-topology_network-topology_topology_node_netconf-node_yang-library"
+          x-yang-type: "container"
+        host:
+          description: ""
+          example: "Some host"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "host"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        port:
+          description: ""
+          format: "int32"
+          example: 0
+          x-yang-type: "int32"
+          type: "integer"
+          xml:
+            name: "port"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        tcp-only:
+          description: ""
+          default: false
+          example: true
+          x-yang-type: "boolean"
+          type: "boolean"
+          xml:
+            name: "tcp-only"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        protocol:
+          $ref: "#/components/schemas/network-topology_network-topology_topology_node_netconf-node_protocol"
+          x-yang-type: "container"
+        schemaless:
+          description: ""
+          default: false
+          example: true
+          x-yang-type: "boolean"
+          type: "boolean"
+          xml:
+            name: "schemaless"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        yang-module-capabilities:
+          $ref: "#/components/schemas/network-topology_network-topology_topology_node_netconf-node_yang-module-capabilities"
+          x-yang-type: "container"
+        non-module-capabilities:
+          $ref: "#/components/schemas/network-topology_network-topology_topology_node_netconf-node_non-module-capabilities"
+          x-yang-type: "container"
+        reconnect-on-changed-schema:
+          description: "If true, the connector would auto disconnect/reconnect when\
+            \ schemas are changed in the\nremote device. The connector subscribes\
+            \ (right after connect) to base netconf notifications\nand listens for\
+            \ netconf-capability-change notification"
+          default: false
+          example: true
+          x-yang-type: "boolean"
+          type: "boolean"
+          xml:
+            name: "reconnect-on-changed-schema"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        connection-timeout-millis:
+          description: "Specifies timeout in milliseconds after which connection must\
+            \ be established."
+          format: "int64"
+          x-yang-type: "int64"
+          default: 20000
+          example: 0
+          type: "integer"
+          xml:
+            name: "connection-timeout-millis"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        default-request-timeout-millis:
+          description: "Timeout for blocking operations within transactions."
+          format: "int64"
+          x-yang-type: "int64"
+          default: 60000
+          example: 0
+          type: "integer"
+          xml:
+            name: "default-request-timeout-millis"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        max-connection-attempts:
+          description: "Maximum number of connection retries. Non positive value or\
+            \ null is interpreted as infinity."
+          x-yang-type: "hex"
+          type: "string"
+          default: "0"
+          xml:
+            name: "max-connection-attempts"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        min-backoff-millis:
+          description: "Initial minimum timeout in milliseconds randomized with backoff-jitter\
+            \ to wait between connection\nattempts. Will be multiplied by backoff-multiplier\
+            \ with every additional attempt"
+          format: "int32"
+          default: 2000
+          example: 0
+          x-yang-type: "int32"
+          type: "integer"
+          xml:
+            name: "min-backoff-millis"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        max-backoff-millis:
+          description: "Maximum timeout in milliseconds randomized with backoff-jitter\
+            \ to wait between connection attempts."
+          format: "int64"
+          x-yang-type: "int64"
+          default: 1800000
+          example: 0
+          type: "integer"
+          xml:
+            name: "max-backoff-millis"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        backoff-multiplier:
+          description: "Multiplier for backoff timeout. The backoff will be multiplied\
+            \ by this value with every\nadditional attempt. Backoff-multiplier must\
+            \ be in the range (1, max)."
+          default: 1.5
+          example: 1.0
+          x-yang-type: "decimal"
+          type: "string"
+          xml:
+            name: "backoff-multiplier"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        backoff-jitter:
+          description: "Range of backoff randomization. The backoff will be multiplied\
+            \ by a random number in the range\n(1 - backoff-jitter, 1 + backoff-jitter).\
+            \ Backoff-jitter must be in the range (0, 0.5)."
+          x-yang-type: "hex"
+          type: "string"
+          default: 0.1
+          xml:
+            name: "backoff-jitter"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        keepalive-delay:
+          description: "Netconf connector sends keepalive RPCs while the session is\
+            \ idle, this delay specifies\nthe delay between keepalive RPC in seconds.\n\
+            If a value <1 is provided, no keepalives will be sent"
+          format: "int64"
+          x-yang-type: "int64"
+          default: 120
+          example: 0
+          type: "integer"
+          xml:
+            name: "keepalive-delay"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        concurrent-rpc-limit:
+          description: "Limit of concurrent messages that can be send before reply\
+            \ messages are received.\nIf value <1 is provided, no limit will be enforced"
+          x-yang-type: "hex"
+          type: "string"
+          default: "0"
+          xml:
+            name: "concurrent-rpc-limit"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        actor-response-wait-time:
+          description: "Time that slave actor will wait for response from master."
+          format: "int32"
+          default: 5
+          example: 1
+          x-yang-type: "int32"
+          type: "integer"
+          xml:
+            name: "actor-response-wait-time"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        odl-hello-message-capabilities:
+          $ref: "#/components/schemas/network-topology_network-topology_topology_node_netconf-node_odl-hello-message-capabilities"
+          x-yang-type: "container"
+      xml:
+        name: "netconf-node"
+        namespace: "urn:opendaylight:netconf-node-topology"
+      description: ""
+      title: "network-topology_network-topology_topology_node_netconf-node"
+      type: "object"
+    network-topology_network-topology_topology_node_netconf-node_protocol_tls:
+      x-yang-type: "container"
+      x-yang-choice-key: "specification"
+      properties:
+        excluded-versions:
+          type: "array"
+          items:
+            example: "Some excluded-versions"
+            x-yang-type: "string"
+            type: "string"
+          description: "A list of TLS version names provided in JDK that are not supported\
+            \ by the\ntarget netconf device, eg, the netopeer2 simulator does not\
+            \ support the\nSSLv2Hello. Most of the time, this list need not be set"
+          xml:
+            name: "excluded-versions"
+      xml:
+        name: "tls"
+        namespace: "urn:opendaylight:netconf-node-topology"
+      description: ""
+      title: "network-topology_network-topology_topology_node_netconf-node_protocol_tls"
+      type: "object"
+    network-topology_network-topology_topology_link_config_supporting-link:
+      x-yang-type: "container"
+      properties:
+        link-ref:
+          description: ""
+          example: "Some link-ref"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "link-ref"
+            namespace: "urn:TBD:params:xml:ns:yang:network-topology"
+      xml:
+        name: "supporting-link"
+        namespace: "urn:TBD:params:xml:ns:yang:network-topology"
+      description: ""
+      title: "network-topology_network-topology_topology_link_config_supporting-link"
+      type: "object"
+    network-topology_network-topology_topology_node_netconf-node_available-capabilities:
+      x-yang-type: "container"
+      properties:
+        available-capability:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/network-topology_network-topology_topology_node_netconf-node_available-capabilities_available-capability"
+          description: ""
+          x-yang-type: "list"
+      xml:
+        name: "available-capabilities"
+        namespace: "urn:opendaylight:netconf-node-topology"
+      description: ""
+      title: "network-topology_network-topology_topology_node_netconf-node_available-capabilities"
+      type: "object"
+    network-topology_network-topology_topology_TOP:
+      properties:
+        network-topology:topology:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/network-topology_network-topology_topology"
+          description: "\nThis is the model of an abstract topology.\nA topology contains\
+            \ nodes and links.\nEach topology MUST be identified by\nunique topology-id\
+            \ for reason that a network could contain many\ntopologies.\n"
+          x-yang-type: "list"
+          x-yang-list-key: "topology-id"
+      title: "network-topology_network-topology_topology_TOP"
+      type: "object"
+    network-topology_network-topology_topology_node_netconf-node_key-based:
+      x-yang-type: "container"
+      x-yang-choice-key: "credentials"
+      properties:
+        key-id:
+          description: ""
+          example: "Some key-id"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "key-id"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        username:
+          description: ""
+          example: "Some username"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "username"
+            namespace: "urn:opendaylight:netconf-node-topology"
+      xml:
+        name: "key-based"
+        namespace: "urn:opendaylight:netconf-node-topology"
+      description: ""
+      title: "network-topology_network-topology_topology_node_netconf-node_key-based"
+      type: "object"
+    network-topology_network-topology_topology_node_netconf-node_yang-library:
+      x-yang-type: "container"
+      properties:
+        yang-library-url:
+          description: "Yang library to be plugged as additional source provider into\
+            \ the shared schema repository"
+          example: "Some yang-library-url"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "yang-library-url"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        username:
+          description: ""
+          example: "Some username"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "username"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        password:
+          description: ""
+          example: "Some password"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "password"
+            namespace: "urn:opendaylight:netconf-node-topology"
+      xml:
+        name: "yang-library"
+        namespace: "urn:opendaylight:netconf-node-topology"
+      description: ""
+      title: "network-topology_network-topology_topology_node_netconf-node_yang-library"
+      type: "object"
+    network-topology_network-topology_topology_config_link:
+      x-yang-type: "container"
+      required:
+      - "source"
+      - "destination"
+      properties:
+        link-id:
+          description: "The identifier of a link in the topology.\nA link is specific\
+            \ to a topology to which it belongs."
+          example: "Some link-id"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "link-id"
+            namespace: "urn:TBD:params:xml:ns:yang:network-topology"
+        source:
+          $ref: "#/components/schemas/network-topology_network-topology_topology_link_config_source"
+          x-yang-type: "container"
+        destination:
+          $ref: "#/components/schemas/network-topology_network-topology_topology_link_config_destination"
+          x-yang-type: "container"
+        supporting-link:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/network-topology_network-topology_topology_link_config_supporting-link"
+          description: ""
+          x-yang-type: "list"
+          x-yang-list-key: "link-ref"
+      xml:
+        name: "link"
+        namespace: "urn:TBD:params:xml:ns:yang:network-topology"
+      description: "\nA Network Link connects a by Local (Source) node and\na Remote\
+        \ (Destination) Network Nodes via a set of the\nnodes' termination points.\n\
+        As it is possible to have several links between the same\nsource and destination\
+        \ nodes, and as a link could potentially\nbe re-homed between termination\
+        \ points, to ensure that we\nwould always know to distinguish between links,\
+        \ every link\nis identified by a dedicated link identifier.\nNote that a link\
+        \ models a point-to-point link, not a multipoint\nlink.\nLayering dependencies\
+        \ on links in underlay topologies are\nnot represented as the layering information\
+        \ of nodes and of\ntermination points is sufficient.\n"
+      title: "network-topology_network-topology_topology_config_link"
+      type: "object"
+    network-topology_network-topology_topology_config_node:
+      x-yang-type: "container"
+      properties:
+        node-id:
+          description: "The identifier of a node in the topology.\nA node is specific\
+            \ to a topology to which it belongs."
+          example: "Some node-id"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "node-id"
+            namespace: "urn:TBD:params:xml:ns:yang:network-topology"
+        supporting-node:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/network-topology_network-topology_topology_node_config_supporting-node"
+          description: "This list defines vertical layering information for nodes.\n\
+            It allows to capture for any given node, which node (or nodes)\nin the\
+            \ corresponding underlay topology it maps onto.\nA node can map to zero,\
+            \ one, or more nodes below it;\naccordingly there can be zero, one, or\
+            \ more elements in the list.\nIf there are specific layering requirements,\
+            \ for example\nspecific to a particular type of topology that only allows\n\
+            for certain layering relationships, the choice\nbelow can be augmented\
+            \ with additional cases.\nA list has been chosen rather than a leaf-list\
+            \ in order\nto provide room for augmentations, e.g. for\nstatistics or\
+            \ priorization information associated with\nsupporting nodes."
+          x-yang-type: "list"
+          x-yang-list-key: "topology-ref node-ref"
+        termination-point:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/network-topology_network-topology_topology_node_config_termination-point"
+          description: "A termination point can terminate a link.\nDepending on the\
+            \ type of topology, a termination point could,\nfor example, refer to\
+            \ a port or an interface."
+          x-yang-type: "list"
+          x-yang-list-key: "tp-id"
+        netconf-node-optional:ignore-missing-schema-sources:
+          $ref: "#/components/schemas/network-topology_network-topology_topology_node_config_ignore-missing-schema-sources"
+          x-yang-type: "container"
+        netconf-node-topology:netconf-node:
+          $ref: "#/components/schemas/network-topology_network-topology_topology_node_config_netconf-node"
+          x-yang-type: "container"
+      xml:
+        name: "node"
+        namespace: "urn:TBD:params:xml:ns:yang:network-topology"
+      description: "The list of network nodes defined for the topology."
+      title: "network-topology_network-topology_topology_config_node"
+      type: "object"
+    network-topology_network-topology_topology_node_netconf-node_config_protocol:
+      x-yang-type: "container"
+      properties:
+        name:
+          description: ""
+          enum:
+          - "SSH"
+          - "TLS"
+          default: "SSH"
+          example: "SSH"
+          x-yang-type: "enum"
+          type: "string"
+          xml:
+            name: "name"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        key-id:
+          type: "array"
+          items:
+            example: "Some key-id"
+            x-yang-type: "string"
+            type: "string"
+          description: "Identifiers of private keys within the keystore to be used\
+            \ for to establish TLS connection."
+          x-yang-when-key: "../name = TLS"
+          xml:
+            name: "key-id"
+        tls:
+          $ref: "#/components/schemas/network-topology_network-topology_topology_node_netconf-node_protocol_config_tls"
+          x-yang-type: "container"
+          x-yang-choice-key: "specification"
+      xml:
+        name: "protocol"
+        namespace: "urn:opendaylight:netconf-node-topology"
+      description: ""
+      title: "network-topology_network-topology_topology_node_netconf-node_config_protocol"
+      type: "object"
+    network-topology_network-topology_topology_node_netconf-node_config_key-based:
+      x-yang-type: "container"
+      x-yang-choice-key: "credentials"
+      properties:
+        key-id:
+          description: ""
+          example: "Some key-id"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "key-id"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        username:
+          description: ""
+          example: "Some username"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "username"
+            namespace: "urn:opendaylight:netconf-node-topology"
+      xml:
+        name: "key-based"
+        namespace: "urn:opendaylight:netconf-node-topology"
+      description: ""
+      title: "network-topology_network-topology_topology_node_netconf-node_config_key-based"
+      type: "object"
+    network-topology_network-topology_topology_node_netconf-node_login-password:
+      x-yang-type: "container"
+      x-yang-choice-key: "credentials"
+      properties:
+        username:
+          description: ""
+          example: "Some username"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "username"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        password:
+          description: ""
+          format: "byte"
+          x-yang-type: "binary"
+          type: "string"
+          xml:
+            name: "password"
+            namespace: "urn:opendaylight:netconf-node-topology"
+      xml:
+        name: "login-password"
+        namespace: "urn:opendaylight:netconf-node-topology"
+      description: ""
+      title: "network-topology_network-topology_topology_node_netconf-node_login-password"
+      type: "object"
+    network-topology_network-topology_topology_node_netconf-node_config_login-password:
+      x-yang-type: "container"
+      x-yang-choice-key: "credentials"
+      properties:
+        username:
+          description: ""
+          example: "Some username"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "username"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        password:
+          description: ""
+          format: "byte"
+          x-yang-type: "binary"
+          type: "string"
+          xml:
+            name: "password"
+            namespace: "urn:opendaylight:netconf-node-topology"
+      xml:
+        name: "login-password"
+        namespace: "urn:opendaylight:netconf-node-topology"
+      description: ""
+      title: "network-topology_network-topology_topology_node_netconf-node_config_login-password"
+      type: "object"
+    network-topology_network-topology_topology_node_config_ignore-missing-schema-sources:
+      x-yang-type: "container"
+      properties:
+        allowed:
+          description: "Allows reconnection of the mount point. Default false."
+          default: false
+          example: true
+          x-yang-type: "boolean"
+          type: "boolean"
+          xml:
+            name: "allowed"
+            namespace: "urn:opendaylight:netconf-node-optional"
+        reconnect-time:
+          description: "Time for reconnection - in units milliseconds. Default 5000\
+            \ ms."
+          format: "int64"
+          x-yang-type: "int64"
+          default: 5000
+          example: 0
+          type: "integer"
+          xml:
+            name: "reconnect-time"
+            namespace: "urn:opendaylight:netconf-node-optional"
+      xml:
+        name: "ignore-missing-schema-sources"
+        namespace: "urn:opendaylight:netconf-node-optional"
+      description: "Allows mount point to reconnect on the 'missing schema sources'\
+        \ error.\nWARNING - enabling the reconnection on the 'missing schema sources'\
+        \ error can lead\nto unexpected errors at runtime."
+      title: "network-topology_network-topology_topology_node_config_ignore-missing-schema-sources"
+      type: "object"
+    network-topology_network-topology_config_topology:
+      x-yang-type: "container"
+      properties:
+        topology-id:
+          description: "\nIt is presumed that a datastore will contain many topologies.\
+            \ To\ndistinguish between topologies it is vital to have UNIQUE\ntopology\
+            \ identifiers.\n"
+          example: "Some topology-id"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "topology-id"
+            namespace: "urn:TBD:params:xml:ns:yang:network-topology"
+        topology-types:
+          $ref: "#/components/schemas/network-topology_network-topology_topology_config_topology-types"
+          x-yang-type: "container"
+        underlay-topology:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/network-topology_network-topology_topology_config_underlay-topology"
+          description: "Identifies the topology, or topologies, that this topology\n\
+            is dependent on."
+          x-yang-type: "list"
+          x-yang-list-key: "topology-ref"
+        node:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/network-topology_network-topology_topology_config_node"
+          description: "The list of network nodes defined for the topology."
+          x-yang-type: "list"
+          x-yang-list-key: "node-id"
+        link:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/network-topology_network-topology_topology_config_link"
+          description: "\nA Network Link connects a by Local (Source) node and\na\
+            \ Remote (Destination) Network Nodes via a set of the\nnodes' termination\
+            \ points.\nAs it is possible to have several links between the same\n\
+            source and destination nodes, and as a link could potentially\nbe re-homed\
+            \ between termination points, to ensure that we\nwould always know to\
+            \ distinguish between links, every link\nis identified by a dedicated\
+            \ link identifier.\nNote that a link models a point-to-point link, not\
+            \ a multipoint\nlink.\nLayering dependencies on links in underlay topologies\
+            \ are\nnot represented as the layering information of nodes and of\ntermination\
+            \ points is sufficient.\n"
+          x-yang-type: "list"
+          x-yang-list-key: "link-id"
+      xml:
+        name: "topology"
+        namespace: "urn:TBD:params:xml:ns:yang:network-topology"
+      description: "\nThis is the model of an abstract topology.\nA topology contains\
+        \ nodes and links.\nEach topology MUST be identified by\nunique topology-id\
+        \ for reason that a network could contain many\ntopologies.\n"
+      title: "network-topology_network-topology_config_topology"
+      type: "object"
+    network-topology_network-topology_topology_node_netconf-node_odl-hello-message-capabilities:
+      x-yang-type: "container"
+      properties:
+        capability:
+          type: "array"
+          items:
+            example: "Some capability"
+            x-yang-type: "string"
+            type: "string"
+          description: "Certain devices are non-accepting of ODL's hello message.\
+            \  This allows specification of\na custom ODL hello message based on a\
+            \ list of supported capabilities."
+          xml:
+            name: "capability"
+      xml:
+        name: "odl-hello-message-capabilities"
+        namespace: "urn:opendaylight:netconf-node-topology"
+      description: ""
+      title: "network-topology_network-topology_topology_node_netconf-node_odl-hello-message-capabilities"
+      type: "object"
+    network-topology_network-topology_topology_node_config_termination-point:
+      x-yang-type: "container"
+      properties:
+        tp-id:
+          description: ""
+          example: "Some tp-id"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "tp-id"
+            namespace: "urn:TBD:params:xml:ns:yang:network-topology"
+      xml:
+        name: "termination-point"
+        namespace: "urn:TBD:params:xml:ns:yang:network-topology"
+      description: "A termination point can terminate a link.\nDepending on the type\
+        \ of topology, a termination point could,\nfor example, refer to a port or\
+        \ an interface."
+      title: "network-topology_network-topology_topology_node_config_termination-point"
+      type: "object"
+    network-topology_network-topology_topology_node_config_netconf-node:
+      x-yang-type: "container"
+      properties:
+        login-password:
+          $ref: "#/components/schemas/network-topology_network-topology_topology_node_netconf-node_config_login-password"
+          x-yang-type: "container"
+          x-yang-choice-key: "credentials"
+        login-password-unencrypted:
+          $ref: "#/components/schemas/network-topology_network-topology_topology_node_netconf-node_config_login-password-unencrypted"
+          x-yang-type: "container"
+          x-yang-choice-key: "credentials"
+        key-based:
+          $ref: "#/components/schemas/network-topology_network-topology_topology_node_netconf-node_config_key-based"
+          x-yang-type: "container"
+          x-yang-choice-key: "credentials"
+        pass-through:
+          $ref: "#/components/schemas/network-topology_network-topology_topology_node_netconf-node_config_pass-through"
+          x-yang-type: "container"
+        lock-datastore:
+          description: "The operation allows the client to lock the entire configuration\
+            \ datastore\nsystem of a device.\nWARNING - With blocking the lock/unlock\
+            \ operations, the user is coming to operate\nin a manner which is not\
+            \ supported. Concurrent access to the data store may interfere\nwith data\
+            \ consistency."
+          default: true
+          example: true
+          x-yang-type: "boolean"
+          type: "boolean"
+          xml:
+            name: "lock-datastore"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        schema-cache-directory:
+          description: "The destination schema repository for yang files relative\
+            \ to the cache directory.\nThis may be specified per netconf mount so\
+            \ that the loaded yang files are stored\nto a distinct directory to avoid\
+            \ potential conflict."
+          example: "Some schema-cache-directory"
+          default: "schema"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "schema-cache-directory"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        yang-library:
+          $ref: "#/components/schemas/network-topology_network-topology_topology_node_netconf-node_config_yang-library"
+          x-yang-type: "container"
+        host:
+          description: ""
+          example: "Some host"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "host"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        port:
+          description: ""
+          format: "int32"
+          example: 0
+          x-yang-type: "int32"
+          type: "integer"
+          xml:
+            name: "port"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        tcp-only:
+          description: ""
+          default: false
+          example: true
+          x-yang-type: "boolean"
+          type: "boolean"
+          xml:
+            name: "tcp-only"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        protocol:
+          $ref: "#/components/schemas/network-topology_network-topology_topology_node_netconf-node_config_protocol"
+          x-yang-type: "container"
+        schemaless:
+          description: ""
+          default: false
+          example: true
+          x-yang-type: "boolean"
+          type: "boolean"
+          xml:
+            name: "schemaless"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        yang-module-capabilities:
+          $ref: "#/components/schemas/network-topology_network-topology_topology_node_netconf-node_config_yang-module-capabilities"
+          x-yang-type: "container"
+        non-module-capabilities:
+          $ref: "#/components/schemas/network-topology_network-topology_topology_node_netconf-node_config_non-module-capabilities"
+          x-yang-type: "container"
+        reconnect-on-changed-schema:
+          description: "If true, the connector would auto disconnect/reconnect when\
+            \ schemas are changed in the\nremote device. The connector subscribes\
+            \ (right after connect) to base netconf notifications\nand listens for\
+            \ netconf-capability-change notification"
+          default: false
+          example: true
+          x-yang-type: "boolean"
+          type: "boolean"
+          xml:
+            name: "reconnect-on-changed-schema"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        connection-timeout-millis:
+          description: "Specifies timeout in milliseconds after which connection must\
+            \ be established."
+          format: "int64"
+          x-yang-type: "int64"
+          default: 20000
+          example: 0
+          type: "integer"
+          xml:
+            name: "connection-timeout-millis"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        default-request-timeout-millis:
+          description: "Timeout for blocking operations within transactions."
+          format: "int64"
+          x-yang-type: "int64"
+          default: 60000
+          example: 0
+          type: "integer"
+          xml:
+            name: "default-request-timeout-millis"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        max-connection-attempts:
+          description: "Maximum number of connection retries. Non positive value or\
+            \ null is interpreted as infinity."
+          x-yang-type: "hex"
+          type: "string"
+          default: "0"
+          xml:
+            name: "max-connection-attempts"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        min-backoff-millis:
+          description: "Initial minimum timeout in milliseconds randomized with backoff-jitter\
+            \ to wait between connection\nattempts. Will be multiplied by backoff-multiplier\
+            \ with every additional attempt"
+          format: "int32"
+          default: 2000
+          example: 0
+          x-yang-type: "int32"
+          type: "integer"
+          xml:
+            name: "min-backoff-millis"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        max-backoff-millis:
+          description: "Maximum timeout in milliseconds randomized with backoff-jitter\
+            \ to wait between connection attempts."
+          format: "int64"
+          x-yang-type: "int64"
+          default: 1800000
+          example: 0
+          type: "integer"
+          xml:
+            name: "max-backoff-millis"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        backoff-multiplier:
+          description: "Multiplier for backoff timeout. The backoff will be multiplied\
+            \ by this value with every\nadditional attempt. Backoff-multiplier must\
+            \ be in the range (1, max)."
+          default: 1.5
+          example: 1.0
+          x-yang-type: "decimal"
+          type: "string"
+          xml:
+            name: "backoff-multiplier"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        backoff-jitter:
+          description: "Range of backoff randomization. The backoff will be multiplied\
+            \ by a random number in the range\n(1 - backoff-jitter, 1 + backoff-jitter).\
+            \ Backoff-jitter must be in the range (0, 0.5)."
+          x-yang-type: "hex"
+          type: "string"
+          default: 0.1
+          xml:
+            name: "backoff-jitter"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        keepalive-delay:
+          description: "Netconf connector sends keepalive RPCs while the session is\
+            \ idle, this delay specifies\nthe delay between keepalive RPC in seconds.\n\
+            If a value <1 is provided, no keepalives will be sent"
+          format: "int64"
+          x-yang-type: "int64"
+          default: 120
+          example: 0
+          type: "integer"
+          xml:
+            name: "keepalive-delay"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        concurrent-rpc-limit:
+          description: "Limit of concurrent messages that can be send before reply\
+            \ messages are received.\nIf value <1 is provided, no limit will be enforced"
+          x-yang-type: "hex"
+          type: "string"
+          default: "0"
+          xml:
+            name: "concurrent-rpc-limit"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        actor-response-wait-time:
+          description: "Time that slave actor will wait for response from master."
+          format: "int32"
+          default: 5
+          example: 1
+          x-yang-type: "int32"
+          type: "integer"
+          xml:
+            name: "actor-response-wait-time"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        odl-hello-message-capabilities:
+          $ref: "#/components/schemas/network-topology_network-topology_topology_node_netconf-node_config_odl-hello-message-capabilities"
+          x-yang-type: "container"
+      xml:
+        name: "netconf-node"
+        namespace: "urn:opendaylight:netconf-node-topology"
+      description: ""
+      title: "network-topology_network-topology_topology_node_config_netconf-node"
+      type: "object"
+    network-topology_network-topology_topology_node_supporting-node:
+      x-yang-type: "container"
+      properties:
+        topology-ref:
+          description: ""
+          example: "Some topology-ref"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "topology-ref"
+            namespace: "urn:TBD:params:xml:ns:yang:network-topology"
+        node-ref:
+          description: ""
+          example: "Some node-ref"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "node-ref"
+            namespace: "urn:TBD:params:xml:ns:yang:network-topology"
+      xml:
+        name: "supporting-node"
+        namespace: "urn:TBD:params:xml:ns:yang:network-topology"
+      description: "This list defines vertical layering information for nodes.\nIt\
+        \ allows to capture for any given node, which node (or nodes)\nin the corresponding\
+        \ underlay topology it maps onto.\nA node can map to zero, one, or more nodes\
+        \ below it;\naccordingly there can be zero, one, or more elements in the list.\n\
+        If there are specific layering requirements, for example\nspecific to a particular\
+        \ type of topology that only allows\nfor certain layering relationships, the\
+        \ choice\nbelow can be augmented with additional cases.\nA list has been chosen\
+        \ rather than a leaf-list in order\nto provide room for augmentations, e.g.\
+        \ for\nstatistics or priorization information associated with\nsupporting\
+        \ nodes."
+      title: "network-topology_network-topology_topology_node_supporting-node"
+      type: "object"
+    network-topology_network-topology_topology_node_netconf-node_config_yang-library:
+      x-yang-type: "container"
+      properties:
+        yang-library-url:
+          description: "Yang library to be plugged as additional source provider into\
+            \ the shared schema repository"
+          example: "Some yang-library-url"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "yang-library-url"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        username:
+          description: ""
+          example: "Some username"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "username"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        password:
+          description: ""
+          example: "Some password"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "password"
+            namespace: "urn:opendaylight:netconf-node-topology"
+      xml:
+        name: "yang-library"
+        namespace: "urn:opendaylight:netconf-node-topology"
+      description: ""
+      title: "network-topology_network-topology_topology_node_netconf-node_config_yang-library"
+      type: "object"
+    network-topology_network-topology_topology_underlay-topology:
+      x-yang-type: "container"
+      properties:
+        topology-ref:
+          description: ""
+          example: "Some topology-ref"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "topology-ref"
+            namespace: "urn:TBD:params:xml:ns:yang:network-topology"
+      xml:
+        name: "underlay-topology"
+        namespace: "urn:TBD:params:xml:ns:yang:network-topology"
+      description: "Identifies the topology, or topologies, that this topology\nis\
+        \ dependent on."
+      title: "network-topology_network-topology_topology_underlay-topology"
+      type: "object"
+    network-topology_network-topology_topology_node_TOP:
+      properties:
+        network-topology:node:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/network-topology_network-topology_topology_node"
+          description: "The list of network nodes defined for the topology."
+          x-yang-type: "list"
+          x-yang-list-key: "node-id"
+      title: "network-topology_network-topology_topology_node_TOP"
+      type: "object"
+    network-topology_network-topology_topology_config_topology-types:
+      x-yang-type: "container"
+      properties:
+        netconf-node-topology:topology-netconf:
+          $ref: "#/components/schemas/network-topology_network-topology_topology_topology-types_config_topology-netconf"
+          x-yang-type: "container"
+      xml:
+        name: "topology-types"
+        namespace: "urn:TBD:params:xml:ns:yang:network-topology"
+      description: "This container is used to identify the type, or types\n(as a topology\
+        \ can support several types simultaneously),\nof the topology.\nTopology types\
+        \ are the subject of several integrity constraints\nthat an implementing server\
+        \ can validate in order to\nmaintain integrity of the datastore.\nTopology\
+        \ types are indicated through separate data nodes;\nthe set of topology types\
+        \ is expected to increase over time.\nTo add support for a new topology, an\
+        \ augmenting module\nneeds to augment this container with a new empty optional\n\
+        container to indicate the new topology type.\nThe use of a container allows\
+        \ to indicate a subcategorization\nof topology types.\nThe container SHALL\
+        \ NOT be augmented with any data nodes\nthat serve a purpose other than identifying\
+        \ a particular\ntopology type.\n"
+      title: "network-topology_network-topology_topology_config_topology-types"
+      type: "object"
+    network-topology_network-topology_topology_node_netconf-node_config_odl-hello-message-capabilities:
+      x-yang-type: "container"
+      properties:
+        capability:
+          type: "array"
+          items:
+            example: "Some capability"
+            x-yang-type: "string"
+            type: "string"
+          description: "Certain devices are non-accepting of ODL's hello message.\
+            \  This allows specification of\na custom ODL hello message based on a\
+            \ list of supported capabilities."
+          xml:
+            name: "capability"
+      xml:
+        name: "odl-hello-message-capabilities"
+        namespace: "urn:opendaylight:netconf-node-topology"
+      description: ""
+      title: "network-topology_network-topology_topology_node_netconf-node_config_odl-hello-message-capabilities"
+      type: "object"
+    network-topology_network-topology_topology_node_netconf-node_protocol_config_tls:
+      x-yang-type: "container"
+      x-yang-choice-key: "specification"
+      properties:
+        excluded-versions:
+          type: "array"
+          items:
+            example: "Some excluded-versions"
+            x-yang-type: "string"
+            type: "string"
+          description: "A list of TLS version names provided in JDK that are not supported\
+            \ by the\ntarget netconf device, eg, the netopeer2 simulator does not\
+            \ support the\nSSLv2Hello. Most of the time, this list need not be set"
+          xml:
+            name: "excluded-versions"
+      xml:
+        name: "tls"
+        namespace: "urn:opendaylight:netconf-node-topology"
+      description: ""
+      title: "network-topology_network-topology_topology_node_netconf-node_protocol_config_tls"
+      type: "object"
+    network-topology_network-topology_topology_topology-types_topology-netconf:
+      x-yang-type: "container"
+      properties: {}
+      xml:
+        name: "topology-netconf"
+        namespace: "urn:opendaylight:netconf-node-topology"
+      description: ""
+      title: "network-topology_network-topology_topology_topology-types_topology-netconf"
+      type: "object"
+    network-topology_network-topology_topology_node_netconf-node_yang-module-capabilities:
+      x-yang-type: "container"
+      properties:
+        override:
+          description: "Whether to override or merge this list of capabilities with\
+            \ capabilities from device"
+          default: false
+          example: true
+          x-yang-type: "boolean"
+          type: "boolean"
+          xml:
+            name: "override"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        capability:
+          type: "array"
+          items:
+            example: "Some capability"
+            x-yang-type: "string"
+            type: "string"
+          description: "Set a list of capabilities to override capabilities provided\
+            \ in device's hello message.\nCan be used for devices that do not report\
+            \ any yang modules in their hello message"
+          xml:
+            name: "capability"
+      xml:
+        name: "yang-module-capabilities"
+        namespace: "urn:opendaylight:netconf-node-topology"
+      description: ""
+      title: "network-topology_network-topology_topology_node_netconf-node_yang-module-capabilities"
+      type: "object"
+    network-topology_network-topology_topology_node_netconf-node_protocol:
+      x-yang-type: "container"
+      properties:
+        name:
+          description: ""
+          enum:
+          - "SSH"
+          - "TLS"
+          default: "SSH"
+          example: "SSH"
+          x-yang-type: "enum"
+          type: "string"
+          xml:
+            name: "name"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        key-id:
+          type: "array"
+          items:
+            example: "Some key-id"
+            x-yang-type: "string"
+            type: "string"
+          description: "Identifiers of private keys within the keystore to be used\
+            \ for to establish TLS connection."
+          x-yang-when-key: "../name = TLS"
+          xml:
+            name: "key-id"
+        tls:
+          $ref: "#/components/schemas/network-topology_network-topology_topology_node_netconf-node_protocol_tls"
+          x-yang-type: "container"
+          x-yang-choice-key: "specification"
+      xml:
+        name: "protocol"
+        namespace: "urn:opendaylight:netconf-node-topology"
+      description: ""
+      title: "network-topology_network-topology_topology_node_netconf-node_protocol"
+      type: "object"
+    network-topology_network-topology_topology_config_underlay-topology:
+      x-yang-type: "container"
+      properties:
+        topology-ref:
+          description: ""
+          example: "Some topology-ref"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "topology-ref"
+            namespace: "urn:TBD:params:xml:ns:yang:network-topology"
+      xml:
+        name: "underlay-topology"
+        namespace: "urn:TBD:params:xml:ns:yang:network-topology"
+      description: "Identifies the topology, or topologies, that this topology\nis\
+        \ dependent on."
+      title: "network-topology_network-topology_topology_config_underlay-topology"
+      type: "object"
+    network-topology_network-topology_topology_link_config_source:
+      x-yang-type: "container"
+      required:
+      - "source-node"
+      properties:
+        source-node:
+          description: "Source node identifier, must be in same topology."
+          example: "Some source-node"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "source-node"
+            namespace: "urn:TBD:params:xml:ns:yang:network-topology"
+        source-tp:
+          description: "Termination point within source node that terminates the link."
+          example: "Some source-tp"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "source-tp"
+            namespace: "urn:TBD:params:xml:ns:yang:network-topology"
+      xml:
+        name: "source"
+        namespace: "urn:TBD:params:xml:ns:yang:network-topology"
+      description: ""
+      title: "network-topology_network-topology_topology_link_config_source"
+      type: "object"
+    network-topology_network-topology_topology_node_netconf-node_clustered-connection-status_node-status:
+      x-yang-type: "container"
+      properties:
+        node:
+          description: ""
+          example: "Some node"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "node"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        status:
+          description: ""
+          enum:
+          - "connected"
+          - "unavailable"
+          - "failed"
+          example: "connected"
+          x-yang-type: "enum"
+          type: "string"
+          xml:
+            name: "status"
+            namespace: "urn:opendaylight:netconf-node-topology"
+      xml:
+        name: "node-status"
+        namespace: "urn:opendaylight:netconf-node-topology"
+      description: ""
+      title: "network-topology_network-topology_topology_node_netconf-node_clustered-connection-status_node-status"
+      type: "object"
+    network-topology_network-topology_topology_node_netconf-node_config_login-password-unencrypted:
+      x-yang-type: "container"
+      x-yang-choice-key: "credentials"
+      properties:
+        username:
+          description: ""
+          example: "Some username"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "username"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        password:
+          description: ""
+          example: "Some password"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "password"
+            namespace: "urn:opendaylight:netconf-node-topology"
+      xml:
+        name: "login-password-unencrypted"
+        namespace: "urn:opendaylight:netconf-node-topology"
+      description: ""
+      title: "network-topology_network-topology_topology_node_netconf-node_config_login-password-unencrypted"
+      type: "object"
+    network-topology_network-topology_topology_node_termination-point:
+      x-yang-type: "container"
+      properties:
+        tp-id:
+          description: ""
+          example: "Some tp-id"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "tp-id"
+            namespace: "urn:TBD:params:xml:ns:yang:network-topology"
+        tp-ref:
+          type: "array"
+          items:
+            example: "Some tp-ref"
+            x-yang-type: "string"
+            type: "string"
+          description: "The leaf list identifies any termination points that the\n\
+            termination point is dependent on, or maps onto.\nThose termination points\
+            \ will themselves be contained\nin a supporting node.\nThis dependency\
+            \ information can be inferred from\nthe dependencies between links.  For\
+            \ this reason,\nthis item is not separately configurable.  Hence no\n\
+            corresponding constraint needs to be articulated.\nThe corresponding information\
+            \ is simply provided by the\nimplementing system."
+          xml:
+            name: "tp-ref"
+      xml:
+        name: "termination-point"
+        namespace: "urn:TBD:params:xml:ns:yang:network-topology"
+      description: "A termination point can terminate a link.\nDepending on the type\
+        \ of topology, a termination point could,\nfor example, refer to a port or\
+        \ an interface."
+      title: "network-topology_network-topology_topology_node_termination-point"
+      type: "object"
+    network-topology_network-topology_topology_link_config_destination:
+      x-yang-type: "container"
+      required:
+      - "dest-node"
+      properties:
+        dest-node:
+          description: "Destination node identifier, must be in same topology."
+          example: "Some dest-node"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "dest-node"
+            namespace: "urn:TBD:params:xml:ns:yang:network-topology"
+        dest-tp:
+          description: "Termination point within destination node that terminates\
+            \ the link."
+          example: "Some dest-tp"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "dest-tp"
+            namespace: "urn:TBD:params:xml:ns:yang:network-topology"
+      xml:
+        name: "destination"
+        namespace: "urn:TBD:params:xml:ns:yang:network-topology"
+      description: ""
+      title: "network-topology_network-topology_topology_link_config_destination"
+      type: "object"
+    network-topology_network-topology_topology_link_source:
+      x-yang-type: "container"
+      required:
+      - "source-node"
+      properties:
+        source-node:
+          description: "Source node identifier, must be in same topology."
+          example: "Some source-node"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "source-node"
+            namespace: "urn:TBD:params:xml:ns:yang:network-topology"
+        source-tp:
+          description: "Termination point within source node that terminates the link."
+          example: "Some source-tp"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "source-tp"
+            namespace: "urn:TBD:params:xml:ns:yang:network-topology"
+      xml:
+        name: "source"
+        namespace: "urn:TBD:params:xml:ns:yang:network-topology"
+      description: ""
+      title: "network-topology_network-topology_topology_link_source"
+      type: "object"
+    network-topology_network-topology_topology_node_netconf-node_unavailable-capabilities:
+      x-yang-type: "container"
+      properties:
+        unavailable-capability:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/network-topology_network-topology_topology_node_netconf-node_unavailable-capabilities_unavailable-capability"
+          description: ""
+          x-yang-type: "list"
+      xml:
+        name: "unavailable-capabilities"
+        namespace: "urn:opendaylight:netconf-node-topology"
+      description: ""
+      title: "network-topology_network-topology_topology_node_netconf-node_unavailable-capabilities"
+      type: "object"
+    network-topology_network-topology_topology_node_netconf-node_pass-through:
+      x-yang-type: "container"
+      x-yang-when-key: "../connection-status = connected"
+      properties: {}
+      xml:
+        name: "pass-through"
+        namespace: "urn:opendaylight:netconf-node-topology"
+      description: "When the underlying node is connected, its NETCONF context\nis\
+        \ available verbatim under this container through the\nmount extension."
+      title: "network-topology_network-topology_topology_node_netconf-node_pass-through"
+      type: "object"
+    network-topology_network-topology_topology_link_destination:
+      x-yang-type: "container"
+      required:
+      - "dest-node"
+      properties:
+        dest-node:
+          description: "Destination node identifier, must be in same topology."
+          example: "Some dest-node"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "dest-node"
+            namespace: "urn:TBD:params:xml:ns:yang:network-topology"
+        dest-tp:
+          description: "Termination point within destination node that terminates\
+            \ the link."
+          example: "Some dest-tp"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "dest-tp"
+            namespace: "urn:TBD:params:xml:ns:yang:network-topology"
+      xml:
+        name: "destination"
+        namespace: "urn:TBD:params:xml:ns:yang:network-topology"
+      description: ""
+      title: "network-topology_network-topology_topology_link_destination"
+      type: "object"
+    network-topology_network-topology_topology_link:
+      x-yang-type: "container"
+      required:
+      - "source"
+      - "destination"
+      properties:
+        link-id:
+          description: "The identifier of a link in the topology.\nA link is specific\
+            \ to a topology to which it belongs."
+          example: "Some link-id"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "link-id"
+            namespace: "urn:TBD:params:xml:ns:yang:network-topology"
+        source:
+          $ref: "#/components/schemas/network-topology_network-topology_topology_link_source"
+          x-yang-type: "container"
+        destination:
+          $ref: "#/components/schemas/network-topology_network-topology_topology_link_destination"
+          x-yang-type: "container"
+        supporting-link:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/network-topology_network-topology_topology_link_supporting-link"
+          description: ""
+          x-yang-type: "list"
+          x-yang-list-key: "link-ref"
+      xml:
+        name: "link"
+        namespace: "urn:TBD:params:xml:ns:yang:network-topology"
+      description: "\nA Network Link connects a by Local (Source) node and\na Remote\
+        \ (Destination) Network Nodes via a set of the\nnodes' termination points.\n\
+        As it is possible to have several links between the same\nsource and destination\
+        \ nodes, and as a link could potentially\nbe re-homed between termination\
+        \ points, to ensure that we\nwould always know to distinguish between links,\
+        \ every link\nis identified by a dedicated link identifier.\nNote that a link\
+        \ models a point-to-point link, not a multipoint\nlink.\nLayering dependencies\
+        \ on links in underlay topologies are\nnot represented as the layering information\
+        \ of nodes and of\ntermination points is sufficient.\n"
+      title: "network-topology_network-topology_topology_link"
+      type: "object"
+    network-topology_network-topology_topology_node_netconf-node_clustered-connection-status:
+      x-yang-type: "container"
+      properties:
+        node-status:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/network-topology_network-topology_topology_node_netconf-node_clustered-connection-status_node-status"
+          description: ""
+          x-yang-type: "list"
+        netconf-master-node:
+          description: ""
+          example: "Some netconf-master-node"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "netconf-master-node"
+            namespace: "urn:opendaylight:netconf-node-topology"
+      xml:
+        name: "clustered-connection-status"
+        namespace: "urn:opendaylight:netconf-node-topology"
+      description: ""
+      title: "network-topology_network-topology_topology_node_netconf-node_clustered-connection-status"
+      type: "object"
+    network-topology_network-topology_topology_node:
+      x-yang-type: "container"
+      properties:
+        node-id:
+          description: "The identifier of a node in the topology.\nA node is specific\
+            \ to a topology to which it belongs."
+          example: "Some node-id"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "node-id"
+            namespace: "urn:TBD:params:xml:ns:yang:network-topology"
+        supporting-node:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/network-topology_network-topology_topology_node_supporting-node"
+          description: "This list defines vertical layering information for nodes.\n\
+            It allows to capture for any given node, which node (or nodes)\nin the\
+            \ corresponding underlay topology it maps onto.\nA node can map to zero,\
+            \ one, or more nodes below it;\naccordingly there can be zero, one, or\
+            \ more elements in the list.\nIf there are specific layering requirements,\
+            \ for example\nspecific to a particular type of topology that only allows\n\
+            for certain layering relationships, the choice\nbelow can be augmented\
+            \ with additional cases.\nA list has been chosen rather than a leaf-list\
+            \ in order\nto provide room for augmentations, e.g. for\nstatistics or\
+            \ priorization information associated with\nsupporting nodes."
+          x-yang-type: "list"
+          x-yang-list-key: "topology-ref node-ref"
+        termination-point:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/network-topology_network-topology_topology_node_termination-point"
+          description: "A termination point can terminate a link.\nDepending on the\
+            \ type of topology, a termination point could,\nfor example, refer to\
+            \ a port or an interface."
+          x-yang-type: "list"
+          x-yang-list-key: "tp-id"
+        netconf-node-optional:ignore-missing-schema-sources:
+          $ref: "#/components/schemas/network-topology_network-topology_topology_node_ignore-missing-schema-sources"
+          x-yang-type: "container"
+        netconf-node-topology:netconf-node:
+          $ref: "#/components/schemas/network-topology_network-topology_topology_node_netconf-node"
+          x-yang-type: "container"
+      xml:
+        name: "node"
+        namespace: "urn:TBD:params:xml:ns:yang:network-topology"
+      description: "The list of network nodes defined for the topology."
+      title: "network-topology_network-topology_topology_node"
+      type: "object"
+    network-topology_network-topology_topology_node_netconf-node_login-password-unencrypted:
+      x-yang-type: "container"
+      x-yang-choice-key: "credentials"
+      properties:
+        username:
+          description: ""
+          example: "Some username"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "username"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        password:
+          description: ""
+          example: "Some password"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "password"
+            namespace: "urn:opendaylight:netconf-node-topology"
+      xml:
+        name: "login-password-unencrypted"
+        namespace: "urn:opendaylight:netconf-node-topology"
+      description: ""
+      title: "network-topology_network-topology_topology_node_netconf-node_login-password-unencrypted"
+      type: "object"
+    network-topology_network-topology_topology_node_netconf-node_available-capabilities_available-capability:
+      x-yang-type: "container"
+      properties:
+        capability:
+          description: ""
+          example: "Some capability"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "capability"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        capability-origin:
+          description: ""
+          enum:
+          - "user-defined"
+          - "device-advertised"
+          example: "user-defined"
+          x-yang-type: "enum"
+          type: "string"
+          xml:
+            name: "capability-origin"
+            namespace: "urn:opendaylight:netconf-node-topology"
+      xml:
+        name: "available-capability"
+        namespace: "urn:opendaylight:netconf-node-topology"
+      description: ""
+      title: "network-topology_network-topology_topology_node_netconf-node_available-capabilities_available-capability"
+      type: "object"
+    network-topology_network-topology_topology_node_netconf-node_non-module-capabilities:
+      x-yang-type: "container"
+      properties:
+        override:
+          description: "Whether to override or merge this list of non-module based\
+            \ capabilities with non-module\nbased capabilities from device"
+          default: false
+          example: true
+          x-yang-type: "boolean"
+          type: "boolean"
+          xml:
+            name: "override"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        capability:
+          type: "array"
+          items:
+            example: "Some capability"
+            x-yang-type: "string"
+            type: "string"
+          description: "Set a list of non-module based capabilities to override or\
+            \ merge non-module capabilities\nprovided in device's hello message. Can\
+            \ be used for devices that do not report or\nincorrectly report non-module\
+            \ based capabilities in their hello message"
+          xml:
+            name: "capability"
+      xml:
+        name: "non-module-capabilities"
+        namespace: "urn:opendaylight:netconf-node-topology"
+      description: ""
+      title: "network-topology_network-topology_topology_node_netconf-node_non-module-capabilities"
+      type: "object"
+    network-topology_network-topology_topology_node_netconf-node_config_yang-module-capabilities:
+      x-yang-type: "container"
+      properties:
+        override:
+          description: "Whether to override or merge this list of capabilities with\
+            \ capabilities from device"
+          default: false
+          example: true
+          x-yang-type: "boolean"
+          type: "boolean"
+          xml:
+            name: "override"
+            namespace: "urn:opendaylight:netconf-node-topology"
+        capability:
+          type: "array"
+          items:
+            example: "Some capability"
+            x-yang-type: "string"
+            type: "string"
+          description: "Set a list of capabilities to override capabilities provided\
+            \ in device's hello message.\nCan be used for devices that do not report\
+            \ any yang modules in their hello message"
+          xml:
+            name: "capability"
+      xml:
+        name: "yang-module-capabilities"
+        namespace: "urn:opendaylight:netconf-node-topology"
+      description: ""
+      title: "network-topology_network-topology_topology_node_netconf-node_config_yang-module-capabilities"
+      type: "object"
+    network-topology_network-topology_topology_node_ignore-missing-schema-sources:
+      x-yang-type: "container"
+      properties:
+        allowed:
+          description: "Allows reconnection of the mount point. Default false."
+          default: false
+          example: true
+          x-yang-type: "boolean"
+          type: "boolean"
+          xml:
+            name: "allowed"
+            namespace: "urn:opendaylight:netconf-node-optional"
+        reconnect-time:
+          description: "Time for reconnection - in units milliseconds. Default 5000\
+            \ ms."
+          format: "int64"
+          x-yang-type: "int64"
+          default: 5000
+          example: 0
+          type: "integer"
+          xml:
+            name: "reconnect-time"
+            namespace: "urn:opendaylight:netconf-node-optional"
+      xml:
+        name: "ignore-missing-schema-sources"
+        namespace: "urn:opendaylight:netconf-node-optional"
+      description: "Allows mount point to reconnect on the 'missing schema sources'\
+        \ error.\nWARNING - enabling the reconnection on the 'missing schema sources'\
+        \ error can lead\nto unexpected errors at runtime."
+      title: "network-topology_network-topology_topology_node_ignore-missing-schema-sources"
+      type: "object"
+  securitySchemes:
+    basicAuth:
+      type: "http"
+      scheme: "basic"
+    bearerAuth:
+      scheme: "bearer"
+      type: "http"
+security:
+- basicAuth: []
+- bearerAuth: []

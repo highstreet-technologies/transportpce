@@ -15,6 +15,7 @@ import org.opendaylight.transportpce.devicediscovery.config.DeviceDiscoveryConfi
 import org.opendaylight.transportpce.devicediscovery.model.ves.Event;
 import org.opendaylight.transportpce.devicediscovery.ves.VesEventWrapper;
 import org.opendaylight.transportpce.devicediscovery.topology.TopologyWriter;
+import org.opendaylight.transportpce.devicediscovery.ves.VesEventWrapperDeserializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.time.Duration;
@@ -57,7 +58,7 @@ public class VesKafkaConsumer {
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, config.getKafkaBootstrapServers());
         props.put(ConsumerConfig.GROUP_ID_CONFIG, config.getKafkaGroupId());
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, VesEventWrapperDeserializer.class.getName());
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest");
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true");
         props.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, "5000");

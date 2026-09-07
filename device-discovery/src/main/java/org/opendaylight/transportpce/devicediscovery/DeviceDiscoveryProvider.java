@@ -10,6 +10,8 @@ package org.opendaylight.transportpce.devicediscovery;
 import org.opendaylight.mdsal.binding.api.DataBroker;
 import org.opendaylight.transportpce.devicediscovery.config.DeviceDiscoveryConfig;
 import org.opendaylight.transportpce.devicediscovery.kafka.VesKafkaConsumer;
+import org.opendaylight.transportpce.devicediscovery.reconciliation.NetconfTopologyRestconfClient;
+import org.opendaylight.transportpce.devicediscovery.reconciliation.TopologyReconciliationService;
 import org.opendaylight.transportpce.devicediscovery.topology.TopologyWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +31,8 @@ public class DeviceDiscoveryProvider implements AutoCloseable {
     private DeviceDiscoveryConfig config;
     private TopologyWriter topologyWriter;
     private VesKafkaConsumer kafkaConsumer;
+    private NetconfTopologyRestconfClient restconfClient;
+    private TopologyReconciliationService reconciliationService;
 
     public DeviceDiscoveryProvider(DataBroker dataBroker) {
         this.dataBroker = dataBroker;
@@ -51,6 +55,18 @@ public class DeviceDiscoveryProvider implements AutoCloseable {
         }
 
         topologyWriter = new TopologyWriter(dataBroker);
+
+        // Initial reconciliation: fetch netconf-topology from all configured controllers
+        restconfClient = new NetconfTopologyRestconfClient();
+        reconciliationService = new TopologyReconciliationService(config, topologyWriter, restconfClient);
+        try {
+            reconciliationService.reconcile();
+        } catch (Exception e) {
+            LOG.error("Topology reconciliation failed, continuing with Kafka consumer startup", e);
+        }
+        restconfClient.close();
+
+        // Start Kafka consumer for real-time VES events
         kafkaConsumer = new VesKafkaConsumer(config, topologyWriter);
         kafkaConsumer.start();
 
@@ -62,6 +78,9 @@ public class DeviceDiscoveryProvider implements AutoCloseable {
         LOG.info("Device Discovery shutting down");
         if (kafkaConsumer != null) {
             kafkaConsumer.stop();
+        }
+        if (restconfClient != null) {
+            restconfClient.close();
         }
     }
 
