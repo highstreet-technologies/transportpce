@@ -1,0 +1,37 @@
+module device-discovery {
+  yang-version 1.1;
+  namespace "urn:opendaylight:transportpce:device-discovery";
+  prefix "dd";
+
+  import network-topology {
+    prefix "nt";
+    revision-date 2013-10-21;
+  }
+
+  organization "Highstreet Technologies GmbH";
+  contact "support@highstreet-technologies.com";
+  description
+    "This module augments the netconf-topology with a controller-uuid
+     property so that each netconf node can be associated with the
+     controller that reported it via a VES lifecycle event.";
+
+  revision 2026-09-07 {
+    description
+      "Initial revision. Adds controller-uuid augmentation to
+       netconf-topology nodes.";
+  }
+
+  augment "/nt:network-topology/nt:topology/nt:node" {
+    description
+      "Augments each node in the netconf topology with the UUID of the
+       controller that reported the device via a VES notification.
+       This allows TransportPCE to know which underlying controller
+       is responsible for the device.";
+    leaf controller-uuid {
+      type string;
+      description
+        "UUID of the controller that reported this device via a VES
+         lifecycle event (commonEventHeader.reportingEntityId).";
+    }
+  }
+}
