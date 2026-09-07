@@ -8,6 +8,7 @@
 package org.opendaylight.transportpce.devicediscovery;
 
 import org.opendaylight.mdsal.binding.api.DataBroker;
+import org.opendaylight.transportpce.devicediscovery.config.ConfigLoader;
 import org.opendaylight.transportpce.devicediscovery.config.DeviceDiscoveryConfig;
 import org.opendaylight.transportpce.devicediscovery.kafka.VesKafkaConsumer;
 import org.opendaylight.transportpce.devicediscovery.reconciliation.NetconfTopologyRestconfClient;
@@ -17,42 +18,58 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * OSGi lifecycle component for the Device Discovery module.
+ * Lifecycle component for the Device Discovery module.
  *
- * Activated when the TransportPCE Karaf feature is loaded. On activation
- * it starts the Kafka VES event consumer and triggers initial
- * netconf-topology reconciliation from all configured controllers.
+ * On startup it loads configuration from a properties file, performs initial
+ * netconf-topology reconciliation from all configured controllers, and starts
+ * the Kafka VES event consumer for real-time device lifecycle events.
+ *
+ * Works both in OSGi/Karaf (via blueprint) and Lighty (via direct instantiation).
  */
 public class DeviceDiscoveryProvider implements AutoCloseable {
 
     private static final Logger LOG = LoggerFactory.getLogger(DeviceDiscoveryProvider.class);
+    private static final String DEFAULT_CONFIG_PATH = "etc/org.opendaylight.transportpce.devicediscovery.cfg";
 
     private final DataBroker dataBroker;
+    private final String configPath;
     private DeviceDiscoveryConfig config;
     private TopologyWriter topologyWriter;
     private VesKafkaConsumer kafkaConsumer;
     private NetconfTopologyRestconfClient restconfClient;
     private TopologyReconciliationService reconciliationService;
 
+    /**
+     * Constructor for OSGi/Karaf — uses default config path.
+     *
+     * @param dataBroker MDSAL DataBroker
+     */
     public DeviceDiscoveryProvider(DataBroker dataBroker) {
-        this.dataBroker = dataBroker;
-        LOG.info("DeviceDiscoveryProvider created with DataBroker: {}", dataBroker);
+        this(dataBroker, DEFAULT_CONFIG_PATH);
     }
 
     /**
-     * Called by OSGi blueprint on startup.
+     * Constructor with explicit config path — for Lighty and tests.
      *
-     * TODO: Load DeviceDiscoveryConfig from OSGi config file (etc/org.opendaylight.transportpce.devicediscovery.cfg).
-     * For now the config must be set via setConfig() before calling start().
+     * @param dataBroker MDSAL DataBroker
+     * @param configPath path to the properties config file
+     */
+    public DeviceDiscoveryProvider(DataBroker dataBroker, String configPath) {
+        this.dataBroker = dataBroker;
+        this.configPath = configPath;
+        LOG.info("DeviceDiscoveryProvider created with DataBroker: {}, configPath: {}", dataBroker, configPath);
+    }
+
+    /**
+     * Called on startup (by OSGi blueprint or Lighty module).
+     *
+     * Loads config from properties file, runs reconciliation, starts Kafka consumer.
      */
     public void start() {
-        LOG.info("Device Discovery starting — initializing Kafka consumer and topology reconciliation");
+        LOG.info("Device Discovery starting");
 
-        if (config == null) {
-            LOG.warn("DeviceDiscoveryConfig is null, Kafka consumer will not start. "
-                    + "Set config via setConfig() before calling start().");
-            return;
-        }
+        // Load configuration from properties file
+        config = ConfigLoader.load(configPath);
 
         topologyWriter = new TopologyWriter(dataBroker);
 
@@ -86,10 +103,6 @@ public class DeviceDiscoveryProvider implements AutoCloseable {
 
     public DataBroker getDataBroker() {
         return dataBroker;
-    }
-
-    public void setConfig(DeviceDiscoveryConfig config) {
-        this.config = config;
     }
 
     public DeviceDiscoveryConfig getConfig() {

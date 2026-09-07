@@ -107,6 +107,11 @@
     </dependency>
     <dependency>
       <groupId>org.opendaylight.transportpce</groupId>
+      <artifactId>transportpce-device-discovery</artifactId>
+      <version>${transportpce.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.opendaylight.transportpce</groupId>
       <artifactId>transportpce-pce</artifactId>
       <version>${transportpce.version}</version>
     </dependency>

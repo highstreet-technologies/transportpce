@@ -39,6 +39,7 @@ import org.opendaylight.transportpce.common.openroadminterfaces.OpenRoadmInterfa
 import org.opendaylight.transportpce.common.openroadminterfaces.OpenRoadmInterfacesImpl121;
 import org.opendaylight.transportpce.common.openroadminterfaces.OpenRoadmInterfacesImpl221;
 import org.opendaylight.transportpce.common.openroadminterfaces.OpenRoadmInterfacesImpl710;
+import org.opendaylight.transportpce.devicediscovery.DeviceDiscoveryProvider;
 import org.opendaylight.transportpce.nbinotifications.impl.NbiNotificationsProvider;
 import org.opendaylight.transportpce.networkmodel.NetConfTopologyListener;
 import org.opendaylight.transportpce.networkmodel.NetworkModelProvider;
@@ -104,6 +105,8 @@ public class TransportPCEImpl extends AbstractLightyModule implements TransportP
     private TapiProvider tapiProvider;
     // nbi-notifications beans
     private NbiNotificationsProvider nbiNotificationsProvider;
+    // device-discovery
+    private DeviceDiscoveryProvider deviceDiscoveryProvider;
     private List<Registration> rpcRegistrations = new ArrayList<>();
 
     public TransportPCEImpl(
@@ -258,6 +261,9 @@ public class TransportPCEImpl extends AbstractLightyModule implements TransportP
                     lightyServices.getAdapterContext().currentSerializer(),
                     networkTransaction, null);
         }
+
+        LOG.info("Creating device-discovery beans ...");
+        deviceDiscoveryProvider = new DeviceDiscoveryProvider(dataBroker);
     }
 
     @Override
@@ -268,12 +274,20 @@ public class TransportPCEImpl extends AbstractLightyModule implements TransportP
         if (nbiNotificationsProvider != null) {
             LOG.info("Initializing nbi-notifications provider ...");
         }
+        if (deviceDiscoveryProvider != null) {
+            LOG.info("Starting device-discovery provider ...");
+            deviceDiscoveryProvider.start();
+        }
         LOG.info("Init done.");
         return true;
     }
 
     @Override
     protected boolean stopProcedure() {
+        if (deviceDiscoveryProvider != null) {
+            LOG.info("Shutting down device-discovery provider ...");
+            deviceDiscoveryProvider.close();
+        }
         if (nbiNotificationsProvider != null) {
             nbiNotificationsProvider.close();
             LOG.info("Shutting down nbi-notifications provider ...");
