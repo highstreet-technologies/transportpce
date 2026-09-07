@@ -8,6 +8,9 @@
 package org.opendaylight.transportpce.devicediscovery;
 
 import org.opendaylight.mdsal.binding.api.DataBroker;
+import org.opendaylight.transportpce.devicediscovery.config.DeviceDiscoveryConfig;
+import org.opendaylight.transportpce.devicediscovery.kafka.VesKafkaConsumer;
+import org.opendaylight.transportpce.devicediscovery.topology.TopologyWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,22 +26,54 @@ public class DeviceDiscoveryProvider implements AutoCloseable {
     private static final Logger LOG = LoggerFactory.getLogger(DeviceDiscoveryProvider.class);
 
     private final DataBroker dataBroker;
+    private DeviceDiscoveryConfig config;
+    private TopologyWriter topologyWriter;
+    private VesKafkaConsumer kafkaConsumer;
 
     public DeviceDiscoveryProvider(DataBroker dataBroker) {
         this.dataBroker = dataBroker;
         LOG.info("DeviceDiscoveryProvider created with DataBroker: {}", dataBroker);
     }
 
+    /**
+     * Called by OSGi blueprint on startup.
+     *
+     * TODO: Load DeviceDiscoveryConfig from OSGi config file (etc/org.opendaylight.transportpce.devicediscovery.cfg).
+     * For now the config must be set via setConfig() before calling start().
+     */
     public void start() {
         LOG.info("Device Discovery starting — initializing Kafka consumer and topology reconciliation");
+
+        if (config == null) {
+            LOG.warn("DeviceDiscoveryConfig is null, Kafka consumer will not start. "
+                    + "Set config via setConfig() before calling start().");
+            return;
+        }
+
+        topologyWriter = new TopologyWriter(dataBroker);
+        kafkaConsumer = new VesKafkaConsumer(config, topologyWriter);
+        kafkaConsumer.start();
+
+        LOG.info("Device Discovery started successfully");
     }
 
     @Override
     public void close() {
         LOG.info("Device Discovery shutting down");
+        if (kafkaConsumer != null) {
+            kafkaConsumer.stop();
+        }
     }
 
     public DataBroker getDataBroker() {
         return dataBroker;
+    }
+
+    public void setConfig(DeviceDiscoveryConfig config) {
+        this.config = config;
+    }
+
+    public DeviceDiscoveryConfig getConfig() {
+        return config;
     }
 }
