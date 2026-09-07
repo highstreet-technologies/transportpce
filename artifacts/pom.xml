@@ -86,6 +86,11 @@ and is available at http://www.eclipse.org/legal/epl-v10.html INTERNAL
         <artifactId>transportpce-inventory</artifactId>
         <version>${project.version}</version>
       </dependency>
+      <dependency>
+        <groupId>${project.groupId}</groupId>
+        <artifactId>transportpce-device-discovery</artifactId>
+        <version>${project.version}</version>
+      </dependency>
       <!-- transportpce features -->
       <dependency>
         <groupId>${project.groupId}</groupId>
@@ -125,6 +130,13 @@ and is available at http://www.eclipse.org/legal/epl-v10.html INTERNAL
       <dependency>
         <groupId>${project.groupId}</groupId>
         <artifactId>odl-transportpce-inventory</artifactId>
+        <version>${project.version}</version>
+        <type>xml</type>
+        <classifier>features</classifier>
+      </dependency>
+      <dependency>
+        <groupId>${project.groupId}</groupId>
+        <artifactId>odl-transportpce-device-discovery</artifactId>
         <version>${project.version}</version>
         <type>xml</type>
         <classifier>features</classifier>
