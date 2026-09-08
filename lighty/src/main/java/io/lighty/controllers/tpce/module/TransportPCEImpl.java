@@ -44,7 +44,6 @@ import org.opendaylight.transportpce.nbinotifications.impl.NbiNotificationsProvi
 import org.opendaylight.transportpce.networkmodel.NetConfTopologyListener;
 import org.opendaylight.transportpce.networkmodel.NetworkModelProvider;
 import org.opendaylight.transportpce.networkmodel.NetworkUtilsImpl;
-import org.opendaylight.transportpce.sbrestconf.SbRestconfProvider;
 import org.opendaylight.transportpce.networkmodel.listeners.PortMappingListener;
 import org.opendaylight.transportpce.networkmodel.service.FrequenciesServiceImpl;
 import org.opendaylight.transportpce.networkmodel.service.NetworkModelService;
@@ -57,17 +56,16 @@ import org.opendaylight.transportpce.pce.impl.PceServiceRPCImpl;
 import org.opendaylight.transportpce.pce.service.PathComputationService;
 import org.opendaylight.transportpce.pce.service.PathComputationServiceImpl;
 import org.opendaylight.transportpce.renderer.openroadminterface.OpenRoadmInterfaceFactory;
-// Adding OTN interface
 import org.opendaylight.transportpce.renderer.provisiondevice.DeviceRendererService;
 import org.opendaylight.transportpce.renderer.provisiondevice.DeviceRendererServiceImpl;
 import org.opendaylight.transportpce.renderer.provisiondevice.OtnDeviceRendererService;
-// Add OTN
 import org.opendaylight.transportpce.renderer.provisiondevice.OtnDeviceRendererServiceImpl;
 import org.opendaylight.transportpce.renderer.provisiondevice.RendererServiceOperations;
 import org.opendaylight.transportpce.renderer.provisiondevice.RendererServiceOperationsImpl;
 import org.opendaylight.transportpce.renderer.provisiondevice.notification.NotificationSender;
 import org.opendaylight.transportpce.renderer.rpcs.DeviceRendererRPCImpl;
 import org.opendaylight.transportpce.renderer.rpcs.RendererRPCImpl;
+import org.opendaylight.transportpce.sbrestconf.SbRestconfProvider;
 import org.opendaylight.transportpce.servicehandler.catalog.CatalogDataStoreOperationsImpl;
 import org.opendaylight.transportpce.servicehandler.impl.ServiceHandlerProvider;
 import org.opendaylight.transportpce.servicehandler.impl.ServicehandlerImpl;
@@ -269,9 +267,7 @@ public class TransportPCEImpl extends AbstractLightyModule implements TransportP
         deviceDiscoveryProvider = new DeviceDiscoveryProvider(dataBroker);
 
         LOG.info("Creating sb-restconf-client beans ...");
-        org.opendaylight.transportpce.sbrestconf.config.SbRestconfConfig sbConfig =
-                new org.opendaylight.transportpce.sbrestconf.config.SbRestconfConfig();
-        sbRestconfProvider = new SbRestconfProvider(dataBroker, sbConfig,
+        sbRestconfProvider = new SbRestconfProvider(dataBroker,
                 lightyServices.getBindingCodecTreeFactory());
     }
 
@@ -286,6 +282,10 @@ public class TransportPCEImpl extends AbstractLightyModule implements TransportP
         if (deviceDiscoveryProvider != null) {
             LOG.info("Starting device-discovery provider ...");
             deviceDiscoveryProvider.start();
+        }
+        if (sbRestconfProvider != null) {
+            LOG.info("Starting sb-restconf-client provider ...");
+            sbRestconfProvider.start();
         }
         LOG.info("Init done.");
         return true;

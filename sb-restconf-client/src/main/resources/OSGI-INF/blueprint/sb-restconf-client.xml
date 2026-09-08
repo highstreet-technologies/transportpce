@@ -15,16 +15,11 @@
   <reference id="bindingDataCodec"
              interface="org.opendaylight.yangtools.binding.data.codec.api.BindingDataCodec"/>
 
-  <bean id="sbRestconfConfig"
-        class="org.opendaylight.transportpce.sbrestconf.config.SbRestconfConfig">
-    <!-- TODO: populate from OSGi config-admin -->
-  </bean>
-
   <bean id="sbRestconfProvider"
         class="org.opendaylight.transportpce.sbrestconf.SbRestconfProvider"
+        init-method="start"
         destroy-method="close">
     <argument ref="dataBroker"/>
-    <argument ref="sbRestconfConfig"/>
     <argument ref="bindingDataCodec"/>
   </bean>
 

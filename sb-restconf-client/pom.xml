@@ -211,6 +211,28 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
           </execution>
         </executions>
       </plugin>
+      <!-- Attach the .cfg file as cfg:config artifact for Karaf feature -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>attach-artifact</id>
+            <goals>
+              <goal>attach-artifact</goal>
+            </goals>
+            <configuration>
+              <artifacts>
+                <artifact>
+                  <file>${basedir}/src/main/resources/org.opendaylight.transportpce.sbrestconf.cfg</file>
+                  <type>cfg</type>
+                  <classifier>config</classifier>
+                </artifact>
+              </artifacts>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 

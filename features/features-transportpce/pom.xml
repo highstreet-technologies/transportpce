@@ -71,5 +71,11 @@ and is available at http://www.eclipse.org/legal/epl-v10.html INTERNAL
       <classifier>features</classifier>
       <type>xml</type>
     </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>odl-transportpce-sb-restconf-client</artifactId>
+      <classifier>features</classifier>
+      <type>xml</type>
+    </dependency>
   </dependencies>
 </project>
