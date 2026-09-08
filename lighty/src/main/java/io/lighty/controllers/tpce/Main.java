@@ -82,6 +82,7 @@ public class Main {
                 restConfConfig.setHttpPort(8181);
                 // Bind to all interfaces so RESTCONF is reachable from outside the container
                 restConfConfig.setInetAddress(java.net.InetAddress.getByName("0.0.0.0"));
+                restConfConfig.setRestconfServletContextPath("rests");
 
             }
             // 3. NETCONF SBP configuration
