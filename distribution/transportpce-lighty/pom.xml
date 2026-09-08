@@ -81,7 +81,7 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
             </configuration>
           </execution>
           <execution>
-            <id>copy-device-discovery-config</id>
+            <id>copy-transportpce-config</id>
             <phase>generate-sources</phase>
             <goals>
               <goal>copy</goal>
@@ -94,7 +94,7 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
                   <version>${transportpce.version}</version>
                   <type>cfg</type>
                   <classifier>config</classifier>
-                  <destFileName>org.opendaylight.transportpce.devicediscovery.cfg</destFileName>
+                  <destFileName>org.opendaylight.transportpce.cfg</destFileName>
                 </artifactItem>
               </artifactItems>
               <outputDirectory>${project.build.directory}/docker-stage/tpce/etc</outputDirectory>

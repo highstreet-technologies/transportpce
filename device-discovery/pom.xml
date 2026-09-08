@@ -250,7 +250,7 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
                         <configuration>
                             <artifacts>
                                 <artifact>
-                                    <file>${basedir}/src/main/resources/org.opendaylight.transportpce.devicediscovery.cfg</file>
+                                    <file>${basedir}/src/main/resources/org.opendaylight.transportpce.cfg</file>
                                     <type>cfg</type>
                                     <classifier>config</classifier>
                                 </artifact>

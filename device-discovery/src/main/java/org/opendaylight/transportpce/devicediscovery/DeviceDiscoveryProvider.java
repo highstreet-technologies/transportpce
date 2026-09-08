@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 public class DeviceDiscoveryProvider implements AutoCloseable {
 
     private static final Logger LOG = LoggerFactory.getLogger(DeviceDiscoveryProvider.class);
-    private static final String DEFAULT_CONFIG_PATH = "etc/org.opendaylight.transportpce.devicediscovery.cfg";
+    private static final String DEFAULT_CONFIG_PATH = "etc/org.opendaylight.transportpce.cfg";
 
     private final DataBroker dataBroker;
     private final String configPath;

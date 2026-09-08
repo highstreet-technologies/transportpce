@@ -1,0 +1,18 @@
+# Device Discovery Configuration
+# Mount to: /opt/transportpce/etc/org.opendaylight.transportpce.devicediscovery.cfg
+
+# Kafka settings
+kafka.bootstrap.servers = kafka:9092
+kafka.topic = unmNotifications
+kafka.group.id = transportpce-device-discovery
+
+# Shared Bearer token for all controllers (RESTCONF)
+controller.bearer.token = change-me
+
+# Controller list (comma-separated UUIDs)
+# Each UUID must match the reportingEntityId in the VES commonEventHeader
+controller.list = 550e8400-e29b-41d4-a716-446655440000,550e8400-e29b-41d4-a716-446655440001
+
+# Per-controller base URLs (RESTCONF interface of the OpenDaylight controller)
+controller.550e8400-e29b-41d4-a716-446655440000.baseurl = https://controller-1:8443/rests
+controller.550e8400-e29b-41d4-a716-446655440001.baseurl = https://controller-2:8443/rests

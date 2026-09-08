@@ -37,7 +37,7 @@ public final class ConfigLoader {
 
     private static final Logger LOG = LoggerFactory.getLogger(ConfigLoader.class);
 
-    private static final String DEFAULT_CONFIG_PATH = "etc/org.opendaylight.transportpce.devicediscovery.cfg";
+    private static final String DEFAULT_CONFIG_PATH = "etc/org.opendaylight.transportpce.cfg";
 
     private ConfigLoader() {
     }

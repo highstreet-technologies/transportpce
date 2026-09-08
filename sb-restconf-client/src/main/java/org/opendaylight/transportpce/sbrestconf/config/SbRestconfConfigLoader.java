@@ -37,7 +37,7 @@ public final class SbRestconfConfigLoader {
 
     private static final Logger LOG = LoggerFactory.getLogger(SbRestconfConfigLoader.class);
 
-    private static final String DEFAULT_CONFIG_PATH = "etc/org.opendaylight.transportpce.sbrestconf.cfg";
+    private static final String DEFAULT_CONFIG_PATH = "etc/org.opendaylight.transportpce.cfg";
 
     private static final Pattern ENV_PATTERN = Pattern.compile(
             "\\$\\{env:([A-Za-z_][A-Za-z0-9_]*)(?::-(.*?))?\\}");

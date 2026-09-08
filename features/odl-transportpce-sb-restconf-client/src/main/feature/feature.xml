@@ -8,8 +8,6 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
 -->
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.4.0" name="odl-transportpce-sb-restconf-client">
     <feature name="odl-transportpce-sb-restconf-client">
-        <configfile finalname="etc/org.opendaylight.transportpce.sbrestconf.cfg" override="false">
-            mvn:${project.groupId}/transportpce-sb-restconf-client/${project.version}/cfg/config
-        </configfile>
+        <!-- Config file is provided by the odl-transportpce-device-discovery feature -->
     </feature>
 </features>
