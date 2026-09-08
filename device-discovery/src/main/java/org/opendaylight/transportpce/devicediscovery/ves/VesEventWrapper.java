@@ -26,8 +26,11 @@ public class VesEventWrapper {
 
     private static final Logger LOG = LoggerFactory.getLogger(VesEventWrapper.class);
 
-    private final Event event;
+    private Event event;
 
+    public VesEventWrapper(){
+
+    }
     public VesEventWrapper(Event event) {
         this.event = event;
     }
