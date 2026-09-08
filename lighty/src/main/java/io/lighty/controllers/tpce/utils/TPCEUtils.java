@@ -338,7 +338,11 @@ public final class TPCEUtils {
             org.opendaylight.yang.svc.v1.urn.opendaylight.params.xml.ns.yang.tapi.rev230728.YangModuleInfoImpl
                     .getInstance(),
             org.opendaylight.yang.svc.v1.nbi.notifications.rev230728.YangModuleInfoImpl
-                    .getInstance());
+                    .getInstance(),
+
+            // device-discovery augmentation (controller-uuid on netconf-topology)
+            org.opendaylight.yang.svc.v1.urn.opendaylight.transportpce.device.discovery.rev260907
+                    .YangModuleInfoImpl.getInstance());
 
     private static final Set<YangModuleInfo> TPCE_YANG_MODEL = Stream.concat(
             Stream.concat(
