@@ -22,4 +22,4 @@ echo "  TPCE_HOME=${TPCE_HOME}"
 echo "  JAVA_OPTS=${JAVA_OPTS}"
 echo "  JDK_OPTS=${JDK_OPTS}"
 
-exec java ${JAVA_OPTS} ${JDK_OPTS} -jar tpce.jar "$@"
+exec java ${JAVA_OPTS} ${JDK_OPTS} -jar tpce.jar -restconf config.json "$@"

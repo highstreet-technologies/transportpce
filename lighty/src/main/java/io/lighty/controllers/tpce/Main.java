@@ -56,7 +56,7 @@ public class Main {
     private ShutdownHook shutdownHook;
 
     public void start() {
-        start(null, false, false, "1000", "1000", false);
+        start(null, false, false, null, null, false);
     }
 
     @SuppressWarnings("checkstyle:Illegalcatch")
@@ -80,9 +80,6 @@ public class Main {
 
                 restConfConfig = RestConfConfigUtils.getDefaultRestConfConfiguration();
                 restConfConfig.setHttpPort(8181);
-                // Bind to all interfaces so RESTCONF is reachable from outside the container
-                restConfConfig.setInetAddress(java.net.InetAddress.getByName("0.0.0.0"));
-                restConfConfig.setRestconfServletContextPath("rests");
 
             }
             // 3. NETCONF SBP configuration
@@ -210,8 +207,8 @@ public class Main {
             String restConfConfigurationFile = commandLine.getOptionValue(RESTCONF_OPTION_NAME, null);
             boolean useNbiNotifications = commandLine.hasOption(NBINOTIFICATION_OPTION_NAME);
             boolean useTapi = commandLine.hasOption(TAPI_OPTION_NAME);
-            String olmtimer1 = commandLine.getOptionValue(OLMTIMER1_OPTION_NAME, "1000");
-            String olmtimer2 = commandLine.getOptionValue(OLMTIMER2_OPTION_NAME, "1000");
+            String olmtimer1 = commandLine.getOptionValue(OLMTIMER1_OPTION_NAME, null);
+            String olmtimer2 = commandLine.getOptionValue(OLMTIMER2_OPTION_NAME, null);
             Main app = new Main();
             app.start(restConfConfigurationFile, useNbiNotifications, useTapi, olmtimer1, olmtimer2, true);
         } catch (ParseException e) {
