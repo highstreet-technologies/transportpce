@@ -44,6 +44,7 @@ import org.opendaylight.transportpce.nbinotifications.impl.NbiNotificationsProvi
 import org.opendaylight.transportpce.networkmodel.NetConfTopologyListener;
 import org.opendaylight.transportpce.networkmodel.NetworkModelProvider;
 import org.opendaylight.transportpce.networkmodel.NetworkUtilsImpl;
+import org.opendaylight.transportpce.sbrestconf.SbRestconfProvider;
 import org.opendaylight.transportpce.networkmodel.listeners.PortMappingListener;
 import org.opendaylight.transportpce.networkmodel.service.FrequenciesServiceImpl;
 import org.opendaylight.transportpce.networkmodel.service.NetworkModelService;
@@ -107,6 +108,8 @@ public class TransportPCEImpl extends AbstractLightyModule implements TransportP
     private NbiNotificationsProvider nbiNotificationsProvider;
     // device-discovery
     private DeviceDiscoveryProvider deviceDiscoveryProvider;
+    // southbound RESTCONF client
+    private SbRestconfProvider sbRestconfProvider;
     private List<Registration> rpcRegistrations = new ArrayList<>();
 
     public TransportPCEImpl(
@@ -264,6 +267,12 @@ public class TransportPCEImpl extends AbstractLightyModule implements TransportP
 
         LOG.info("Creating device-discovery beans ...");
         deviceDiscoveryProvider = new DeviceDiscoveryProvider(dataBroker);
+
+        LOG.info("Creating sb-restconf-client beans ...");
+        org.opendaylight.transportpce.sbrestconf.config.SbRestconfConfig sbConfig =
+                new org.opendaylight.transportpce.sbrestconf.config.SbRestconfConfig();
+        sbRestconfProvider = new SbRestconfProvider(dataBroker, sbConfig,
+                lightyServices.getBindingCodecTreeFactory());
     }
 
     @Override
@@ -284,6 +293,10 @@ public class TransportPCEImpl extends AbstractLightyModule implements TransportP
 
     @Override
     protected boolean stopProcedure() {
+        if (sbRestconfProvider != null) {
+            LOG.info("Shutting down sb-restconf-client provider ...");
+            sbRestconfProvider.close();
+        }
         if (deviceDiscoveryProvider != null) {
             LOG.info("Shutting down device-discovery provider ...");
             deviceDiscoveryProvider.close();

@@ -44,6 +44,7 @@ and is available at http://www.eclipse.org/legal/epl-v10.html INTERNAL
     <module>nbinotifications</module>
     <module>dmaap-client</module>
     <module>device-discovery</module>
+    <module>sb-restconf-client</module>
     <module>features</module>
     <module>karaf</module>
   </modules>
