@@ -27,7 +27,7 @@ import io.lighty.modules.southbound.netconf.impl.NetconfTopologyPluginBuilder;
 import io.lighty.modules.southbound.netconf.impl.config.NetconfConfiguration;
 import io.lighty.modules.southbound.netconf.impl.util.NetconfConfigUtils;
 import io.lighty.openapi.OpenApiLighty;
-import io.lighty.server.LightyServerBuilder;
+import io.lighty.server.LightyJettyServerProvider;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.file.Files;
@@ -56,7 +56,7 @@ public class Main {
     private ShutdownHook shutdownHook;
 
     public void start() {
-        start(null, false, false, null, null, false);
+        start(null, false, false, "1000", "1000", false);
     }
 
     @SuppressWarnings("checkstyle:Illegalcatch")
@@ -158,21 +158,23 @@ public class Main {
         LightyController lightyController = lightyControllerBuilder.from(controllerConfiguration).build();
         lightyController.start().get();
 
-        // 2. Start swagger server
-        LightyServerBuilder jettyServerBuilder = new LightyServerBuilder(
+        // 2. build RestConf server
+        LightyJettyServerProvider jettyServerBuilder = new LightyJettyServerProvider(
                 new InetSocketAddress(restConfConfiguration.getInetAddress(), restConfConfiguration.getHttpPort()));
         CommunityRestConfBuilder communityRestConfBuilder = CommunityRestConfBuilder.from(
                 RestConfConfigUtils.getRestConfConfiguration(restConfConfiguration, lightyController.getServices()));
-        OpenApiLighty swagger = new OpenApiLighty(restConfConfiguration, jettyServerBuilder,
-                lightyController.getServices());
-        swagger.start().get();
-
-        // 3. start RestConf server
         CommunityRestConf communityRestConf = communityRestConfBuilder.withLightyServer(jettyServerBuilder).build();
         communityRestConf.start().get();
+
+        // 3. Start swagger server
+        OpenApiLighty swagger = new OpenApiLighty(restConfConfiguration, jettyServerBuilder,
+                lightyController.getServices(), null);
+        swagger.start().get();
+
+        // 4. Start RestConf server
         communityRestConf.startServer();
 
-        // 4. start NetConf SBP
+        // 5. start NetConf SBP
         NetconfSBPlugin netconfSouthboundPlugin;
         netconfSBPConfiguration = NetconfConfigUtils.injectServicesToTopologyConfig(netconfSBPConfiguration,
                 lightyController.getServices());
@@ -205,8 +207,8 @@ public class Main {
             String restConfConfigurationFile = commandLine.getOptionValue(RESTCONF_OPTION_NAME, null);
             boolean useNbiNotifications = commandLine.hasOption(NBINOTIFICATION_OPTION_NAME);
             boolean useTapi = commandLine.hasOption(TAPI_OPTION_NAME);
-            String olmtimer1 = commandLine.getOptionValue(OLMTIMER1_OPTION_NAME, null);
-            String olmtimer2 = commandLine.getOptionValue(OLMTIMER2_OPTION_NAME, null);
+            String olmtimer1 = commandLine.getOptionValue(OLMTIMER1_OPTION_NAME, "1000");
+            String olmtimer2 = commandLine.getOptionValue(OLMTIMER2_OPTION_NAME, "1000");
             Main app = new Main();
             app.start(restConfConfigurationFile, useNbiNotifications, useTapi, olmtimer1, olmtimer2, true);
         } catch (ParseException e) {
