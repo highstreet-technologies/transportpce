@@ -17,6 +17,6 @@ RUN chmod 755 ${TPCE_HOME}/start-tpce.sh
 EXPOSE 8181
 
 # Start TransportPCE via Lighty
-ENTRYPOINT ["${TPCE_HOME}/start-tpce.sh"]
+ENTRYPOINT ["/opt/transportpce/start-tpce.sh"]
 
 WORKDIR ${TPCE_HOME}
