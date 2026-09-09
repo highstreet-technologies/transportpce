@@ -28,17 +28,17 @@ KARAF_OK_START_MSG = re.escape(
     "Blueprint container for bundle org.opendaylight.netconf.restconf")+".* was successfully created"
 
 
-RESTCONF_BASE_URL = "http://localhost:8181/restconf"
+RESTCONF_BASE_URL = "http://localhost:8181/rests"
 ODL_LOGIN = "admin"
 ODL_PWD = "admin"
 NODES_LOGIN = "admin"
 NODES_PWD = "admin"
-URL_CONFIG_NETCONF_TOPO = "{}/config/network-topology:network-topology/topology/topology-netconf/"
-URL_CONFIG_ORDM_TOPO = "{}/config/ietf-network:networks/network/openroadm-topology/"
-URL_CONFIG_OTN_TOPO = "{}/config/ietf-network:networks/network/otn-topology/"
-URL_CONFIG_CLLI_NET = "{}/config/ietf-network:networks/network/clli-network/"
-URL_CONFIG_ORDM_NET = "{}/config/ietf-network:networks/network/openroadm-network/"
-URL_PORTMAPPING = "{}/config/transportpce-portmapping:network/nodes/"
+URL_CONFIG_NETCONF_TOPO = "{}/data/network-topology:network-topology/topology=topology-netconf/"
+URL_CONFIG_ORDM_TOPO = "{}/data/ietf-network:networks/network=openroadm-topology/"
+URL_CONFIG_OTN_TOPO = "{}/data/ietf-network:networks/network=otn-topology/"
+URL_CONFIG_CLLI_NET = "{}/data/ietf-network:networks/network=clli-network/"
+URL_CONFIG_ORDM_NET = "{}/data/ietf-network:networks/network=openroadm-network/"
+URL_PORTMAPPING = "{}/data/transportpce-portmapping:network/nodes/"
 
 TYPE_APPLICATION_JSON = {'Content-Type': 'application/json', 'Accept': 'application/json'}
 TYPE_APPLICATION_XML = {'Content-Type': 'application/xml', 'Accept': 'application/xml'}

@@ -2,7 +2,7 @@ import json
 
 from .odlclient import OdlClient
 
-URI_CONFIG_ORDM_TOPO = "/restconf/config/ietf-network:networks/network/openroadm-topology/"
+URI_CONFIG_ORDM_TOPO = "/rests/data/ietf-network:networks/network=openroadm-topology/"
 
 
 class TrpceOdlClient(OdlClient):
@@ -68,7 +68,7 @@ class TrpceOdlClient(OdlClient):
 
     def addOmsAttributes(self, link: str, attr):
         uri = URI_CONFIG_ORDM_TOPO + (
-            "ietf-network-topology:link/" + link + "/org-openroadm-network-topology:OMS-attributes/span"
+            "ietf-network-topology:link=" + link + "/org-openroadm-network-topology:OMS-attributes/span"
         )
         response = self.requestRest(uri,
             'PUT', self.defaultJsonHeaders, attr)
@@ -98,13 +98,13 @@ class TrpceOdlClient(OdlClient):
 
     def createService(self,serviceData):
        
-        response = self.requestRest('/restconf/operations/org-openroadm-service:service-create',
+        response = self.requestRest('/rests/operations/org-openroadm-service:service-create',
             'POST',self.defaultJsonHeaders,serviceData)
    
         return response
 
     def getService(self, serviceName):
-        uri = "/restconf/operational/org-openroadm-service:service-list/services/"+serviceName
+        uri = "/rests/operational/org-openroadm-service:service-list/services/"+serviceName
         response = self.requestRest(uri,'GET',self.defaultJsonHeaders,None)
         return response
 
@@ -117,7 +117,7 @@ class TrpceOdlClient(OdlClient):
         return self.requestRest(URI_CONFIG_ORDM_TOPO+suffix,'GET',self.defaultJsonHeaders)
         
     def deleteService(self, serviceData):
-        response = self.requestRest('/restconf/operations/org-openroadm-service:service-delete',
+        response = self.requestRest('/rests/operations/org-openroadm-service:service-delete',
             'POST', self.defaultJsonHeaders,serviceData)
         return response
 
