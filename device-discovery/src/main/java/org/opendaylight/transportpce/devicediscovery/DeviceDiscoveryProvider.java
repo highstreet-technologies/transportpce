@@ -21,10 +21,12 @@ import org.slf4j.LoggerFactory;
  * Lifecycle component for the Device Discovery module.
  *
  * On startup it loads configuration from a properties file, performs initial
- * netconf-topology reconciliation from all configured controllers, and starts
- * the Kafka VES event consumer for real-time device lifecycle events.
+ * netconf-topology reconciliation from all configured controllers (fetching
+ * full node data), and starts the Kafka VES event consumer for real-time
+ * device lifecycle events (which also fetches full node data on connect).
  *
- * Works both in OSGi/Karaf (via blueprint) and Lighty (via direct instantiation).
+ * The RESTCONF client stays open for the lifetime of the provider because
+ * the Kafka consumer uses it to fetch node data on "connected" events.
  */
 public class DeviceDiscoveryProvider implements AutoCloseable {
 
@@ -37,54 +39,37 @@ public class DeviceDiscoveryProvider implements AutoCloseable {
     private TopologyWriter topologyWriter;
     private VesKafkaConsumer kafkaConsumer;
     private NetconfTopologyRestconfClient restconfClient;
-    private TopologyReconciliationService reconciliationService;
 
-    /**
-     * Constructor for OSGi/Karaf — uses default config path.
-     *
-     * @param dataBroker MDSAL DataBroker
-     */
     public DeviceDiscoveryProvider(DataBroker dataBroker) {
         this(dataBroker, DEFAULT_CONFIG_PATH);
     }
 
-    /**
-     * Constructor with explicit config path — for Lighty and tests.
-     *
-     * @param dataBroker MDSAL DataBroker
-     * @param configPath path to the properties config file
-     */
     public DeviceDiscoveryProvider(DataBroker dataBroker, String configPath) {
         this.dataBroker = dataBroker;
         this.configPath = configPath;
         LOG.info("DeviceDiscoveryProvider created with DataBroker: {}, configPath: {}", dataBroker, configPath);
     }
 
-    /**
-     * Called on startup (by OSGi blueprint or Lighty module).
-     *
-     * Loads config from properties file, runs reconciliation, starts Kafka consumer.
-     */
     public void start() {
         LOG.info("Device Discovery starting");
 
-        // Load configuration from properties file
         config = ConfigLoader.load(configPath);
-
         topologyWriter = new TopologyWriter(dataBroker);
 
-        // Initial reconciliation: fetch netconf-topology from all configured controllers
+        // RESTCONF client — stays open for Kafka consumer to use on "connected" events
         restconfClient = new NetconfTopologyRestconfClient();
-        reconciliationService = new TopologyReconciliationService(config, topologyWriter, restconfClient);
+
+        // Initial reconciliation: fetch full netconf-topology from all configured controllers
+        TopologyReconciliationService reconciliationService =
+                new TopologyReconciliationService(config, topologyWriter, restconfClient);
         try {
             reconciliationService.reconcile();
         } catch (Exception e) {
             LOG.error("Topology reconciliation failed, continuing with Kafka consumer startup", e);
         }
-        restconfClient.close();
 
-        // Start Kafka consumer for real-time VES events
-        kafkaConsumer = new VesKafkaConsumer(config, topologyWriter);
+        // Start Kafka consumer (uses restconfClient for on-demand node fetches)
+        kafkaConsumer = new VesKafkaConsumer(config, topologyWriter, restconfClient);
         kafkaConsumer.start();
 
         LOG.info("Device Discovery started successfully");

@@ -131,7 +131,6 @@ public class TransportPCEImpl extends AbstractLightyModule implements TransportP
                 networkTransaction, portMapping, notificationPublishService);
         new NetConfTopologyListener(networkModelService, dataBroker, deviceTransactionManager, portMapping);
         new PortMappingListener(networkModelService);
-
         RpcProviderService rpcProviderService = lightyServices.getRpcProviderService();
         NotificationService notificationService = lightyServices.getNotificationService();
         new NetworkUtilsImpl(dataBroker, rpcProviderService);

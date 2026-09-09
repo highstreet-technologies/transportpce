@@ -7,23 +7,19 @@
  */
 package org.opendaylight.transportpce.devicediscovery.reconciliation;
 
+import java.util.List;
 import org.opendaylight.transportpce.devicediscovery.config.DeviceDiscoveryConfig;
+import org.opendaylight.transportpce.devicediscovery.reconciliation.NetconfTopologyRestconfClient.RemoteNode;
 import org.opendaylight.transportpce.devicediscovery.topology.TopologyWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
 
 /**
  * Performs initial netconf-topology reconciliation at startup.
  *
  * For each configured controller, fetches the current netconf-topology via RESTCONF
- * and writes all discovered nodes into the MDSAL operational store with the
- * controller-uuid augmentation. This ensures TransportPCE has an accurate view
- * of all devices even if VES events were missed during downtime.
- *
- * Design rule: netconf-topology from the controller is the Source of Truth.
- * Kafka VES events are real-time triggers; this reconciliation is the safety net.
+ * and writes all discovered nodes with full data into the MDSAL operational store
+ * with the controller-uuid augmentation.
  */
 public class TopologyReconciliationService {
 
@@ -42,10 +38,6 @@ public class TopologyReconciliationService {
 
     /**
      * Reconcile netconf-topology from all configured controllers.
-     *
-     * Called once at startup. Iterates over all controllers in the config,
-     * fetches their netconf-topology, and writes each node into MDSAL with
-     * the corresponding controller-uuid.
      */
     public void reconcile() {
         List<DeviceDiscoveryConfig.ControllerEntry> controllers = config.getControllers();
@@ -69,16 +61,10 @@ public class TopologyReconciliationService {
                 totalNodes, controllers.size());
     }
 
-    /**
-     * Reconcile a single controller.
-     *
-     * @param controller the controller entry from config
-     * @return number of nodes written
-     */
     private int reconcileController(DeviceDiscoveryConfig.ControllerEntry controller) {
         LOG.info("Reconciling controller: uuid={}, baseUrl={}", controller.getUuid(), controller.getBaseUrl());
 
-        List<NetconfTopologyRestconfClient.RemoteNode> remoteNodes =
+        List<RemoteNode> remoteNodes =
                 restconfClient.getNetconfTopology(controller.getBaseUrl(), config.getBearerToken());
 
         if (remoteNodes.isEmpty()) {
@@ -87,13 +73,12 @@ public class TopologyReconciliationService {
         }
 
         int written = 0;
-        for (NetconfTopologyRestconfClient.RemoteNode remoteNode : remoteNodes) {
+        for (RemoteNode remoteNode : remoteNodes) {
             String connectionStatus = remoteNode.getConnectionStatus();
-            // Only write nodes that are connected or connecting — skip disconnected/unable-to-connect
             if (connectionStatus != null
                     && ("connected".equalsIgnoreCase(connectionStatus)
                         || "connecting".equalsIgnoreCase(connectionStatus))) {
-                topologyWriter.writeNode(remoteNode.getNodeId(), controller.getUuid(), connectionStatus);
+                topologyWriter.writeNode(remoteNode, controller.getUuid());
                 written++;
             } else {
                 LOG.debug("Skipping node {} from controller {} — connection status: {}",

@@ -7,30 +7,33 @@
  */
 package org.opendaylight.transportpce.devicediscovery.kafka;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.Duration;
+import java.util.Collections;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.opendaylight.transportpce.devicediscovery.config.DeviceDiscoveryConfig;
 import org.opendaylight.transportpce.devicediscovery.model.ves.Event;
-import org.opendaylight.transportpce.devicediscovery.ves.VesEventWrapper;
+import org.opendaylight.transportpce.devicediscovery.reconciliation.NetconfTopologyRestconfClient;
+import org.opendaylight.transportpce.devicediscovery.reconciliation.NetconfTopologyRestconfClient.RemoteNode;
 import org.opendaylight.transportpce.devicediscovery.topology.TopologyWriter;
+import org.opendaylight.transportpce.devicediscovery.ves.VesEventWrapper;
 import org.opendaylight.transportpce.devicediscovery.ves.VesEventWrapperDeserializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.time.Duration;
-import java.util.Collections;
-import java.util.Properties;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * Kafka consumer that listens for VES notification events on the configured topic.
  *
- * On each notification event it extracts the controller UUID (reportingEntityId),
- * the device node ID (changeIdentifier), and the lifecycle state (newState),
- * then delegates to TopologyWriter to update the MDSAL operational store.
+ * On "connected": fetches the complete node data from the controller via RESTCONF
+ * and writes it into MDSAL with the controller-uuid augmentation.
+ * On "connecting": same as connected (fetch full data).
+ * On "disconnected"/"removed": deletes the node from MDSAL.
  */
 public class VesKafkaConsumer {
 
@@ -38,14 +41,16 @@ public class VesKafkaConsumer {
 
     private final DeviceDiscoveryConfig config;
     private final TopologyWriter topologyWriter;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final NetconfTopologyRestconfClient restconfClient;
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final AtomicBoolean running = new AtomicBoolean(false);
     private KafkaConsumer<String, VesEventWrapper> consumer;
 
-    public VesKafkaConsumer(DeviceDiscoveryConfig config, TopologyWriter topologyWriter) {
+    public VesKafkaConsumer(DeviceDiscoveryConfig config, TopologyWriter topologyWriter,
+            NetconfTopologyRestconfClient restconfClient) {
         this.config = config;
         this.topologyWriter = topologyWriter;
+        this.restconfClient = restconfClient;
     }
 
     public void start() {
@@ -114,22 +119,42 @@ public class VesKafkaConsumer {
             String newState = wrapper.getNewState();
 
             // Validate controller is known
-            if (config.findController(controllerUuid).isEmpty()) {
+            Optional<DeviceDiscoveryConfig.ControllerEntry> controllerOpt =
+                    config.findController(controllerUuid);
+            if (controllerOpt.isEmpty()) {
                 LOG.warn("Unknown controller UUID '{}', ignoring event for node {}", controllerUuid, nodeId);
                 return;
             }
 
             LOG.info("VES event: controller={}, node={}, state={}", controllerUuid, nodeId, newState);
 
-            // Act on the lifecycle state
+            String baseUrl = controllerOpt.orElseThrow().getBaseUrl();
+
             switch (newState.toLowerCase()) {
-                case "connecting", "connected" -> topologyWriter.writeNode(nodeId, controllerUuid, newState);
-                case "disconnected" -> topologyWriter.deleteNode(nodeId);
+                case "connected", "connecting" -> fetchAndWriteNode(nodeId, controllerUuid, baseUrl);
+                case "disconnected", "removed" -> topologyWriter.deleteNode(nodeId);
                 default -> LOG.warn("Unknown newState '{}' for node {}, ignoring", newState, nodeId);
             }
 
         } catch (Exception e) {
             LOG.error("Failed to process Kafka record (key={})", key, e);
+        }
+    }
+
+    /**
+     * Fetch the complete node data from the controller and write it to MDSAL.
+     */
+    private void fetchAndWriteNode(String nodeId, String controllerUuid, String baseUrl) {
+        Optional<RemoteNode> nodeOpt = restconfClient.getNode(nodeId, baseUrl, config.getBearerToken());
+        if (nodeOpt.isPresent()) {
+            topologyWriter.writeNode(nodeOpt.orElseThrow(), controllerUuid);
+        } else {
+            LOG.warn("Node {} not found at controller {}, writing minimal entry", nodeId, baseUrl);
+            // Fallback: write minimal node with just nodeId and controller-uuid
+            RemoteNode minimal = new RemoteNode();
+            minimal.setNodeId(nodeId);
+            minimal.setConnectionStatus("connecting");
+            topologyWriter.writeNode(minimal, controllerUuid);
         }
     }
 
