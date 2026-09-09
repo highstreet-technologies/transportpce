@@ -73,4 +73,6 @@ integration/**/gnpy
 integration/**/env
 integration/**/conf-generated/*
 lighty/state
+lighty/data
+lighty/etc
 lighty/config.json

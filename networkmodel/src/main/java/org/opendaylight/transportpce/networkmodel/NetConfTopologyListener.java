@@ -65,10 +65,11 @@ public class NetConfTopologyListener implements DataTreeChangeListener<Node> {
     /**
      * Instantiate the NetConfTopologyListener.
      *
-     * @param networkModelService Service that eases data handling in topology datastores
-     * @param dataBroker Provides access to the conceptual data tree store in order to register data change listeners
+     * @param networkModelService      Service that eases data handling in topology datastores
+     * @param dataBroker               Provides access to the conceptual data tree store in order to register data
+     *                                 change listeners
      * @param deviceTransactionManager Manages data transactions with the netconf devices
-     * @param portMapping Store the abstraction view of the netconf device
+     * @param portMapping              Store the abstraction view of the netconf device
      */
     public NetConfTopologyListener(
             final NetworkModelService networkModelService,
@@ -82,17 +83,21 @@ public class NetConfTopologyListener implements DataTreeChangeListener<Node> {
         this.portMapping = portMapping;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void onDataTreeChanged(List<DataTreeModification<Node>> changes) {
         LOG.info("onDataTreeChanged - {}", this.getClass().getSimpleName());
         for (DataTreeModification<Node> change : changes) {
             DataObjectModification<Node> rootNode = change.getRootNode();
-            if (rootNode.dataBefore() == null) {
+            var before = rootNode.dataBefore();
+            var after = rootNode.dataAfter();
+            if (after == null) {
                 continue;
             }
-            String nodeId = rootNode.dataBefore().key().getNodeId().getValue();
-            NetconfNode netconfNodeBefore = rootNode.dataBefore().augmentation(NetconfNodeAugment.class)
+            String nodeId = before == null ? after.key().getNodeId().getValue() : before.key().getNodeId().getValue();
+            NetconfNode netconfNodeBefore = before == null ? null : before.augmentation(NetconfNodeAugment.class)
                     .getNetconfNode();
             switch (rootNode.modificationType()) {
                 case DELETE:
@@ -109,19 +114,22 @@ public class NetConfTopologyListener implements DataTreeChangeListener<Node> {
                         }
                     }
                     break;
+                case WRITE:
                 case SUBTREE_MODIFIED:
-                    NetconfNode netconfNodeAfter = rootNode.dataAfter().augmentation(NetconfNodeAugment.class)
-                            .getNetconfNode();
-                    if (ConnectionStatus.Connecting.equals(netconfNodeBefore.getConnectionStatus())
+                    NetconfNode netconfNodeAfter = after.augmentation(NetconfNodeAugment.class).getNetconfNode();
+                    if (ConnectionStatus.Connecting.equals(netconfNodeBefore == null ? ConnectionStatus.Connecting
+                            : netconfNodeBefore.getConnectionStatus())
                             && ConnectionStatus.Connected.equals(netconfNodeAfter.getConnectionStatus())) {
                         LOG.info("Connecting Node: {}", nodeId);
                         Optional<AvailableCapability> deviceCapability = null;
                         deviceCapability =
-                              netconfNodeAfter.getAvailableCapabilities().getAvailableCapability().stream()
-                                .filter(cp -> cp.getCapability().contains(StringConstants.OPENROADM_DEVICE_MODEL_NAME)
-                                && getOpenRoadmDeviceCapabilities().contains(cp.getCapability()))
-                                .sorted((c1, c2) -> c2.getCapability().compareTo(c1.getCapability()))
-                                .findFirst();
+                                netconfNodeAfter.getAvailableCapabilities().getAvailableCapability().stream()
+                                        .filter(cp ->
+                                                cp.getCapability().contains(StringConstants.OPENROADM_DEVICE_MODEL_NAME)
+                                                        && getOpenRoadmDeviceCapabilities().contains(
+                                                        cp.getCapability()))
+                                        .sorted((c1, c2) -> c2.getCapability().compareTo(c1.getCapability()))
+                                        .findFirst();
                         if (!deviceCapability.isEmpty()) {
                             this.networkModelService
                                     .createOpenRoadmNode(nodeId, deviceCapability.orElseThrow().getCapability());
@@ -146,7 +154,8 @@ public class NetConfTopologyListener implements DataTreeChangeListener<Node> {
                             LOG.info("OpenConfig device {} correctly connected to controller", nodeId);
                         }
                     }
-                    if (ConnectionStatus.Connected.equals(netconfNodeBefore.getConnectionStatus())
+                    if (ConnectionStatus.Connected.equals(netconfNodeBefore == null ? ConnectionStatus.Connecting
+                            : netconfNodeBefore.getConnectionStatus())
                             && ConnectionStatus.Connecting.equals(netconfNodeAfter.getConnectionStatus())) {
                         LOG.warn("Node: {} is being disconnected", nodeId);
                     }
@@ -182,8 +191,8 @@ public class NetConfTopologyListener implements DataTreeChangeListener<Node> {
             return;
         }
         NodeRegistration nodeRegistration =
-            new NodeRegistration(
-                nodeId, openRoadmVersion, notificationService.orElseThrow(), this.dataBroker, this.portMapping);
+                new NodeRegistration(
+                        nodeId, openRoadmVersion, notificationService.orElseThrow(), this.dataBroker, this.portMapping);
         nodeRegistration.registerListeners();
         registrations.put(nodeId, nodeRegistration);
 
@@ -222,11 +231,12 @@ public class NetConfTopologyListener implements DataTreeChangeListener<Node> {
     /**
      * Specific constructor dedicated to JUnit tests.
      *
-     * @param networkModelService Service that eases data handling in topology datastores
-     * @param dataBroker Provides access to the conceptual data tree store in order to register data change listeners
+     * @param networkModelService      Service that eases data handling in topology datastores
+     * @param dataBroker               Provides access to the conceptual data tree store in order to register data
+     *                                 change listeners
      * @param deviceTransactionManager Manages data transactions with the netconf devices
-     * @param portMapping Store the abstraction view of the netconf device
-     * @param registrations Map with all listeners registered for a netconf device
+     * @param portMapping              Store the abstraction view of the netconf device
+     * @param registrations            Map with all listeners registered for a netconf device
      */
     @VisibleForTesting
     public NetConfTopologyListener(
@@ -265,7 +275,7 @@ public class NetConfTopologyListener implements DataTreeChangeListener<Node> {
                         Timeouts.DEVICE_READ_TIMEOUT, Timeouts.DEVICE_READ_TIMEOUT_UNIT);
         if (ordmInfoObject == null || ordmInfoObject.isEmpty() || ordmInfoObject.orElseThrow().getStream().isEmpty()) {
             LOG.error("List of streams supports by device is not present");
-            return List.of("OPENROADM","NETCONF");
+            return List.of("OPENROADM", "NETCONF");
         }
         List<String> streams = new ArrayList<>();
         List<String> netconfStreams = new ArrayList<>();
@@ -280,9 +290,9 @@ public class NetConfTopologyListener implements DataTreeChangeListener<Node> {
         // If OpenROADM streams are not supported, try NETCONF streams subscription
         streams.addAll(netconfStreams);
         return
-            streams.isEmpty()
-                ? List.of("OPENROADM","NETCONF")
-                : streams;
+                streams.isEmpty()
+                        ? List.of("OPENROADM", "NETCONF")
+                        : streams;
     }
 
 }
