@@ -186,7 +186,7 @@ public class Main {
 
         // 5. start TransportPCE beans
         TransportPCE transportPCE = new TransportPCEImpl(lightyController.getServices(), activateNbiNotification,
-            activateTapi, olmtimer1, olmtimer2);
+            activateTapi, olmtimer1, olmtimer2, jettyServerBuilder);
         transportPCE.start().get();
 
         // 6. Register shutdown hook for graceful shutdown.
@@ -207,8 +207,8 @@ public class Main {
             String restConfConfigurationFile = commandLine.getOptionValue(RESTCONF_OPTION_NAME, null);
             boolean useNbiNotifications = commandLine.hasOption(NBINOTIFICATION_OPTION_NAME);
             boolean useTapi = commandLine.hasOption(TAPI_OPTION_NAME);
-            String olmtimer1 = commandLine.getOptionValue(OLMTIMER1_OPTION_NAME, null);
-            String olmtimer2 = commandLine.getOptionValue(OLMTIMER2_OPTION_NAME, null);
+            String olmtimer1 = commandLine.getOptionValue(OLMTIMER1_OPTION_NAME, "1000");
+            String olmtimer2 = commandLine.getOptionValue(OLMTIMER2_OPTION_NAME, "1000");
             Main app = new Main();
             app.start(restConfConfigurationFile, useNbiNotifications, useTapi, olmtimer1, olmtimer2, true);
         } catch (ParseException e) {

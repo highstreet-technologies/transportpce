@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Copyright © 2026 Highstreet Technologies GmbH and others. All rights reserved.
+
+This program and the accompanying materials are made available under the
+terms of the Eclipse Public License v1.0 which accompanies this distribution,
+and is available at http://www.eclipse.org/legal/epl-v10.html
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.opendaylight.mdsal</groupId>
+    <artifactId>binding-parent</artifactId>
+    <version>15.0.4</version>
+    <relativePath/>
+  </parent>
+
+  <groupId>org.opendaylight.transportpce</groupId>
+  <artifactId>transportpce-health-check</artifactId>
+  <version>12.1.0</version>
+  <packaging>bundle</packaging>
+  <name>TransportPCE :: Health Check</name>
+  <description>
+    Provides a /ready endpoint on the RESTCONF Jetty server that returns
+    HTTP 200 once TransportPCE has fully started up. Used by container
+    orchestration (Docker/K8s) for readiness probes.
+  </description>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <dependencies>
+    <!-- Lighty Jetty server (for registering servlet on the same server as RESTCONF) -->
+    <dependency>
+      <groupId>io.lighty.modules</groupId>
+      <artifactId>lighty-jetty-server</artifactId>
+      <version>23.1.0</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- AAA web API (WebContext, ServletDetails) -->
+    <dependency>
+        <groupId>org.opendaylight.aaa.web</groupId>
+      <artifactId>web-api</artifactId>
+      <version>0.22.5</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- Servlet API (javax.servlet — matches ODL Vanadium) -->
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+      <version>3.1.0</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- Yangtools concepts (Registration) -->
+    <dependency>
+      <groupId>org.opendaylight.yangtools</groupId>
+      <artifactId>concepts</artifactId>
+    </dependency>
+
+    <!-- SLF4J -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+
+    <!-- OSGi -->
+    <dependency>
+      <groupId>org.osgi</groupId>
+      <artifactId>osgi.core</artifactId>
+    </dependency>
+
+    <!-- Test -->
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <extensions>true</extensions>
+        <configuration>
+          <instructions>
+            <Export-Package>
+              org.opendaylight.transportpce.health
+            </Export-Package>
+          </instructions>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>process-sources</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <configuration>
+              <failOnViolation>false</failOnViolation>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>com.github.spotbugs</groupId>
+        <artifactId>spotbugs-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>analyze-compile</id>
+            <configuration>
+              <failOnError>false</failOnError>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

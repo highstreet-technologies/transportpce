@@ -9,6 +9,7 @@ package io.lighty.controllers.tpce.module;
 
 import io.lighty.core.controller.api.AbstractLightyModule;
 import io.lighty.core.controller.api.LightyServices;
+import io.lighty.server.LightyJettyServerProvider;
 import java.util.ArrayList;
 import java.util.List;
 import org.opendaylight.mdsal.binding.api.DataBroker;
@@ -40,6 +41,7 @@ import org.opendaylight.transportpce.common.openroadminterfaces.OpenRoadmInterfa
 import org.opendaylight.transportpce.common.openroadminterfaces.OpenRoadmInterfacesImpl221;
 import org.opendaylight.transportpce.common.openroadminterfaces.OpenRoadmInterfacesImpl710;
 import org.opendaylight.transportpce.devicediscovery.DeviceDiscoveryProvider;
+import org.opendaylight.transportpce.health.HealthCheckProvider;
 import org.opendaylight.transportpce.nbinotifications.impl.NbiNotificationsProvider;
 import org.opendaylight.transportpce.networkmodel.NetConfTopologyListener;
 import org.opendaylight.transportpce.networkmodel.NetworkModelProvider;
@@ -108,11 +110,13 @@ public class TransportPCEImpl extends AbstractLightyModule implements TransportP
     private DeviceDiscoveryProvider deviceDiscoveryProvider;
     // southbound RESTCONF client
     private SbRestconfProvider sbRestconfProvider;
+    // health check endpoint
+    private HealthCheckProvider healthCheckProvider;
     private List<Registration> rpcRegistrations = new ArrayList<>();
 
     public TransportPCEImpl(
             LightyServices lightyServices, boolean activateNbiNotification, boolean activateTapi,
-            String olmtimer1, String olmtimer2) {
+            String olmtimer1, String olmtimer2, LightyJettyServerProvider jettyServerProvider) {
         LOG.info("Initializing transaction providers ...");
         deviceTransactionManager =
             new DeviceTransactionManagerImpl(lightyServices.getBindingMountPointService(), MAX_TIME_FOR_TRANSACTION);
@@ -269,10 +273,18 @@ public class TransportPCEImpl extends AbstractLightyModule implements TransportP
         LOG.info("Creating sb-restconf-client beans ...");
         sbRestconfProvider = new SbRestconfProvider(dataBroker,
                 lightyServices.getBindingCodecTreeFactory());
+
+        LOG.info("Creating health-check beans ...");
+        healthCheckProvider = new HealthCheckProvider(jettyServerProvider);
     }
 
     @Override
     protected boolean initProcedure() {
+        // Start health check early so /ready is reachable during startup (returns 503 until ready)
+        if (healthCheckProvider != null) {
+            LOG.info("Starting health-check endpoint ...");
+            healthCheckProvider.start();
+        }
         if (tapiProvider != null) {
             LOG.info("Initializing tapi provider ...");
         }
@@ -287,12 +299,20 @@ public class TransportPCEImpl extends AbstractLightyModule implements TransportP
             LOG.info("Starting sb-restconf-client provider ...");
             sbRestconfProvider.start();
         }
+        // Mark as ready — all providers started
+        if (healthCheckProvider != null) {
+            healthCheckProvider.setReady();
+        }
         LOG.info("Init done.");
         return true;
     }
 
     @Override
     protected boolean stopProcedure() {
+        if (healthCheckProvider != null) {
+            LOG.info("Shutting down health-check endpoint ...");
+            healthCheckProvider.close();
+        }
         if (sbRestconfProvider != null) {
             LOG.info("Shutting down sb-restconf-client provider ...");
             sbRestconfProvider.close();

@@ -71,3 +71,6 @@ integration/**/*-operational.xml
 integration/bin/codetest.py
 integration/**/gnpy
 integration/**/env
+integration/**/conf-generated/*
+lighty/state
+lighty/config.json

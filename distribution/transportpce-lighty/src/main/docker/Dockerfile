@@ -16,7 +16,7 @@ RUN cd ${TPCE_HOME} && \
   mv config_template.json config.json && \
   sed -i 's/ODL_RESTCONF_PORT/8181/' config.json && \
   sed -i 's/"inetAddress": "127.0.0.1"/"inetAddress": "0.0.0.0"/' config.json
-# Expose RESTCONF port
+
 EXPOSE 8181
 
 # Start TransportPCE via Lighty
