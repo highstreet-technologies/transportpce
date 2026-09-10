@@ -11,9 +11,16 @@ package org.opendaylight.transportpce.common;
 import java.util.concurrent.TimeUnit;
 
 public final class Timeouts {
-    public static final long DATASTORE_READ = 1000;
-    public static final long DATASTORE_WRITE = 1000;
-    public static final long DATASTORE_DELETE = 1000;
+    public static final long DATASTORE_READ = Long.parseLong(
+            System.getProperty("transportpce.timeout.datastore.read",
+                    System.getenv().getOrDefault("TRANSPORTPCE_TIMEOUT_DATASTORE_READ", "10000")));
+    public static final long DATASTORE_WRITE = Long.parseLong(
+            System.getProperty("transportpce.timeout.datastore.write",
+                    System.getenv().getOrDefault("TRANSPORTPCE_TIMEOUT_DATASTORE_WRITE", "10000")));
+    public static final long DATASTORE_DELETE = Long.parseLong(
+            System.getProperty("transportpce.timeout.datastore.delete",
+                    System.getenv().getOrDefault("TRANSPORTPCE_TIMEOUT_DATASTORE_DELETE", "10000")));
+
 
     // TODO remove '* 2' when renderer and olm is running in parallel
     public static final long RENDERING_TIMEOUT = 240000 * 2;
