@@ -8,20 +8,45 @@
 package org.opendaylight.transportpce.sbrestconf.client;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
+import java.util.ServiceLoader;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.opendaylight.transportpce.sbrestconf.config.SbRestconfConfig;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.OrgOpenroadmDeviceData;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.circuit.pack.Ports;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.circuit.pack.PortsKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.circuit.packs.CircuitPacks;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.circuit.packs.CircuitPacksKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.org.openroadm.device.container.OrgOpenroadmDevice;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.org.openroadm.device.container.org.openroadm.device.Info;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.org.openroadm.device.container.org.openroadm.device.SharedRiskGroup;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.org.openroadm.device.container.org.openroadm.device.SharedRiskGroupKey;
+import org.opendaylight.yangtools.binding.DataObjectIdentifier;
 import org.opendaylight.yangtools.binding.data.codec.api.BindingDataCodec;
+import org.opendaylight.yangtools.binding.data.codec.impl.BindingCodecContext;
+import org.opendaylight.yangtools.binding.generator.impl.DefaultBindingRuntimeGenerator;
+import org.opendaylight.yangtools.binding.meta.YangModelBindingProvider;
+import org.opendaylight.yangtools.binding.runtime.api.AbstractBindingRuntimeContext;
+import org.opendaylight.yangtools.binding.runtime.api.BindingRuntimeGenerator;
+import org.opendaylight.yangtools.binding.runtime.api.DefaultBindingRuntimeContext;
+import org.opendaylight.yangtools.binding.runtime.spi.ModuleInfoSnapshotResolver;
+import org.opendaylight.yangtools.yang.common.Uint16;
+import org.opendaylight.yangtools.yang.parser.impl.DefaultYangParserFactory;
+import org.opendaylight.yangtools.yang.xpath.api.YangXPathParserFactory;
+import org.opendaylight.yangtools.yang.xpath.impl.AntlrXPathParserFactory;
 
 @ExtendWith(MockitoExtension.class)
 public class SbRestconfClientTest {
@@ -29,8 +54,7 @@ public class SbRestconfClientTest {
     @Mock
     private ControllerUuidResolver uuidResolver;
 
-    @Mock
-    private BindingDataCodec dataCodec;
+    private final BindingDataCodec dataCodec = createBindingDataCodec();
 
     private SbRestconfConfig config;
     private SbRestconfClient client;
@@ -40,10 +64,34 @@ public class SbRestconfClientTest {
         config = new SbRestconfConfig();
         config.setBearerToken("test-token");
         config.setControllers(List.of(
-            new SbRestconfConfig.ControllerEntry("ctrl-uuid-1", "https://ctrl-1:8443/rests"),
-            new SbRestconfConfig.ControllerEntry("ctrl-uuid-2", "https://ctrl-2:8443/rests")
+                new SbRestconfConfig.ControllerEntry("ctrl-uuid-1", "https://ctrl-1:8443/rests"),
+                new SbRestconfConfig.ControllerEntry("ctrl-uuid-2", "https://ctrl-2:8443/rests")
         ));
         client = new SbRestconfClient(config, uuidResolver, dataCodec);
+    }
+
+    /**
+     * Build a real {@link BindingDataCodec} (a {@link BindingCodecContext}) backed by the {@code org-openroadm-device}
+     * YANG model so that {@code DataObjectIdentifier} instances can be converted to RESTCONF paths without mocking the
+     * codec.
+     */
+    private static BindingDataCodec createBindingDataCodec() {
+        final YangXPathParserFactory xpathFactory = new AntlrXPathParserFactory();
+        DefaultYangParserFactory yangParserFactory = new DefaultYangParserFactory(xpathFactory);
+        var snapshotResolver = new ModuleInfoSnapshotResolver("sb-restconf-client-test", yangParserFactory);
+        Set<org.opendaylight.yangtools.binding.meta.YangModuleInfo> moduleInfos = new java.util.HashSet<>();
+        ServiceLoader<YangModelBindingProvider> yangProviderLoader = ServiceLoader.load(YangModelBindingProvider.class);
+        for (YangModelBindingProvider yangModelBindingProvider : yangProviderLoader) {
+            moduleInfos.add(yangModelBindingProvider.getModuleInfo());
+        }
+        snapshotResolver.registerModuleInfos(moduleInfos);
+        var moduleInfoSnapshot = snapshotResolver.takeSnapshot();
+        final BindingRuntimeGenerator bindingRuntimeGenerator = new DefaultBindingRuntimeGenerator();
+        final var bindingRuntimeTypes = bindingRuntimeGenerator
+                .generateTypeMapping(moduleInfoSnapshot.modelContext());
+        AbstractBindingRuntimeContext runtimeContext =
+                new DefaultBindingRuntimeContext(bindingRuntimeTypes, moduleInfoSnapshot);
+        return new BindingCodecContext(runtimeContext);
     }
 
     @Test
@@ -51,8 +99,9 @@ public class SbRestconfClientTest {
         when(uuidResolver.resolveControllerUuid("device-1"))
                 .thenReturn(Optional.of("ctrl-uuid-1"));
 
-        String url = client.buildUrl("device-1", "/org-openroadm-device");
-        assertEquals("https://ctrl-1:8443/rests/rests/data/network-topology:network-topology/topology=topology-netconf/node=device-1/yang-ext:mount/org-openroadm-device",
+        String url = client.buildUrl("device-1", "/org-openroadm-device:org-openroadm-device");
+        assertEquals(
+                "https://ctrl-1:8443/rests/data/network-topology:network-topology/topology=topology-netconf/node=device-1/yang-ext:mount/org-openroadm-device:org-openroadm-device",
                 url);
     }
 
@@ -61,8 +110,9 @@ public class SbRestconfClientTest {
         when(uuidResolver.resolveControllerUuid("device-2"))
                 .thenReturn(Optional.of("ctrl-uuid-2"));
 
-        String url = client.buildUrl("device-2", "/org-openroadm-device");
-        assertEquals("https://ctrl-2:8443/rests/rests/data/network-topology:network-topology/topology=topology-netconf/node=device-2/yang-ext:mount/org-openroadm-device",
+        String url = client.buildUrl("device-2", "/org-openroadm-device:org-openroadm-device");
+        assertEquals(
+                "https://ctrl-2:8443/rests/data/network-topology:network-topology/topology=topology-netconf/node=device-2/yang-ext:mount/org-openroadm-device:org-openroadm-device",
                 url);
     }
 
@@ -72,7 +122,8 @@ public class SbRestconfClientTest {
                 .thenReturn(Optional.of("ctrl-uuid-1"));
 
         String url = client.buildUrl("device-1", "");
-        assertEquals("https://ctrl-1:8443/rests/rests/data/network-topology:network-topology/topology=topology-netconf/node=device-1/yang-ext:mount",
+        assertEquals(
+                "https://ctrl-1:8443/rests/data/network-topology:network-topology/topology=topology-netconf/node=device-1/yang-ext:mount",
                 url);
     }
 
@@ -82,7 +133,8 @@ public class SbRestconfClientTest {
                 .thenReturn(Optional.of("ctrl-uuid-1"));
 
         String url = client.buildUrl("device-1", null);
-        assertEquals("https://ctrl-1:8443/rests/rests/data/network-topology:network-topology/topology=topology-netconf/node=device-1/yang-ext:mount",
+        assertEquals(
+                "https://ctrl-1:8443/rests/data/network-topology:network-topology/topology=topology-netconf/node=device-1/yang-ext:mount",
                 url);
     }
 
@@ -93,8 +145,9 @@ public class SbRestconfClientTest {
         when(uuidResolver.resolveControllerUuid("device-1"))
                 .thenReturn(Optional.of("ctrl-uuid-1"));
 
-        String url = client.buildUrl("device-1", "/org-openroadm-device");
-        assertEquals("https://ctrl-1:8443/rests/custom/mount/node=device-1/yang-ext:mount/org-openroadm-device",
+        String url = client.buildUrl("device-1", "/org-openroadm-device:org-openroadm-device");
+        assertEquals(
+                "https://ctrl-1:8443/rests/custom/mount/node=device-1/yang-ext:mount/org-openroadm-device:org-openroadm-device",
                 url);
     }
 
@@ -103,7 +156,7 @@ public class SbRestconfClientTest {
         when(uuidResolver.resolveControllerUuid("unknown-device"))
                 .thenReturn(Optional.empty());
 
-        String url = client.buildUrl("unknown-device", "/org-openroadm-device");
+        String url = client.buildUrl("unknown-device", "/org-openroadm-device:org-openroadm-device");
         assertNull(url);
     }
 
@@ -112,7 +165,7 @@ public class SbRestconfClientTest {
         when(uuidResolver.resolveControllerUuid("device-3"))
                 .thenReturn(Optional.of("unknown-ctrl-uuid"));
 
-        String url = client.buildUrl("device-3", "/org-openroadm-device");
+        String url = client.buildUrl("device-3", "/org-openroadm-device:org-openroadm-device");
         assertNull(url);
     }
 
@@ -122,23 +175,25 @@ public class SbRestconfClientTest {
                 .thenReturn(Optional.of("ctrl-uuid-1"));
 
         String url = client.buildUrl("device-1",
-                "/org-openroadm-device/circuit-packs/circuit-pack=0%2F0%2F0%2F1");
-        assertEquals("https://ctrl-1:8443/rests/rests/data/network-topology:network-topology/topology=topology-netconf/node=device-1/yang-ext:mount/org-openroadm-device/circuit-packs/circuit-pack=0%2F0%2F0%2F1",
+                "/org-openroadm-device:org-openroadm-device/circuit-packs/circuit-pack=0%2F0%2F0%2F1");
+        assertEquals(
+                "https://ctrl-1:8443/rests/data/network-topology:network-topology/topology=topology-netconf/node=device-1/yang-ext:mount/org-openroadm-device:org-openroadm-device/circuit-packs/circuit-pack=0%2F0%2F0%2F1",
                 url);
     }
 
     @Test
     void testBuildUrlWithBaseUrlEndingSlash() {
         config.setControllers(List.of(
-            new SbRestconfConfig.ControllerEntry("ctrl-uuid-1", "https://ctrl-1:8443/")
+                new SbRestconfConfig.ControllerEntry("ctrl-uuid-1", "https://ctrl-1:8443/rests")
         ));
 
         when(uuidResolver.resolveControllerUuid("device-1"))
                 .thenReturn(Optional.of("ctrl-uuid-1"));
 
-        String url = client.buildUrl("device-1", "/org-openroadm-device");
+        String url = client.buildUrl("device-1", "/org-openroadm-device:org-openroadm-device");
         // baseUrl ends with /, mountPrefix leading / is stripped
-        assertEquals("https://ctrl-1:8443/rests/data/network-topology:network-topology/topology=topology-netconf/node=device-1/yang-ext:mount/org-openroadm-device",
+        assertEquals(
+                "https://ctrl-1:8443/rests/data/network-topology:network-topology/topology=topology-netconf/node=device-1/yang-ext:mount/org-openroadm-device:org-openroadm-device",
                 url);
     }
 
@@ -150,5 +205,35 @@ public class SbRestconfClientTest {
         // Just verify the URL is built — token is used in the request, not in the URL
         String url = client.buildUrl("device-1", "/test");
         assertEquals("test-token", config.getBearerToken());
+    }
+
+    @Test
+    public void testDataObjectIdentifierToRfc8040() {
+
+        assertEquals("/org-openroadm-device:org-openroadm-device/info", client.toRestconfPath(DataObjectIdentifier
+                .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
+                .child(Info.class)
+                .build()));
+        assertEquals("/org-openroadm-device:org-openroadm-device/circuit-packs=cpkey/ports=pkey",
+                client.toRestconfPath(DataObjectIdentifier
+                        .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
+                        .child(CircuitPacks.class, new CircuitPacksKey("cpkey"))
+                        .child(Ports.class, new PortsKey("pkey"))
+                        .build()));
+        assertEquals("/org-openroadm-device:org-openroadm-device/shared-risk-group=1",
+                client.toRestconfPath(DataObjectIdentifier
+                        .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
+                        .child(SharedRiskGroup.class, new SharedRiskGroupKey(Uint16.valueOf(1)))
+                        .build()));
+
+    }
+
+    @Test
+    public void testDeser() throws IOException {
+        var data = client.deserialize(DataObjectIdentifier
+                .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
+                .child(Info.class)
+                .build(), Files.readString(Path.of("src/test/resources/roadm-info.json")));
+        assertNotNull(data);
     }
 }

@@ -22,7 +22,7 @@ import org.opendaylight.transportpce.common.crossconnect.CrossConnectImpl;
 import org.opendaylight.transportpce.common.crossconnect.CrossConnectImpl121;
 import org.opendaylight.transportpce.common.crossconnect.CrossConnectImpl221;
 import org.opendaylight.transportpce.common.crossconnect.CrossConnectImpl710;
-import org.opendaylight.transportpce.common.device.DeviceTransactionManagerImpl;
+import org.opendaylight.transportpce.common.device.DeviceTransactionManager;
 import org.opendaylight.transportpce.common.mapping.MappingUtils;
 import org.opendaylight.transportpce.common.mapping.MappingUtilsImpl;
 import org.opendaylight.transportpce.common.mapping.OCPortMappingVersion190;
@@ -68,6 +68,10 @@ import org.opendaylight.transportpce.renderer.provisiondevice.notification.Notif
 import org.opendaylight.transportpce.renderer.rpcs.DeviceRendererRPCImpl;
 import org.opendaylight.transportpce.renderer.rpcs.RendererRPCImpl;
 import org.opendaylight.transportpce.sbrestconf.SbRestconfProvider;
+import org.opendaylight.transportpce.sbrestconf.client.ControllerUuidResolver;
+import org.opendaylight.transportpce.sbrestconf.client.SbRestconfClient;
+import org.opendaylight.transportpce.sbrestconf.config.SbRestconfConfigLoader;
+import org.opendaylight.transportpce.sbrestconf.device.RestDeviceTransactionManager;
 import org.opendaylight.transportpce.servicehandler.catalog.CatalogDataStoreOperationsImpl;
 import org.opendaylight.transportpce.servicehandler.impl.ServiceHandlerProvider;
 import org.opendaylight.transportpce.servicehandler.impl.ServicehandlerImpl;
@@ -95,7 +99,7 @@ public class TransportPCEImpl extends AbstractLightyModule implements TransportP
     // transaction beans
     // cannot use interface for DeviceTransactionManagerImpl
     // because implementation has additional public methods ...
-    private final DeviceTransactionManagerImpl deviceTransactionManager;
+    private final DeviceTransactionManager deviceTransactionManager;
     private final NetworkTransactionService networkTransaction;
     private final OCMetaDataTransaction ocMetaDataTransaction;
     // network model beans
@@ -118,9 +122,15 @@ public class TransportPCEImpl extends AbstractLightyModule implements TransportP
             LightyServices lightyServices, boolean activateNbiNotification, boolean activateTapi,
             String olmtimer1, String olmtimer2, LightyJettyServerProvider jettyServerProvider) {
         LOG.info("Initializing transaction providers ...");
-        deviceTransactionManager =
-            new DeviceTransactionManagerImpl(lightyServices.getBindingMountPointService(), MAX_TIME_FOR_TRANSACTION);
         DataBroker dataBroker = lightyServices.getBindingDataBroker();
+        deviceTransactionManager =
+            new RestDeviceTransactionManager(
+                new SbRestconfClient(
+                    SbRestconfConfigLoader.load("etc/org.opendaylight.transportpce.cfg"),
+                    new ControllerUuidResolver(dataBroker),
+                    lightyServices.getBindingCodecTreeFactory()),
+                new ControllerUuidResolver(dataBroker),
+                dataBroker);
         networkTransaction = new NetworkTransactionImpl(dataBroker);
         ocMetaDataTransaction = new OCMetaDataTransactionImpl(dataBroker);
 
@@ -332,7 +342,7 @@ public class TransportPCEImpl extends AbstractLightyModule implements TransportP
         LOG.info("Shutting down network-model provider ...");
         networkModelProvider.close();
         LOG.info("Shutting down transaction providers ...");
-        deviceTransactionManager.preDestroy();
+        ((RestDeviceTransactionManager) deviceTransactionManager).shutdown();
         LOG.info("Closing registered RPCs...");
         for (Registration reg : rpcRegistrations) {
             reg.close();

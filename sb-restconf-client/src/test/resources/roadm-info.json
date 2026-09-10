@@ -1,0 +1,27 @@
+{
+  "org-openroadm-device:info": {
+    "vendor": "vendorA",
+    "ipAddress": "1.2.3.6",
+    "source": "static",
+    "current-defaultGateway": "1.2.3.1",
+    "current-prefix-length": 10,
+    "macAddress": "00:01:02:03:04:05",
+    "node-type": "xpdr",
+    "softwareVersion": "swversion1234",
+    "openroadm-version": "2.2",
+    "current-ipAddress": "1.2.3.6",
+    "serial-id": "nodeid-1234",
+    "model": "model2",
+    "node-id": "XPDR-BremNord",
+    "prefix-length": 24,
+    "current-datetime": "2017-10-22T15:23:43+00:00",
+    "geoLocation": {
+      "latitude": "1.0",
+      "longitude": "2.0"
+    },
+    "defaultGateway": "1.2.3.4",
+    "node-number": 6,
+    "clli": "NodeBremNord",
+    "template": "template_TRANSPONDER"
+  }
+}

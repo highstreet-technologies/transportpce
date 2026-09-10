@@ -24,7 +24,7 @@ public class SbRestconfConfig {
      * The full URL is: {controller-base-url}{MOUNT_PREFIX}{node-id}{object-path}
      */
     public static final String DEFAULT_MOUNT_PREFIX =
-            "/rests/data/network-topology:network-topology/topology=topology-netconf/node=";
+            "/data/network-topology:network-topology/topology=topology-netconf/node=";
 
     private String bearerToken;
     private String mountPrefix = DEFAULT_MOUNT_PREFIX;

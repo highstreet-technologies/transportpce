@@ -44,11 +44,24 @@ public class DeviceTransaction {
     private final ScheduledExecutorService scheduledExecutorService;
     private final AtomicBoolean wasSubmittedOrCancelled = new AtomicBoolean(false);
 
-    DeviceTransaction(ReadWriteTransaction rwTx, CountDownLatch deviceLock) {
+    public DeviceTransaction(ReadWriteTransaction rwTx, CountDownLatch deviceLock) {
         this.rwTx = rwTx;
         this.deviceLock = deviceLock;
         this.scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
         LOG.debug("Device transaction created. Lock: {}", deviceLock);
+    }
+
+    /**
+     * Protected constructor for subclasses that do not use ReadWriteTransaction
+     * (e.g. RESTCONF-based implementations).
+     *
+     * @param deviceLock the lock for this device
+     */
+    protected DeviceTransaction(CountDownLatch deviceLock) {
+        this.rwTx = null;
+        this.deviceLock = deviceLock;
+        this.scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+        LOG.debug("Device transaction created (no MDSAL). Lock: {}", deviceLock);
     }
 
     public <T extends DataObject> ListenableFuture<Optional<T>> read(LogicalDatastoreType store,

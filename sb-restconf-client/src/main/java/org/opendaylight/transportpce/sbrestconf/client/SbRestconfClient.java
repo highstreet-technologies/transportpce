@@ -20,6 +20,7 @@ import javax.ws.rs.client.Invocation;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import org.opendaylight.transportpce.sbrestconf.config.SbRestconfConfig;
 import org.opendaylight.yangtools.binding.DataObject;
 import org.opendaylight.yangtools.binding.DataObjectIdentifier;
 import org.opendaylight.yangtools.binding.data.codec.api.BindingDataCodec;
@@ -37,20 +38,17 @@ import org.opendaylight.yangtools.yang.data.impl.schema.ImmutableNormalizedNodeS
 import org.opendaylight.yangtools.yang.data.impl.schema.NormalizationResultHolder;
 import org.opendaylight.yangtools.yang.model.api.EffectiveStatementInference;
 import org.opendaylight.yangtools.yang.model.util.SchemaInferenceStack;
-import org.opendaylight.transportpce.sbrestconf.config.SbRestconfConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Southbound RESTCONF client for device-level read and write operations
- * using MDSAL type-safe DataObject and DataObjectIdentifier.
- *
- * Serialization and deserialization between DataObject and JSON is handled
- * internally via BindingDataCodec, so callers work exclusively with
- * generated YANG binding classes.
- *
- * URL pattern:
- *   {controller-base-url}{mount-prefix}{node-id}/yang-ext:mount{object-path}
+ * Southbound RESTCONF client for device-level read and write operations using MDSAL type-safe DataObject and
+ * DataObjectIdentifier.
+ * <p>
+ * Serialization and deserialization between DataObject and JSON is handled internally via BindingDataCodec, so callers
+ * work exclusively with generated YANG binding classes.
+ * <p>
+ * URL pattern: {controller-base-url}{mount-prefix}{node-id}/yang-ext:mount{object-path}
  */
 public class SbRestconfClient implements AutoCloseable {
 
@@ -76,8 +74,8 @@ public class SbRestconfClient implements AutoCloseable {
      * Read a device-level object via RESTCONF GET.
      *
      * @param nodeId the device node-id
-     * @param path the DataObjectIdentifier pointing to the object on the mounted device
-     * @param clazz the expected return type
+     * @param path   the DataObjectIdentifier pointing to the object on the mounted device
+     * @param clazz  the expected return type
      * @return the deserialized DataObject, or empty if not found
      */
     public <T extends DataObject> Optional<T> get(String nodeId, DataObjectIdentifier<T> path, Class<T> clazz) {
@@ -116,8 +114,8 @@ public class SbRestconfClient implements AutoCloseable {
      * Write or replace a device-level object via RESTCONF PUT.
      *
      * @param nodeId the device node-id
-     * @param path the DataObjectIdentifier pointing to the object
-     * @param data the DataObject to write
+     * @param path   the DataObjectIdentifier pointing to the object
+     * @param data   the DataObject to write
      * @return true if successful
      */
     public <T extends DataObject> boolean put(String nodeId, DataObjectIdentifier<T> path, T data) {
@@ -128,8 +126,8 @@ public class SbRestconfClient implements AutoCloseable {
      * Partially update a device-level object via RESTCONF PATCH.
      *
      * @param nodeId the device node-id
-     * @param path the DataObjectIdentifier pointing to the object
-     * @param data the DataObject to patch
+     * @param path   the DataObjectIdentifier pointing to the object
+     * @param data   the DataObject to patch
      * @return true if successful
      */
     public <T extends DataObject> boolean patch(String nodeId, DataObjectIdentifier<T> path, T data) {
@@ -140,7 +138,7 @@ public class SbRestconfClient implements AutoCloseable {
      * Delete a device-level object via RESTCONF DELETE.
      *
      * @param nodeId the device node-id
-     * @param path the DataObjectIdentifier pointing to the object
+     * @param path   the DataObjectIdentifier pointing to the object
      * @return true if successful
      */
     public boolean delete(String nodeId, DataObjectIdentifier<?> path) {
@@ -241,7 +239,7 @@ public class SbRestconfClient implements AutoCloseable {
      * Deserialize a JSON string to a DataObject using BindingDataCodec.
      */
     @SuppressWarnings("unchecked")
-    private <T extends DataObject> T deserialize(DataObjectIdentifier<T> path, String json) {
+    protected  <T extends DataObject> T deserialize(DataObjectIdentifier<T> path, String json) {
         YangInstanceIdentifier yiid = serializer.toYangInstanceIdentifier(path);
 
         NormalizationResultHolder result = new NormalizationResultHolder();
@@ -261,13 +259,33 @@ public class SbRestconfClient implements AutoCloseable {
 
     /**
      * Convert a DataObjectIdentifier to a RESTCONF URL path component.
+     *
+     * <p>The binding codec may emit a list entry as two consecutive path arguments: a bare
+     * {@link YangInstanceIdentifier.NodeIdentifier} for the list node followed by a
+     * {@link YangInstanceIdentifier.NodeIdentifierWithPredicates} carrying the key(s). In
+     * RESTCONF (RFC 8040) the list entry is expressed as a single path segment
+     * {@code list-name=key-value}, so the bare list node is skipped here to avoid duplicating
+     * the list name (e.g. {@code /circuit-packs/circuit-packs=cpkey}).
      */
-    String toRestconfPath(DataObjectIdentifier<?> path) {
+    protected String toRestconfPath(DataObjectIdentifier<?> path) {
         YangInstanceIdentifier yiid = serializer.toYangInstanceIdentifier(path);
+        org.opendaylight.yangtools.yang.model.api.EffectiveModelContext modelContext = dataCodec.modelContext();
 
         StringBuilder sb = new StringBuilder();
-        for (YangInstanceIdentifier.PathArgument arg : yiid.getPathArguments()) {
-            sb.append("/").append(arg.getNodeType().getLocalName());
+        String[] curModule = {null};
+        var args = yiid.getPathArguments();
+        for (int i = 0; i < args.size(); i++) {
+            YangInstanceIdentifier.PathArgument arg = args.get(i);
+            // Skip a bare list NodeIdentifier when it is immediately followed by a
+            // NodeIdentifierWithPredicates for the same node type; the key selector below
+            // already carries the list name.
+            if (arg instanceof YangInstanceIdentifier.NodeIdentifier
+                    && i + 1 < args.size()
+                    && args.get(i + 1) instanceof YangInstanceIdentifier.NodeIdentifierWithPredicates nextNwp
+                    && nextNwp.getNodeType().equals(arg.getNodeType())) {
+                continue;
+            }
+            appendNode(sb, modelContext, arg.getNodeType(), curModule);
             if (arg instanceof YangInstanceIdentifier.NodeIdentifierWithPredicates nwp) {
                 for (var entry : nwp.entrySet()) {
                     sb.append("=").append(entry.getValue().toString());
@@ -277,6 +295,23 @@ public class SbRestconfClient implements AutoCloseable {
         String result = sb.toString();
         LOG.debug("Converted DataObjectIdentifier to RESTCONF path: {}", result);
         return result;
+    }
+
+    /**
+     * Append a single path node (with module prefix when the module changes) and update
+     * {@code curModule} to the module of the appended node.
+     */
+    private void appendNode(StringBuilder sb,
+            org.opendaylight.yangtools.yang.model.api.EffectiveModelContext modelContext,
+            org.opendaylight.yangtools.yang.common.QName nodeType, String[] curModule) {
+        var module = modelContext.findModule(nodeType.getModule()).orElseThrow();
+        String moduleName = module.getName();
+        if (!moduleName.equals(curModule[0])) {
+            curModule[0] = moduleName;
+            sb.append("/").append(moduleName).append(":").append(nodeType.getLocalName());
+        } else {
+            sb.append("/").append(nodeType.getLocalName());
+        }
     }
 
     /**
