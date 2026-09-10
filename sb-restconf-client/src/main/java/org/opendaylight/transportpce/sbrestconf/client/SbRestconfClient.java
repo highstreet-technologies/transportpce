@@ -242,11 +242,35 @@ public class SbRestconfClient implements AutoCloseable {
     protected  <T extends DataObject> T deserialize(DataObjectIdentifier<T> path, String json) {
         YangInstanceIdentifier yiid = serializer.toYangInstanceIdentifier(path);
 
+        // Build the schema inference for the parent of the target path.
+        // RESTCONF returns JSON keyed by the module:container name (e.g. "org-openroadm-device:info")
+        // so the parser needs to know the schema context at the parent level.
+        var pathArgs = yiid.getPathArguments();
+        var parentYiid = pathArgs.size() > 1
+                ? YangInstanceIdentifier.of(pathArgs.subList(0, pathArgs.size() - 1))
+                : YangInstanceIdentifier.empty();
+
         NormalizationResultHolder result = new NormalizationResultHolder();
         try (StringReader reader = new StringReader(json);
-                NormalizedNodeStreamWriter streamWriter = ImmutableNormalizedNodeStreamWriter.from(result);
-                JsonParserStream jsonParser = JsonParserStream.create(streamWriter,
-                        JSONCodecFactorySupplier.RFC7951.getShared(dataCodec.modelContext()))) {
+                NormalizedNodeStreamWriter streamWriter = ImmutableNormalizedNodeStreamWriter.from(result)) {
+
+            JSONCodecFactory codecFactory = JSONCodecFactorySupplier.RFC7951
+                    .getShared(dataCodec.modelContext());
+
+            JsonParserStream jsonParser;
+            if (parentYiid.isEmpty()) {
+                // Root-level parse
+                jsonParser = JsonParserStream.create(streamWriter, codecFactory);
+            } else {
+                // Parse with parent schema context so module-qualified keys are resolved correctly
+                SchemaInferenceStack stack = SchemaInferenceStack.of(dataCodec.modelContext());
+                for (YangInstanceIdentifier.PathArgument arg : parentYiid.getPathArguments()) {
+                    stack.enterDataTree(arg.getNodeType());
+                }
+                EffectiveStatementInference inference = stack.toInference();
+                jsonParser = JsonParserStream.create(streamWriter, codecFactory, inference);
+            }
+
             jsonParser.parse(new com.google.gson.stream.JsonReader(reader));
             Map.Entry<org.opendaylight.yangtools.binding.DataObjectReference<?>, DataObject> entry =
                     serializer.fromNormalizedNode(yiid, result.getResult().data());
