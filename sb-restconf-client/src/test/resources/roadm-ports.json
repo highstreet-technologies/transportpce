@@ -1,0 +1,32 @@
+{
+  "org-openroadm-device:ports": [
+    {
+      "port-name": "L1",
+      "port-type": "LINE",
+      "faceplate-label": "faceplate-label",
+      "port-wavelength-type": "multi-wavelength",
+      "administrative-state": "inService",
+      "operational-state": "inService",
+      "partner-port": {
+        "circuit-pack-name": "1-0",
+        "port-name": "C3"
+      },
+      "mc-capability-profile-name": [
+        "mc-profile"
+      ],
+      "logical-connection-point": "DEG1-TTP-TXRX",
+      "port-direction": "bidirectional",
+      "is-physical": true,
+      "circuit-id": "1",
+      "port-qual": "roadm-external",
+      "interfaces": [
+        {
+          "interface-name": "OTS-DEG1-TTP-TXRX"
+        },
+        {
+          "interface-name": "OMS-DEG1-TTP-TXRX"
+        }
+      ]
+    }
+  ]
+}

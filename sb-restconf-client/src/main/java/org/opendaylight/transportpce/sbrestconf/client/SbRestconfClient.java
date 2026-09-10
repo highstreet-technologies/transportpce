@@ -239,16 +239,8 @@ public class SbRestconfClient implements AutoCloseable {
      * Deserialize a JSON string to a DataObject using BindingDataCodec.
      */
     @SuppressWarnings("unchecked")
-    protected  <T extends DataObject> T deserialize(DataObjectIdentifier<T> path, String json) {
+    protected <T extends DataObject> T deserialize(DataObjectIdentifier<T> path, String json) {
         YangInstanceIdentifier yiid = serializer.toYangInstanceIdentifier(path);
-
-        // Build the schema inference for the parent of the target path.
-        // RESTCONF returns JSON keyed by the module:container name (e.g. "org-openroadm-device:info")
-        // so the parser needs to know the schema context at the parent level.
-        var pathArgs = yiid.getPathArguments();
-        var parentYiid = pathArgs.size() > 1
-                ? YangInstanceIdentifier.of(pathArgs.subList(0, pathArgs.size() - 1))
-                : YangInstanceIdentifier.empty();
 
         NormalizationResultHolder result = new NormalizationResultHolder();
         try (StringReader reader = new StringReader(json);
@@ -257,23 +249,85 @@ public class SbRestconfClient implements AutoCloseable {
             JSONCodecFactory codecFactory = JSONCodecFactorySupplier.RFC7951
                     .getShared(dataCodec.modelContext());
 
-            JsonParserStream jsonParser;
-            if (parentYiid.isEmpty()) {
-                // Root-level parse
-                jsonParser = JsonParserStream.create(streamWriter, codecFactory);
-            } else {
-                // Parse with parent schema context so module-qualified keys are resolved correctly
-                SchemaInferenceStack stack = SchemaInferenceStack.of(dataCodec.modelContext());
-                for (YangInstanceIdentifier.PathArgument arg : parentYiid.getPathArguments()) {
-                    stack.enterDataTree(arg.getNodeType());
-                }
-                EffectiveStatementInference inference = stack.toInference();
-                jsonParser = JsonParserStream.create(streamWriter, codecFactory, inference);
+            // RESTCONF JSON wraps the response in a module-qualified key, e.g.:
+            //   {"org-openroadm-device:info": { ... }}
+            //   {"org-openroadm-device:degree": [ { ... } ]}
+            // The parser must start at the parent context of the wrapper key so it
+            // can read the module-qualified key and enter the target container or
+            // list node. The resulting NormalizedNode tree is therefore rooted at
+            // the wrapper-key level, i.e. at pathArgs.get(parentDepth).
+            //
+            // For a keyed list entry (e.g. Degree[DegreeKey{degreeNumber=1}]), the
+            // YangInstanceIdentifier has three path arguments:
+            //   0: container (org-openroadm-device)
+            //   1: list node (degree)
+            //   2: list entry with predicates (degree, degree-number=1)
+            // The parser starts at the container level (depth 0), reads the
+            // "org-openroadm-device:degree" wrapper key and produces a MapNode
+            // (the list) as the parsed root. We then navigate into the MapNode to
+            // find the specific entry matching the key predicates.
+            var pathArgs = yiid.getPathArguments();
+            // The binding codec may emit a keyed list entry as two consecutive path
+            // arguments: a bare NodeIdentifier for the list node followed by a
+            // NodeIdentifierWithPredicates carrying the key(s), both with the same
+            // QName. The RESTCONF JSON wrapper key corresponds to the list node
+            // (the bare NodeIdentifier), so the parser must start at the parent of
+            // that node. parentDepth is the index of the wrapper-key node, i.e. the
+            // last NodeIdentifier (non-predicate) argument in the path.
+            int parentDepth = pathArgs.size() - 1;
+            if (parentDepth >= 1
+                    && pathArgs.get(parentDepth) instanceof YangInstanceIdentifier.NodeIdentifierWithPredicates) {
+                parentDepth--;
             }
+            SchemaInferenceStack stack = SchemaInferenceStack.of(dataCodec.modelContext());
+            // Enter the data tree for each ancestor of the wrapper-key node. Skip
+            // NodeIdentifierWithPredicates arguments: they share the QName of the
+            // preceding list NodeIdentifier, which has already entered the list
+            // node, so entering the same QName again would fail schema resolution.
+            for (int i = 0; i < parentDepth; i++) {
+                YangInstanceIdentifier.PathArgument arg = pathArgs.get(i);
+                if (arg instanceof YangInstanceIdentifier.NodeIdentifierWithPredicates) {
+                    continue;
+                }
+                stack.enterDataTree(arg.getNodeType());
+            }
+            EffectiveStatementInference inference = stack.toInference();
+            JsonParserStream jsonParser = JsonParserStream.create(streamWriter, codecFactory, inference);
 
             jsonParser.parse(new com.google.gson.stream.JsonReader(reader));
+
+            // The parsed NormalizedNode tree is rooted at the wrapper-key level,
+            // i.e. at pathArgs.get(parentDepth). Navigate down to the target node
+            // (the last path argument) before calling fromNormalizedNode.
+            NormalizedNode data = result.getResult().data();
+            for (int i = parentDepth + 1; i < pathArgs.size() && data != null; i++) {
+                YangInstanceIdentifier.PathArgument arg = pathArgs.get(i);
+                if (data instanceof org.opendaylight.yangtools.yang.data.api.schema.DistinctContainer dc) {
+                    NormalizedNode child = dc.childByArg(arg);
+                    if (child == null && arg instanceof YangInstanceIdentifier.NodeIdentifierWithPredicates) {
+                        // A RESTCONF GET on a specific list entry returns that single
+                        // entry wrapped in the list key. The key carried in the
+                        // DataObjectIdentifier is used to build the request URL and may
+                        // not match the actual key values in the response payload, so
+                        // fall back to the (single) entry contained in the parsed list.
+                        java.util.Iterator<NormalizedNode> it = dc.body().iterator();
+                        if (it.hasNext()) {
+                            child = it.next();
+                        }
+                    }
+                    data = child;
+                } else {
+                    data = null;
+                }
+            }
+
+            if (data == null) {
+                LOG.warn("Target node not found in parsed JSON for path {}", path);
+                return null;
+            }
+
             Map.Entry<org.opendaylight.yangtools.binding.DataObjectReference<?>, DataObject> entry =
-                    serializer.fromNormalizedNode(yiid, result.getResult().data());
+                    serializer.fromNormalizedNode(yiid, data);
             return (T) entry.getValue();
         } catch (Exception e) {
             LOG.error("Failed to deserialize JSON to {}", path, e);

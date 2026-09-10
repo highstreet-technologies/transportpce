@@ -31,9 +31,13 @@ import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.circuit.
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.circuit.packs.CircuitPacks;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.circuit.packs.CircuitPacksKey;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.org.openroadm.device.container.OrgOpenroadmDevice;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.org.openroadm.device.container.org.openroadm.device.Degree;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.org.openroadm.device.container.org.openroadm.device.DegreeKey;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.org.openroadm.device.container.org.openroadm.device.Info;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.org.openroadm.device.container.org.openroadm.device.Protocols;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.org.openroadm.device.container.org.openroadm.device.SharedRiskGroup;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.org.openroadm.device.container.org.openroadm.device.SharedRiskGroupKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.dhcp.rev200529.Protocols1;
 import org.opendaylight.yangtools.binding.DataObjectIdentifier;
 import org.opendaylight.yangtools.binding.data.codec.api.BindingDataCodec;
 import org.opendaylight.yangtools.binding.data.codec.impl.BindingCodecContext;
@@ -230,10 +234,30 @@ public class SbRestconfClientTest {
 
     @Test
     public void testDeser() throws IOException {
-        var data = client.deserialize(DataObjectIdentifier
+        var info = client.deserialize(DataObjectIdentifier
                 .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
                 .child(Info.class)
                 .build(), Files.readString(Path.of("src/test/resources/roadm-info.json")));
-        assertNotNull(data);
+        assertNotNull(info);
+
+        var degree = client.deserialize(DataObjectIdentifier
+                .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
+                .child(Degree.class, new DegreeKey(Uint16.valueOf(1)))
+                .build(), Files.readString(Path.of("src/test/resources/roadm-degree.json")));
+        assertNotNull(degree);
+
+        var protocols = client.deserialize(DataObjectIdentifier
+                .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
+                .child(Protocols.class)
+                .build(), Files.readString(Path.of("src/test/resources/roadm-protocols.json")));
+        assertNotNull(protocols);
+        protocols.augmentation(Protocols1.class);
+
+        var ports = client.deserialize(DataObjectIdentifier
+                .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
+                .child(CircuitPacks.class, new CircuitPacksKey(""))
+                .child(Ports.class, new PortsKey(""))
+                .build(), Files.readString(Path.of("src/test/resources/roadm-ports.json")));
+        assertNotNull(ports);
     }
 }

@@ -733,12 +733,17 @@ public class PortMappingVersion710 {
         Optional<Protocols> protocolObject = this.deviceTransactionManager.getDataFromDevice(nodeId,
             LogicalDatastoreType.OPERATIONAL, protocoliid, Timeouts.DEVICE_READ_TIMEOUT,
             Timeouts.DEVICE_READ_TIMEOUT_UNIT);
-        if (protocolObject.isEmpty() || protocolObject.orElseThrow().augmentation(Protocols1.class).getLldp() == null) {
+        if (protocolObject.isEmpty()) {
+            LOG.warn(PortMappingUtils.PROCESSING_DONE_LOGMSG, nodeId, PortMappingUtils.CANNOT_GET_LLDP_CONF_LOGMSG);
+            return new HashMap<>();
+        }
+        var protocols1 = protocolObject.orElseThrow().augmentation(Protocols1.class);
+        if (protocols1 == null || protocols1.getLldp() == null) {
             LOG.warn(PortMappingUtils.PROCESSING_DONE_LOGMSG, nodeId, PortMappingUtils.CANNOT_GET_LLDP_CONF_LOGMSG);
             return new HashMap<>();
         }
         Map<String, String> cpToInterfaceMap = new HashMap<>();
-        Lldp lldp = protocolObject.orElseThrow().augmentation(Protocols1.class).getLldp();
+        Lldp lldp = protocols1.getLldp();
         for (PortConfig portConfig : lldp.nonnullPortConfig().values()) {
             if (!portConfig.getAdminStatus().equals(PortConfig.AdminStatus.Txandrx)) {
                 continue;

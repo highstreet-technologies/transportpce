@@ -1,0 +1,28 @@
+{
+  "org-openroadm-device:degree": [
+    {
+      "degree-number": 1,
+      "circuit-packs": [
+        {
+          "index": 2,
+          "circuit-pack-name": "1-0-ETH-PLUG"
+        },
+        {
+          "index": 1,
+          "circuit-pack-name": "1-0"
+        }
+      ],
+      "connection-ports": [
+        {
+          "index": 1,
+          "circuit-pack-name": "1-0",
+          "port-name": "L1"
+        }
+      ],
+      "mc-capability-profile-name": [
+        "mc-profile"
+      ],
+      "max-wavelengths": 96
+    }
+  ]
+}
