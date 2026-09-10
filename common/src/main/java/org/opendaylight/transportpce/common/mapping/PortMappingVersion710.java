@@ -661,6 +661,9 @@ public class PortMappingVersion710 {
         }
         device = deviceObject.orElseThrow();
         mcCapabilityProfiles = device.getMcCapabilityProfile();
+        if (mcCapabilityProfiles == null) {
+            mcCapabilityProfiles = Collections.emptyMap();
+        }
         return mcCapabilityProfiles;
     }
 
