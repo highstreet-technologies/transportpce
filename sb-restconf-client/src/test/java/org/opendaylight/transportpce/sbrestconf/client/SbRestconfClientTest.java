@@ -17,8 +17,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
-import java.util.ServiceLoader;
-import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -43,17 +41,7 @@ import org.opendaylight.yang.gen.v1.http.org.openroadm.dhcp.rev200529.Protocols1
 import org.opendaylight.yang.gen.v1.http.org.openroadm.interfaces.rev191129.OpticalTransport;
 import org.opendaylight.yangtools.binding.DataObjectIdentifier;
 import org.opendaylight.yangtools.binding.data.codec.api.BindingDataCodec;
-import org.opendaylight.yangtools.binding.data.codec.impl.BindingCodecContext;
-import org.opendaylight.yangtools.binding.generator.impl.DefaultBindingRuntimeGenerator;
-import org.opendaylight.yangtools.binding.meta.YangModelBindingProvider;
-import org.opendaylight.yangtools.binding.runtime.api.AbstractBindingRuntimeContext;
-import org.opendaylight.yangtools.binding.runtime.api.BindingRuntimeGenerator;
-import org.opendaylight.yangtools.binding.runtime.api.DefaultBindingRuntimeContext;
-import org.opendaylight.yangtools.binding.runtime.spi.ModuleInfoSnapshotResolver;
 import org.opendaylight.yangtools.yang.common.Uint16;
-import org.opendaylight.yangtools.yang.parser.impl.DefaultYangParserFactory;
-import org.opendaylight.yangtools.yang.xpath.api.YangXPathParserFactory;
-import org.opendaylight.yangtools.yang.xpath.impl.AntlrXPathParserFactory;
 
 @ExtendWith(MockitoExtension.class)
 public class SbRestconfClientTest {
@@ -78,27 +66,14 @@ public class SbRestconfClientTest {
     }
 
     /**
-     * Build a real {@link BindingDataCodec} (a {@link BindingCodecContext}) backed by the {@code org-openroadm-device}
-     * YANG model so that {@code DataObjectIdentifier} instances can be converted to RESTCONF paths without mocking the
-     * codec.
+     * Build a real {@link BindingDataCodec} backed by the {@code org-openroadm-device} 7.1.0 YANG model so that
+     * {@code DataObjectIdentifier} instances can be converted to RESTCONF paths without mocking the codec.
+     *
+     * <p>See {@link SbRestconfDataCodecFactory} for details on why a scoped codec is needed instead of loading all
+     * models from the classpath.
      */
     private static BindingDataCodec createBindingDataCodec() {
-        final YangXPathParserFactory xpathFactory = new AntlrXPathParserFactory();
-        DefaultYangParserFactory yangParserFactory = new DefaultYangParserFactory(xpathFactory);
-        var snapshotResolver = new ModuleInfoSnapshotResolver("sb-restconf-client-test", yangParserFactory);
-        Set<org.opendaylight.yangtools.binding.meta.YangModuleInfo> moduleInfos = new java.util.HashSet<>();
-        ServiceLoader<YangModelBindingProvider> yangProviderLoader = ServiceLoader.load(YangModelBindingProvider.class);
-        for (YangModelBindingProvider yangModelBindingProvider : yangProviderLoader) {
-            moduleInfos.add(yangModelBindingProvider.getModuleInfo());
-        }
-        snapshotResolver.registerModuleInfos(moduleInfos);
-        var moduleInfoSnapshot = snapshotResolver.takeSnapshot();
-        final BindingRuntimeGenerator bindingRuntimeGenerator = new DefaultBindingRuntimeGenerator();
-        final var bindingRuntimeTypes = bindingRuntimeGenerator
-                .generateTypeMapping(moduleInfoSnapshot.modelContext());
-        AbstractBindingRuntimeContext runtimeContext =
-                new DefaultBindingRuntimeContext(bindingRuntimeTypes, moduleInfoSnapshot);
-        return new BindingCodecContext(runtimeContext);
+        return SbRestconfDataCodecFactory.createForDeviceModel(OrgOpenroadmDeviceData.class);
     }
 
     @Test

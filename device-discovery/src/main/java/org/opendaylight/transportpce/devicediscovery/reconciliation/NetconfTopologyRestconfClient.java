@@ -9,9 +9,9 @@ package org.opendaylight.transportpce.devicediscovery.reconciliation;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Invocation;
@@ -19,17 +19,15 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * RESTCONF client for querying netconf-topology from an OpenDaylight controller.
- *
- * Performs GET /data/network-topology:network-topology/topology=topology-netconf
- * with content=nonconfig to retrieve the operational state of all netconf nodes.
- * Also supports fetching a single node by node-id.
- *
+ * <p>
+ * Performs GET /data/network-topology:network-topology/topology=topology-netconf with content=nonconfig to retrieve the
+ * operational state of all netconf nodes. Also supports fetching a single node by node-id.
+ * <p>
  * Uses Bearer token authentication (shared across all controllers).
  */
 public class NetconfTopologyRestconfClient {
@@ -51,7 +49,7 @@ public class NetconfTopologyRestconfClient {
     /**
      * Fetch all netconf nodes from a controller's operational datastore.
      *
-     * @param baseUrl the base URL of the controller (e.g. http://controller-1:8181/rests)
+     * @param baseUrl     the base URL of the controller (e.g. http://controller-1:8181/rests)
      * @param bearerToken the shared Bearer token for authentication
      * @return list of node descriptors extracted from the topology response
      */
@@ -87,8 +85,8 @@ public class NetconfTopologyRestconfClient {
     /**
      * Fetch a single netconf node from a controller by node-id.
      *
-     * @param nodeId the device node-id to fetch
-     * @param baseUrl the base URL of the controller (e.g. http://controller-1:8181/rests)
+     * @param nodeId      the device node-id to fetch
+     * @param baseUrl     the base URL of the controller (e.g. http://controller-1:8181/rests)
      * @param bearerToken the shared Bearer token for authentication
      * @return the node descriptor, or empty if not found
      */
@@ -246,10 +244,11 @@ public class NetconfTopologyRestconfClient {
     }
 
     /**
-     * Data holder for a remote netconf node parsed from RESTCONF response.
-     * Contains the full node information needed to write it into MDSAL.
+     * Data holder for a remote netconf node parsed from RESTCONF response. Contains the full node information needed to
+     * write it into MDSAL.
      */
     public static class RemoteNode {
+
         private String nodeId;
         private String connectionStatus;
         private String host;
@@ -329,5 +328,19 @@ public class NetconfTopologyRestconfClient {
                     + "', host='" + host + "', port=" + port
                     + ", capabilities=" + availableCapabilities.size() + "}";
         }
+
+        public boolean isConnected() {
+            return "connected".equalsIgnoreCase(this.connectionStatus);
+        }
+
+        public boolean hasTrpceCapabilities() {
+
+            var caps = this.getAvailableCapabilities();
+            if (caps == null || caps.size() <= 0) {
+                return false;
+            }
+            return caps.parallelStream().anyMatch(e -> e.contains("org-openroadm-device"));
+        }
+
     }
 }

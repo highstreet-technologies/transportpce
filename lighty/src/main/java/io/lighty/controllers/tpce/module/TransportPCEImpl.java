@@ -70,6 +70,7 @@ import org.opendaylight.transportpce.renderer.rpcs.RendererRPCImpl;
 import org.opendaylight.transportpce.sbrestconf.SbRestconfProvider;
 import org.opendaylight.transportpce.sbrestconf.client.ControllerUuidResolver;
 import org.opendaylight.transportpce.sbrestconf.client.SbRestconfClient;
+import org.opendaylight.transportpce.sbrestconf.client.SbRestconfDataCodecFactory;
 import org.opendaylight.transportpce.sbrestconf.config.SbRestconfConfigLoader;
 import org.opendaylight.transportpce.sbrestconf.device.RestDeviceTransactionManager;
 import org.opendaylight.transportpce.servicehandler.catalog.CatalogDataStoreOperationsImpl;
@@ -128,7 +129,9 @@ public class TransportPCEImpl extends AbstractLightyModule implements TransportP
                 new SbRestconfClient(
                     SbRestconfConfigLoader.load("etc/org.opendaylight.transportpce.cfg"),
                     new ControllerUuidResolver(dataBroker),
-                    lightyServices.getBindingCodecTreeFactory()),
+                    SbRestconfDataCodecFactory.createForDeviceModel(
+                        org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529
+                            .OrgOpenroadmDeviceData.class)),
                 new ControllerUuidResolver(dataBroker),
                 dataBroker);
         networkTransaction = new NetworkTransactionImpl(dataBroker);
