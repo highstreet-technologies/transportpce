@@ -156,6 +156,8 @@ public final class TPCEUtils {
             org.opendaylight.yang.svc.v1.http.org.openroadm.fwdl.rev181019.YangModuleInfoImpl.getInstance(),
             org.opendaylight.yang.svc.v1.http.org.openroadm.interfaces.rev161014.YangModuleInfoImpl.getInstance(),
             org.opendaylight.yang.svc.v1.http.org.openroadm.interfaces.rev170626.YangModuleInfoImpl.getInstance(),
+            org.opendaylight.yang.svc.v1.http.org.openroadm.interfaces.rev191129.YangModuleInfoImpl.getInstance(),
+            org.opendaylight.yang.svc.v1.http.org.openroadm.interfaces.rev220930.YangModuleInfoImpl.getInstance(),
             org.opendaylight.yang.svc.v1.http.org.openroadm.lldp.rev161014.YangModuleInfoImpl.getInstance(),
             org.opendaylight.yang.svc.v1.http.org.openroadm.lldp.rev181019.YangModuleInfoImpl.getInstance(),
             org.opendaylight.yang.svc.v1.http.org.openroadm.maintenance.loopback.rev161014.YangModuleInfoImpl
