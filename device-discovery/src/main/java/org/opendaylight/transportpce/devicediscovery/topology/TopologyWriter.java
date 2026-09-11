@@ -29,6 +29,8 @@ import org.opendaylight.yang.gen.v1.urn.opendaylight.netconf.device.rev251205.co
 import org.opendaylight.yang.gen.v1.urn.opendaylight.netconf.device.rev251205.connection.oper.unavailable.capabilities.UnavailableCapability;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.netconf.device.rev251205.connection.oper.unavailable.capabilities.UnavailableCapability.FailureReason;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.netconf.device.rev251205.connection.oper.unavailable.capabilities.UnavailableCapabilityBuilder;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.netconf.device.rev251205.credentials.credentials.LoginPwUnencryptedBuilder;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.netconf.device.rev251205.credentials.credentials.login.pw.unencrypted.LoginPasswordUnencryptedBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.netconf.node.topology.rev251205.NetconfNodeAugment;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.netconf.node.topology.rev251205.NetconfNodeAugmentBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.netconf.node.topology.rev251205.netconf.node.augment.NetconfNode;
@@ -51,10 +53,9 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Writes device nodes into the MDSAL operational datastore (netconf-topology).
- *
- * Each node is created with the full information from the remote controller:
- * connection status, host, port, session-id, available/unavailable capabilities,
- * and the device-discovery augmentation carrying the controller-uuid.
+ * <p>
+ * Each node is created with the full information from the remote controller: connection status, host, port, session-id,
+ * available/unavailable capabilities, and the device-discovery augmentation carrying the controller-uuid.
  */
 public class TopologyWriter {
 
@@ -70,7 +71,7 @@ public class TopologyWriter {
     /**
      * Write or update a node in the netconf-topology operational store with full data.
      *
-     * @param remoteNode the complete node data from the controller
+     * @param remoteNode     the complete node data from the controller
      * @param controllerUuid the UUID of the controller that reported the device
      */
     public void writeNode(RemoteNode remoteNode, String controllerUuid) {
@@ -118,7 +119,10 @@ public class TopologyWriter {
         NetconfNodeBuilder netconfNodeBuilder = new NetconfNodeBuilder()
                 .setConnectionStatus(mapConnectionState(remoteNode.getConnectionStatus()))
                 .setAvailableCapabilities(availableCapabilities)
-                .setUnavailableCapabilities(unavailableCapabilities);
+                .setUnavailableCapabilities(unavailableCapabilities)
+                .setCredentials(new LoginPwUnencryptedBuilder().setLoginPasswordUnencrypted(
+                        new LoginPasswordUnencryptedBuilder().setUsername("").setPassword("").build()
+                ).build());
 
         if (remoteNode.getHost() != null && !remoteNode.getHost().isBlank()) {
             netconfNodeBuilder.setHost(new Host(new IpAddress(new Ipv4Address(remoteNode.getHost()))));

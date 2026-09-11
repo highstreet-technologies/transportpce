@@ -29,11 +29,10 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Kafka consumer that listens for VES notification events on the configured topic.
- *
- * On "connected": fetches the complete node data from the controller via RESTCONF
- * and writes it into MDSAL with the controller-uuid augmentation.
- * On "connecting": same as connected (fetch full data).
- * On "disconnected"/"removed": deletes the node from MDSAL.
+ * <p>
+ * On "connected": fetches the complete node data from the controller via RESTCONF and writes it into MDSAL with the
+ * controller-uuid augmentation. On "connecting": same as connected (fetch full data). On "disconnected"/"removed":
+ * deletes the node from MDSAL.
  */
 public class VesKafkaConsumer {
 
@@ -147,16 +146,20 @@ public class VesKafkaConsumer {
     private void fetchAndWriteNode(String nodeId, String controllerUuid, String baseUrl) {
         Optional<RemoteNode> nodeOpt = restconfClient.getNode(nodeId, baseUrl, config.getBearerToken());
         if (nodeOpt.isPresent()) {
-            topologyWriter.writeNode(nodeOpt.orElseThrow(), controllerUuid);
+            var node = nodeOpt.orElseThrow();
+            topologyWriter.writeNode(node, controllerUuid);
         } else {
             LOG.warn("Node {} not found at controller {}, writing minimal entry", nodeId, baseUrl);
             // Fallback: write minimal node with just nodeId and controller-uuid
             RemoteNode minimal = new RemoteNode();
             minimal.setNodeId(nodeId);
             minimal.setConnectionStatus("connecting");
+            minimal.setHost("unknown");
+            minimal.setPort(830);
             topologyWriter.writeNode(minimal, controllerUuid);
         }
     }
+
 
     public void stop() {
         running.set(false);
