@@ -24,7 +24,7 @@ class TrpceOdlClient(OdlClient):
         payload = json.dumps(data)
         response = self.requestRest('/rests/operations/transportpce-networkutils:init-roadm-nodes',
                                     'POST', self.defaultJsonHeaders, payload)
-        print(roadmANodeId + " to "+ roadmZNodeId+" link "+str(response.code))
+        print(roadmANodeId + " to "+ roadmZNodeId+" link "+str(response.code)+ (" error:"+str(response.content) if response.code>299 else ""))
         return response
     
     def linkXpdrToRoadm(self, xpdrNode, xpdrNum, xpdrNetworkPortNumber, roadmNodeId, srgNumber, logicalConnectionPoint):
@@ -43,7 +43,7 @@ class TrpceOdlClient(OdlClient):
         payload = json.dumps(data)
         response = self.requestRest('/rests/operations/transportpce-networkutils:init-xpdr-rdm-links',
                                     'POST', self.defaultJsonHeaders, payload)
-        print(xpdrNode + " to "+ roadmNodeId+" link "+str(response.code))
+        print(xpdrNode + " to "+ roadmNodeId+" link "+str(response.code)+ (" error:"+str(response.content) if response.code>299 else ""))
         return response
     
     
@@ -63,7 +63,7 @@ class TrpceOdlClient(OdlClient):
         payload = json.dumps(data)
         response = self.requestRest('/rests/operations/transportpce-networkutils:init-rdm-xpdr-links',
                                     'POST', self.defaultJsonHeaders, payload)
-        print(xpdrNode + " to "+ roadmNodeId+" link "+str(response.code))
+        print(xpdrNode + " to "+ roadmNodeId+" link "+str(response.code)+ (" error:"+str(response.content) if response.code>299 else ""))
         return response
 
     def addOmsAttributes(self, link: str, attr):
@@ -93,7 +93,7 @@ class TrpceOdlClient(OdlClient):
         payload = json.dumps(data)
         response = self.requestRest('/rests/data/ietf-network:networks/network/otn-topology/ietf-network-topology:link/'+linkId,
                                     'POST', self.defaultJsonHeaders, payload)
-        print("topolink from "+srcXpdrNodeId + " to "+ dstXpdrNodeId+" created "+str(response.code))
+        print("topolink from "+srcXpdrNodeId + " to "+ dstXpdrNodeId+" created "+str(response.code)+ (" error:"+str(response.content) if response.code>299 else ""))
         return response
 
     def createService(self,serviceData):
