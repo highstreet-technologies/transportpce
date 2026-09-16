@@ -8,8 +8,8 @@
 package org.opendaylight.transportpce.devicediscovery;
 
 import org.opendaylight.mdsal.binding.api.DataBroker;
-import org.opendaylight.transportpce.devicediscovery.config.ConfigLoader;
-import org.opendaylight.transportpce.devicediscovery.config.DeviceDiscoveryConfig;
+import org.opendaylight.transportpce.devicediscovery.config.TransportPceConfig;
+import org.opendaylight.transportpce.devicediscovery.config.TransportPceConfigLoader;
 import org.opendaylight.transportpce.devicediscovery.kafka.VesKafkaConsumer;
 import org.opendaylight.transportpce.devicediscovery.reconciliation.NetconfTopologyRestconfClient;
 import org.opendaylight.transportpce.devicediscovery.reconciliation.TopologyReconciliationService;
@@ -35,7 +35,7 @@ public class DeviceDiscoveryProvider implements AutoCloseable {
 
     private final DataBroker dataBroker;
     private final String configPath;
-    private DeviceDiscoveryConfig config;
+    private TransportPceConfig config;
     private TopologyWriter topologyWriter;
     private VesKafkaConsumer kafkaConsumer;
     private NetconfTopologyRestconfClient restconfClient;
@@ -53,7 +53,7 @@ public class DeviceDiscoveryProvider implements AutoCloseable {
     public void start() {
         LOG.info("Device Discovery starting");
 
-        config = ConfigLoader.load(configPath);
+        config = TransportPceConfigLoader.load(configPath);
         topologyWriter = new TopologyWriter(dataBroker);
 
         // RESTCONF client — stays open for Kafka consumer to use on "connected" events
@@ -90,7 +90,7 @@ public class DeviceDiscoveryProvider implements AutoCloseable {
         return dataBroker;
     }
 
-    public DeviceDiscoveryConfig getConfig() {
+    public TransportPceConfig getConfig() {
         return config;
     }
 }

@@ -11,26 +11,44 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Configuration for the Device Discovery module.
+ * Unified configuration for TransportPCE, read from a single properties file
+ * (e.g. {@code etc/org.opendaylight.transportpce.cfg}).
  *
- * Read from a config file (e.g. etc/org.opendaylight.transportpce.devicediscovery.cfg)
- * containing:
+ * <p>Contains:
+ * <ul>
+ *   <li>Kafka settings for the VES event consumer (device-discovery)</li>
+ *   <li>Controller list (UUID → base URL) shared by device-discovery and sb-restconf-client</li>
+ *   <li>Shared bearer token for RESTCONF authentication</li>
+ *   <li>Optional mount prefix for device-level RESTCONF access (sb-restconf-client)</li>
+ * </ul>
  *
+ * <p>Expected properties in the config file:
+ * <pre>
  *   kafka.bootstrap.servers = kafka:9092
- *   kafka.topic = unmNotifications
+ *   kafka.topic = unauthenticated.VES_NOTIFICATION_OUTPUT
  *   kafka.group.id = transportpce-device-discovery
  *   controller.bearer.token = {shared-bearer-token}
  *   controller.list = uuid1,uuid2,uuid3
  *   controller.uuid1.baseurl = https://controller-1:8443/rests
  *   controller.uuid2.baseurl = https://controller-2:8443/rests
- *   controller.uuid3.baseurl = https://controller-3:8443/rests
+ *   # Optional: override the mount prefix (default is the standard ODL netconf-topology mount path)
+ *   # mount.prefix = /rests/data/network-topology:network-topology/topology=topology-netconf/node=
+ * </pre>
  */
-public class DeviceDiscoveryConfig {
+public class TransportPceConfig {
+
+    /**
+     * Default RESTCONF mount path prefix for device-level access.
+     * The full URL is: {controller-base-url}{MOUNT_PREFIX}{node-id}{mount-suffix}{object-path}
+     */
+    public static final String DEFAULT_MOUNT_PREFIX =
+            "/data/network-topology:network-topology/topology=topology-netconf/node=";
 
     private String kafkaBootstrapServers;
     private String kafkaTopic;
     private String kafkaGroupId;
     private String bearerToken;
+    private String mountPrefix = DEFAULT_MOUNT_PREFIX;
     private List<ControllerEntry> controllers;
 
     public static class ControllerEntry {
@@ -83,6 +101,14 @@ public class DeviceDiscoveryConfig {
         this.bearerToken = bearerToken;
     }
 
+    public String getMountPrefix() {
+        return mountPrefix;
+    }
+
+    public void setMountPrefix(String mountPrefix) {
+        this.mountPrefix = mountPrefix;
+    }
+
     public List<ControllerEntry> getControllers() {
         return controllers;
     }
@@ -95,7 +121,7 @@ public class DeviceDiscoveryConfig {
      * Find the controller base URL for a given reportingEntityId (UUID).
      *
      * @param uuid the reportingEntityId from the VES commonEventHeader
-     * @return the base URL of the matching controller, or empty if not found
+     * @return the matching controller entry, or empty if not found
      */
     public Optional<ControllerEntry> findController(String uuid) {
         if (controllers == null || uuid == null) {
@@ -104,5 +130,9 @@ public class DeviceDiscoveryConfig {
         return controllers.stream()
                 .filter(c -> c.getUuid().equals(uuid))
                 .findFirst();
+    }
+
+    public boolean isNetconfTopology(){
+        return this.mountPrefix.contains("topology-netconf");
     }
 }

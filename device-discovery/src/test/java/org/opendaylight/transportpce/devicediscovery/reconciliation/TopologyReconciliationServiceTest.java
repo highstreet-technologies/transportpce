@@ -19,7 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.opendaylight.transportpce.devicediscovery.config.DeviceDiscoveryConfig;
+import org.opendaylight.transportpce.devicediscovery.config.TransportPceConfig;
 import org.opendaylight.transportpce.devicediscovery.reconciliation.NetconfTopologyRestconfClient.RemoteNode;
 import org.opendaylight.transportpce.devicediscovery.topology.TopologyWriter;
 
@@ -34,11 +34,11 @@ public class TopologyReconciliationServiceTest {
 
     @Test
     public void testReconcileWithConnectedNodes() {
-        DeviceDiscoveryConfig config = createConfig(
+        TransportPceConfig config = createConfig(
                 "token",
                 List.of(
-                    new DeviceDiscoveryConfig.ControllerEntry("uuid-1", "https://ctrl-1:8443/rests"),
-                    new DeviceDiscoveryConfig.ControllerEntry("uuid-2", "https://ctrl-2:8443/rests")
+                    new TransportPceConfig.ControllerEntry("uuid-1", "https://ctrl-1:8443/rests"),
+                    new TransportPceConfig.ControllerEntry("uuid-2", "https://ctrl-2:8443/rests")
                 ));
 
         RemoteNode device1 = createRemoteNode("device-1", "connected");
@@ -63,7 +63,7 @@ public class TopologyReconciliationServiceTest {
 
     @Test
     public void testReconcileWithNoControllers() {
-        DeviceDiscoveryConfig config = createConfig("token", List.of());
+        TransportPceConfig config = createConfig("token", List.of());
 
         TopologyReconciliationService service =
                 new TopologyReconciliationService(config, topologyWriter, restconfClient);
@@ -75,7 +75,7 @@ public class TopologyReconciliationServiceTest {
 
     @Test
     public void testReconcileWithNullControllers() {
-        DeviceDiscoveryConfig config = new DeviceDiscoveryConfig();
+        TransportPceConfig config = new TransportPceConfig();
         config.setBearerToken("token");
         config.setControllers(null);
 
@@ -88,8 +88,8 @@ public class TopologyReconciliationServiceTest {
 
     @Test
     public void testReconcileControllerReturnsEmpty() {
-        DeviceDiscoveryConfig config = createConfig("token",
-                List.of(new DeviceDiscoveryConfig.ControllerEntry("uuid-1", "https://ctrl-1:8443/rests")));
+        TransportPceConfig config = createConfig("token",
+                List.of(new TransportPceConfig.ControllerEntry("uuid-1", "https://ctrl-1:8443/rests")));
 
         when(restconfClient.getNetconfTopology("https://ctrl-1:8443/rests", "token"))
                 .thenReturn(List.of());
@@ -103,8 +103,8 @@ public class TopologyReconciliationServiceTest {
 
     @Test
     public void testReconcileControllerThrowsException() {
-        DeviceDiscoveryConfig config = createConfig("token",
-                List.of(new DeviceDiscoveryConfig.ControllerEntry("uuid-1", "https://ctrl-1:8443/rests")));
+        TransportPceConfig config = createConfig("token",
+                List.of(new TransportPceConfig.ControllerEntry("uuid-1", "https://ctrl-1:8443/rests")));
 
         when(restconfClient.getNetconfTopology("https://ctrl-1:8443/rests", "token"))
                 .thenThrow(new RuntimeException("Connection refused"));
@@ -118,8 +118,8 @@ public class TopologyReconciliationServiceTest {
 
     @Test
     public void testReconcileSkipsNullConnectionStatus() {
-        DeviceDiscoveryConfig config = createConfig("token",
-                List.of(new DeviceDiscoveryConfig.ControllerEntry("uuid-1", "https://ctrl-1:8443/rests")));
+        TransportPceConfig config = createConfig("token",
+                List.of(new TransportPceConfig.ControllerEntry("uuid-1", "https://ctrl-1:8443/rests")));
 
         RemoteNode nodeWithoutStatus = new RemoteNode();
         nodeWithoutStatus.setNodeId("device-5");
@@ -135,8 +135,8 @@ public class TopologyReconciliationServiceTest {
         verify(topologyWriter, never()).writeNode(any(RemoteNode.class), anyString());
     }
 
-    private DeviceDiscoveryConfig createConfig(String token, List<DeviceDiscoveryConfig.ControllerEntry> controllers) {
-        DeviceDiscoveryConfig config = new DeviceDiscoveryConfig();
+    private TransportPceConfig createConfig(String token, List<TransportPceConfig.ControllerEntry> controllers) {
+        TransportPceConfig config = new TransportPceConfig();
         config.setBearerToken(token);
         config.setControllers(controllers);
         return config;

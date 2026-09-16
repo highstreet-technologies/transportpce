@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.opendaylight.transportpce.devicediscovery.config.DeviceDiscoveryConfig;
+import org.opendaylight.transportpce.devicediscovery.config.TransportPceConfig;
 import org.opendaylight.transportpce.devicediscovery.model.ves.Event;
 import org.opendaylight.transportpce.devicediscovery.reconciliation.NetconfTopologyRestconfClient;
 import org.opendaylight.transportpce.devicediscovery.reconciliation.NetconfTopologyRestconfClient.RemoteNode;
@@ -38,14 +38,14 @@ public class VesKafkaConsumer {
 
     private static final Logger LOG = LoggerFactory.getLogger(VesKafkaConsumer.class);
 
-    private final DeviceDiscoveryConfig config;
+    private final TransportPceConfig config;
     private final TopologyWriter topologyWriter;
     private final NetconfTopologyRestconfClient restconfClient;
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final AtomicBoolean running = new AtomicBoolean(false);
     private KafkaConsumer<String, VesEventWrapper> consumer;
 
-    public VesKafkaConsumer(DeviceDiscoveryConfig config, TopologyWriter topologyWriter,
+    public VesKafkaConsumer(TransportPceConfig config, TopologyWriter topologyWriter,
             NetconfTopologyRestconfClient restconfClient) {
         this.config = config;
         this.topologyWriter = topologyWriter;
@@ -118,7 +118,7 @@ public class VesKafkaConsumer {
             String newState = wrapper.getNewState();
 
             // Validate controller is known
-            Optional<DeviceDiscoveryConfig.ControllerEntry> controllerOpt =
+            Optional<TransportPceConfig.ControllerEntry> controllerOpt =
                     config.findController(controllerUuid);
             if (controllerOpt.isEmpty()) {
                 LOG.warn("Unknown controller UUID '{}', ignoring event for node {}", controllerUuid, nodeId);

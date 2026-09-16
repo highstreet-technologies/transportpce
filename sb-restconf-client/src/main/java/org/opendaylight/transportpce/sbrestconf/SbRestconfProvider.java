@@ -10,8 +10,8 @@ package org.opendaylight.transportpce.sbrestconf;
 import org.opendaylight.mdsal.binding.api.DataBroker;
 import org.opendaylight.transportpce.sbrestconf.client.ControllerUuidResolver;
 import org.opendaylight.transportpce.sbrestconf.client.SbRestconfClient;
-import org.opendaylight.transportpce.sbrestconf.config.SbRestconfConfig;
-import org.opendaylight.transportpce.sbrestconf.config.SbRestconfConfigLoader;
+import org.opendaylight.transportpce.devicediscovery.config.TransportPceConfig;
+import org.opendaylight.transportpce.devicediscovery.config.TransportPceConfigLoader;
 import org.opendaylight.yangtools.binding.data.codec.api.BindingDataCodec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,7 +60,7 @@ public class SbRestconfProvider implements AutoCloseable {
     public void start() {
         LOG.info("Starting sb-restconf client");
 
-        SbRestconfConfig config = SbRestconfConfigLoader.load(configPath);
+        TransportPceConfig config = TransportPceConfigLoader.load(configPath);
         ControllerUuidResolver resolver = new ControllerUuidResolver(dataBroker);
         this.client = new SbRestconfClient(config, resolver, dataCodec);
 

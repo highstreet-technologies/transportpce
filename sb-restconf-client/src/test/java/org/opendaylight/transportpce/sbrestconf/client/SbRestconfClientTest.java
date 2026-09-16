@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.opendaylight.transportpce.sbrestconf.config.SbRestconfConfig;
+import org.opendaylight.transportpce.devicediscovery.config.TransportPceConfig;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.OrgOpenroadmDeviceData;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.circuit.pack.Ports;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.circuit.pack.PortsKey;
@@ -51,16 +51,16 @@ public class SbRestconfClientTest {
 
     private final BindingDataCodec dataCodec = createBindingDataCodec();
 
-    private SbRestconfConfig config;
+    private TransportPceConfig config;
     private SbRestconfClient client;
 
     @BeforeEach
     void setUp() {
-        config = new SbRestconfConfig();
+        config = new TransportPceConfig();
         config.setBearerToken("test-token");
         config.setControllers(List.of(
-                new SbRestconfConfig.ControllerEntry("ctrl-uuid-1", "https://ctrl-1:8443/rests"),
-                new SbRestconfConfig.ControllerEntry("ctrl-uuid-2", "https://ctrl-2:8443/rests")
+                new TransportPceConfig.ControllerEntry("ctrl-uuid-1", "https://ctrl-1:8443/rests"),
+                new TransportPceConfig.ControllerEntry("ctrl-uuid-2", "https://ctrl-2:8443/rests")
         ));
         client = new SbRestconfClient(config, uuidResolver, dataCodec);
     }
@@ -166,7 +166,7 @@ public class SbRestconfClientTest {
     @Test
     void testBuildUrlWithBaseUrlEndingSlash() {
         config.setControllers(List.of(
-                new SbRestconfConfig.ControllerEntry("ctrl-uuid-1", "https://ctrl-1:8443/rests")
+                new TransportPceConfig.ControllerEntry("ctrl-uuid-1", "https://ctrl-1:8443/rests")
         ));
 
         when(uuidResolver.resolveControllerUuid("device-1"))

@@ -20,7 +20,7 @@ import javax.ws.rs.client.Invocation;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import org.opendaylight.transportpce.sbrestconf.config.SbRestconfConfig;
+import org.opendaylight.transportpce.devicediscovery.config.TransportPceConfig;
 import org.opendaylight.yangtools.binding.DataObject;
 import org.opendaylight.yangtools.binding.DataObjectIdentifier;
 import org.opendaylight.yangtools.binding.data.codec.api.BindingDataCodec;
@@ -55,13 +55,13 @@ public class SbRestconfClient implements AutoCloseable {
     private static final Logger LOG = LoggerFactory.getLogger(SbRestconfClient.class);
     private static final String MOUNT_SUFFIX = "/yang-ext:mount";
 
-    private final SbRestconfConfig config;
+    private final TransportPceConfig config;
     private final ControllerUuidResolver uuidResolver;
     private final BindingDataCodec dataCodec;
     private final BindingNormalizedNodeSerializer serializer;
     private final Client client;
 
-    public SbRestconfClient(SbRestconfConfig config, ControllerUuidResolver uuidResolver,
+    public SbRestconfClient(TransportPceConfig config, ControllerUuidResolver uuidResolver,
             BindingDataCodec dataCodec) {
         this.config = config;
         this.uuidResolver = uuidResolver;
@@ -402,7 +402,7 @@ public class SbRestconfClient implements AutoCloseable {
             return null;
         }
         var uuid = controllerUuidOpt.orElseThrow();
-        Optional<SbRestconfConfig.ControllerEntry> controllerOpt =
+        Optional<TransportPceConfig.ControllerEntry> controllerOpt =
                 config.findController(uuid);
         if (controllerOpt.isEmpty()) {
             LOG.warn("Controller UUID {} not found in config", uuid);

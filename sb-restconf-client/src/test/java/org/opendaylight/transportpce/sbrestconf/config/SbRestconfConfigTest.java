@@ -12,15 +12,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.opendaylight.transportpce.devicediscovery.config.TransportPceConfig;
 
 public class SbRestconfConfigTest {
 
     @Test
     void testFindControllerPresent() {
-        SbRestconfConfig config = new SbRestconfConfig();
+        TransportPceConfig config = new TransportPceConfig();
         config.setControllers(List.of(
-            new SbRestconfConfig.ControllerEntry("uuid-1", "https://ctrl-1:8443/rests"),
-            new SbRestconfConfig.ControllerEntry("uuid-2", "https://ctrl-2:8443/rests")
+            new TransportPceConfig.ControllerEntry("uuid-1", "https://ctrl-1:8443/rests"),
+            new TransportPceConfig.ControllerEntry("uuid-2", "https://ctrl-2:8443/rests")
         ));
 
         assertTrue(config.findController("uuid-1").isPresent());
@@ -30,9 +31,9 @@ public class SbRestconfConfigTest {
 
     @Test
     void testFindControllerAbsent() {
-        SbRestconfConfig config = new SbRestconfConfig();
+        TransportPceConfig config = new TransportPceConfig();
         config.setControllers(List.of(
-            new SbRestconfConfig.ControllerEntry("uuid-1", "https://ctrl-1:8443/rests")
+            new TransportPceConfig.ControllerEntry("uuid-1", "https://ctrl-1:8443/rests")
         ));
 
         assertTrue(config.findController("unknown").isEmpty());
@@ -40,44 +41,44 @@ public class SbRestconfConfigTest {
 
     @Test
     void testFindControllerNullControllers() {
-        SbRestconfConfig config = new SbRestconfConfig();
+        TransportPceConfig config = new TransportPceConfig();
         config.setControllers(null);
         assertTrue(config.findController("any").isEmpty());
     }
 
     @Test
     void testFindControllerNullUuid() {
-        SbRestconfConfig config = new SbRestconfConfig();
+        TransportPceConfig config = new TransportPceConfig();
         config.setControllers(List.of(
-            new SbRestconfConfig.ControllerEntry("uuid-1", "https://ctrl-1:8443/rests")
+            new TransportPceConfig.ControllerEntry("uuid-1", "https://ctrl-1:8443/rests")
         ));
         assertTrue(config.findController(null).isEmpty());
     }
 
     @Test
     void testDefaultMountPrefix() {
-        SbRestconfConfig config = new SbRestconfConfig();
-        assertEquals(SbRestconfConfig.DEFAULT_MOUNT_PREFIX, config.getMountPrefix());
+        TransportPceConfig config = new TransportPceConfig();
+        assertEquals(TransportPceConfig.DEFAULT_MOUNT_PREFIX, config.getMountPrefix());
     }
 
     @Test
     void testCustomMountPrefix() {
-        SbRestconfConfig config = new SbRestconfConfig();
+        TransportPceConfig config = new TransportPceConfig();
         config.setMountPrefix("/custom/mount/path/node=");
         assertEquals("/custom/mount/path/node=", config.getMountPrefix());
     }
 
     @Test
     void testControllerEntryGetters() {
-        SbRestconfConfig.ControllerEntry entry =
-                new SbRestconfConfig.ControllerEntry("my-uuid", "https://my-url:8443/rests");
+        TransportPceConfig.ControllerEntry entry =
+                new TransportPceConfig.ControllerEntry("my-uuid", "https://my-url:8443/rests");
         assertEquals("my-uuid", entry.getUuid());
         assertEquals("https://my-url:8443/rests", entry.getBaseUrl());
     }
 
     @Test
     void testConfigGettersSetters() {
-        SbRestconfConfig config = new SbRestconfConfig();
+        TransportPceConfig config = new TransportPceConfig();
         config.setBearerToken("my-token");
         config.setMountPrefix("/test/mount=");
         config.setControllers(List.of());

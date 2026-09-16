@@ -7,24 +7,25 @@
  */
 package org.opendaylight.transportpce.devicediscovery.config;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Loads DeviceDiscoveryConfig from a Java properties file.
+ * Loads {@link TransportPceConfig} from a Java properties file.
  *
- * Supports environment variable substitution via ${env:VAR:-default} syntax.
+ * <p>Supports environment variable substitution via {@code ${env:VAR:-default}} syntax.
  *
- * Expected properties:
+ * <p>Expected properties:
+ * <pre>
  *   kafka.bootstrap.servers = localhost:9092
  *   kafka.topic = unmNotifications
  *   kafka.group.id = transportpce-device-discovery
@@ -32,34 +33,40 @@ import org.slf4j.LoggerFactory;
  *   controller.list = uuid1,uuid2
  *   controller.uuid1.baseurl = https://controller-1:8443/rests
  *   controller.uuid2.baseurl = https://controller-2:8443/rests
+ *   # Optional: override the mount prefix (default is the standard ODL netconf-topology mount path)
+ *   # mount.prefix = /rests/data/network-topology:network-topology/topology=topology-netconf/node=
+ * </pre>
  */
-public final class ConfigLoader {
+public final class TransportPceConfigLoader {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ConfigLoader.class);
+    private static final Logger LOG = LoggerFactory.getLogger(TransportPceConfigLoader.class);
 
     private static final String DEFAULT_CONFIG_PATH = "etc/org.opendaylight.transportpce.cfg";
 
-    private ConfigLoader() {
+    private static final Pattern ENV_PATTERN = Pattern.compile(
+            "\\$\\{env:([A-Za-z_][A-Za-z0-9_]*)(?::-(.*?))?\\}");
+
+    private TransportPceConfigLoader() {
     }
 
     /**
-     * Load DeviceDiscoveryConfig from the default config file path.
+     * Load TransportPceConfig from the default config file path.
      *
-     * @return populated DeviceDiscoveryConfig
+     * @return populated TransportPceConfig
      */
-    public static DeviceDiscoveryConfig load() {
+    public static TransportPceConfig load() {
         return load(DEFAULT_CONFIG_PATH);
     }
 
     /**
-     * Load DeviceDiscoveryConfig from a specific properties file.
+     * Load TransportPceConfig from a specific properties file.
      *
      * @param configPath path to the properties file
-     * @return populated DeviceDiscoveryConfig
+     * @return populated TransportPceConfig
      */
-    public static DeviceDiscoveryConfig load(String configPath) {
+    public static TransportPceConfig load(String configPath) {
         Path path = Path.of(configPath);
-        LOG.info("Loading device discovery config from: {}", path.toAbsolutePath());
+        LOG.info("Loading TransportPCE config from: {}", path.toAbsolutePath());
 
         Properties props = new Properties();
         try (InputStream is = Files.newInputStream(path)) {
@@ -73,12 +80,12 @@ public final class ConfigLoader {
     }
 
     /**
-     * Load DeviceDiscoveryConfig from properties loaded via an InputStream.
+     * Load TransportPceConfig from properties loaded via an InputStream.
      *
      * @param inputStream input stream to a properties file
-     * @return populated DeviceDiscoveryConfig
+     * @return populated TransportPceConfig
      */
-    public static DeviceDiscoveryConfig load(InputStream inputStream) {
+    public static TransportPceConfig load(InputStream inputStream) {
         Properties props = new Properties();
         try {
             props.load(inputStream);
@@ -89,16 +96,17 @@ public final class ConfigLoader {
         return parseConfig(props);
     }
 
-    private static DeviceDiscoveryConfig parseConfig(Properties props) {
-        DeviceDiscoveryConfig config = new DeviceDiscoveryConfig();
+    private static TransportPceConfig parseConfig(Properties props) {
+        TransportPceConfig config = new TransportPceConfig();
         config.setKafkaBootstrapServers(resolveValue(props, "kafka.bootstrap.servers", "localhost:9092"));
         config.setKafkaTopic(resolveValue(props, "kafka.topic", "unmNotifications"));
         config.setKafkaGroupId(resolveValue(props, "kafka.group.id", "transportpce-device-discovery"));
         config.setBearerToken(resolveValue(props, "controller.bearer.token", "change-me"));
+        config.setMountPrefix(resolveValue(props, "mount.prefix", TransportPceConfig.DEFAULT_MOUNT_PREFIX));
 
         // Parse controller list
         String controllerListStr = resolveValue(props, "controller.list", "");
-        List<DeviceDiscoveryConfig.ControllerEntry> controllers = new ArrayList<>();
+        List<TransportPceConfig.ControllerEntry> controllers = new ArrayList<>();
         if (!controllerListStr.isBlank()) {
             for (String uuid : controllerListStr.split(",")) {
                 uuid = uuid.trim();
@@ -108,7 +116,7 @@ public final class ConfigLoader {
                 String baseUrlKey = "controller." + uuid + ".baseurl";
                 String baseUrl = resolveValue(props, baseUrlKey, "");
                 if (!baseUrl.isBlank()) {
-                    controllers.add(new DeviceDiscoveryConfig.ControllerEntry(uuid, baseUrl));
+                    controllers.add(new TransportPceConfig.ControllerEntry(uuid, baseUrl));
                     LOG.info("Configured controller: uuid={}, baseUrl={}", uuid, baseUrl);
                 } else {
                     LOG.warn("Controller {} has no baseurl configured, skipping", uuid);
@@ -117,9 +125,9 @@ public final class ConfigLoader {
         }
         config.setControllers(controllers);
 
-        LOG.info("Device discovery config loaded: kafka={}, topic={}, groupId={}, controllers={}",
+        LOG.info("TransportPCE config loaded: kafka={}, topic={}, groupId={}, mountPrefix={}, controllers={}",
                 config.getKafkaBootstrapServers(), config.getKafkaTopic(), config.getKafkaGroupId(),
-                controllers.size());
+                config.getMountPrefix(), controllers.size());
 
         return config;
     }
@@ -147,28 +155,26 @@ public final class ConfigLoader {
      * @return the value with env vars resolved
      */
     private static String resolveEnvVars(String value) {
-        // Pattern: ${env:VAR:-default}
-        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(
-                "\\$\\{env:([A-Za-z_][A-Za-z0-9_]*)(?::-(.*?))?\\}");
-        java.util.regex.Matcher matcher = pattern.matcher(value);
+        Matcher matcher = ENV_PATTERN.matcher(value);
         StringBuilder result = new StringBuilder();
         while (matcher.find()) {
             String envVar = matcher.group(1);
             String defaultVal = matcher.group(2) != null ? matcher.group(2) : "";
             String envValue = System.getenv(envVar);
             String replacement = envValue != null ? envValue : defaultVal;
-            matcher.appendReplacement(result, java.util.regex.Matcher.quoteReplacement(replacement));
+            matcher.appendReplacement(result, Matcher.quoteReplacement(replacement));
         }
         matcher.appendTail(result);
         return result.toString();
     }
 
-    private static DeviceDiscoveryConfig createDefaultConfig() {
-        DeviceDiscoveryConfig config = new DeviceDiscoveryConfig();
+    private static TransportPceConfig createDefaultConfig() {
+        TransportPceConfig config = new TransportPceConfig();
         config.setKafkaBootstrapServers("localhost:9092");
         config.setKafkaTopic("unmNotifications");
         config.setKafkaGroupId("transportpce-device-discovery");
         config.setBearerToken("change-me");
+        config.setMountPrefix(TransportPceConfig.DEFAULT_MOUNT_PREFIX);
         config.setControllers(List.of());
         LOG.warn("Using default config — no controllers configured, Kafka consumer will be inactive");
         return config;

@@ -41,6 +41,7 @@ import org.opendaylight.transportpce.common.openroadminterfaces.OpenRoadmInterfa
 import org.opendaylight.transportpce.common.openroadminterfaces.OpenRoadmInterfacesImpl221;
 import org.opendaylight.transportpce.common.openroadminterfaces.OpenRoadmInterfacesImpl710;
 import org.opendaylight.transportpce.devicediscovery.DeviceDiscoveryProvider;
+import org.opendaylight.transportpce.devicediscovery.config.TransportPceConfigLoader;
 import org.opendaylight.transportpce.health.HealthCheckProvider;
 import org.opendaylight.transportpce.nbinotifications.impl.NbiNotificationsProvider;
 import org.opendaylight.transportpce.networkmodel.NetConfTopologyListener;
@@ -71,7 +72,6 @@ import org.opendaylight.transportpce.sbrestconf.SbRestconfProvider;
 import org.opendaylight.transportpce.sbrestconf.client.ControllerUuidResolver;
 import org.opendaylight.transportpce.sbrestconf.client.SbRestconfClient;
 import org.opendaylight.transportpce.sbrestconf.client.SbRestconfDataCodecFactory;
-import org.opendaylight.transportpce.sbrestconf.config.SbRestconfConfigLoader;
 import org.opendaylight.transportpce.sbrestconf.device.RestDeviceTransactionManager;
 import org.opendaylight.transportpce.servicehandler.catalog.CatalogDataStoreOperationsImpl;
 import org.opendaylight.transportpce.servicehandler.impl.ServiceHandlerProvider;
@@ -127,7 +127,7 @@ public class TransportPCEImpl extends AbstractLightyModule implements TransportP
         deviceTransactionManager =
             new RestDeviceTransactionManager(
                 new SbRestconfClient(
-                    SbRestconfConfigLoader.load("etc/org.opendaylight.transportpce.cfg"),
+                    TransportPceConfigLoader.load("etc/org.opendaylight.transportpce.cfg"),
                     new ControllerUuidResolver(dataBroker),
                     SbRestconfDataCodecFactory.createForDeviceModel(
                         org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529

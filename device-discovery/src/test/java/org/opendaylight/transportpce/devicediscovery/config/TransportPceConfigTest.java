@@ -14,14 +14,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-public class DeviceDiscoveryConfigTest {
+public class TransportPceConfigTest {
 
     @Test
     void testFindControllerPresent() {
-        DeviceDiscoveryConfig config = new DeviceDiscoveryConfig();
+        TransportPceConfig config = new TransportPceConfig();
         config.setControllers(List.of(
-                new DeviceDiscoveryConfig.ControllerEntry("uuid-1", "https://ctrl-1:8443/rests"),
-                new DeviceDiscoveryConfig.ControllerEntry("uuid-2", "https://ctrl-2:8443/rests")
+                new TransportPceConfig.ControllerEntry("uuid-1", "https://ctrl-1:8443/rests"),
+                new TransportPceConfig.ControllerEntry("uuid-2", "https://ctrl-2:8443/rests")
         ));
 
         assertTrue(config.findController("uuid-1").isPresent());
@@ -32,9 +32,9 @@ public class DeviceDiscoveryConfigTest {
 
     @Test
     void testFindControllerAbsent() {
-        DeviceDiscoveryConfig config = new DeviceDiscoveryConfig();
+        TransportPceConfig config = new TransportPceConfig();
         config.setControllers(List.of(
-                new DeviceDiscoveryConfig.ControllerEntry("uuid-1", "https://ctrl-1:8443/rests")
+                new TransportPceConfig.ControllerEntry("uuid-1", "https://ctrl-1:8443/rests")
         ));
 
         assertTrue(config.findController("unknown-uuid").isEmpty());
@@ -42,7 +42,7 @@ public class DeviceDiscoveryConfigTest {
 
     @Test
     void testFindControllerWithNullControllers() {
-        DeviceDiscoveryConfig config = new DeviceDiscoveryConfig();
+        TransportPceConfig config = new TransportPceConfig();
         config.setControllers(null);
 
         assertTrue(config.findController("any-uuid").isEmpty());
@@ -50,35 +50,43 @@ public class DeviceDiscoveryConfigTest {
 
     @Test
     void testFindControllerWithNullUuid() {
-        DeviceDiscoveryConfig config = new DeviceDiscoveryConfig();
+        TransportPceConfig config = new TransportPceConfig();
         config.setControllers(List.of(
-                new DeviceDiscoveryConfig.ControllerEntry("uuid-1", "https://ctrl-1:8443/rests")
+                new TransportPceConfig.ControllerEntry("uuid-1", "https://ctrl-1:8443/rests")
         ));
 
         assertTrue(config.findController(null).isEmpty());
     }
 
     @Test
+    void testDefaultMountPrefix() {
+        TransportPceConfig config = new TransportPceConfig();
+        assertEquals(TransportPceConfig.DEFAULT_MOUNT_PREFIX, config.getMountPrefix());
+    }
+
+    @Test
     void testControllerEntryGetters() {
-        DeviceDiscoveryConfig.ControllerEntry entry =
-                new DeviceDiscoveryConfig.ControllerEntry("my-uuid", "https://my-url:8443/rests");
+        TransportPceConfig.ControllerEntry entry =
+                new TransportPceConfig.ControllerEntry("my-uuid", "https://my-url:8443/rests");
         assertEquals("my-uuid", entry.getUuid());
         assertEquals("https://my-url:8443/rests", entry.getBaseUrl());
     }
 
     @Test
     void testConfigGettersSetters() {
-        DeviceDiscoveryConfig config = new DeviceDiscoveryConfig();
+        TransportPceConfig config = new TransportPceConfig();
         config.setKafkaBootstrapServers("kafka:9092");
         config.setKafkaTopic("my-topic");
         config.setKafkaGroupId("my-group");
         config.setBearerToken("my-token");
+        config.setMountPrefix("/custom/mount=");
         config.setControllers(List.of());
 
         assertEquals("kafka:9092", config.getKafkaBootstrapServers());
         assertEquals("my-topic", config.getKafkaTopic());
         assertEquals("my-group", config.getKafkaGroupId());
         assertEquals("my-token", config.getBearerToken());
+        assertEquals("/custom/mount=", config.getMountPrefix());
         assertFalse(config.getControllers() == null);
         assertTrue(config.getControllers().isEmpty());
     }

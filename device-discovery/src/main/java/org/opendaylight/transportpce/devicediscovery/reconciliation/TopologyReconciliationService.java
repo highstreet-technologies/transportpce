@@ -8,7 +8,7 @@
 package org.opendaylight.transportpce.devicediscovery.reconciliation;
 
 import java.util.List;
-import org.opendaylight.transportpce.devicediscovery.config.DeviceDiscoveryConfig;
+import org.opendaylight.transportpce.devicediscovery.config.TransportPceConfig;
 import org.opendaylight.transportpce.devicediscovery.reconciliation.NetconfTopologyRestconfClient.RemoteNode;
 import org.opendaylight.transportpce.devicediscovery.topology.TopologyWriter;
 import org.slf4j.Logger;
@@ -25,11 +25,11 @@ public class TopologyReconciliationService {
 
     private static final Logger LOG = LoggerFactory.getLogger(TopologyReconciliationService.class);
 
-    private final DeviceDiscoveryConfig config;
+    private final TransportPceConfig config;
     private final TopologyWriter topologyWriter;
     private final NetconfTopologyRestconfClient restconfClient;
 
-    public TopologyReconciliationService(DeviceDiscoveryConfig config, TopologyWriter topologyWriter,
+    public TopologyReconciliationService(TransportPceConfig config, TopologyWriter topologyWriter,
             NetconfTopologyRestconfClient restconfClient) {
         this.config = config;
         this.topologyWriter = topologyWriter;
@@ -40,7 +40,7 @@ public class TopologyReconciliationService {
      * Reconcile netconf-topology from all configured controllers.
      */
     public void reconcile() {
-        List<DeviceDiscoveryConfig.ControllerEntry> controllers = config.getControllers();
+        List<TransportPceConfig.ControllerEntry> controllers = config.getControllers();
         if (controllers == null || controllers.isEmpty()) {
             LOG.warn("No controllers configured, skipping reconciliation");
             return;
@@ -49,7 +49,7 @@ public class TopologyReconciliationService {
         LOG.info("Starting topology reconciliation from {} controller(s)", controllers.size());
 
         int totalNodes = 0;
-        for (DeviceDiscoveryConfig.ControllerEntry controller : controllers) {
+        for (TransportPceConfig.ControllerEntry controller : controllers) {
             try {
                 totalNodes += reconcileController(controller);
             } catch (Exception e) {
@@ -61,7 +61,7 @@ public class TopologyReconciliationService {
                 totalNodes, controllers.size());
     }
 
-    private int reconcileController(DeviceDiscoveryConfig.ControllerEntry controller) {
+    private int reconcileController(TransportPceConfig.ControllerEntry controller) {
         LOG.info("Reconciling controller: uuid={}, baseUrl={}", controller.getUuid(), controller.getBaseUrl());
 
         List<RemoteNode> remoteNodes =

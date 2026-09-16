@@ -16,7 +16,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
 
-public class ConfigLoaderTest {
+public class TransportPceConfigLoaderTest {
 
     @Test
     void testLoadFromInputStream() {
@@ -30,7 +30,7 @@ public class ConfigLoaderTest {
                 controller.uuid2.baseurl = https://ctrl-2:8443/rests
                 """;
         InputStream is = new ByteArrayInputStream(props.getBytes(StandardCharsets.UTF_8));
-        DeviceDiscoveryConfig config = ConfigLoader.load(is);
+        TransportPceConfig config = TransportPceConfigLoader.load(is);
 
         assertEquals("kafka:9092", config.getKafkaBootstrapServers());
         assertEquals("test-notifications", config.getKafkaTopic());
@@ -45,6 +45,31 @@ public class ConfigLoaderTest {
     }
 
     @Test
+    void testLoadWithCustomMountPrefix() {
+        String props = """
+                controller.bearer.token = token
+                mount.prefix = /custom/mount/node=
+                controller.list = uuid1
+                controller.uuid1.baseurl = https://ctrl-1:8443/rests
+                """;
+        InputStream is = new ByteArrayInputStream(props.getBytes(StandardCharsets.UTF_8));
+        TransportPceConfig config = TransportPceConfigLoader.load(is);
+
+        assertEquals("/custom/mount/node=", config.getMountPrefix());
+    }
+
+    @Test
+    void testLoadDefaultMountPrefix() {
+        String props = """
+                controller.bearer.token = token
+                """;
+        InputStream is = new ByteArrayInputStream(props.getBytes(StandardCharsets.UTF_8));
+        TransportPceConfig config = TransportPceConfigLoader.load(is);
+
+        assertEquals(TransportPceConfig.DEFAULT_MOUNT_PREFIX, config.getMountPrefix());
+    }
+
+    @Test
     void testFindController() {
         String props = """
                 kafka.bootstrap.servers = kafka:9092
@@ -54,7 +79,7 @@ public class ConfigLoaderTest {
                 controller.uuid2.baseurl = https://ctrl-2:8443/rests
                 """;
         InputStream is = new ByteArrayInputStream(props.getBytes(StandardCharsets.UTF_8));
-        DeviceDiscoveryConfig config = ConfigLoader.load(is);
+        TransportPceConfig config = TransportPceConfigLoader.load(is);
 
         assertTrue(config.findController("uuid1").isPresent());
         assertEquals("https://ctrl-1:8443/rests", config.findController("uuid1").orElseThrow().getBaseUrl());
@@ -70,7 +95,7 @@ public class ConfigLoaderTest {
                 controller.list =
                 """;
         InputStream is = new ByteArrayInputStream(props.getBytes(StandardCharsets.UTF_8));
-        DeviceDiscoveryConfig config = ConfigLoader.load(is);
+        TransportPceConfig config = TransportPceConfigLoader.load(is);
 
         assertNotNull(config.getControllers());
         assertTrue(config.getControllers().isEmpty());
@@ -85,7 +110,7 @@ public class ConfigLoaderTest {
                 controller.uuid1.baseurl = https://ctrl-1:8443/rests
                 """;
         InputStream is = new ByteArrayInputStream(props.getBytes(StandardCharsets.UTF_8));
-        DeviceDiscoveryConfig config = ConfigLoader.load(is);
+        TransportPceConfig config = TransportPceConfigLoader.load(is);
 
         // uuid2 has no baseurl — should be skipped
         assertEquals(1, config.getControllers().size());
@@ -98,12 +123,13 @@ public class ConfigLoaderTest {
                 # empty config
                 """;
         InputStream is = new ByteArrayInputStream(props.getBytes(StandardCharsets.UTF_8));
-        DeviceDiscoveryConfig config = ConfigLoader.load(is);
+        TransportPceConfig config = TransportPceConfigLoader.load(is);
 
         assertEquals("localhost:9092", config.getKafkaBootstrapServers());
         assertEquals("unmNotifications", config.getKafkaTopic());
         assertEquals("transportpce-device-discovery", config.getKafkaGroupId());
         assertEquals("change-me", config.getBearerToken());
+        assertEquals(TransportPceConfig.DEFAULT_MOUNT_PREFIX, config.getMountPrefix());
         assertTrue(config.getControllers().isEmpty());
     }
 
@@ -116,7 +142,7 @@ public class ConfigLoaderTest {
                 controller.bearer.token = ${env:CONTROLLER_TEST_TOKEN:-default-token}
                 """;
         InputStream is = new ByteArrayInputStream(props.getBytes(StandardCharsets.UTF_8));
-        DeviceDiscoveryConfig config = ConfigLoader.load(is);
+        TransportPceConfig config = TransportPceConfigLoader.load(is);
 
         // Env vars are not set, so defaults should be used
         assertEquals("fallback:9092", config.getKafkaBootstrapServers());

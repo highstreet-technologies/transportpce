@@ -15,6 +15,8 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
+import org.opendaylight.transportpce.devicediscovery.config.TransportPceConfig;
+import org.opendaylight.transportpce.devicediscovery.config.TransportPceConfigLoader;
 
 public class SbRestconfConfigLoaderTest {
 
@@ -27,7 +29,7 @@ public class SbRestconfConfigLoaderTest {
             controller.uuid2.baseurl = https://ctrl-2:8443/rests
             """;
         InputStream is = new ByteArrayInputStream(props.getBytes(StandardCharsets.UTF_8));
-        SbRestconfConfig config = SbRestconfConfigLoader.load(is);
+        TransportPceConfig config = TransportPceConfigLoader.load(is);
 
         assertEquals("test-token", config.getBearerToken());
         assertNotNull(config.getControllers());
@@ -47,7 +49,7 @@ public class SbRestconfConfigLoaderTest {
             controller.uuid1.baseurl = https://ctrl-1:8443/rests
             """;
         InputStream is = new ByteArrayInputStream(props.getBytes(StandardCharsets.UTF_8));
-        SbRestconfConfig config = SbRestconfConfigLoader.load(is);
+        TransportPceConfig config = TransportPceConfigLoader.load(is);
 
         assertEquals("/custom/mount/node=", config.getMountPrefix());
     }
@@ -58,9 +60,9 @@ public class SbRestconfConfigLoaderTest {
             controller.bearer.token = token
             """;
         InputStream is = new ByteArrayInputStream(props.getBytes(StandardCharsets.UTF_8));
-        SbRestconfConfig config = SbRestconfConfigLoader.load(is);
+        TransportPceConfig config = TransportPceConfigLoader.load(is);
 
-        assertEquals(SbRestconfConfig.DEFAULT_MOUNT_PREFIX, config.getMountPrefix());
+        assertEquals(TransportPceConfig.DEFAULT_MOUNT_PREFIX, config.getMountPrefix());
     }
 
     @Test
@@ -70,7 +72,7 @@ public class SbRestconfConfigLoaderTest {
             controller.list =
             """;
         InputStream is = new ByteArrayInputStream(props.getBytes(StandardCharsets.UTF_8));
-        SbRestconfConfig config = SbRestconfConfigLoader.load(is);
+        TransportPceConfig config = TransportPceConfigLoader.load(is);
 
         assertTrue(config.getControllers().isEmpty());
     }
@@ -83,7 +85,7 @@ public class SbRestconfConfigLoaderTest {
             controller.uuid1.baseurl = https://ctrl-1:8443/rests
             """;
         InputStream is = new ByteArrayInputStream(props.getBytes(StandardCharsets.UTF_8));
-        SbRestconfConfig config = SbRestconfConfigLoader.load(is);
+        TransportPceConfig config = TransportPceConfigLoader.load(is);
 
         // uuid2 has no baseurl — should be skipped
         assertEquals(1, config.getControllers().size());
@@ -96,10 +98,10 @@ public class SbRestconfConfigLoaderTest {
             # empty
             """;
         InputStream is = new ByteArrayInputStream(props.getBytes(StandardCharsets.UTF_8));
-        SbRestconfConfig config = SbRestconfConfigLoader.load(is);
+        TransportPceConfig config = TransportPceConfigLoader.load(is);
 
         assertEquals("change-me", config.getBearerToken());
-        assertEquals(SbRestconfConfig.DEFAULT_MOUNT_PREFIX, config.getMountPrefix());
+        assertEquals(TransportPceConfig.DEFAULT_MOUNT_PREFIX, config.getMountPrefix());
         assertTrue(config.getControllers().isEmpty());
     }
 
@@ -109,7 +111,7 @@ public class SbRestconfConfigLoaderTest {
             controller.bearer.token = ${env:SB_RESTCONF_TEST_TOKEN:-default-token}
             """;
         InputStream is = new ByteArrayInputStream(props.getBytes(StandardCharsets.UTF_8));
-        SbRestconfConfig config = SbRestconfConfigLoader.load(is);
+        TransportPceConfig config = TransportPceConfigLoader.load(is);
 
         assertEquals("default-token", config.getBearerToken());
     }
@@ -123,7 +125,7 @@ public class SbRestconfConfigLoaderTest {
             controller.uuid2.baseurl = https://ctrl-2:8443/rests
             """;
         InputStream is = new ByteArrayInputStream(props.getBytes(StandardCharsets.UTF_8));
-        SbRestconfConfig config = SbRestconfConfigLoader.load(is);
+        TransportPceConfig config = TransportPceConfigLoader.load(is);
 
         assertTrue(config.findController("uuid1").isPresent());
         assertEquals("https://ctrl-1:8443/rests", config.findController("uuid1").orElseThrow().getBaseUrl());
