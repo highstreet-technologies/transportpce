@@ -11,7 +11,7 @@ import org.opendaylight.mdsal.binding.api.DataBroker;
 import org.opendaylight.transportpce.devicediscovery.config.TransportPceConfig;
 import org.opendaylight.transportpce.devicediscovery.config.TransportPceConfigLoader;
 import org.opendaylight.transportpce.devicediscovery.kafka.VesKafkaConsumer;
-import org.opendaylight.transportpce.devicediscovery.reconciliation.NetconfTopologyRestconfClient;
+import org.opendaylight.transportpce.devicediscovery.reconciliation.AbstractTopologyRestconfClient;
 import org.opendaylight.transportpce.devicediscovery.reconciliation.TopologyReconciliationService;
 import org.opendaylight.transportpce.devicediscovery.topology.TopologyWriter;
 import org.slf4j.Logger;
@@ -38,7 +38,7 @@ public class DeviceDiscoveryProvider implements AutoCloseable {
     private TransportPceConfig config;
     private TopologyWriter topologyWriter;
     private VesKafkaConsumer kafkaConsumer;
-    private NetconfTopologyRestconfClient restconfClient;
+    private AbstractTopologyRestconfClient restconfClient;
 
     public DeviceDiscoveryProvider(DataBroker dataBroker) {
         this(dataBroker, DEFAULT_CONFIG_PATH);
@@ -57,7 +57,7 @@ public class DeviceDiscoveryProvider implements AutoCloseable {
         topologyWriter = new TopologyWriter(dataBroker);
 
         // RESTCONF client — stays open for Kafka consumer to use on "connected" events
-        restconfClient = new NetconfTopologyRestconfClient();
+        restconfClient = AbstractTopologyRestconfClient.create(config);
 
         // Initial reconciliation: fetch full netconf-topology from all configured controllers
         TopologyReconciliationService reconciliationService =

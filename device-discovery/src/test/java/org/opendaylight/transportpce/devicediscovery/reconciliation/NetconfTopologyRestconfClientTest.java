@@ -51,7 +51,7 @@ class NetconfTopologyRestconfClientTest {
             """;
 
         NetconfTopologyRestconfClient client = new NetconfTopologyRestconfClient();
-        List<NetconfTopologyRestconfClient.RemoteNode> nodes = client.parseTopology(json, "test-url");
+        List<RemoteNode> nodes = client.parseTopologyResponse(json);
 
         assertEquals(2, nodes.size());
         assertEquals("device-1", nodes.get(0).getNodeId());
@@ -85,7 +85,7 @@ class NetconfTopologyRestconfClientTest {
             """;
 
         NetconfTopologyRestconfClient client = new NetconfTopologyRestconfClient();
-        List<NetconfTopologyRestconfClient.RemoteNode> nodes = client.parseTopology(json, "test-url");
+        List<RemoteNode> nodes = client.parseTopologyResponse(json);
 
         assertEquals(1, nodes.size());
         assertEquals("device-3", nodes.get(0).getNodeId());
@@ -104,7 +104,7 @@ class NetconfTopologyRestconfClientTest {
             """;
 
         NetconfTopologyRestconfClient client = new NetconfTopologyRestconfClient();
-        List<NetconfTopologyRestconfClient.RemoteNode> nodes = client.parseTopology(json, "test-url");
+        List<RemoteNode> nodes = client.parseTopologyResponse(json);
 
         assertTrue(nodes.isEmpty());
         client.close();
@@ -123,7 +123,7 @@ class NetconfTopologyRestconfClientTest {
             """;
 
         NetconfTopologyRestconfClient client = new NetconfTopologyRestconfClient();
-        List<NetconfTopologyRestconfClient.RemoteNode> nodes = client.parseTopology(json, "test-url");
+        List<RemoteNode> nodes = client.parseTopologyResponse(json);
 
         assertTrue(nodes.isEmpty());
         client.close();
@@ -132,7 +132,7 @@ class NetconfTopologyRestconfClientTest {
     @Test
     void testParseTopologyInvalidJson() {
         NetconfTopologyRestconfClient client = new NetconfTopologyRestconfClient();
-        List<NetconfTopologyRestconfClient.RemoteNode> nodes = client.parseTopology("not valid json", "test-url");
+        List<RemoteNode> nodes = client.parseTopologyResponse("not valid json");
 
         assertTrue(nodes.isEmpty());
         client.close();
@@ -156,7 +156,7 @@ class NetconfTopologyRestconfClientTest {
             """;
 
         NetconfTopologyRestconfClient client = new NetconfTopologyRestconfClient();
-        List<NetconfTopologyRestconfClient.RemoteNode> nodes = client.parseTopology(json, "test-url");
+        List<RemoteNode> nodes = client.parseTopologyResponse(json);
 
         assertEquals(1, nodes.size());
         assertEquals("device-4", nodes.get(0).getNodeId());
@@ -168,7 +168,7 @@ class NetconfTopologyRestconfClientTest {
 
     @Test
     void testRemoteNodeToString() {
-        NetconfTopologyRestconfClient.RemoteNode node = new NetconfTopologyRestconfClient.RemoteNode();
+        RemoteNode node = new RemoteNode();
         node.setNodeId("test-node");
         node.setConnectionStatus("connected");
         node.setAvailableCapabilities(List.of("cap1", "cap2"));
@@ -180,7 +180,7 @@ class NetconfTopologyRestconfClientTest {
 
     @Test
     void testRemoteNodeDefaults() {
-        NetconfTopologyRestconfClient.RemoteNode node = new NetconfTopologyRestconfClient.RemoteNode();
+        RemoteNode node = new RemoteNode();
         assertNotNull(node.getAvailableCapabilities());
         assertTrue(node.getAvailableCapabilities().isEmpty());
         assertFalse(node.getAvailableCapabilities() == null);

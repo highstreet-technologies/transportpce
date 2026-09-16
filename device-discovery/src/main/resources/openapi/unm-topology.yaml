@@ -1,0 +1,1114 @@
+---
+openapi: "3.0.3"
+info:
+  version: "2025-10-16"
+  title: "Controller modules of RESTCONF"
+servers:
+  - url: "http://localhost/"
+paths:
+  /rests/data/ietf-network:networks/network={network-id}/node={node-id}:
+    get:
+      deprecated: false
+      tags:
+        - "controller ietf-network"
+      parameters:
+        - name: "network-id"
+          description: "Identifies a network."
+          schema:
+            type: "string"
+          in: "path"
+          required: true
+        - name: "node-id"
+          description: "Uniquely identifies a node within the containing\nnetwork."
+          schema:
+            type: "string"
+          in: "path"
+          required: true
+        - required: false
+          in: "query"
+          name: "content"
+          schema:
+            type: "string"
+            enum:
+              - "all"
+              - "nonconfig"
+              - "config"
+        - name: "filter"
+          schema:
+            type: "string"
+          in: "query"
+        - name: "depth"
+          schema:
+            type: "integer"
+          in: "query"
+        - name: "offset"
+          schema:
+            type: "integer"
+          in: "query"
+        - name: "size"
+          schema:
+            type: "integer"
+          in: "query"
+        - name: "sortorder"
+          schema:
+            type: "string"
+          in: "query"
+        - name: "fields"
+          schema:
+            type: "string"
+          in: "query"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ietf-network_networks_network_node_TOP"
+            application/xml:
+              schema:
+                $ref: "#/components/schemas/ietf-network_networks_network_node"
+          description: "OK"
+      description: "The inventory of nodes of this network."
+      summary: "GET - ietf-network - node"
+    put:
+      deprecated: false
+      tags:
+        - "controller ietf-network"
+      parameters:
+        - name: "network-id"
+          description: "Identifies a network."
+          schema:
+            type: "string"
+          in: "path"
+          required: true
+        - name: "node-id"
+          description: "Uniquely identifies a node within the containing\nnetwork."
+          schema:
+            type: "string"
+          in: "path"
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ietf-network_networks_network_node_TOP"
+          application/xml:
+            schema:
+              $ref: "#/components/schemas/ietf-network_networks_network_node"
+          application/yang-data+json:
+            schema:
+              $ref: "#/components/schemas/ietf-network_networks_network_node_TOP"
+          application/yang-data+xml:
+            schema:
+              $ref: "#/components/schemas/ietf-network_networks_network_node"
+        description: "node_config"
+      responses:
+        "201":
+          description: "Created"
+        "204":
+          description: "Updated"
+      description: "The inventory of nodes of this network."
+      summary: "PUT - ietf-network - node"
+    delete:
+      deprecated: false
+      tags:
+        - "controller ietf-network"
+      parameters:
+        - name: "network-id"
+          description: "Identifies a network."
+          schema:
+            type: "string"
+          in: "path"
+          required: true
+        - name: "node-id"
+          description: "Uniquely identifies a node within the containing\nnetwork."
+          schema:
+            type: "string"
+          in: "path"
+          required: true
+      responses:
+        "204":
+          description: "Deleted"
+      description: "The inventory of nodes of this network."
+      summary: "DELETE - ietf-network - node"
+    patch:
+      deprecated: false
+      tags:
+        - "controller ietf-network"
+      parameters:
+        - name: "network-id"
+          description: "Identifies a network."
+          schema:
+            type: "string"
+          in: "path"
+          required: true
+        - name: "node-id"
+          description: "Uniquely identifies a node within the containing\nnetwork."
+          schema:
+            type: "string"
+          in: "path"
+          required: true
+      requestBody:
+        content:
+          application/yang-data+json:
+            schema:
+              $ref: "#/components/schemas/ietf-network_networks_network_node_TOP"
+          application/yang-data+xml:
+            schema:
+              $ref: "#/components/schemas/ietf-network_networks_network_node"
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ietf-network_networks_network_node_TOP"
+          application/xml:
+            schema:
+              $ref: "#/components/schemas/ietf-network_networks_network_node"
+        description: "node_config"
+      responses:
+        "200":
+          description: "OK"
+        "204":
+          description: "Updated"
+      description: "The inventory of nodes of this network."
+      summary: "PATCH - ietf-network - node"
+  /rests/data/ietf-network:networks/network={network-id}:
+    get:
+      deprecated: false
+      tags:
+        - "controller ietf-network"
+      parameters:
+        - name: "network-id"
+          description: "Identifies a network."
+          schema:
+            type: "string"
+          in: "path"
+          required: true
+        - required: false
+          in: "query"
+          name: "content"
+          schema:
+            type: "string"
+            enum:
+              - "all"
+              - "nonconfig"
+              - "config"
+        - name: "filter"
+          schema:
+            type: "string"
+          in: "query"
+        - name: "depth"
+          schema:
+            type: "integer"
+          in: "query"
+        - name: "offset"
+          schema:
+            type: "integer"
+          in: "query"
+        - name: "size"
+          schema:
+            type: "integer"
+          in: "query"
+        - name: "sortorder"
+          schema:
+            type: "string"
+          in: "query"
+        - name: "fields"
+          schema:
+            type: "string"
+          in: "query"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ietf-network_networks_network_TOP"
+            application/xml:
+              schema:
+                $ref: "#/components/schemas/ietf-network_networks_network"
+          description: "OK"
+      description: "Describes a network.\nA network typically contains an inventory\
+        \ of nodes,\ntopological information (augmented through the\nnetwork-topology\
+        \ data model), and layering information."
+      summary: "GET - ietf-network - network"
+    put:
+      deprecated: false
+      tags:
+        - "controller ietf-network"
+      parameters:
+        - name: "network-id"
+          description: "Identifies a network."
+          schema:
+            type: "string"
+          in: "path"
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ietf-network_networks_network_TOP"
+          application/xml:
+            schema:
+              $ref: "#/components/schemas/ietf-network_networks_network"
+          application/yang-data+json:
+            schema:
+              $ref: "#/components/schemas/ietf-network_networks_network_TOP"
+          application/yang-data+xml:
+            schema:
+              $ref: "#/components/schemas/ietf-network_networks_network"
+        description: "network_config"
+      responses:
+        "201":
+          description: "Created"
+        "204":
+          description: "Updated"
+      description: "Describes a network.\nA network typically contains an inventory\
+        \ of nodes,\ntopological information (augmented through the\nnetwork-topology\
+        \ data model), and layering information."
+      summary: "PUT - ietf-network - network"
+    delete:
+      deprecated: false
+      tags:
+        - "controller ietf-network"
+      parameters:
+        - name: "network-id"
+          description: "Identifies a network."
+          schema:
+            type: "string"
+          in: "path"
+          required: true
+      responses:
+        "204":
+          description: "Deleted"
+      description: "Describes a network.\nA network typically contains an inventory\
+        \ of nodes,\ntopological information (augmented through the\nnetwork-topology\
+        \ data model), and layering information."
+      summary: "DELETE - ietf-network - network"
+    patch:
+      deprecated: false
+      tags:
+        - "controller ietf-network"
+      parameters:
+        - name: "network-id"
+          description: "Identifies a network."
+          schema:
+            type: "string"
+          in: "path"
+          required: true
+      requestBody:
+        content:
+          application/yang-data+json:
+            schema:
+              $ref: "#/components/schemas/ietf-network_networks_network_TOP"
+          application/yang-data+xml:
+            schema:
+              $ref: "#/components/schemas/ietf-network_networks_network"
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ietf-network_networks_network_TOP"
+          application/xml:
+            schema:
+              $ref: "#/components/schemas/ietf-network_networks_network"
+        description: "network_config"
+      responses:
+        "200":
+          description: "OK"
+        "204":
+          description: "Updated"
+      description: "Describes a network.\nA network typically contains an inventory\
+        \ of nodes,\ntopological information (augmented through the\nnetwork-topology\
+        \ data model), and layering information."
+      summary: "PATCH - ietf-network - network"
+
+components:
+  schemas:
+    ietf-network_networks_network_node_geolocation:
+      x-yang-type: "container"
+      properties:
+        altitude:
+          description: "Distance above sea level."
+          format: "int64"
+          x-yang-type: "int64"
+          example: -9223372036854775808
+          type: "string"
+          xml:
+            name: "altitude"
+            namespace: "urn:ietf:params:xml:ns:yang:unm-network-topology"
+        latitude:
+          description: "Relative position north or south on the Earth's surface."
+          example: -90.0
+          x-yang-type: "decimal"
+          type: "string"
+          xml:
+            name: "latitude"
+            namespace: "urn:ietf:params:xml:ns:yang:unm-network-topology"
+        longitude:
+          description: "Angular distance east or west on the Earth's surface."
+          example: -180.0
+          x-yang-type: "decimal"
+          type: "string"
+          xml:
+            name: "longitude"
+            namespace: "urn:ietf:params:xml:ns:yang:unm-network-topology"
+      xml:
+        name: "geolocation"
+        namespace: "urn:ietf:params:xml:ns:yang:unm-network-topology"
+      description: "Contains a GPS location."
+      title: "ietf-network_networks_network_node_geolocation"
+      type: "object"
+    ietf-network_networks_network_link_source:
+      x-yang-type: "container"
+      properties:
+        source-node:
+          description: "Source node identifier.  Must be in the same topology."
+          example: "Some source-node"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "source-node"
+            namespace: "urn:ietf:params:xml:ns:yang:ietf-network-topology"
+        source-tp:
+          description: "This termination point is located within the source node\n\
+            and terminates the link."
+          example: "Some source-tp"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "source-tp"
+            namespace: "urn:ietf:params:xml:ns:yang:ietf-network-topology"
+        unm-network-topology:source-site:
+          description: "Source site identifier."
+          example: "Some source-site"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "source-site"
+            namespace: "urn:ietf:params:xml:ns:yang:unm-network-topology"
+      xml:
+        name: "source"
+        namespace: "urn:ietf:params:xml:ns:yang:ietf-network-topology"
+      description: "This container holds the logical source of a particular\nlink."
+      title: "ietf-network_networks_network_link_source"
+      type: "object"
+    ietf-network_networks_network_supporting-network:
+      x-yang-type: "container"
+      properties:
+        network-ref:
+          description: "References the underlay network."
+          example: "Some network-ref"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "network-ref"
+            namespace: "urn:ietf:params:xml:ns:yang:ietf-network"
+      xml:
+        name: "supporting-network"
+        namespace: "urn:ietf:params:xml:ns:yang:ietf-network"
+      description: "An underlay network, used to represent layered network\ntopologies."
+      title: "ietf-network_networks_network_supporting-network"
+      type: "object"
+    ietf-network_networks_network_node_termination-point:
+      x-yang-type: "container"
+      properties:
+        tp-id:
+          description: "Termination point identifier."
+          example: "Some tp-id"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "tp-id"
+            namespace: "urn:ietf:params:xml:ns:yang:ietf-network-topology"
+        supporting-termination-point:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/ietf-network_networks_network_node_termination-point_supporting-termination-point"
+          description: "This list identifies any termination points on which a\ngiven\
+            \ termination point depends or onto which it maps.\nThose termination\
+            \ points will themselves be contained\nin a supporting node.  This dependency\
+            \ information can be\ninferred from the dependencies between links.  Therefore,\n\
+            this item is not separately configurable.  Hence, no\ncorresponding constraint\
+            \ needs to be articulated.\nThe corresponding information is simply provided\
+            \ by the\nimplementing system."
+          x-yang-type: "list"
+          x-yang-list-key: "network-ref node-ref tp-ref"
+        unm-network-topology:uuid:
+          description: "Autogenerated unique identifier over all items inside the\
+            \ network"
+          minLength: 0
+          maxLength: 36
+          example: "00000000-0000-0000-0000-000000000000"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "uuid"
+            namespace: "urn:ietf:params:xml:ns:yang:unm-network-topology"
+          x-autogenerate: true
+      xml:
+        name: "termination-point"
+        namespace: "urn:ietf:params:xml:ns:yang:ietf-network-topology"
+      description: "A termination point can terminate a link.\nDepending on the type\
+        \ of topology, a termination point\ncould, for example, refer to a port or\
+        \ an interface."
+      title: "ietf-network_networks_network_node_termination-point"
+      type: "object"
+    ietf-network_networks_network_network-types:
+      x-yang-type: "container"
+      properties: {}
+      xml:
+        name: "network-types"
+        namespace: "urn:ietf:params:xml:ns:yang:ietf-network"
+      description: "Serves as an augmentation target.\nThe network type is indicated\
+        \ through corresponding\npresence containers augmented into this container."
+      title: "ietf-network_networks_network_network-types"
+      type: "object"
+    ietf-network_networks_network_node_supporting-node:
+      x-yang-type: "container"
+      properties:
+        network-ref:
+          description: "References the underlay network of which the\nunderlay node\
+            \ is a part."
+          example: "Some network-ref"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "network-ref"
+            namespace: "urn:ietf:params:xml:ns:yang:ietf-network"
+        node-ref:
+          description: "References the underlay node itself."
+          example: "Some node-ref"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "node-ref"
+            namespace: "urn:ietf:params:xml:ns:yang:ietf-network"
+      xml:
+        name: "supporting-node"
+        namespace: "urn:ietf:params:xml:ns:yang:ietf-network"
+      description: "Represents another node that is in an underlay network\nand that\
+        \ supports this node.  Used to represent layering\nstructure."
+      title: "ietf-network_networks_network_node_supporting-node"
+      type: "object"
+    ietf-network_networks_network_TOP:
+      properties:
+        ietf-network:network:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/ietf-network_networks_network"
+          description: "Describes a network.\nA network typically contains an inventory\
+            \ of nodes,\ntopological information (augmented through the\nnetwork-topology\
+            \ data model), and layering information."
+          x-yang-type: "list"
+          x-yang-list-key: "network-id"
+      title: "ietf-network_networks_network_TOP"
+      type: "object"
+    ietf-network_networks_network:
+      x-yang-type: "container"
+      properties:
+        network-id:
+          description: "Identifies a network."
+          example: "Some network-id"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "network-id"
+            namespace: "urn:ietf:params:xml:ns:yang:ietf-network"
+        network-types:
+          $ref: "#/components/schemas/ietf-network_networks_network_network-types"
+          x-yang-type: "container"
+        supporting-network:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/ietf-network_networks_network_supporting-network"
+          description: "An underlay network, used to represent layered network\ntopologies."
+          x-yang-type: "list"
+          x-yang-list-key: "network-ref"
+        node:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/ietf-network_networks_network_node"
+          description: "The inventory of nodes of this network."
+          x-yang-type: "list"
+          x-yang-list-key: "node-id"
+        unm-network-topology:controller:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/ietf-network_networks_network_controller"
+          description: "list of configured southbound controllers"
+          x-yang-type: "list"
+          x-yang-list-key: "uuid"
+        unm-network-topology-site:site:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/ietf-network_networks_network_site"
+          description: "The sites inside a topology."
+          x-yang-type: "list"
+          x-yang-list-key: "site-id"
+        ietf-network-topology:link:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/ietf-network_networks_network_link"
+          description: "A network link connects a local (source) node and\na remote\
+            \ (destination) node via a set of the respective\nnode's termination points.\
+            \  It is possible to have several\nlinks between the same source and destination\
+            \ nodes.\nLikewise, a link could potentially be re-homed between\ntermination\
+            \ points.  Therefore, in order to ensure that we\nwould always know to\
+            \ distinguish between links, every link\nis identified by a dedicated\
+            \ link identifier.  Note that a\nlink models a point-to-point link, not\
+            \ a multipoint link."
+          x-yang-type: "list"
+          x-yang-list-key: "link-id"
+      xml:
+        name: "network"
+        namespace: "urn:ietf:params:xml:ns:yang:ietf-network"
+      description: "Describes a network.\nA network typically contains an inventory\
+        \ of nodes,\ntopological information (augmented through the\nnetwork-topology\
+        \ data model), and layering information."
+      title: "ietf-network_networks_network"
+      type: "object"
+    ietf-network_networks_network_link_supporting-link:
+      x-yang-type: "container"
+      properties:
+        network-ref:
+          description: "This leaf identifies in which underlay topology\nthe supporting\
+            \ link is present."
+          example: "Some network-ref"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "network-ref"
+            namespace: "urn:ietf:params:xml:ns:yang:ietf-network-topology"
+        link-ref:
+          description: "This leaf identifies a link that is a part\nof this link's\
+            \ underlay.  Reference loops in which\na link identifies itself as its\
+            \ underlay, either\ndirectly or transitively, are not allowed."
+          example: "Some link-ref"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "link-ref"
+            namespace: "urn:ietf:params:xml:ns:yang:ietf-network-topology"
+      xml:
+        name: "supporting-link"
+        namespace: "urn:ietf:params:xml:ns:yang:ietf-network-topology"
+      description: "Identifies the link or links on which this link depends."
+      title: "ietf-network_networks_network_link_supporting-link"
+      type: "object"
+    ietf-network_networks_network_link:
+      x-yang-type: "container"
+      properties:
+        link-id:
+          description: "The identifier of a link in the topology.\nA link is specific\
+            \ to a topology to which it belongs."
+          example: "Some link-id"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "link-id"
+            namespace: "urn:ietf:params:xml:ns:yang:ietf-network-topology"
+        source:
+          $ref: "#/components/schemas/ietf-network_networks_network_link_source"
+          x-yang-type: "container"
+        destination:
+          $ref: "#/components/schemas/ietf-network_networks_network_link_destination"
+          x-yang-type: "container"
+        supporting-link:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/ietf-network_networks_network_link_supporting-link"
+          description: "Identifies the link or links on which this link depends."
+          x-yang-type: "list"
+          x-yang-list-key: "network-ref link-ref"
+        unm-network-topology:uuid:
+          description: "Autogenerated unique identifier over all items inside the\
+            \ network"
+          minLength: 0
+          maxLength: 36
+          example: "00000000-0000-0000-0000-000000000000"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "uuid"
+            namespace: "urn:ietf:params:xml:ns:yang:unm-network-topology"
+          x-autogenerate: true
+      xml:
+        name: "link"
+        namespace: "urn:ietf:params:xml:ns:yang:ietf-network-topology"
+      description: "A network link connects a local (source) node and\na remote (destination)\
+        \ node via a set of the respective\nnode's termination points.  It is possible\
+        \ to have several\nlinks between the same source and destination nodes.\n\
+        Likewise, a link could potentially be re-homed between\ntermination points.\
+        \  Therefore, in order to ensure that we\nwould always know to distinguish\
+        \ between links, every link\nis identified by a dedicated link identifier.\
+        \  Note that a\nlink models a point-to-point link, not a multipoint link."
+      title: "ietf-network_networks_network_link"
+      type: "object"
+    ietf-network_networks_network_controller_bearer:
+      x-yang-type: "container"
+      x-yang-choice-key: "auth"
+      properties:
+        token:
+          description: "bearer token to access controller instance"
+          minLength: 1
+          maxLength: 1024
+          example: "Some token"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "token"
+            namespace: "urn:ietf:params:xml:ns:yang:unm-network-topology"
+      xml:
+        name: "bearer"
+        namespace: "urn:ietf:params:xml:ns:yang:unm-network-topology"
+      description: ""
+      title: "ietf-network_networks_network_controller_bearer"
+      type: "object"
+    ietf-network_networks_network_node:
+      x-yang-type: "container"
+      properties:
+        node-id:
+          description: "Uniquely identifies a node within the containing\nnetwork."
+          example: "Some node-id"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "node-id"
+            namespace: "urn:ietf:params:xml:ns:yang:ietf-network"
+        supporting-node:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/ietf-network_networks_network_node_supporting-node"
+          description: "Represents another node that is in an underlay network\nand\
+            \ that supports this node.  Used to represent layering\nstructure."
+          x-yang-type: "list"
+          x-yang-list-key: "network-ref node-ref"
+        unm-network-topology:uuid:
+          description: "Autogenerated unique identifier over all items inside the\
+            \ network"
+          minLength: 0
+          maxLength: 36
+          example: "00000000-0000-0000-0000-000000000000"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "uuid"
+            namespace: "urn:ietf:params:xml:ns:yang:unm-network-topology"
+          x-autogenerate: true
+        unm-network-topology:connection-state:
+          description: "Describes the connection state of the device with SDNC"
+          enum:
+            - "Mounted"
+            - "Unmounted"
+            - "Connecting"
+            - "Connected"
+            - "UnableToConnect"
+            - "Disconnected"
+            - "Removed"
+            - "Undefined"
+          example: "Mounted"
+          x-yang-type: "enum"
+          type: "string"
+          xml:
+            name: "connection-state"
+            namespace: "urn:ietf:params:xml:ns:yang:unm-network-topology"
+        unm-network-topology:device-function:
+          description: "Functions supported by the device that can be derived by using\
+            \ the data-provider API"
+          example: "Some device-function"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "device-function"
+            namespace: "urn:ietf:params:xml:ns:yang:unm-network-topology"
+        unm-network-topology:host:
+          description: "IP Address of the Node as assigned upon mounting on SDNC"
+          minLength: 0
+          maxLength: 255
+          example: ""
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "host"
+            namespace: "urn:ietf:params:xml:ns:yang:unm-network-topology"
+        unm-network-topology:port:
+          description: "Port number of the Node as assigned upon mounting on SDNC"
+          format: "int32"
+          example: 0
+          x-yang-type: "int32"
+          type: "integer"
+          xml:
+            name: "port"
+            namespace: "urn:ietf:params:xml:ns:yang:unm-network-topology"
+        unm-network-topology:available-capabilities:
+          type: "array"
+          items:
+            example: "Some available-capabilities"
+            x-yang-type: "string"
+            type: "string"
+          description: "The list of capabilities as supported by the device"
+          xml:
+            name: "available-capabilities"
+            namespace: "urn:ietf:params:xml:ns:yang:unm-network-topology"
+        unm-network-topology:non-available-capabilities:
+          type: "array"
+          items:
+            example: "Some non-available-capabilities"
+            x-yang-type: "string"
+            type: "string"
+          description: "The list of capabilities not supported by the device"
+          xml:
+            name: "non-available-capabilities"
+            namespace: "urn:ietf:params:xml:ns:yang:unm-network-topology"
+        unm-network-topology:internal-available-capabilities:
+          type: "array"
+          items:
+            example: "Some internal-available-capabilities"
+            x-yang-type: "string"
+            type: "string"
+          description: "The list of capabilities as supported by the device"
+          xml:
+            name: "internal-available-capabilities"
+            namespace: "urn:ietf:params:xml:ns:yang:unm-network-topology"
+        unm-network-topology:internal-non-available-capabilities:
+          type: "array"
+          items:
+            example: "Some internal-non-available-capabilities"
+            x-yang-type: "string"
+            type: "string"
+          description: "The list of capabilities not supported by the device"
+          xml:
+            name: "internal-non-available-capabilities"
+            namespace: "urn:ietf:params:xml:ns:yang:unm-network-topology"
+        unm-network-topology:site:
+          description: "site identifier."
+          example: "Some site"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "site"
+            namespace: "urn:ietf:params:xml:ns:yang:unm-network-topology"
+        unm-network-topology:is-active:
+          description: "node has controller for management, e.g. netconf server"
+          example: true
+          x-yang-type: "boolean"
+          type: "boolean"
+          xml:
+            name: "is-active"
+            namespace: "urn:ietf:params:xml:ns:yang:unm-network-topology"
+        unm-network-topology:controller-id:
+          description: "controller which holds the connection"
+          minLength: 0
+          maxLength: 36
+          example: "00000000-0000-0000-0000-000000000000"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "controller-id"
+            namespace: "urn:ietf:params:xml:ns:yang:unm-network-topology"
+        unm-network-topology:geolocation:
+          $ref: "#/components/schemas/ietf-network_networks_network_node_geolocation"
+          x-yang-type: "container"
+        ietf-network-topology:termination-point:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/ietf-network_networks_network_node_termination-point"
+          description: "A termination point can terminate a link.\nDepending on the\
+            \ type of topology, a termination point\ncould, for example, refer to\
+            \ a port or an interface."
+          x-yang-type: "list"
+          x-yang-list-key: "tp-id"
+      xml:
+        name: "node"
+        namespace: "urn:ietf:params:xml:ns:yang:ietf-network"
+      description: "The inventory of nodes of this network."
+      title: "ietf-network_networks_network_node"
+      type: "object"
+    ietf-network_networks_network_node_TOP:
+      properties:
+        ietf-network:node:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/ietf-network_networks_network_node"
+          description: "The inventory of nodes of this network."
+          x-yang-type: "list"
+          x-yang-list-key: "node-id"
+      title: "ietf-network_networks_network_node_TOP"
+      type: "object"
+    ietf-network_networks_network_link_destination:
+      x-yang-type: "container"
+      properties:
+        dest-node:
+          description: "Destination node identifier.  Must be in the same\nnetwork."
+          example: "Some dest-node"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "dest-node"
+            namespace: "urn:ietf:params:xml:ns:yang:ietf-network-topology"
+        dest-tp:
+          description: "This termination point is located within the\ndestination\
+            \ node and terminates the link."
+          example: "Some dest-tp"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "dest-tp"
+            namespace: "urn:ietf:params:xml:ns:yang:ietf-network-topology"
+        unm-network-topology:dest-site:
+          description: "Destination site identifier."
+          example: "Some dest-site"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "dest-site"
+            namespace: "urn:ietf:params:xml:ns:yang:unm-network-topology"
+      xml:
+        name: "destination"
+        namespace: "urn:ietf:params:xml:ns:yang:ietf-network-topology"
+      description: "This container holds the logical destination of a\nparticular\
+        \ link."
+      title: "ietf-network_networks_network_link_destination"
+      type: "object"
+    ietf-network_networks_network_site:
+      x-yang-type: "container"
+      required:
+        - "geolocation"
+      properties:
+        site-id:
+          description: "Unique id of the site."
+          example: "Some site-id"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "site-id"
+            namespace: "urn:ietf:params:xml:ns:yang:unm-network-topology-site"
+        operator-id:
+          description: "Id of the site according to Operator."
+          example: "Some operator-id"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "operator-id"
+            namespace: "urn:ietf:params:xml:ns:yang:unm-network-topology-site"
+        name:
+          description: "Site name."
+          example: "Some name"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "name"
+            namespace: "urn:ietf:params:xml:ns:yang:unm-network-topology-site"
+        operator:
+          description: "Site operator name."
+          example: "Some operator"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "operator"
+            namespace: "urn:ietf:params:xml:ns:yang:unm-network-topology-site"
+        uuid:
+          description: "Server-generated UUID of the created site. This field is read-only\
+            \ and automatically assigned by the server. It cannot be set or modified\
+            \ by the client."
+          minLength: 0
+          maxLength: 36
+          example: "00000000-0000-0000-0000-000000000000"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "uuid"
+            namespace: "urn:ietf:params:xml:ns:yang:unm-network-topology-site"
+        geolocation:
+          $ref: "#/components/schemas/ietf-network_networks_network_site_geolocation"
+          x-yang-type: "container"
+      xml:
+        name: "site"
+        namespace: "urn:ietf:params:xml:ns:yang:unm-network-topology-site"
+      description: "The sites inside a topology."
+      title: "ietf-network_networks_network_site"
+      type: "object"
+    ietf-network_networks_network_controller:
+      x-yang-type: "container"
+      properties:
+        uuid:
+          description: "unique identifier for the controller instance"
+          minLength: 0
+          maxLength: 36
+          example: "00000000-0000-0000-0000-000000000000"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "uuid"
+            namespace: "urn:ietf:params:xml:ns:yang:unm-network-topology"
+        name:
+          description: "human readable name for the controller instance"
+          example: "Some name"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "name"
+            namespace: "urn:ietf:params:xml:ns:yang:unm-network-topology"
+        description:
+          description: "more detailed info about the controller instance"
+          example: "Some description"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "description"
+            namespace: "urn:ietf:params:xml:ns:yang:unm-network-topology"
+        url:
+          description: "url to access controller instance"
+          example: "Some url"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "url"
+            namespace: "urn:ietf:params:xml:ns:yang:unm-network-topology"
+        basic-auth:
+          $ref: "#/components/schemas/ietf-network_networks_network_controller_basic-auth"
+          x-yang-type: "container"
+          x-yang-choice-key: "auth"
+        bearer:
+          $ref: "#/components/schemas/ietf-network_networks_network_controller_bearer"
+          x-yang-type: "container"
+          x-yang-choice-key: "auth"
+        connection-state:
+          description: "connection status to controller instance"
+          enum:
+            - "Mounted"
+            - "Unmounted"
+            - "Connecting"
+            - "Connected"
+            - "UnableToConnect"
+            - "Disconnected"
+            - "Removed"
+            - "Undefined"
+          example: "Mounted"
+          x-yang-type: "enum"
+          type: "string"
+          xml:
+            name: "connection-state"
+            namespace: "urn:ietf:params:xml:ns:yang:unm-network-topology"
+        tls-key:
+          type: "array"
+          items:
+            example: "Some tls-key"
+            x-yang-type: "string"
+            type: "string"
+          description: "all available tls-keys to connect southbound netconf node"
+          xml:
+            name: "tls-key"
+      xml:
+        name: "controller"
+        namespace: "urn:ietf:params:xml:ns:yang:unm-network-topology"
+      description: "list of configured southbound controllers"
+      title: "ietf-network_networks_network_controller"
+      type: "object"
+    ietf-network_networks_network_node_termination-point_supporting-termination-point:
+      x-yang-type: "container"
+      properties:
+        network-ref:
+          description: "This leaf identifies in which topology the\nsupporting termination\
+            \ point is present."
+          example: "Some network-ref"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "network-ref"
+            namespace: "urn:ietf:params:xml:ns:yang:ietf-network-topology"
+        node-ref:
+          description: "This leaf identifies in which node the supporting\ntermination\
+            \ point is present."
+          example: "Some node-ref"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "node-ref"
+            namespace: "urn:ietf:params:xml:ns:yang:ietf-network-topology"
+        tp-ref:
+          description: "Reference to the underlay node (the underlay node must\nbe\
+            \ in a different topology)."
+          example: "Some tp-ref"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "tp-ref"
+            namespace: "urn:ietf:params:xml:ns:yang:ietf-network-topology"
+      xml:
+        name: "supporting-termination-point"
+        namespace: "urn:ietf:params:xml:ns:yang:ietf-network-topology"
+      description: "This list identifies any termination points on which a\ngiven\
+        \ termination point depends or onto which it maps.\nThose termination points\
+        \ will themselves be contained\nin a supporting node.  This dependency information\
+        \ can be\ninferred from the dependencies between links.  Therefore,\nthis\
+        \ item is not separately configurable.  Hence, no\ncorresponding constraint\
+        \ needs to be articulated.\nThe corresponding information is simply provided\
+        \ by the\nimplementing system."
+      title: "ietf-network_networks_network_node_termination-point_supporting-termination-point"
+      type: "object"
+    ietf-network_networks_network_site_geolocation:
+      x-yang-type: "container"
+      required:
+        - "altitude"
+        - "latitude"
+        - "longitude"
+      properties:
+        altitude:
+          description: "Distance above sea level."
+          format: "int64"
+          x-yang-type: "int64"
+          example: -9223372036854775808
+          type: "string"
+          xml:
+            name: "altitude"
+            namespace: "urn:ietf:params:xml:ns:yang:unm-network-topology-site"
+        latitude:
+          description: "Relative position north or south on the Earth's surface."
+          example: -90.0
+          x-yang-type: "decimal"
+          type: "string"
+          xml:
+            name: "latitude"
+            namespace: "urn:ietf:params:xml:ns:yang:unm-network-topology-site"
+        longitude:
+          description: "Angular distance east or west on the Earth's surface."
+          example: -180.0
+          x-yang-type: "decimal"
+          type: "string"
+          xml:
+            name: "longitude"
+            namespace: "urn:ietf:params:xml:ns:yang:unm-network-topology-site"
+      xml:
+        name: "geolocation"
+        namespace: "urn:ietf:params:xml:ns:yang:unm-network-topology-site"
+      description: "Contains a GPS location."
+      title: "ietf-network_networks_network_site_geolocation"
+      type: "object"
+    ietf-network_networks_network_controller_basic-auth:
+      x-yang-type: "container"
+      x-yang-choice-key: "auth"
+      properties:
+        username:
+          description: "basic auth username to access controller instance"
+          example: "Some username"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "username"
+            namespace: "urn:ietf:params:xml:ns:yang:unm-network-topology"
+        password:
+          description: "basic auth password to access controller instance"
+          example: "Some password"
+          x-yang-type: "string"
+          type: "string"
+          xml:
+            name: "password"
+            namespace: "urn:ietf:params:xml:ns:yang:unm-network-topology"
+      xml:
+        name: "basic-auth"
+        namespace: "urn:ietf:params:xml:ns:yang:unm-network-topology"
+      description: ""
+      title: "ietf-network_networks_network_controller_basic-auth"
+      type: "object"
+  securitySchemes:
+    basicAuth:
+      type: "http"
+      scheme: "basic"
+security:
+  - basicAuth: []

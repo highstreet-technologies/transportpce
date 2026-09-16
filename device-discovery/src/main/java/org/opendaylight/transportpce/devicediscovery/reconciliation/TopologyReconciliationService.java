@@ -9,16 +9,16 @@ package org.opendaylight.transportpce.devicediscovery.reconciliation;
 
 import java.util.List;
 import org.opendaylight.transportpce.devicediscovery.config.TransportPceConfig;
-import org.opendaylight.transportpce.devicediscovery.reconciliation.NetconfTopologyRestconfClient.RemoteNode;
 import org.opendaylight.transportpce.devicediscovery.topology.TopologyWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Performs initial netconf-topology reconciliation at startup.
- * <p>
- * For each configured controller, fetches the current netconf-topology via RESTCONF and writes all discovered nodes
- * with full data into the MDSAL operational store with the controller-uuid augmentation.
+ * Performs initial topology reconciliation at startup.
+ *
+ * For each configured controller, fetches the current topology via RESTCONF
+ * and writes all discovered nodes with full data into the MDSAL operational store
+ * with the controller-uuid augmentation.
  */
 public class TopologyReconciliationService {
 
@@ -26,17 +26,17 @@ public class TopologyReconciliationService {
 
     private final TransportPceConfig config;
     private final TopologyWriter topologyWriter;
-    private final NetconfTopologyRestconfClient restconfClient;
+    private final AbstractTopologyRestconfClient restconfClient;
 
     public TopologyReconciliationService(TransportPceConfig config, TopologyWriter topologyWriter,
-            NetconfTopologyRestconfClient restconfClient) {
+            AbstractTopologyRestconfClient restconfClient) {
         this.config = config;
         this.topologyWriter = topologyWriter;
         this.restconfClient = restconfClient;
     }
 
     /**
-     * Reconcile netconf-topology from all configured controllers.
+     * Reconcile topology from all configured controllers.
      */
     public void reconcile() {
         List<TransportPceConfig.ControllerEntry> controllers = config.getControllers();
@@ -64,7 +64,7 @@ public class TopologyReconciliationService {
         LOG.info("Reconciling controller: uuid={}, baseUrl={}", controller.getUuid(), controller.getBaseUrl());
 
         List<RemoteNode> remoteNodes =
-                restconfClient.getNetconfTopology(controller.getBaseUrl(), config.getBearerToken());
+                restconfClient.getTopology(controller.getBaseUrl(), config.getBearerToken());
 
         if (remoteNodes.isEmpty()) {
             LOG.info("No nodes found at controller {}", controller.getUuid());
@@ -73,17 +73,21 @@ public class TopologyReconciliationService {
 
         int written = 0;
         for (RemoteNode remoteNode : remoteNodes) {
-            String connectionStatus = remoteNode.getConnectionStatus();
-            if (("connected".equalsIgnoreCase(connectionStatus) || "connecting".equalsIgnoreCase(connectionStatus))) {
+            if (remoteNode.isConnected() || isConnecting(remoteNode)) {
                 topologyWriter.writeNode(remoteNode, controller.getUuid());
                 written++;
             } else {
                 LOG.debug("Skipping node {} from controller {} — connection status: {}",
-                        remoteNode.getNodeId(), controller.getUuid(), connectionStatus);
+                        remoteNode.getNodeId(), controller.getUuid(), remoteNode.getConnectionStatus());
             }
         }
 
         LOG.info("Reconciled {} nodes from controller {}", written, controller.getUuid());
         return written;
+    }
+
+    private static boolean isConnecting(RemoteNode remoteNode) {
+        String status = remoteNode.getConnectionStatus();
+        return status != null && "connecting".equalsIgnoreCase(status);
     }
 }

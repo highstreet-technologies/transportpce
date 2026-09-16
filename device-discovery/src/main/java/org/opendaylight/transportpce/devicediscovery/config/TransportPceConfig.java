@@ -51,6 +51,14 @@ public class TransportPceConfig {
     private String mountPrefix = DEFAULT_MOUNT_PREFIX;
     private List<ControllerEntry> controllers;
 
+    public boolean isIetfNetworkTopology() {
+        return this.mountPrefix.contains("ietf-network:networks");
+    }
+
+    public boolean isNetconfTopology() {
+        return this.mountPrefix.contains("topology=topology-netconf");
+    }
+
     public static class ControllerEntry {
         private final String uuid;
         private final String baseUrl;
@@ -130,9 +138,5 @@ public class TransportPceConfig {
         return controllers.stream()
                 .filter(c -> c.getUuid().equals(uuid))
                 .findFirst();
-    }
-
-    public boolean isNetconfTopology(){
-        return this.mountPrefix.contains("topology-netconf");
     }
 }

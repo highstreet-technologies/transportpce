@@ -20,7 +20,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.opendaylight.transportpce.devicediscovery.config.TransportPceConfig;
-import org.opendaylight.transportpce.devicediscovery.reconciliation.NetconfTopologyRestconfClient.RemoteNode;
+import org.opendaylight.transportpce.devicediscovery.reconciliation.RemoteNode;
 import org.opendaylight.transportpce.devicediscovery.topology.TopologyWriter;
 
 @ExtendWith(MockitoExtension.class)
@@ -30,7 +30,7 @@ public class TopologyReconciliationServiceTest {
     private TopologyWriter topologyWriter;
 
     @Mock
-    private NetconfTopologyRestconfClient restconfClient;
+    private AbstractTopologyRestconfClient restconfClient;
 
     @Test
     public void testReconcileWithConnectedNodes() {
@@ -46,9 +46,9 @@ public class TopologyReconciliationServiceTest {
         RemoteNode device3 = createRemoteNode("device-3", "unable-to-connect");
         RemoteNode device4 = createRemoteNode("device-4", "connected");
 
-        when(restconfClient.getNetconfTopology("https://ctrl-1:8443/rests", "token"))
+        when(restconfClient.getTopology("https://ctrl-1:8443/rests", "token"))
                 .thenReturn(List.of(device1, device2, device3));
-        when(restconfClient.getNetconfTopology("https://ctrl-2:8443/rests", "token"))
+        when(restconfClient.getTopology("https://ctrl-2:8443/rests", "token"))
                 .thenReturn(List.of(device4));
 
         TopologyReconciliationService service =
@@ -69,7 +69,7 @@ public class TopologyReconciliationServiceTest {
                 new TopologyReconciliationService(config, topologyWriter, restconfClient);
         service.reconcile();
 
-        verify(restconfClient, never()).getNetconfTopology(anyString(), anyString());
+        verify(restconfClient, never()).getTopology(anyString(), anyString());
         verify(topologyWriter, never()).writeNode(any(RemoteNode.class), anyString());
     }
 
@@ -83,7 +83,7 @@ public class TopologyReconciliationServiceTest {
                 new TopologyReconciliationService(config, topologyWriter, restconfClient);
         service.reconcile();
 
-        verify(restconfClient, never()).getNetconfTopology(anyString(), anyString());
+        verify(restconfClient, never()).getTopology(anyString(), anyString());
     }
 
     @Test
@@ -91,7 +91,7 @@ public class TopologyReconciliationServiceTest {
         TransportPceConfig config = createConfig("token",
                 List.of(new TransportPceConfig.ControllerEntry("uuid-1", "https://ctrl-1:8443/rests")));
 
-        when(restconfClient.getNetconfTopology("https://ctrl-1:8443/rests", "token"))
+        when(restconfClient.getTopology("https://ctrl-1:8443/rests", "token"))
                 .thenReturn(List.of());
 
         TopologyReconciliationService service =
@@ -106,7 +106,7 @@ public class TopologyReconciliationServiceTest {
         TransportPceConfig config = createConfig("token",
                 List.of(new TransportPceConfig.ControllerEntry("uuid-1", "https://ctrl-1:8443/rests")));
 
-        when(restconfClient.getNetconfTopology("https://ctrl-1:8443/rests", "token"))
+        when(restconfClient.getTopology("https://ctrl-1:8443/rests", "token"))
                 .thenThrow(new RuntimeException("Connection refused"));
 
         TopologyReconciliationService service =
@@ -125,7 +125,7 @@ public class TopologyReconciliationServiceTest {
         nodeWithoutStatus.setNodeId("device-5");
         nodeWithoutStatus.setConnectionStatus(null);
 
-        when(restconfClient.getNetconfTopology("https://ctrl-1:8443/rests", "token"))
+        when(restconfClient.getTopology("https://ctrl-1:8443/rests", "token"))
                 .thenReturn(List.of(nodeWithoutStatus));
 
         TopologyReconciliationService service =

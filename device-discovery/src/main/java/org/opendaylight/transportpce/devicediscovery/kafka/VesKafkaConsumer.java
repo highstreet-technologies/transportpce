@@ -19,8 +19,8 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.opendaylight.transportpce.devicediscovery.config.TransportPceConfig;
 import org.opendaylight.transportpce.devicediscovery.model.ves.Event;
-import org.opendaylight.transportpce.devicediscovery.reconciliation.NetconfTopologyRestconfClient;
-import org.opendaylight.transportpce.devicediscovery.reconciliation.NetconfTopologyRestconfClient.RemoteNode;
+import org.opendaylight.transportpce.devicediscovery.reconciliation.AbstractTopologyRestconfClient;
+import org.opendaylight.transportpce.devicediscovery.reconciliation.RemoteNode;
 import org.opendaylight.transportpce.devicediscovery.topology.TopologyWriter;
 import org.opendaylight.transportpce.devicediscovery.ves.VesEventWrapper;
 import org.opendaylight.transportpce.devicediscovery.ves.VesEventWrapperDeserializer;
@@ -40,13 +40,13 @@ public class VesKafkaConsumer {
 
     private final TransportPceConfig config;
     private final TopologyWriter topologyWriter;
-    private final NetconfTopologyRestconfClient restconfClient;
+    private final AbstractTopologyRestconfClient restconfClient;
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final AtomicBoolean running = new AtomicBoolean(false);
     private KafkaConsumer<String, VesEventWrapper> consumer;
 
     public VesKafkaConsumer(TransportPceConfig config, TopologyWriter topologyWriter,
-            NetconfTopologyRestconfClient restconfClient) {
+            AbstractTopologyRestconfClient restconfClient) {
         this.config = config;
         this.topologyWriter = topologyWriter;
         this.restconfClient = restconfClient;
