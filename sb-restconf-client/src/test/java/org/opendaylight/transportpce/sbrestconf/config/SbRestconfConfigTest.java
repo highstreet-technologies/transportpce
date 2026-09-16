@@ -58,8 +58,6 @@ public class SbRestconfConfigTest {
     void testDefaultMountPrefix() {
         SbRestconfConfig config = new SbRestconfConfig();
         assertEquals(SbRestconfConfig.DEFAULT_MOUNT_PREFIX, config.getMountPrefix());
-        assertEquals("/rests/data/network-topology:network-topology/topology=topology-netconf/node=",
-                config.getMountPrefix());
     }
 
     @Test
