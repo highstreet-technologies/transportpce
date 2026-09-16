@@ -16,10 +16,9 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Performs initial netconf-topology reconciliation at startup.
- *
- * For each configured controller, fetches the current netconf-topology via RESTCONF
- * and writes all discovered nodes with full data into the MDSAL operational store
- * with the controller-uuid augmentation.
+ * <p>
+ * For each configured controller, fetches the current netconf-topology via RESTCONF and writes all discovered nodes
+ * with full data into the MDSAL operational store with the controller-uuid augmentation.
  */
 public class TopologyReconciliationService {
 
@@ -75,9 +74,7 @@ public class TopologyReconciliationService {
         int written = 0;
         for (RemoteNode remoteNode : remoteNodes) {
             String connectionStatus = remoteNode.getConnectionStatus();
-            if (connectionStatus != null
-                    && ("connected".equalsIgnoreCase(connectionStatus)
-                        || "connecting".equalsIgnoreCase(connectionStatus))) {
+            if (("connected".equalsIgnoreCase(connectionStatus) || "connecting".equalsIgnoreCase(connectionStatus))) {
                 topologyWriter.writeNode(remoteNode, controller.getUuid());
                 written++;
             } else {
