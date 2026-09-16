@@ -102,7 +102,7 @@ public class NetConfTopologyListenerTest {
         listener.onDataTreeChanged(changes);
         verify(ch, times(1)).getRootNode();
         verify(node, times(1)).modificationType();
-        verify(node, times(3)).dataBefore();
+        verify(node, times(1)).dataBefore();
         verify(networkModelService, times(1)).deleteOpenRoadmnode(anyString());
         verify(nodeRegistration, times(0)).unregisterListeners();
     }
@@ -129,7 +129,7 @@ public class NetConfTopologyListenerTest {
         listener.onDataTreeChanged(changes);
         verify(ch, times(1)).getRootNode();
         verify(node, times(1)).modificationType();
-        verify(node, times(3)).dataBefore();
+        verify(node, times(1)).dataBefore();
         verify(networkModelService, times(1)).deleteOpenConfignode(anyString());
         verify(nodeRegistration, times(0)).unregisterListeners();
     }
@@ -155,7 +155,7 @@ public class NetConfTopologyListenerTest {
         listener.onDataTreeChanged(changes);
         verify(ch, times(1)).getRootNode();
         verify(node, times(1)).modificationType();
-        verify(node, times(3)).dataBefore();
+        verify(node, times(1)).dataBefore();
         verify(node, times(1)).dataAfter();
         verify(networkModelService, times(1)).createOpenRoadmNode(anyString(), anyString());
     }
@@ -181,7 +181,7 @@ public class NetConfTopologyListenerTest {
         listener.onDataTreeChanged(changes);
         verify(ch, times(1)).getRootNode();
         verify(node, times(1)).modificationType();
-        verify(node, times(3)).dataBefore();
+        verify(node, times(1)).dataBefore();
         verify(node, times(1)).dataAfter();
         verify(networkModelService, never()).createOpenRoadmNode(anyString(), anyString());
         verify(networkModelService, never()).deleteOpenRoadmnode(anyString());
@@ -204,9 +204,9 @@ public class NetConfTopologyListenerTest {
             deviceTransactionManager, portMapping);
         listener.onDataTreeChanged(changes);
         verify(ch, times(1)).getRootNode();
-        verify(node, times(2)).modificationType();
-        verify(node, times(3)).dataBefore();
-        verify(node, never()).dataAfter();
+        verify(node, times(1)).modificationType();
+        verify(node, times(1)).dataBefore();
+        verify(node, times(1)).dataAfter();
         verify(networkModelService, never()).createOpenRoadmNode(anyString(), anyString());
         verify(networkModelService, never()).deleteOpenRoadmnode(anyString());
     }

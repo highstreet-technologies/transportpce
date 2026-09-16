@@ -93,7 +93,7 @@ public class NetConfTopologyListener implements DataTreeChangeListener<Node> {
             DataObjectModification<Node> rootNode = change.getRootNode();
             var before = rootNode.dataBefore();
             var after = rootNode.dataAfter();
-            if (after == null) {
+            if (before == null && after == null) {
                 continue;
             }
             String nodeId = before == null ? after.key().getNodeId().getValue() : before.key().getNodeId().getValue();
@@ -116,6 +116,9 @@ public class NetConfTopologyListener implements DataTreeChangeListener<Node> {
                     break;
                 case WRITE:
                 case SUBTREE_MODIFIED:
+                    if (after == null) {
+                        continue;
+                    }
                     NetconfNode netconfNodeAfter = after.augmentation(NetconfNodeAugment.class).getNetconfNode();
                     if (ConnectionStatus.Connecting.equals(netconfNodeBefore == null ? ConnectionStatus.Connecting
                             : netconfNodeBefore.getConnectionStatus())
