@@ -104,7 +104,7 @@ class TrpceOdlClient(OdlClient):
         return response
 
     def getService(self, serviceName):
-        uri = "/rests/operational/org-openroadm-service:service-list/services/"+serviceName
+        uri = "/rests/data/org-openroadm-service:service-list/services="+serviceName
         response = self.requestRest(uri,'GET',self.defaultJsonHeaders,None)
         return response
 

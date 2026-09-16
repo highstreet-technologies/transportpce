@@ -339,7 +339,8 @@ class End2EndTestBBNet(BaseTest):
                     "node-id": nodeidA,
                     "service-format": "Ethernet",
                     "clli": "SNJSCAMCJP8",
-                    "tx-direction": {
+                    "tx-direction":[{
+                        "index":1,
                         "port": {
                             "port-device-name": "ROUTER_SNJSCAMCJP8_000000.00_00" if self.isAluminium else nodeidA,
                             "port-type": "router",
@@ -353,8 +354,9 @@ class End2EndTestBBNet(BaseTest):
                             "lgx-port-rack": "000000.00",
                             "lgx-port-shelf": "00"
                         }
-                    },
-                    "rx-direction": {
+                    }],
+                    "rx-direction": [{
+                         "index":1,
                         "port": {
                             "port-device-name": "ROUTER_SNJSCAMCJP8_000000.00_00" if self.isAluminium else nodeidA,
                             "port-type": "router",
@@ -368,7 +370,7 @@ class End2EndTestBBNet(BaseTest):
                             "lgx-port-rack": "000000.00",
                             "lgx-port-shelf": "00"
                         }
-                    },
+                    }],
                     "optic-type": "gray"
                 },
                 "service-z-end": {
@@ -376,7 +378,8 @@ class End2EndTestBBNet(BaseTest):
                     "node-id": nodeidZ,
                     "service-format": "Ethernet",
                     "clli": "SNJSCAMCJT4",
-                    "tx-direction": {
+                    "tx-direction": [{
+                        "index":1,
                         "port": {
                             "port-device-name": "ROUTER_SNJSCAMCJT4_000000.00_00" if self.isAluminium else nodeidZ,
                             "port-type": "router",
@@ -390,8 +393,9 @@ class End2EndTestBBNet(BaseTest):
                             "lgx-port-rack": "000000.00",
                             "lgx-port-shelf": "00"
                         }
-                    },
-                    "rx-direction": {
+                    }],
+                    "rx-direction": [{
+                        "index":1,
                         "port": {
                             "port-device-name": "ROUTER_SNJSCAMCJT4_000000.00_00" if self.isAluminium else nodeidZ,
                             "port-type": "router",
@@ -405,7 +409,7 @@ class End2EndTestBBNet(BaseTest):
                             "lgx-port-rack": "000000.00",
                             "lgx-port-shelf": "00"
                         }
-                    },
+                    }],
                     "optic-type": "gray"
                 },
                 "due-date": "2016-11-28T00:00:01Z",
@@ -418,7 +422,7 @@ class End2EndTestBBNet(BaseTest):
             return False
 
         success = self.assertIn('PCE calculation in progress',
-                                response.data['output']['configuration-response-common']['response-message'])
+                                response.data['org-openroadm-service:output']['configuration-response-common']['response-message'])
 
         return success
 
