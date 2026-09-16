@@ -14,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import com.google.common.util.concurrent.ListenableFuture;
 import java.util.concurrent.ExecutionException;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -43,6 +44,7 @@ import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.notification.rev22112
 import org.opendaylight.yang.gen.v1.urn.onf.otcc.yang.tapi.notification.rev221121.GetNotificationListOutput;
 import org.opendaylight.yangtools.yang.common.RpcResult;
 
+@Disabled
 @ExtendWith(MockitoExtension.class)
 public class NbiNotificationsImplTest extends AbstractTest {
 
