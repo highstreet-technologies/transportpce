@@ -30,7 +30,7 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
   </description>
 
   <properties>
-    <docker.image.name>highstreet/transportpce-lighty</docker.image.name>
+    <docker.image.name>hightec/transportpce-lighty</docker.image.name>
     <java.base.image>eclipse-temurin:21-jre-alpine</java.base.image>
     <transportpce.version>12.1.0</transportpce.version>
     <lighty.module.artifact>tpce</lighty.module.artifact>
@@ -161,7 +161,8 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
               <build>
                 <dockerFileDir>${project.build.directory}/docker-stage</dockerFileDir>
                 <tags>
-                  <tag>${project.version}</tag>
+                    <tag>${project.version}-${maven.build.timestamp}</tag>
+                    <tag>${project.version}</tag>
                   <tag>latest</tag>
                 </tags>
               </build>
