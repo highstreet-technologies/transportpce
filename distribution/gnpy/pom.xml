@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Copyright © 2026 Highstreet Technologies GmbH and others. All rights reserved.
+
+This program and the accompanying materials are made available under the
+terms of the Eclipse Public License v1.0 which accompanies this distribution,
+and is available at http://www.eclipse.org/legal/epl-v10.html
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.opendaylight.odlparent</groupId>
+    <artifactId>odlparent-lite</artifactId>
+    <version>14.3.1</version>
+    <relativePath/>
+  </parent>
+
+  <groupId>org.opendaylight.transportpce</groupId>
+  <artifactId>distribution-gnpy</artifactId>
+  <version>12.1.0</version>
+  <packaging>pom</packaging>
+  <name>TransportPCE :: Distribution (GNPy)</name>
+  <description>
+    Creates a Docker container image running the GNPy REST API server.
+    Pulls the GNPy API source from a configurable Git repository and tag,
+    then builds the Dockerfile contained in that repository.
+  </description>
+
+  <properties>
+    <!-- Docker image name -->
+    <image.name>hightec/gnpy</image.name>
+
+    <!-- GNPy repository — configurable via -Dgnpy.git.repo=... -->
+    <gnpy.git.repo>https://github.com/Telecominfraproject/oopt-gnpy-api.git</gnpy.git.repo>
+
+    <!-- GNPy version tag — configurable via -Dgnpy.git.tag=... -->
+    <gnpy.git.tag>v0.2.0</gnpy.git.tag>
+
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <build>
+    <plugins>
+      <!-- Clone the GNPy repository at the configured tag into target/gnpy-source -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-scm-plugin</artifactId>
+        <version>2.1.0</version>
+        <executions>
+          <execution>
+            <id>clone-gnpy-repo</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>checkout</goal>
+            </goals>
+            <configuration>
+              <connectionUrl>scm:git:${gnpy.git.repo}</connectionUrl>
+              <scmVersion>${gnpy.git.tag}</scmVersion>
+              <scmVersionType>tag</scmVersionType>
+              <checkoutDirectory>${project.build.directory}/gnpy-source</checkoutDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Build the Docker image directly via docker build CLI.
+           This is used instead of the fabric8 docker-maven-plugin because
+           the GNPy Dockerfile uses `COPY . /oopt-gnpy-api` and `pip install .`
+           which relies on pbr reading the .git directory. The fabric8 plugin
+           strips .git from the build context tar, causing pip install to fail. -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>3.4.1</version>
+        <executions>
+          <execution>
+            <id>docker-build</id>
+            <phase>package</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>docker</executable>
+              <workingDirectory>${project.build.directory}/gnpy-source</workingDirectory>
+              <arguments>
+                <argument>build</argument>
+                <argument>-t</argument>
+                <argument>${image.name}:latest</argument>
+                <argument>-t</argument>
+                <argument>${image.name}:${gnpy.git.tag}</argument>
+                <argument>.</argument>
+              </arguments>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

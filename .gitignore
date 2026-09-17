@@ -23,6 +23,7 @@ classes
 .vscode
 venv
 .venv
+.run
 ordmodels/src/main/java
 tests/allure-report/
 tests/config.xml
