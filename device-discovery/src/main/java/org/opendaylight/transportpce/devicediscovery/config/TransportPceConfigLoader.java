@@ -103,6 +103,9 @@ public final class TransportPceConfigLoader {
         config.setKafkaGroupId(resolveValue(props, "kafka.group.id", "transportpce-device-discovery"));
         config.setBearerToken(resolveValue(props, "controller.bearer.token", "change-me"));
         config.setMountPrefix(resolveValue(props, "mount.prefix", TransportPceConfig.DEFAULT_MOUNT_PREFIX));
+        config.setGnpyUrl(resolveValue(props, "gnpy.url", null));
+        config.setGnpyUsername(resolveValue(props, "gnpy.username", null));
+        config.setGnpyPassword(resolveValue(props, "gnpy.password", null));
 
         // Parse controller list
         String controllerListStr = resolveValue(props, "controller.list", "");

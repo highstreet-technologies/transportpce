@@ -95,6 +95,7 @@ import org.slf4j.LoggerFactory;
 
 
 public class TransportPCEImpl extends AbstractLightyModule implements TransportPCE {
+
     private static final Logger LOG = LoggerFactory.getLogger(TransportPCEImpl.class);
     private static final long MAX_TIME_FOR_TRANSACTION = 1500;
     // transaction beans
@@ -124,16 +125,16 @@ public class TransportPCEImpl extends AbstractLightyModule implements TransportP
             String olmtimer1, String olmtimer2, LightyJettyServerProvider jettyServerProvider) {
         LOG.info("Initializing transaction providers ...");
         DataBroker dataBroker = lightyServices.getBindingDataBroker();
+        var config = TransportPceConfigLoader.load("etc/org.opendaylight.transportpce.cfg");
         deviceTransactionManager =
-            new RestDeviceTransactionManager(
-                new SbRestconfClient(
-                    TransportPceConfigLoader.load("etc/org.opendaylight.transportpce.cfg"),
-                    new ControllerUuidResolver(dataBroker),
-                    SbRestconfDataCodecFactory.createForDeviceModel(
-                        org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529
-                            .OrgOpenroadmDeviceData.class)),
-                new ControllerUuidResolver(dataBroker),
-                dataBroker);
+                new RestDeviceTransactionManager(
+                        new SbRestconfClient(config,
+                                new ControllerUuidResolver(dataBroker),
+                                SbRestconfDataCodecFactory.createForDeviceModel(
+                                        org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529
+                                                .OrgOpenroadmDeviceData.class)),
+                        new ControllerUuidResolver(dataBroker),
+                        dataBroker);
         networkTransaction = new NetworkTransactionImpl(dataBroker);
         ocMetaDataTransaction = new OCMetaDataTransactionImpl(dataBroker);
 
@@ -151,12 +152,22 @@ public class TransportPCEImpl extends AbstractLightyModule implements TransportP
                 deviceTransactionManager, portMapping, notificationService, new FrequenciesServiceImpl(dataBroker));
 
         LOG.info("Creating PCE beans ...");
-        // TODO: pass those parameters through command line
+        GnpyConsumerImpl gnpy;
+        if (config.isGnpyEnabled()) {
+            LOG.info("gnpy is enabled");
+            gnpy = new GnpyConsumerImpl(
+                    config.getGnpyUrl(), config.getGnpyUsername(), config.getGnpyPassword(),
+                    lightyServices.getAdapterContext().currentSerializer());
+        } else {
+            LOG.info("gnpy is disabled");
+            gnpy = new GnpyConsumerImpl(
+                    "http://127.0.0.1:8008", "gnpy", "gnpy",
+                    lightyServices.getAdapterContext().currentSerializer());
+        }
         PathComputationService pathComputationService = new PathComputationServiceImpl(
                 networkTransaction,
                 notificationPublishService,
-                new GnpyConsumerImpl(
-                    "http://127.0.0.1:8008", "gnpy", "gnpy", lightyServices.getAdapterContext().currentSerializer()),
+                gnpy,
                 portMapping);
         rpcRegistrations.add(new PceServiceRPCImpl(rpcProviderService, pathComputationService).getRegisteredRpc());
 
@@ -165,20 +176,20 @@ public class TransportPCEImpl extends AbstractLightyModule implements TransportP
         CrossConnect crossConnect = initCrossConnect(mappingUtils);
         OpenRoadmInterfaces openRoadmInterfaces = initOpenRoadmInterfaces(mappingUtils, portMapping);
         OlmPowerServiceRpcImpl olmPowerServiceRpc = new OlmPowerServiceRpcImpl(
-            new OlmPowerServiceImpl(
-                    dataBroker,
-                    new PowerMgmtImpl(
-                            openRoadmInterfaces,
-                            crossConnect,
-                            deviceTransactionManager,
-                            portMapping,
-                            Long.valueOf(olmtimer1).longValue(),
-                            Long.valueOf(olmtimer2).longValue()),
-                    deviceTransactionManager,
-                    portMapping,
-                    mappingUtils,
-                    openRoadmInterfaces),
-            rpcProviderService);
+                new OlmPowerServiceImpl(
+                        dataBroker,
+                        new PowerMgmtImpl(
+                                openRoadmInterfaces,
+                                crossConnect,
+                                deviceTransactionManager,
+                                portMapping,
+                                Long.valueOf(olmtimer1).longValue(),
+                                Long.valueOf(olmtimer2).longValue()),
+                        deviceTransactionManager,
+                        portMapping,
+                        mappingUtils,
+                        openRoadmInterfaces),
+                rpcProviderService);
         rpcRegistrations.add(olmPowerServiceRpc.getRegisteredRpc());
 
         LOG.info("Creating renderer beans ...");
@@ -206,19 +217,20 @@ public class TransportPCEImpl extends AbstractLightyModule implements TransportP
                 portMapping,
                 rpcService);
         rpcRegistrations.add(new DeviceRendererRPCImpl(
-                        lightyServices.getRpcProviderService(),
-                        deviceRendererService,
-                        otnDeviceRendererService)
-                    .getRegisteredRpc());
+                lightyServices.getRpcProviderService(),
+                deviceRendererService,
+                otnDeviceRendererService)
+                .getRegisteredRpc());
         rpcRegistrations.add(new RendererRPCImpl(
                 rendererServiceOperations,
                 lightyServices.getRpcProviderService())
-            .getRegisteredRpc());
+                .getRegisteredRpc());
 
         LOG.info("Creating service-handler beans ...");
         ServiceDataStoreOperations serviceDataStoreOperations = new ServiceDataStoreOperationsImpl(dataBroker);
         RendererNotificationHandler rendererListener =
-            new RendererNotificationHandler(pathComputationService, notificationPublishService, networkModelService);
+                new RendererNotificationHandler(pathComputationService, notificationPublishService,
+                        networkModelService);
         PceNotificationHandler pceListenerImpl = new PceNotificationHandler(
                 rendererServiceOperations, pathComputationService,
                 notificationPublishService, serviceDataStoreOperations);
@@ -249,7 +261,7 @@ public class TransportPCEImpl extends AbstractLightyModule implements TransportP
         if (activateTapi) {
             LOG.info("Creating tapi beans ...");
             TapiContext tapiContext = new TapiContext(networkTransaction);
-            TapiLink tapiLink = new TapiLinkImpl(networkTransaction,tapiContext);
+            TapiLink tapiLink = new TapiLinkImpl(networkTransaction, tapiContext);
             new TapiNetworkUtilsImpl(rpcProviderService, networkTransaction, tapiLink);
             tapiProvider = new TapiProvider(
                     dataBroker,
@@ -366,11 +378,11 @@ public class TransportPCEImpl extends AbstractLightyModule implements TransportP
 
     private OpenRoadmInterfaces initOpenRoadmInterfaces(MappingUtils mappingUtils, PortMapping portMapping) {
         OpenRoadmInterfacesImpl121 openRoadmInterfacesImpl121 =
-            new OpenRoadmInterfacesImpl121(deviceTransactionManager);
+                new OpenRoadmInterfacesImpl121(deviceTransactionManager);
         OpenRoadmInterfacesImpl221 openRoadmInterfacesImpl221 =
-            new OpenRoadmInterfacesImpl221(deviceTransactionManager, portMapping);
+                new OpenRoadmInterfacesImpl221(deviceTransactionManager, portMapping);
         OpenRoadmInterfacesImpl710 openRoadmInterfacesImpl710 =
-            new OpenRoadmInterfacesImpl710(deviceTransactionManager, portMapping);
+                new OpenRoadmInterfacesImpl710(deviceTransactionManager, portMapping);
         return new OpenRoadmInterfacesImpl(deviceTransactionManager, mappingUtils, openRoadmInterfacesImpl121,
                 openRoadmInterfacesImpl221, openRoadmInterfacesImpl710);
     }

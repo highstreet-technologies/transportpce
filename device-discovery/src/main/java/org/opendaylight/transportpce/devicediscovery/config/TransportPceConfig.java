@@ -51,6 +51,26 @@ public class TransportPceConfig {
     private String mountPrefix = DEFAULT_MOUNT_PREFIX;
     private List<ControllerEntry> controllers;
 
+    private String gnpyUrl;
+    private String gnpyUsername;
+
+    public void setGnpyUrl(String gnpyUrl) {
+        this.gnpyUrl = gnpyUrl;
+    }
+
+    public void setGnpyUsername(String gnpyUsername) {
+        this.gnpyUsername = gnpyUsername;
+    }
+
+    public void setGnpyPassword(String gnpyPassword) {
+        this.gnpyPassword = gnpyPassword;
+    }
+
+    private String gnpyPassword;
+
+    public boolean isGnpyEnabled(){
+        return this.gnpyUrl!=null && !this.gnpyUrl.isBlank();
+    }
     public boolean isIetfNetworkTopology() {
         return this.mountPrefix.contains("ietf-network:networks");
     }
@@ -125,6 +145,17 @@ public class TransportPceConfig {
         this.controllers = controllers;
     }
 
+    public String getGnpyPassword() {
+        return gnpyPassword;
+    }
+
+    public String getGnpyUsername() {
+        return gnpyUsername;
+    }
+
+    public String getGnpyUrl() {
+        return gnpyUrl;
+    }
     /**
      * Find the controller base URL for a given reportingEntityId (UUID).
      *
