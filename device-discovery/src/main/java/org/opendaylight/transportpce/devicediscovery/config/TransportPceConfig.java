@@ -11,8 +11,8 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Unified configuration for TransportPCE, read from a single properties file
- * (e.g. {@code etc/org.opendaylight.transportpce.cfg}).
+ * Unified configuration for TransportPCE, read from a single properties file (e.g.
+ * {@code etc/org.opendaylight.transportpce.cfg}).
  *
  * <p>Contains:
  * <ul>
@@ -38,8 +38,8 @@ import java.util.Optional;
 public class TransportPceConfig {
 
     /**
-     * Default RESTCONF mount path prefix for device-level access.
-     * The full URL is: {controller-base-url}{MOUNT_PREFIX}{node-id}{mount-suffix}{object-path}
+     * Default RESTCONF mount path prefix for device-level access. The full URL is:
+     * {controller-base-url}{MOUNT_PREFIX}{node-id}{mount-suffix}{object-path}
      */
     public static final String DEFAULT_MOUNT_PREFIX =
             "/data/network-topology:network-topology/topology=topology-netconf/node=";
@@ -68,9 +68,10 @@ public class TransportPceConfig {
 
     private String gnpyPassword;
 
-    public boolean isGnpyEnabled(){
-        return this.gnpyUrl!=null && !this.gnpyUrl.isBlank();
+    public boolean isGnpyEnabled() {
+        return this.gnpyUrl != null && !this.gnpyUrl.isBlank();
     }
+
     public boolean isIetfNetworkTopology() {
         return this.mountPrefix.contains("ietf-network:networks");
     }
@@ -79,7 +80,12 @@ public class TransportPceConfig {
         return this.mountPrefix.contains("topology=topology-netconf");
     }
 
+    public boolean hasRemoteControllers() {
+        return this.controllers != null && !this.controllers.isEmpty();
+    }
+
     public static class ControllerEntry {
+
         private final String uuid;
         private final String baseUrl;
 
@@ -156,6 +162,7 @@ public class TransportPceConfig {
     public String getGnpyUrl() {
         return gnpyUrl;
     }
+
     /**
      * Find the controller base URL for a given reportingEntityId (UUID).
      *

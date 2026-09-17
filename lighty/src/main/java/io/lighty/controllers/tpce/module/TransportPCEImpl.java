@@ -23,6 +23,7 @@ import org.opendaylight.transportpce.common.crossconnect.CrossConnectImpl121;
 import org.opendaylight.transportpce.common.crossconnect.CrossConnectImpl221;
 import org.opendaylight.transportpce.common.crossconnect.CrossConnectImpl710;
 import org.opendaylight.transportpce.common.device.DeviceTransactionManager;
+import org.opendaylight.transportpce.common.device.DeviceTransactionManagerImpl;
 import org.opendaylight.transportpce.common.mapping.MappingUtils;
 import org.opendaylight.transportpce.common.mapping.MappingUtilsImpl;
 import org.opendaylight.transportpce.common.mapping.OCPortMappingVersion190;
@@ -126,15 +127,20 @@ public class TransportPCEImpl extends AbstractLightyModule implements TransportP
         LOG.info("Initializing transaction providers ...");
         DataBroker dataBroker = lightyServices.getBindingDataBroker();
         var config = TransportPceConfigLoader.load("etc/org.opendaylight.transportpce.cfg");
-        deviceTransactionManager =
-                new RestDeviceTransactionManager(
-                        new SbRestconfClient(config,
-                                new ControllerUuidResolver(dataBroker),
-                                SbRestconfDataCodecFactory.createForDeviceModel(
-                                        org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529
-                                                .OrgOpenroadmDeviceData.class)),
-                        new ControllerUuidResolver(dataBroker),
-                        dataBroker);
+        if (config.hasRemoteControllers()) {
+            deviceTransactionManager =
+                    new RestDeviceTransactionManager(
+                            new SbRestconfClient(config,
+                                    new ControllerUuidResolver(dataBroker),
+                                    SbRestconfDataCodecFactory.createForDeviceModel(
+                                            org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529
+                                                    .OrgOpenroadmDeviceData.class)),
+                            new ControllerUuidResolver(dataBroker),
+                            dataBroker);
+        } else {
+            deviceTransactionManager = new DeviceTransactionManagerImpl(lightyServices.getBindingMountPointService(),
+                    MAX_TIME_FOR_TRANSACTION);
+        }
         networkTransaction = new NetworkTransactionImpl(dataBroker);
         ocMetaDataTransaction = new OCMetaDataTransactionImpl(dataBroker);
 
