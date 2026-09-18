@@ -259,6 +259,16 @@ class End2EndTestBBNet(BaseTest):
     def createLinks(self, retries=2, delayForRetries=10):
         success = False
         while retries >= 0:
+            for k in self.rdmInternalConfig.keys():
+                for i in self.rdmInternalConfig[k]:
+                    neighbor = self.rdmInternalConfig[k][i]
+                    # Rückwärts-Degree beim Nachbarn suchen (gleiche Logik wie in configROADMS)
+                    rev_deg = list(self.rdmInternalConfig[neighbor].keys())[
+                        list(self.rdmInternalConfig[neighbor].values()).index(k)]
+                    response = self.trpceClient.linkRoadmToRoadm(
+                        "ROADM-" + k, i, "DEG" + i + "-TTP-TXRX",
+                        "ROADM-" + neighbor, rev_deg, "DEG" + rev_deg + "-TTP-TXRX")
+
             # connect_xprdA_N1_to_roadmA_PP1
             for k in self.rdmInternalConfig.keys():
                 for i in self.rdmInternalConfig[k]:
@@ -342,9 +352,9 @@ class End2EndTestBBNet(BaseTest):
                     "tx-direction":[{
                         "index":1,
                         "port": {
-                            "port-device-name": "ROUTER_SNJSCAMCJP8_000000.00_00" if self.isAluminium else nodeidA,
+                            "port-device-name": nodeidA,
                             "port-type": "router",
-                            "port-name": "Gigabit Ethernet_Tx.ge-5/0/0.0",
+                            "port-name": "XPDR1-CLIENT1",
                             "port-rack": "000000.00",
                             "port-shelf": "00"
                         },
@@ -356,11 +366,11 @@ class End2EndTestBBNet(BaseTest):
                         }
                     }],
                     "rx-direction": [{
-                         "index":1,
+                        "index":1,
                         "port": {
-                            "port-device-name": "ROUTER_SNJSCAMCJP8_000000.00_00" if self.isAluminium else nodeidA,
+                            "port-device-name": nodeidA,
                             "port-type": "router",
-                            "port-name": "Gigabit Ethernet_Rx.ge-5/0/0.0",
+                            "port-name": "XPDR1-CLIENT1",
                             "port-rack": "000000.00",
                             "port-shelf": "00"
                         },
@@ -381,9 +391,9 @@ class End2EndTestBBNet(BaseTest):
                     "tx-direction": [{
                         "index":1,
                         "port": {
-                            "port-device-name": "ROUTER_SNJSCAMCJT4_000000.00_00" if self.isAluminium else nodeidZ,
+                            "port-device-name": nodeidZ,
                             "port-type": "router",
-                            "port-name": "Gigabit Ethernet_Tx.ge-1/0/0.0",
+                            "port-name": "XPDR1-CLIENT1",
                             "port-rack": "000000.00",
                             "port-shelf": "00"
                         },
@@ -397,9 +407,9 @@ class End2EndTestBBNet(BaseTest):
                     "rx-direction": [{
                         "index":1,
                         "port": {
-                            "port-device-name": "ROUTER_SNJSCAMCJT4_000000.00_00" if self.isAluminium else nodeidZ,
+                            "port-device-name": nodeidZ,
                             "port-type": "router",
-                            "port-name": "Gigabit Ethernet_Rx.ge-1/0/0.0",
+                            "port-name": "XPDR1-CLIENT1",
                             "port-rack": "000000.00",
                             "port-shelf": "00"
                         },
@@ -434,14 +444,14 @@ class End2EndTestBBNet(BaseTest):
             if response.isSucceeded():
 
                 success = self.assertEqual(
-                    response.data['services'][0]['administrative-state'], 'inService')
+                    response.data['org-openroadm-service:services'][0]['administrative-state'], 'inService')
                 if not success and retries > 0:
                     print("service still not with administrative-state inService (state=" +
-                          response.data['services'][0]['administrative-state'] + "). waiting...")
+                          response.data['org-openroadm-service:services'][0]['administrative-state'] + "). waiting...")
                 success &= self.assertEqual(
-                    response.data['services'][0]['service-name'], service)
+                    response.data['org-openroadm-service:services'][0]['service-name'], service)
                 success &= self.assertEqual(
-                    response.data['services'][0]['connection-type'], 'service')
+                    response.data['org-openroadm-service:services'][0]['connection-type'], 'service')
                 success &= self.assertEqual(
                     response.data['services'][0]['lifecycle-state'], 'planned')
                 if not success and retries > 0:

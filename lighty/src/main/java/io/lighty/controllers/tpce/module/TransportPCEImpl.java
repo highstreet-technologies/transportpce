@@ -128,6 +128,7 @@ public class TransportPCEImpl extends AbstractLightyModule implements TransportP
         DataBroker dataBroker = lightyServices.getBindingDataBroker();
         var config = TransportPceConfigLoader.load("etc/org.opendaylight.transportpce.cfg");
         if (config.hasRemoteControllers()) {
+            LOG.info("using remote netconf connections");
             deviceTransactionManager =
                     new RestDeviceTransactionManager(
                             new SbRestconfClient(config,
@@ -138,6 +139,7 @@ public class TransportPCEImpl extends AbstractLightyModule implements TransportP
                             new ControllerUuidResolver(dataBroker),
                             dataBroker);
         } else {
+            LOG.info("using local netconf connections");
             deviceTransactionManager = new DeviceTransactionManagerImpl(lightyServices.getBindingMountPointService(),
                     MAX_TIME_FOR_TRANSACTION);
         }

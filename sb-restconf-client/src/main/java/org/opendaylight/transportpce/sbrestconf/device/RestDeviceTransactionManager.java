@@ -7,6 +7,8 @@
  */
 package org.opendaylight.transportpce.sbrestconf.device;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -47,7 +49,7 @@ public class RestDeviceTransactionManager implements DeviceTransactionManager {
     private final DataBroker dataBroker;
     private final ScheduledExecutorService executor;
     private final ConcurrentMap<String, CountDownLatch> deviceLocks = new ConcurrentHashMap<>();
-
+    private final Map<String, MountPoint> mountPointInstances;
     /**
      * Creates a new RestDeviceTransactionManager.
      *
@@ -61,6 +63,7 @@ public class RestDeviceTransactionManager implements DeviceTransactionManager {
         this.uuidResolver = uuidResolver;
         this.dataBroker = dataBroker;
         this.executor = Executors.newScheduledThreadPool(4);
+        this.mountPointInstances = new HashMap<>();
         LOG.info("RestDeviceTransactionManager created");
     }
 
@@ -99,7 +102,8 @@ public class RestDeviceTransactionManager implements DeviceTransactionManager {
         // No local mount point available — devices are accessed via RESTCONF
         // Return empty to indicate this is a remote device
         LOG.debug("getDeviceMountPoint called for {} — returning empty (RESTCONF mode)", deviceId);
-        return Optional.empty();
+        var mp = this.mountPointInstances.getOrDefault(deviceId,new RestMountPoint(deviceId));
+        return Optional.of(mp);
     }
 
     @Override
