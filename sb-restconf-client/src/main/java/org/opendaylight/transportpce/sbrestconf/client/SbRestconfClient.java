@@ -175,6 +175,9 @@ public class SbRestconfClient implements AutoCloseable {
         }
 
         String payload;
+        if (LOG.isTraceEnabled()) {
+            LOG.trace("try to serialize: {}", data);
+        }
         try {
             payload = serialize(path, data);
         } catch (IOException e) {
@@ -183,7 +186,9 @@ public class SbRestconfClient implements AutoCloseable {
         }
 
         LOG.debug("{} {} (payload: {} bytes)", method, url, payload.length());
-
+        if (LOG.isTraceEnabled()) {
+            LOG.trace("payload: {}", payload);
+        }
         Invocation.Builder request = client.target(url)
                 .request(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + config.getBearerToken())
@@ -209,7 +214,7 @@ public class SbRestconfClient implements AutoCloseable {
     /**
      * Serialize a DataObject to JSON string using BindingDataCodec.
      */
-    private <T extends DataObject> String serialize(DataObjectIdentifier<T> path, T data) throws IOException {
+    public <T extends DataObject> String serialize(DataObjectIdentifier<T> path, T data) throws IOException {
         JSONCodecFactory codecFactory = JSONCodecFactorySupplier.RFC7951
                 .getShared(dataCodec.modelContext());
 
@@ -340,10 +345,9 @@ public class SbRestconfClient implements AutoCloseable {
      *
      * <p>The binding codec may emit a list entry as two consecutive path arguments: a bare
      * {@link YangInstanceIdentifier.NodeIdentifier} for the list node followed by a
-     * {@link YangInstanceIdentifier.NodeIdentifierWithPredicates} carrying the key(s). In
-     * RESTCONF (RFC 8040) the list entry is expressed as a single path segment
-     * {@code list-name=key-value}, so the bare list node is skipped here to avoid duplicating
-     * the list name (e.g. {@code /circuit-packs/circuit-packs=cpkey}).
+     * {@link YangInstanceIdentifier.NodeIdentifierWithPredicates} carrying the key(s). In RESTCONF (RFC 8040) the list
+     * entry is expressed as a single path segment {@code list-name=key-value}, so the bare list node is skipped here to
+     * avoid duplicating the list name (e.g. {@code /circuit-packs/circuit-packs=cpkey}).
      */
     protected String toRestconfPath(DataObjectIdentifier<?> path) {
         YangInstanceIdentifier yiid = serializer.toYangInstanceIdentifier(path);
@@ -376,8 +380,8 @@ public class SbRestconfClient implements AutoCloseable {
     }
 
     /**
-     * Append a single path node (with module prefix when the module changes) and update
-     * {@code curModule} to the module of the appended node.
+     * Append a single path node (with module prefix when the module changes) and update {@code curModule} to the module
+     * of the appended node.
      */
     private void appendNode(StringBuilder sb,
             org.opendaylight.yangtools.yang.model.api.EffectiveModelContext modelContext,

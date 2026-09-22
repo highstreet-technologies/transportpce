@@ -17,18 +17,21 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.opendaylight.transportpce.devicediscovery.config.TransportPceConfig;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.common.optical.channel.types.rev200529.FrequencyTHz;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.OrgOpenroadmDeviceData;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.circuit.pack.Ports;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.circuit.pack.PortsKey;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.circuit.packs.CircuitPacks;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.circuit.packs.CircuitPacksKey;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.interfaces.grp.Interface;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.interfaces.grp.InterfaceBuilder;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.interfaces.grp.InterfaceKey;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.org.openroadm.device.container.OrgOpenroadmDevice;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.org.openroadm.device.container.org.openroadm.device.Degree;
@@ -38,7 +41,11 @@ import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.org.open
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.org.openroadm.device.container.org.openroadm.device.SharedRiskGroup;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.org.openroadm.device.container.org.openroadm.device.SharedRiskGroupKey;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.dhcp.rev200529.Protocols1;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.equipment.states.types.rev191129.AdminStates;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.interfaces.rev191129.MediaChannelTrailTerminationPoint;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.interfaces.rev191129.OpticalTransport;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.media.channel.interfaces.rev200529.Interface1Builder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.media.channel.interfaces.rev200529.mc.ttp.container.McTtpBuilder;
 import org.opendaylight.yangtools.binding.DataObjectIdentifier;
 import org.opendaylight.yangtools.binding.data.codec.api.BindingDataCodec;
 import org.opendaylight.yangtools.yang.common.Uint16;
@@ -261,5 +268,30 @@ public class SbRestconfClientTest {
         assertNotNull(interfaces);
         assertEquals(OpticalTransport.VALUE, interfaces.getType());
 
+    }
+
+    @Test
+    public void testSerializeInterface() throws IOException {
+        DataObjectIdentifier<Interface> interfacesIID = DataObjectIdentifier
+                .builderOfInherited(OrgOpenroadmDeviceData.class, OrgOpenroadmDevice.class)
+                .child(Interface.class, new InterfaceKey(new InterfaceKey("ifname")))
+                .build();
+        var str = client.serialize(interfacesIID, new InterfaceBuilder()
+                .setAdministrativeState(AdminStates.InService)
+                .setCircuitId("TBD")
+                        .setDescription("TBD")
+                        .setName("DEG1-TTP-TXRX-mc-761:768")
+                        .setSupportingCircuitPackName("1-0")
+                        .setSupportingInterfaceList(Set.of("OMS-DEG1-TTP-TXRX"))
+                        .setSupportingPort("L1")
+                        .setType(MediaChannelTrailTerminationPoint.VALUE)
+                        .addAugmentation(new Interface1Builder()
+                                .setMcTtp(new McTtpBuilder()
+                                        .setMaxFreq(FrequencyTHz.getDefaultInstance("196.125"))
+                                        .setMinFreq(FrequencyTHz.getDefaultInstance("196.075"))
+                                        .build())
+                                .build())
+                .build());
+        assertNotNull(str);
     }
 }
