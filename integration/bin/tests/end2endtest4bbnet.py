@@ -453,9 +453,9 @@ class End2EndTestBBNet(BaseTest):
                 success &= self.assertEqual(
                     response.data['org-openroadm-service:services'][0]['connection-type'], 'service')
                 success &= self.assertEqual(
-                    response.data['services'][0]['lifecycle-state'], 'planned')
+                    response.data['org-openroadm-service:services'][0]['lifecycle-state'], 'planned')
                 if not success and retries > 0:
-                    print("service still not with lifecycle-state inServerice (state=" + response.data['services'][0][
+                    print("service still not with lifecycle-state inServerice (state=" + response.data['org-openroadm-service:services'][0][
                         'lifecycle-state'] + "). waiting...")
 
                 if success:
