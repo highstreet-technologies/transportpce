@@ -177,7 +177,6 @@
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-client</artifactId>
-      <scope>test</scope>
     </dependency>
   </dependencies>
 

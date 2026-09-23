@@ -21,6 +21,8 @@ import javax.ws.rs.client.ResponseProcessingException;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.jetty.connector.JettyConnectorProvider;
 import org.opendaylight.transportpce.devicediscovery.config.TransportPceConfig;
 import org.opendaylight.yangtools.binding.DataObject;
 import org.opendaylight.yangtools.binding.DataObjectIdentifier;
@@ -68,7 +70,12 @@ public class SbRestconfClient implements AutoCloseable {
         this.uuidResolver = uuidResolver;
         this.dataCodec = dataCodec;
         this.serializer = dataCodec.nodeSerializer();
-        this.client = ClientBuilder.newClient();
+        // Use the Jetty connector instead of the default HttpUrlConnector:
+        // java.net.HttpURLConnection does not support HTTP PATCH (needed for RESTCONF
+        // PATCH requests), and Jersey's reflection workaround is unavailable on Java 16+.
+        this.client = ClientBuilder.newBuilder()
+                .withConfig(new ClientConfig().connectorProvider(new JettyConnectorProvider()))
+                .build();
     }
 
     /**

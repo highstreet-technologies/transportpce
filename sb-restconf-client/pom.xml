@@ -154,6 +154,12 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
             <groupId>org.glassfish.jersey.media</groupId>
             <artifactId>jersey-media-json-jackson</artifactId>
         </dependency>
+        <!-- Jetty connector: java.net.HttpURLConnection (default connector) does not
+             support HTTP PATCH (JDK restriction), which RESTCONF PATCH requires -->
+        <dependency>
+            <groupId>org.glassfish.jersey.connectors</groupId>
+            <artifactId>jersey-jetty-connector</artifactId>
+        </dependency>
         <dependency>
             <groupId>jakarta.ws.rs</groupId>
             <artifactId>jakarta.ws.rs-api</artifactId>
