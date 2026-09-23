@@ -212,28 +212,77 @@ public class SbRestconfClient implements AutoCloseable {
     }
 
     /**
-     * Serialize a DataObject to JSON string using BindingDataCodec.
+     * Serialize a DataObject to a JSON string using BindingDataCodec.
+     *
+     * <p>The resulting JSON is wrapped in a module-qualified key, mirroring the format produced by RESTCONF
+     * (RFC 8040), e.g. {@code {"org-openroadm-device:interface": [ { ... } ]}} for a keyed list entry or
+     * {@code {"org-openroadm-device:info": { ... }}} for a container. This keeps serialization symmetric with
+     * {@link #deserialize(DataObjectIdentifier, String)}.
      */
     public <T extends DataObject> String serialize(DataObjectIdentifier<T> path, T data) throws IOException {
         JSONCodecFactory codecFactory = JSONCodecFactorySupplier.RFC7951
                 .getShared(dataCodec.modelContext());
 
-        // Convert DataObject to NormalizedNode
+        // Convert DataObject to a NormalizedNode rooted at the target node.
         BindingNormalizedNodeSerializer.NodeResult nodeResult =
                 serializer.toNormalizedDataObject(path, data);
         NormalizedNode normalizedNode = nodeResult.node();
 
+        // The JSON writer must be positioned at the parent schema node of the
+        // node being written. For a keyed list entry the binding codec emits
+        // the YangInstanceIdentifier with a bare NodeIdentifier for the list
+        // node followed by a NodeIdentifierWithPredicates for the entry (both
+        // sharing the list QName). A MapEntryNode cannot be written directly
+        // under the list node context, so it is wrapped in a MapNode (the list)
+        // and the writer is positioned at the parent of the list node. For
+        // other nodes (containers/leaves) the writer is positioned at the
+        // parent of the target node.
+        YangInstanceIdentifier yiid = serializer.toYangInstanceIdentifier(path);
+        var pathArgs = yiid.getPathArguments();
+        int lastArg = pathArgs.size() - 1;
+
+        NormalizedNode nodeToWrite = normalizedNode;
+        int parentDepth;
+        if (normalizedNode instanceof org.opendaylight.yangtools.yang.data.api.schema.MapEntryNode mapEntry) {
+            // Wrap the single entry in a MapNode so it can be emitted as a list.
+            nodeToWrite = org.opendaylight.yangtools.yang.data.impl.schema.Builders
+                    .mapBuilder()
+                    .withNodeIdentifier(YangInstanceIdentifier.NodeIdentifier.create(mapEntry.name().getNodeType()))
+                    .withChild(mapEntry)
+                    .build();
+            // The list node is the last non-predicate argument; the writer must
+            // be positioned at its parent, i.e. enter all ancestors of the list
+            // node. Skip the trailing NodeIdentifierWithPredicates (the entry).
+            parentDepth = lastArg;
+            if (parentDepth >= 1
+                    && pathArgs.get(parentDepth) instanceof YangInstanceIdentifier.NodeIdentifierWithPredicates) {
+                parentDepth--;
+            }
+        } else {
+            // Writer must be positioned at the parent of the target node.
+            parentDepth = lastArg;
+        }
+
+        SchemaInferenceStack stack = SchemaInferenceStack.of(dataCodec.modelContext());
+        for (int i = 0; i < parentDepth; i++) {
+            YangInstanceIdentifier.PathArgument arg = pathArgs.get(i);
+            if (arg instanceof YangInstanceIdentifier.NodeIdentifierWithPredicates) {
+                // Shares the QName of the preceding list NodeIdentifier which
+                // has already entered the list node.
+                continue;
+            }
+            stack.enterDataTree(arg.getNodeType());
+        }
+        EffectiveStatementInference inference = stack.toInference();
+
         try (Writer writer = new StringWriter();
                 var jsonWriter = JsonWriterFactory.createJsonWriter(writer, 0)) {
-            EffectiveStatementInference rootNode = SchemaInferenceStack
-                    .of(dataCodec.modelContext())
-                    .toInference();
             NormalizedNodeStreamWriter jsonStreamWriter = JSONNormalizedNodeStreamWriter
-                    .createExclusiveWriter(codecFactory, rootNode,
+                    .createExclusiveWriter(codecFactory, inference,
                             org.opendaylight.yangtools.yang.model.api.EffectiveModelContext.NAME.getNamespace(),
                             jsonWriter);
             try (NormalizedNodeWriter nodeWriter = NormalizedNodeWriter.forStreamWriter(jsonStreamWriter)) {
-                nodeWriter.write(normalizedNode);
+                nodeWriter.write(nodeToWrite);
                 nodeWriter.flush();
             }
             return writer.toString();
