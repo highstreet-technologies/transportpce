@@ -42,6 +42,8 @@ public class TransportPceConfig {
      * {controller-base-url}{MOUNT_PREFIX}{node-id}{mount-suffix}{object-path}
      */
     public static final String DEFAULT_MOUNT_PREFIX =
+            "/data/ietf-network:networks/network=unm-topology/node=";
+    public static final String MOUNT_PREFIX_NETCOF =
             "/data/network-topology:network-topology/topology=topology-netconf/node=";
 
     private String kafkaBootstrapServers;

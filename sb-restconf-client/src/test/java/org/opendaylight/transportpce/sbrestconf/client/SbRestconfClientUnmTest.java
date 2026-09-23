@@ -51,7 +51,7 @@ import org.opendaylight.yangtools.binding.data.codec.api.BindingDataCodec;
 import org.opendaylight.yangtools.yang.common.Uint16;
 
 @ExtendWith(MockitoExtension.class)
-public class SbRestconfClientTest {
+public class SbRestconfClientUnmTest {
 
     @Mock
     private ControllerUuidResolver uuidResolver;
@@ -65,7 +65,6 @@ public class SbRestconfClientTest {
     void setUp() {
         config = new TransportPceConfig();
         config.setBearerToken("test-token");
-        config.setMountPrefix(TransportPceConfig.MOUNT_PREFIX_NETCOF);
         config.setControllers(List.of(
                 new TransportPceConfig.ControllerEntry("ctrl-uuid-1", "https://ctrl-1:8443/rests"),
                 new TransportPceConfig.ControllerEntry("ctrl-uuid-2", "https://ctrl-2:8443/rests")
@@ -91,7 +90,7 @@ public class SbRestconfClientTest {
 
         String url = client.buildUrl("device-1", "/org-openroadm-device:org-openroadm-device");
         assertEquals(
-                "https://ctrl-1:8443/rests/data/network-topology:network-topology/topology=topology-netconf/node=device-1/yang-ext:mount/org-openroadm-device:org-openroadm-device",
+                "https://ctrl-1:8443/rests/data/ietf-network:networks/network=unm-topology/node=device-1/yang-ext:mount/org-openroadm-device:org-openroadm-device",
                 url);
     }
 
@@ -102,7 +101,7 @@ public class SbRestconfClientTest {
 
         String url = client.buildUrl("device-2", "/org-openroadm-device:org-openroadm-device");
         assertEquals(
-                "https://ctrl-2:8443/rests/data/network-topology:network-topology/topology=topology-netconf/node=device-2/yang-ext:mount/org-openroadm-device:org-openroadm-device",
+                "https://ctrl-2:8443/rests/data/ietf-network:networks/network=unm-topology/node=device-2/yang-ext:mount/org-openroadm-device:org-openroadm-device",
                 url);
     }
 
@@ -113,7 +112,7 @@ public class SbRestconfClientTest {
 
         String url = client.buildUrl("device-1", "");
         assertEquals(
-                "https://ctrl-1:8443/rests/data/network-topology:network-topology/topology=topology-netconf/node=device-1/yang-ext:mount",
+                "https://ctrl-1:8443/rests/data/ietf-network:networks/network=unm-topology/node=device-1/yang-ext:mount",
                 url);
     }
 
@@ -124,7 +123,7 @@ public class SbRestconfClientTest {
 
         String url = client.buildUrl("device-1", null);
         assertEquals(
-                "https://ctrl-1:8443/rests/data/network-topology:network-topology/topology=topology-netconf/node=device-1/yang-ext:mount",
+                "https://ctrl-1:8443/rests/data/ietf-network:networks/network=unm-topology/node=device-1/yang-ext:mount",
                 url);
     }
 
@@ -167,7 +166,7 @@ public class SbRestconfClientTest {
         String url = client.buildUrl("device-1",
                 "/org-openroadm-device:org-openroadm-device/circuit-packs/circuit-pack=0%2F0%2F0%2F1");
         assertEquals(
-                "https://ctrl-1:8443/rests/data/network-topology:network-topology/topology=topology-netconf/node=device-1/yang-ext:mount/org-openroadm-device:org-openroadm-device/circuit-packs/circuit-pack=0%2F0%2F0%2F1",
+                "https://ctrl-1:8443/rests/data/ietf-network:networks/network=unm-topology/node=device-1/yang-ext:mount/org-openroadm-device:org-openroadm-device/circuit-packs/circuit-pack=0%2F0%2F0%2F1",
                 url);
     }
 
@@ -183,7 +182,7 @@ public class SbRestconfClientTest {
         String url = client.buildUrl("device-1", "/org-openroadm-device:org-openroadm-device");
         // baseUrl ends with /, mountPrefix leading / is stripped
         assertEquals(
-                "https://ctrl-1:8443/rests/data/network-topology:network-topology/topology=topology-netconf/node=device-1/yang-ext:mount/org-openroadm-device:org-openroadm-device",
+                "https://ctrl-1:8443/rests/data/ietf-network:networks/network=unm-topology/node=device-1/yang-ext:mount/org-openroadm-device:org-openroadm-device",
                 url);
     }
 
