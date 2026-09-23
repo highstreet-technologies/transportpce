@@ -28,6 +28,7 @@ import org.opendaylight.yangtools.binding.DataObject;
 import org.opendaylight.yangtools.binding.DataObjectIdentifier;
 import org.opendaylight.yangtools.binding.data.codec.api.BindingDataCodec;
 import org.opendaylight.yangtools.binding.data.codec.api.BindingNormalizedNodeSerializer;
+import org.opendaylight.yangtools.yang.common.Ordering;
 import org.opendaylight.yangtools.yang.data.api.YangInstanceIdentifier;
 import org.opendaylight.yangtools.yang.data.api.schema.NormalizedNode;
 import org.opendaylight.yangtools.yang.data.api.schema.stream.NormalizedNodeStreamWriter;
@@ -39,6 +40,7 @@ import org.opendaylight.yangtools.yang.data.codec.gson.JsonParserStream;
 import org.opendaylight.yangtools.yang.data.codec.gson.JsonWriterFactory;
 import org.opendaylight.yangtools.yang.data.impl.schema.ImmutableNormalizedNodeStreamWriter;
 import org.opendaylight.yangtools.yang.data.impl.schema.NormalizationResultHolder;
+import org.opendaylight.yangtools.yang.data.spi.node.ImmutableNodes;
 import org.opendaylight.yangtools.yang.model.api.EffectiveStatementInference;
 import org.opendaylight.yangtools.yang.model.util.SchemaInferenceStack;
 import org.slf4j.Logger;
@@ -258,8 +260,7 @@ public class SbRestconfClient implements AutoCloseable {
         int parentDepth;
         if (normalizedNode instanceof org.opendaylight.yangtools.yang.data.api.schema.MapEntryNode mapEntry) {
             // Wrap the single entry in a MapNode so it can be emitted as a list.
-            nodeToWrite = org.opendaylight.yangtools.yang.data.impl.schema.Builders
-                    .mapBuilder()
+            nodeToWrite = ImmutableNodes.builderFactory().newMapBuilder(Ordering.SYSTEM)
                     .withNodeIdentifier(YangInstanceIdentifier.NodeIdentifier.create(mapEntry.name().getNodeType()))
                     .withChild(mapEntry)
                     .build();
