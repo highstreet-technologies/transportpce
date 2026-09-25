@@ -47,7 +47,7 @@ public abstract class AbstractTopologyRestconfClient {
 
     public static AbstractTopologyRestconfClient create(TransportPceConfig config) {
         if(config.isIetfNetworkTopology()){
-            return new IetfNetworkRestconfClient("unm-toplogy");
+            return new IetfNetworkRestconfClient();
         }
         else if(config.isNetconfTopology()){
             return new NetconfTopologyRestconfClient();
