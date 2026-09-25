@@ -1,5 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
-<org-openroadm-device xmlns="http://org/openroadm/device" xmlns:interfaces="http://org/openroadm/ethernet-interfaces" xmlns:ns1="http://org/openroadm/lldp" xmlns:otinterfaces="http://org/openroadm/optical-transport-interfaces" xmlns:devicetype="http://org/openroadm/device-types">
+<org-openroadm-device xmlns="http://org/openroadm/device" xmlns:interfaces="http://org/openroadm/ethernet-interfaces"
+                      xmlns:otinterfaces="http://org/openroadm/optical-transport-interfaces">
     <info>
         <node-id>ROADM-Berlin</node-id>
         <node-number>1</node-number>
@@ -17,7 +18,7 @@
         <current-defaultGateway>127.0.0.20</current-defaultGateway>
         <macAddress>00:01:02:03:04:05</macAddress>
         <softwareVersion>swversion1234</softwareVersion>
-        <openroadm-version>2.2.1</openroadm-version>
+        <openroadm-version>7.1</openroadm-version>
         <template>template_1</template>
         <current-datetime>2017-10-22T15:23:43Z</current-datetime>
         <max-degrees>1</max-degrees>
@@ -536,7 +537,7 @@
         <name>1GE-interface-1</name>
         <supporting-circuit-pack-name>1-0-ETH-PLUG</supporting-circuit-pack-name>
         <supporting-port>ETH-PLUG</supporting-port>
-        <type xmlns:openROADM-if="http://org/openroadm/interfaces">openROADM-if:ethernetCsmacd</type>
+        <type>openROADM-if:ethernetCsmacd</type>
         <operational-state>inService</operational-state>
         <administrative-state>inService</administrative-state>
         <interfaces:ethernet>
@@ -551,7 +552,7 @@
         <name>OTS-DEG1-TTP-TXRX</name>
         <supporting-circuit-pack-name>1-0</supporting-circuit-pack-name>
         <supporting-port>L1</supporting-port>
-        <type xmlns:openROADM-if="http://org/openroadm/interfaces">openROADM-if:opticalTransport</type>
+        <type>openROADM-if:opticalTransport</type>
         <operational-state>inService</operational-state>
         <administrative-state>inService</administrative-state>
         <otinterfaces:ots>
@@ -565,7 +566,7 @@
         <name>OMS-DEG1-TTP-TXRX</name>
         <supporting-circuit-pack-name>1-0</supporting-circuit-pack-name>
         <supporting-port>L1</supporting-port>
-        <type xmlns:openROADM-if="http://org/openroadm/interfaces">openROADM-if:openROADMOpticalMultiplex</type>
+        <type>openROADM-if:openROADMOpticalMultiplex</type>
         <description>TBD</description>
         <circuit-id>TBD</circuit-id>
         <operational-state>inService</operational-state>

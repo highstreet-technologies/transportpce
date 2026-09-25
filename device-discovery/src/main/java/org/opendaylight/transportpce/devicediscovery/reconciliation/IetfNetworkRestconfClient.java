@@ -30,30 +30,21 @@ public class IetfNetworkRestconfClient extends AbstractTopologyRestconfClient {
 
     private static final Logger LOG = LoggerFactory.getLogger(IetfNetworkRestconfClient.class);
 
-    private static final String NETWORKS_PATH_PREFIX =
-            "/rests/data/ietf-network:networks/network=";
-    private static final String NODE_PATH_SUFFIX = "/node=";
+    private static final String TOPOLOGY_PATH =
+            "/data/ietf-network:networks/network=unm-topology";
+    private static final String NODE_PATH_PREFIX =
+            "/data/ietf-network:networks/network=unm-topology/node=";
 
-    private final String networkId;
     private final ObjectMapper objectMapper = new ObjectMapper();
-
-    /**
-     * Create a client for the given network-id.
-     *
-     * @param networkId the network-id to query (e.g. {@code topology-netconf})
-     */
-    public IetfNetworkRestconfClient(String networkId) {
-        this.networkId = networkId;
-    }
 
     @Override
     protected String buildTopologyUrl(String baseUrl) {
-        return NETWORKS_PATH_PREFIX + networkId;
+        return TOPOLOGY_PATH;
     }
 
     @Override
     protected String buildNodeUrl(String baseUrl, String nodeId) {
-        return NETWORKS_PATH_PREFIX + networkId + NODE_PATH_SUFFIX + nodeId;
+        return NODE_PATH_PREFIX + nodeId;
     }
 
     @Override

@@ -17,7 +17,7 @@
         <current-defaultGateway>1.2.3.1</current-defaultGateway>
         <macAddress>00:01:02:03:04:05</macAddress>
         <softwareVersion>swversion1234</softwareVersion>
-        <openroadm-version>2.2</openroadm-version>
+        <openroadm-version>7.1</openroadm-version>
         <template>template_TRANSPONDER</template>
         <current-datetime>2017-10-22T15:23:43Z</current-datetime>
         <geoLocation>
@@ -135,6 +135,14 @@
             <faceplate-label>xponder-XPDRA</faceplate-label>
             <administrative-state>inService</administrative-state>
             <operational-state>inService</operational-state>
+            <port-capabilities xmlns="http://org/openroadm/port-capability" xmlns:ns1="http://org/openroadm/port/types">
+                <supported-interface-capability>
+                    <if-cap-type>ns1:if-OCH-OTU4-ODU4</if-cap-type>
+                </supported-interface-capability>
+                <supported-interface-capability>
+                    <if-cap-type>ns1:if-otsi-otsigroup</if-cap-type>
+                </supported-interface-capability>
+            </port-capabilities>
             <transponder-port>
                 <port-power-capability-min-rx>-22.00</port-power-capability-min-rx>
                 <port-power-capability-min-tx>-5.00</port-power-capability-min-tx>
@@ -181,6 +189,11 @@
             <faceplate-label>xponder-XPDRA</faceplate-label>
             <administrative-state>inService</administrative-state>
             <operational-state>inService</operational-state>
+            <port-capabilities xmlns="http://org/openroadm/port-capability" xmlns:ns1="http://org/openroadm/port/types">
+                <supported-interface-capability>
+                    <if-cap-type>ns1:if-100GE</if-cap-type>
+                </supported-interface-capability>
+            </port-capabilities>
             <transponder-port>
                 <port-power-capability-min-rx>-4.00</port-power-capability-min-rx>
                 <port-power-capability-min-tx>-10.00</port-power-capability-min-tx>
@@ -226,6 +239,14 @@
             <faceplate-label>xponder-XPDRA</faceplate-label>
             <administrative-state>inService</administrative-state>
             <operational-state>inService</operational-state>
+            <port-capabilities xmlns="http://org/openroadm/port-capability" xmlns:ns1="http://org/openroadm/port/types">
+                <supported-interface-capability>
+                    <if-cap-type>ns1:if-OCH-OTU4-ODU4</if-cap-type>
+                </supported-interface-capability>
+                <supported-interface-capability>
+                    <if-cap-type>ns1:if-otsi-otsigroup</if-cap-type>
+                </supported-interface-capability>
+            </port-capabilities>
             <transponder-port>
                 <port-power-capability-min-rx>-22.00</port-power-capability-min-rx>
                 <port-power-capability-min-tx>-5.00</port-power-capability-min-tx>
@@ -271,6 +292,11 @@
             <operational-state>inService</operational-state>
             <is-physical>true</is-physical>
             <faceplate-label>xponder-XPDRA</faceplate-label>
+            <port-capabilities xmlns="http://org/openroadm/port-capability" xmlns:ns1="http://org/openroadm/port/types">
+                <supported-interface-capability>
+                    <if-cap-type>ns1:if-100GE</if-cap-type>
+                </supported-interface-capability>
+            </port-capabilities>
             <transponder-port>
                 <port-power-capability-min-rx>-4.00</port-power-capability-min-rx>
                 <port-power-capability-min-tx>-10.00</port-power-capability-min-tx>

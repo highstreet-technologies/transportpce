@@ -8,7 +8,6 @@
 package org.opendaylight.transportpce.devicediscovery.reconciliation;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -17,7 +16,6 @@ import org.junit.jupiter.api.Test;
 
 class IetfNetworkRestconfClientTest {
 
-    private static final String NETWORK_ID = "topology-netconf";
 
     @Test
     void testParseTopologyWithMountedNodes() {
@@ -51,7 +49,7 @@ class IetfNetworkRestconfClientTest {
             }
             """;
 
-        IetfNetworkRestconfClient client = new IetfNetworkRestconfClient(NETWORK_ID);
+        IetfNetworkRestconfClient client = new IetfNetworkRestconfClient();
         List<RemoteNode> nodes = client.parseTopologyResponse(json);
 
         assertEquals(2, nodes.size());
@@ -90,7 +88,7 @@ class IetfNetworkRestconfClientTest {
             }
             """;
 
-        IetfNetworkRestconfClient client = new IetfNetworkRestconfClient(NETWORK_ID);
+        IetfNetworkRestconfClient client = new IetfNetworkRestconfClient();
         List<RemoteNode> nodes = client.parseTopologyResponse(json);
 
         assertEquals(1, nodes.size());
@@ -109,7 +107,7 @@ class IetfNetworkRestconfClientTest {
             }
             """;
 
-        IetfNetworkRestconfClient client = new IetfNetworkRestconfClient(NETWORK_ID);
+        IetfNetworkRestconfClient client = new IetfNetworkRestconfClient();
         List<RemoteNode> nodes = client.parseTopologyResponse(json);
 
         assertTrue(nodes.isEmpty());
@@ -128,7 +126,7 @@ class IetfNetworkRestconfClientTest {
             }
             """;
 
-        IetfNetworkRestconfClient client = new IetfNetworkRestconfClient(NETWORK_ID);
+        IetfNetworkRestconfClient client = new IetfNetworkRestconfClient();
         List<RemoteNode> nodes = client.parseTopologyResponse(json);
 
         assertTrue(nodes.isEmpty());
@@ -137,7 +135,7 @@ class IetfNetworkRestconfClientTest {
 
     @Test
     void testParseTopologyInvalidJson() {
-        IetfNetworkRestconfClient client = new IetfNetworkRestconfClient(NETWORK_ID);
+        IetfNetworkRestconfClient client = new IetfNetworkRestconfClient();
         List<RemoteNode> nodes = client.parseTopologyResponse("not valid json");
 
         assertTrue(nodes.isEmpty());
@@ -161,7 +159,7 @@ class IetfNetworkRestconfClientTest {
             }
             """;
 
-        IetfNetworkRestconfClient client = new IetfNetworkRestconfClient(NETWORK_ID);
+        IetfNetworkRestconfClient client = new IetfNetworkRestconfClient();
         List<RemoteNode> nodes = client.parseTopologyResponse(json);
 
         assertEquals(1, nodes.size());
@@ -191,7 +189,7 @@ class IetfNetworkRestconfClientTest {
             }
             """;
 
-        IetfNetworkRestconfClient client = new IetfNetworkRestconfClient(NETWORK_ID);
+        IetfNetworkRestconfClient client = new IetfNetworkRestconfClient();
         Optional<RemoteNode> nodeOpt = client.parseNodeResponse(json);
 
         assertTrue(nodeOpt.isPresent());
@@ -215,7 +213,7 @@ class IetfNetworkRestconfClientTest {
             }
             """;
 
-        IetfNetworkRestconfClient client = new IetfNetworkRestconfClient(NETWORK_ID);
+        IetfNetworkRestconfClient client = new IetfNetworkRestconfClient();
         Optional<RemoteNode> nodeOpt = client.parseNodeResponse(json);
 
         assertTrue(nodeOpt.isEmpty());
@@ -224,7 +222,7 @@ class IetfNetworkRestconfClientTest {
 
     @Test
     void testParseNodeResponseInvalidJson() {
-        IetfNetworkRestconfClient client = new IetfNetworkRestconfClient(NETWORK_ID);
+        IetfNetworkRestconfClient client = new IetfNetworkRestconfClient();
         Optional<RemoteNode> nodeOpt = client.parseNodeResponse("not valid json");
 
         assertTrue(nodeOpt.isEmpty());
@@ -233,15 +231,15 @@ class IetfNetworkRestconfClientTest {
 
     @Test
     void testBuildTopologyUrl() {
-        IetfNetworkRestconfClient client = new IetfNetworkRestconfClient("openroadm-network");
+        IetfNetworkRestconfClient client = new IetfNetworkRestconfClient();
         String path = client.buildTopologyUrl("http://ctrl:8181/rests");
-        assertEquals("/rests/data/ietf-network:networks/network=openroadm-network", path);
+        assertEquals("/data/ietf-network:networks/network=unm-topology", path);
     }
 
     @Test
     void testBuildNodeUrl() {
-        IetfNetworkRestconfClient client = new IetfNetworkRestconfClient("openroadm-network");
+        IetfNetworkRestconfClient client = new IetfNetworkRestconfClient();
         String path = client.buildNodeUrl("http://ctrl:8181/rests", "device-1");
-        assertEquals("/rests/data/ietf-network:networks/network=openroadm-network/node=device-1", path);
+        assertEquals("/data/ietf-network:networks/network=unm-topology/node=device-1", path);
     }
 }

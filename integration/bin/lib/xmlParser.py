@@ -249,19 +249,65 @@ class OpenRoadmXmlParser:
         fin.close()
 
     def edit_tags_xpdr(self, filename:str):
+        import re
         fin = open(filename, "rt")
         # read file contents to string
         data = fin.read()
-        # replace all occurrences of the required string
-        data = data.replace('<supported-interface-capability>',
-                            '<supported-interface-capability xmlns:org-openroadm-port-types="http://org/openroadm/port/types">')
-        # close the input file
         fin.close()
-        # open the input file in write mode
+
+        # ElementTree cannot preserve the inline default namespace
+        # (xmlns="http://org/openroadm/port-capability") that the template
+        # declares on <port-capabilities>. It also cannot keep two default
+        # namespaces in the same tree. As a result the port-capabilities /
+        # supported-interface-capability / if-cap-type elements are serialized
+        # with an auto-generated prefix (e.g. "ns0:" or "pc:") and the
+        # http://org/openroadm/port/types namespace (used as a value prefix
+        # "ns1:" inside if-cap-type) is not declared at all.
+        #
+        # Restore the exact template form via text post-processing:
+        #   <PFX:port-capabilities> ... </PFX:port-capabilities>
+        # becomes
+        #   <port-capabilities xmlns="http://org/openroadm/port-capability"
+        #       xmlns:ns1="http://org/openroadm/port/types"> ... </port-capabilities>
+        # and the inner PFX: prefixes are stripped so the elements live in the
+        # default port-capability namespace again.
+
+        # Detect the auto-generated prefix used for the port-capability
+        # namespace on the port-capabilities element.
+        pc_prefix_match = re.search(r'<(\w+):port-capabilities', data)
+        pc_prefix = pc_prefix_match.group(1) if pc_prefix_match else None
+
+        if pc_prefix:
+            # Opening tag: inject the default + ns1 namespace declarations and
+            # drop the auto prefix.
+            data = data.replace(
+                f'<{pc_prefix}:port-capabilities>',
+                '<port-capabilities xmlns="http://org/openroadm/port-capability" '
+                'xmlns:ns1="http://org/openroadm/port/types">')
+            # Closing tag.
+            data = data.replace(
+                f'</{pc_prefix}:port-capabilities>',
+                '</port-capabilities>')
+            # Inner elements: strip the auto prefix so they inherit the
+            # default port-capability namespace. The "ns1:" prefix inside the
+            # if-cap-type *text* is left untouched on purpose, because it now
+            # correctly resolves to http://org/openroadm/port/types.
+            data = data.replace(
+                f'<{pc_prefix}:supported-interface-capability>',
+                '<supported-interface-capability>')
+            data = data.replace(
+                f'</{pc_prefix}:supported-interface-capability>',
+                '</supported-interface-capability>')
+            data = data.replace(
+                f'<{pc_prefix}:if-cap-type>',
+                '<if-cap-type>')
+            data = data.replace(
+                f'</{pc_prefix}:if-cap-type>',
+                '</if-cap-type>')
+
+        # open the file in write mode
         fin = open(filename, "wt")
-        # overrite the input file with the resulting data
         fin.write(data)
-        # close the file
         fin.close()
 
     def create_data_models(self, dev_name:str, deg_number:int, device_type:str, node_num:int, neighbours:list, remote_port_Ids:list):
