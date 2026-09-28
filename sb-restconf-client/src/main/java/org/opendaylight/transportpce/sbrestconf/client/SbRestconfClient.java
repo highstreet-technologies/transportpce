@@ -23,6 +23,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jetty.connector.JettyConnectorProvider;
+import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
 import org.opendaylight.transportpce.devicediscovery.config.TransportPceConfig;
 import org.opendaylight.yangtools.binding.DataObject;
 import org.opendaylight.yangtools.binding.DataObjectIdentifier;
@@ -89,9 +90,30 @@ public class SbRestconfClient implements AutoCloseable {
      * @return the deserialized DataObject, or empty if not found
      */
     public <T extends DataObject> Optional<T> get(String nodeId, DataObjectIdentifier<T> path, Class<T> clazz) {
+        return get(nodeId, path, clazz, null);
+    }
+
+    /**
+     * Read a device-level object via RESTCONF GET, optionally selecting the datastore
+     * via the RFC 8040 {@code content} query parameter.
+     *
+     * @param nodeId the device node-id
+     * @param path   the DataObjectIdentifier pointing to the object on the mounted device
+     * @param clazz  the expected return type
+     * @param store  the logical datastore to read from; {@code CONFIGURATION} adds
+     *               {@code ?content=config}, {@code OPERATIONAL} adds
+     *               {@code ?content=non-config}. {@code null} omits the parameter
+     *               (server default, which combines both datastores).
+     * @return the deserialized DataObject, or empty if not found
+     */
+    public <T extends DataObject> Optional<T> get(String nodeId, DataObjectIdentifier<T> path, Class<T> clazz,
+            LogicalDatastoreType store) {
         String url = buildUrl(nodeId, toRestconfPath(path));
         if (url == null) {
             return Optional.empty();
+        }
+        if (store != null) {
+            url += store == LogicalDatastoreType.CONFIGURATION ? "?content=config" : "?content=nonconfig";
         }
 
         LOG.debug("GET {} ({})", url, clazz.getSimpleName());

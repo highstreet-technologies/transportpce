@@ -60,7 +60,7 @@ public class RestDeviceTransaction extends DeviceTransaction {
     @Override
     public <T extends DataObject> ListenableFuture<Optional<T>> read(
             LogicalDatastoreType store, DataObjectIdentifier<T> path) {
-        Optional<T> result = restconfClient.get(nodeId, path, path.lastStep().type());
+        Optional<T> result = restconfClient.get(nodeId, path, path.lastStep().type(), store);
         return FluentFutures.immediateFluentFuture(result);
     }
 
@@ -138,6 +138,8 @@ public class RestDeviceTransaction extends DeviceTransaction {
 
     private void afterClose() {
         pendingOperations.clear();
-        // deviceLock.countDown() is called in parent afterClose
+        // Unlock the device for the next transaction: the parent's
+        // afterClose() shuts down the scheduler and counts down the device lock.
+        unlockDevice();
     }
 }

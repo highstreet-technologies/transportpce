@@ -79,10 +79,15 @@ public class RestDeviceTransactionManager implements DeviceTransactionManager {
         return Executors.newSingleThreadExecutor().submit(() -> {
             LOG.debug("Creating RESTCONF transaction for device {}.", deviceId);
 
-            // Wait for existing lock if present
+            // Wait for existing lock if present (bounded, so a stuck transaction
+            // cannot block device access forever)
             CountDownLatch actualLock = deviceLocks.put(deviceId, newLock);
             if (actualLock != null) {
-                actualLock.await();
+                if (!actualLock.await(timeoutToSubmit, timeUnit)) {
+                    LOG.error("Timed out waiting for previous transaction on device {} to finish", deviceId);
+                    newLock.countDown();
+                    return Optional.empty();
+                }
             }
 
             // Check if device is reachable via RESTCONF (controller-uuid must be resolvable)
@@ -110,10 +115,10 @@ public class RestDeviceTransactionManager implements DeviceTransactionManager {
     public <T extends DataObject> Optional<T> getDataFromDevice(String deviceId,
             LogicalDatastoreType logicalDatastoreType, DataObjectIdentifier<T> path,
             long timeout, TimeUnit timeUnit) {
-        LOG.debug("Reading from device {} via RESTCONF: {}", deviceId, path);
+        LOG.debug("Reading from device {} via RESTCONF (store {}): {}", deviceId, logicalDatastoreType, path);
 
         try {
-            Optional<T> result = restconfClient.get(deviceId, path, path.lastStep().type());
+            Optional<T> result = restconfClient.get(deviceId, path, path.lastStep().type(), logicalDatastoreType);
             if (result.isEmpty()) {
                 LOG.debug("No data found at {} on device {}", path, deviceId);
             }
