@@ -85,7 +85,7 @@ public class OpenRoadmInterfacesImpl710 {
         Thread timer = new Thread() {
             public void run() {
                 try {
-                    Thread.sleep(3000);
+                    Thread.sleep(Timeouts.DEVICE_PORT_UPDATE_TIMEOUT);
                     current.interrupt();
                 } catch (InterruptedException e) {
                     LOG.error("Timeout before the new created interface appears on the deivce circuit-pack port", e);

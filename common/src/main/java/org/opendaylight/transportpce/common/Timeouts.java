@@ -37,6 +37,20 @@ public final class Timeouts {
     public static final long DEVICE_WRITE_TIMEOUT = 240;
     public static final TimeUnit DEVICE_WRITE_TIMEOUT_UNIT = TimeUnit.SECONDS;
 
+    /**
+     * Overall budget (ms) for polling the device port state after posting an interface,
+     * and the interval (ms) between two poll attempts. Real devices reflect a newly
+     * posted interface on their port asynchronously; simulators often never do, so
+     * every interface burns the full budget. Set e.g.
+     * TRANSPORTPCE_DEVICE_PORT_UPDATE_TIMEOUT=3000 for simulated networks.
+     */
+    public static final long DEVICE_PORT_UPDATE_TIMEOUT = Long.parseLong(
+            System.getProperty("transportpce.timeout.devicePortUpdate",
+                    System.getenv().getOrDefault("TRANSPORTPCE_TIMEOUT_DEVICE_PORT_UPDATE", "30000")));
+    public static final long DEVICE_PORT_UPDATE_POLL_INTERVAL = Long.parseLong(
+            System.getProperty("transportpce.timeout.devicePortUpdatePollInterval",
+                    System.getenv().getOrDefault("TRANSPORTPCE_TIMEOUT_DEVICE_PORT_UPDATE_POLL_INTERVAL", "1000")));
+
     //TODO add timeouts for device setup (olm power setup etc.)
 
     private Timeouts() {

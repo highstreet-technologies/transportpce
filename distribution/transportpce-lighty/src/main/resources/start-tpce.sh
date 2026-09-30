@@ -23,6 +23,11 @@ export TRANSPORTPCE_TIMEOUT_DATASTORE_READ="${TRANSPORTPCE_TIMEOUT_DATASTORE_REA
 export TRANSPORTPCE_TIMEOUT_DATASTORE_WRITE="${TRANSPORTPCE_TIMEOUT_DATASTORE_WRITE:-5000}"
 export TRANSPORTPCE_TIMEOUT_DATASTORE_DELETE="${TRANSPORTPCE_TIMEOUT_DATASTORE_DELETE:-5000}"
 
+# Device port-state poll budget after posting an interface. Simulated networks
+# (pynts/NTS) never reflect the interface on the port, so every interface burns
+# the full budget — keep it short for simulators, raise it for real devices.
+export TRANSPORTPCE_TIMEOUT_DEVICE_PORT_UPDATE="${TRANSPORTPCE_TIMEOUT_DEVICE_PORT_UPDATE:-30000}"
+
 echo "Starting TransportPCE on Lighty.io..."
 echo "  TPCE_HOME=${TPCE_HOME}"
 echo "  JAVA_OPTS=${JAVA_OPTS}"

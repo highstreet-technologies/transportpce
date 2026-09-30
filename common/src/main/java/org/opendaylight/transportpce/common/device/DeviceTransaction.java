@@ -147,4 +147,8 @@ public class DeviceTransaction {
         scheduledExecutorService.shutdown();
         deviceLock.countDown();
     }
+
+    protected void unlockDevice() {
+        afterClose();
+    }
 }
