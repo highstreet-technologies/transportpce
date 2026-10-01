@@ -46,6 +46,7 @@ import org.opendaylight.yang.gen.v1.http.org.openroadm.interfaces.rev191129.Medi
 import org.opendaylight.yang.gen.v1.http.org.openroadm.interfaces.rev191129.OpticalTransport;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.media.channel.interfaces.rev200529.Interface1Builder;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.media.channel.interfaces.rev200529.mc.ttp.container.McTtpBuilder;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.optical.transport.interfaces.rev200529.Interface1;
 import org.opendaylight.yangtools.binding.DataObjectIdentifier;
 import org.opendaylight.yangtools.binding.data.codec.api.BindingDataCodec;
 import org.opendaylight.yangtools.yang.common.Uint16;
@@ -268,7 +269,8 @@ public class SbRestconfClientTest {
                 .build(), Files.readString(Path.of("src/test/resources/roadm-interface.json")));
         assertNotNull(interfaces);
         assertEquals(OpticalTransport.VALUE, interfaces.getType());
-
+        var otsIf = interfaces.augmentation(Interface1.class);
+        assertNotNull(otsIf);
     }
 
     @Test

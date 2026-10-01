@@ -11,8 +11,11 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
@@ -21,6 +24,7 @@ import javax.ws.rs.client.ResponseProcessingException;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.xml.xpath.XPathExpressionException;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jetty.connector.JettyConnectorProvider;
 import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
@@ -30,7 +34,10 @@ import org.opendaylight.yangtools.binding.DataObjectIdentifier;
 import org.opendaylight.yangtools.binding.data.codec.api.BindingDataCodec;
 import org.opendaylight.yangtools.binding.data.codec.api.BindingNormalizedNodeSerializer;
 import org.opendaylight.yangtools.yang.common.Ordering;
+import org.opendaylight.yangtools.yang.common.QName;
 import org.opendaylight.yangtools.yang.data.api.YangInstanceIdentifier;
+import org.opendaylight.yangtools.yang.data.api.schema.LeafNode;
+import org.opendaylight.yangtools.yang.data.api.schema.MapEntryNode;
 import org.opendaylight.yangtools.yang.data.api.schema.NormalizedNode;
 import org.opendaylight.yangtools.yang.data.api.schema.stream.NormalizedNodeStreamWriter;
 import org.opendaylight.yangtools.yang.data.api.schema.stream.NormalizedNodeWriter;
@@ -42,8 +49,19 @@ import org.opendaylight.yangtools.yang.data.codec.gson.JsonWriterFactory;
 import org.opendaylight.yangtools.yang.data.impl.schema.ImmutableNormalizedNodeStreamWriter;
 import org.opendaylight.yangtools.yang.data.impl.schema.NormalizationResultHolder;
 import org.opendaylight.yangtools.yang.data.spi.node.ImmutableNodes;
+import org.opendaylight.yangtools.yang.model.api.AugmentationSchemaNode;
+import org.opendaylight.yangtools.yang.model.api.ContainerSchemaNode;
+import org.opendaylight.yangtools.yang.model.api.DataSchemaNode;
 import org.opendaylight.yangtools.yang.model.api.EffectiveStatementInference;
+import org.opendaylight.yangtools.yang.model.api.Module;
 import org.opendaylight.yangtools.yang.model.util.SchemaInferenceStack;
+import org.opendaylight.yangtools.yang.xpath.api.YangBinaryExpr;
+import org.opendaylight.yangtools.yang.xpath.api.YangBinaryOperator;
+import org.opendaylight.yangtools.yang.xpath.api.YangExpr;
+import org.opendaylight.yangtools.yang.xpath.api.YangLiteralExpr;
+import org.opendaylight.yangtools.yang.xpath.api.YangLocationPath;
+import org.opendaylight.yangtools.yang.xpath.api.YangQNameExpr;
+import org.opendaylight.yangtools.yang.xpath.api.YangXPathExpression;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -102,7 +120,7 @@ public class SbRestconfClient implements AutoCloseable {
      * @param clazz  the expected return type
      * @param store  the logical datastore to read from; {@code CONFIGURATION} adds
      *               {@code ?content=config}, {@code OPERATIONAL} adds
-     *               {@code ?content=non-config}. {@code null} omits the parameter
+     *               {@code ?content=nonconfig}. {@code null} omits the parameter
      *               (server default, which combines both datastores).
      * @return the deserialized DataObject, or empty if not found
      */
@@ -416,12 +434,148 @@ public class SbRestconfClient implements AutoCloseable {
                 return null;
             }
 
+            // RFC 7951 allows non-presence containers (and hence augmentation
+            // containers) to be omitted from the JSON when empty, but the binding
+            // contract is that non-presence containers ALWAYS exist (the DataBroker
+            // materializes them). A device that returns an interface without its
+            // empty augmentation container (e.g. pynts simulators) would therefore
+            // yield augmentation(Class) == null on the read side, while MDSAL never
+            // does. Restore MDSAL semantics: attach empty augmentation containers
+            // for all augments of this node whose when-condition is satisfied.
+            data = materializeAugmentations(data);
+
             Map.Entry<org.opendaylight.yangtools.binding.DataObjectReference<?>, DataObject> entry =
                     serializer.fromNormalizedNode(yiid, data);
             return (T) entry.getValue();
         } catch (Exception e) {
             LOG.error("Failed to deserialize JSON to {}", path, e);
             return null;
+        }
+    }
+
+    /**
+     * Attach empty augmentation containers to the parsed node for every augment
+     * targeting it whose when-condition is satisfied, restoring DataBroker/MDSAL
+     * semantics for non-presence containers (RFC 7951 may omit them, MDSAL never
+     * does). Only containers missing from the payload are added; presence
+     * containers are never synthesized.
+     *
+     * <p>When-condition support is limited to the pattern used by the OpenROADM
+     * interface model: {@code "prefix:type = 'prefix:identity'"} evaluated against
+     * the node's own {@code type} leaf (an identityref). Augments with other or no
+     * conditions are attached only when their container is non-presence and the
+     * condition is trivially satisfiable (absent).
+     *
+     * @param data the parsed target node
+     * @return the same node, or a copy with empty augmentation containers attached
+     */
+    private NormalizedNode materializeAugmentations(NormalizedNode data) {
+        // Only keyed list entries (e.g. org-openroadm-device interface) carry the
+        // identityref-driven augments we handle here.
+        if (!(data instanceof MapEntryNode entry)) {
+            return data;
+        }
+        QName nodeType = entry.name().getNodeType();
+
+        // Collect the node's existing children by QName for a quick contains check.
+        Set<QName> existing = new HashSet<>();
+        for (NormalizedNode child : entry.body()) {
+            existing.add(child.name().getNodeType());
+        }
+
+        // The identityref value the when-conditions compare against (e.g. the
+        // interface "type" leaf). Null disables condition evaluation.
+        QName typeValue = null;
+        for (NormalizedNode child : entry.body()) {
+            if ("type".equals(child.name().getNodeType().getLocalName())
+                    && child instanceof LeafNode<?> leaf
+                    && leaf.body() instanceof QName qname) {
+                typeValue = qname;
+            }
+        }
+
+        boolean changed = false;
+        org.opendaylight.yangtools.yang.data.api.schema.builder.DataContainerNodeBuilder<
+                org.opendaylight.yangtools.yang.data.api.YangInstanceIdentifier.NodeIdentifierWithPredicates,
+                MapEntryNode> builder = null;
+        for (Module module : dataCodec.modelContext().getModules()) {
+            for (AugmentationSchemaNode augment : module.getAugmentations()) {
+                // The augment must target this node's list (e.g. .../interface).
+                // Match on the last path element to stay robust against intermediate
+                // schema-node names in the target path.
+                List<QName> targetPath = augment.getTargetPath().getNodeIdentifiers();
+                if (targetPath.isEmpty() || !targetPath.get(targetPath.size() - 1).equals(nodeType)) {
+                    continue;
+                }
+                for (DataSchemaNode child : augment.getChildNodes()) {
+                    if (!(child instanceof ContainerSchemaNode container)
+                            || container.isPresenceContainer()) {
+                        continue;
+                    }
+                    QName containerQName = container.getQName();
+                    if (existing.contains(containerQName)) {
+                        continue;
+                    }
+                    if (!isWhenConditionSatisfied(augment, typeValue)) {
+                        continue;
+                    }
+                    if (builder == null) {
+                        builder = ImmutableNodes.builderFactory().newMapEntryBuilder()
+                                .withNodeIdentifier(entry.name());
+                        entry.body().forEach(builder::withChild);
+                        changed = true;
+                    }
+                    builder.withChild(ImmutableNodes.builderFactory().newContainerBuilder()
+                            .withNodeIdentifier(YangInstanceIdentifier.NodeIdentifier.create(containerQName))
+                            .build());
+                    LOG.debug("Materialized empty augmentation container {} on node {}",
+                            containerQName, nodeType);
+                }
+            }
+        }
+        return changed ? builder.build() : data;
+    }
+
+    /**
+     * Evaluate the augment's when-condition against the node's identityref value.
+     * Supported pattern (OpenROADM interface model):
+     * {@code "prefix:leaf = 'prefix:identity'"} where the compared leaf resolves
+     * to the node's own {@code type} leaf. The right-hand literal is resolved to
+     * a full QName via the module's import bindings (QualifiedBound expression),
+     * so no manual prefix resolution is needed.
+     */
+    private boolean isWhenConditionSatisfied(AugmentationSchemaNode augment, QName typeValue) {
+        java.util.Optional<? extends YangXPathExpression.QualifiedBound> whenCondition =
+                augment.getWhenCondition();
+        if (whenCondition.isEmpty() || typeValue == null) {
+            // No condition: attaching an empty container is always valid schema-wise,
+            // but keep the behaviour conservative and only attach conditioned augments.
+            return false;
+        }
+        YangExpr root = whenCondition.orElseThrow().getRootExpr();
+        if (!(root instanceof YangBinaryExpr binary)
+                || binary.getOperator() != YangBinaryOperator.EQUALS) {
+            return false;
+        }
+        // The compared leaf must be the node's "type" leaf.
+        if (!(binary.getLeftExpr() instanceof YangLocationPath.Relative leftPath)
+                || leftPath.getSteps().size() != 1
+                || !(leftPath.getSteps().get(0) instanceof YangLocationPath.QNameStep qnameStep)
+                || !"type".equals(qnameStep.getQName().getLocalName())) {
+            return false;
+        }
+        if (!(binary.getRightExpr() instanceof YangLiteralExpr literal)) {
+            return false;
+        }
+        try {
+            YangQNameExpr resolved = whenCondition.orElseThrow().interpretAsQName(literal);
+            if (!(resolved instanceof YangQNameExpr.Resolved resolvedQName)) {
+                return false;
+            }
+            return resolvedQName.getQName().equals(typeValue);
+        } catch (XPathExpressionException e) {
+            LOG.debug("Failed to resolve when-condition literal {} of augment {}", literal, augment, e);
+            return false;
         }
     }
 

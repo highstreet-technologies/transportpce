@@ -6,6 +6,8 @@
 ### Generating Device Files and Docker Compose
 To generate device files and the Docker Compose configuration for simulators, use the `createNTSdevices.py` script located in the `bin` folder. This script processes topology files (e.g., `Nodes_Germany_17.json` and `Links_Germany_17.json`) to generate the necessary configurations for the simulators.
 
+Alternatively, a native SNDlib network XML file (e.g., `topology-info/nobel-germany.xml`) can be used directly as input via `--network-xml`. In that case `--nodes` and `--links` are not needed; node coordinates are taken from the SNDlib file and link distances are derived geographically (haversine). The generated files are equivalent to those from the pre-converted JSON inputs.
+
 **⚠️ Ensure you are in the `integration` folder before executing the command.**
 
 Example command:
@@ -13,6 +15,14 @@ Example command:
 ./bin/createNTSdevices.py \
   --nodes topology-info/Nodes_Germany_17.json \
   --links topology-info/Links_Germany_17.json \
+  --output-profile germany-17 \
+  --output-folder demo-standalone/conf-generated
+```
+
+Example with an original SNDlib network file:
+```
+./bin/createNTSdevices.py \
+  --network-xml topology-info/nobel-germany.xml \
   --output-profile germany-17 \
   --output-folder demo-standalone/conf-generated
 ```

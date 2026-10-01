@@ -12,6 +12,7 @@ from constants import *
 import networkx as nx
 from lib.xmlParser import OpenRoadmXmlParser
 from lib.ntsngDeployGenerator import OpenroamdNtsNgDeployGenerator
+from lib.sndlibParser import SndlibTopologyParser
 from splitRoadmModel import RoadmModelSplitter
 from lib.inttestProfiles import IntegrationTestSimProfile, IntegrationTestControllerProfile
 import subprocess
@@ -20,14 +21,17 @@ import subprocess
 class NTSDeviceModelCreator:
 
     def __init__(self, nodesSourceFile, linksSourceFile, templateFolder, outputProfile,
-                 outputFolder, outputDockerComposeFile, yangPath):
+                 outputFolder, outputDockerComposeFile, yangPath, networkXmlFile=None):
+        if not networkXmlFile and not (nodesSourceFile and linksSourceFile):
+            raise ValueError("Either --network-xml or both --nodes and --links are required")
         for name, val in (("nodesSourceFile", nodesSourceFile),
                          ("linksSourceFile", linksSourceFile),
                          ("outputProfile", outputProfile)):
-            if not val:
+            if not val and not (name != "outputProfile" and networkXmlFile):
                 raise ValueError(f"Missing required argument: {name}")
         self.linksSourceFile = linksSourceFile
         self.nodesSourceFile = nodesSourceFile
+        self.networkXmlFile = networkXmlFile
         self.templateFolder = templateFolder
         self.outputProfile = outputProfile
         self.outputFolder = outputFolder
@@ -41,14 +45,21 @@ class NTSDeviceModelCreator:
     def run(self):
         # Variable to be provided w.r.t to different environments
         ip = os.getenv('NTS_NG_IP', '127.0.0.1')  # Default to localhost if not set
-        for path in (self.nodesSourceFile, self.linksSourceFile):
-            if not os.path.isfile(path):
-                print(f"ERROR: required input file not found: {path}", file=sys.stderr)
+        if self.networkXmlFile:
+            if not os.path.isfile(self.networkXmlFile):
+                print(f"ERROR: network XML file not found: {self.networkXmlFile}", file=sys.stderr)
                 sys.exit(1)
-        with open(self.nodesSourceFile) as node_file:
-            self.nodes = json.load(node_file)
-        with open(self.linksSourceFile) as edge_file:
-            self.edges = json.load(edge_file)
+            print(f"Parsing SNDlib network XML: {self.networkXmlFile}")
+            self.nodes, self.edges = SndlibTopologyParser().parse(self.networkXmlFile)
+        else:
+            for path in (self.nodesSourceFile, self.linksSourceFile):
+                if not os.path.isfile(path):
+                    print(f"ERROR: required input file not found: {path}", file=sys.stderr)
+                    sys.exit(1)
+            with open(self.nodesSourceFile) as node_file:
+                self.nodes = json.load(node_file)
+            with open(self.linksSourceFile) as edge_file:
+                self.edges = json.load(edge_file)
 
         topo=self.createTopology()
         i=1
@@ -256,8 +267,9 @@ class NTSDeviceModelCreator:
 
 parser = argparse.ArgumentParser(description='Generate NTS device models and docker-compose files for TransportPCE integration.')
 
-parser.add_argument('--nodes', required=True, help='filename of the topology nodes file')
-parser.add_argument('--links', required=True, help='filename of the topology links file')
+parser.add_argument('--nodes', required=False, default=None, help='filename of the topology nodes file (not needed with --network-xml)')
+parser.add_argument('--links', required=False, default=None, help='filename of the topology links file (not needed with --network-xml)')
+parser.add_argument('--network-xml', required=False, default=None, help='native SNDlib network XML file (e.g. nobel-germany.xml) as alternative to --nodes/--links')
 parser.add_argument('--template-folder', required=False, default=CURRENT_PATH +'/demo-standalone/conf_v7.1', help='folder containing the device template files')
 parser.add_argument('--output-profile', required=True, help='filename to put the integration test profile in')
 parser.add_argument('--output-folder', required=False, default=CURRENT_PATH+'/demo-standalone/conf-generated', help='folder to put the generated xml models in')
@@ -272,5 +284,6 @@ creator = NTSDeviceModelCreator(
         outputProfile=args.output_profile,
         outputFolder=args.output_folder,
         outputDockerComposeFile=args.output_dc,
-        yangPath=args.yang_path)
+        yangPath=args.yang_path,
+        networkXmlFile=args.network_xml)
 creator.run()
