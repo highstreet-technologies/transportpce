@@ -378,16 +378,13 @@ public class PowerMgmtImpl implements PowerMgmt {
                         LOG.error(INTERFACE_NOT_PRESENT, supportingOts, nodeId);
                         return null;
                     }
-                    if (interfaceOpt2.orElseThrow().augmentation(org.opendaylight.yang.gen.v1.http.org
-                                    .openroadm.optical.transport.interfaces.rev200529.Interface1.class).getOts()
-                            .getSpanLossTransmit() == null) {
+                    var aug = interfaceOpt2.orElseThrow().augmentation(org.opendaylight.yang.gen.v1.http.org
+                            .openroadm.optical.transport.interfaces.rev200529.Interface1.class);
+                    if (aug == null || aug.getOts() == null || aug.getOts().getSpanLossTransmit() == null) {
                         LOG.error("interface {} has no spanloss value", interfaceOpt2.orElseThrow().getName());
                         return null;
                     }
-                    return interfaceOpt2.orElseThrow()
-                            .augmentation(org.opendaylight.yang.gen.v1.http.org
-                                    .openroadm.optical.transport.interfaces.rev200529.Interface1.class)
-                            .getOts().getSpanLossTransmit().getValue().decimalValue();
+                    return aug.getOts().getSpanLossTransmit().getValue().decimalValue();
 
                 default:
                     return null;

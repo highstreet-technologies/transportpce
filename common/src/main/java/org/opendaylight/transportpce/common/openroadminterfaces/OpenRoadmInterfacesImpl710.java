@@ -78,34 +78,38 @@ public class OpenRoadmInterfacesImpl710 {
         deviceTx.merge(LogicalDatastoreType.CONFIGURATION, interfacesIID, ifBuilder.build());
         FluentFuture<? extends @NonNull CommitInfo> txSubmitFuture =
             deviceTx.commit(Timeouts.DEVICE_WRITE_TIMEOUT, Timeouts.DEVICE_WRITE_TIMEOUT_UNIT);
-        // TODO: instead of using this infinite loop coupled with this timeout,
-        // it would be better to use a notification mechanism from the device to be advertised
-        // that the new created interface is present in the device circuit-pack/port
-        final Thread current = Thread.currentThread();
-        Thread timer = new Thread() {
-            public void run() {
-                try {
-                    Thread.sleep(Timeouts.DEVICE_PORT_UPDATE_TIMEOUT);
-                    current.interrupt();
-                } catch (InterruptedException e) {
-                    LOG.error("Timeout before the new created interface appears on the deivce circuit-pack port", e);
-                }
-            }
-        };
         try {
             txSubmitFuture.get();
             LOG.info("Successfully posted/deleted interface {} on node {}", ifBuilder.getName(), nodeId);
             // this check is not needed during the delete operation
             // during the delete operation, ifBuilder does not contain supporting-cp and supporting-port
             if (ifBuilder.getSupportingCircuitPackName() != null && ifBuilder.getSupportingPort() != null) {
+                // Poll until the device mirrors the new interface on its port state, but with a
+                // bounded overall budget so a device that never updates its port state (e.g. a
+                // simulator) cannot block the rendering thread forever.
                 boolean devicePortIsUptodated = false;
-                while (!devicePortIsUptodated) {
+                long deadline = System.currentTimeMillis() + Timeouts.DEVICE_PORT_UPDATE_TIMEOUT;
+                while (!devicePortIsUptodated && System.currentTimeMillis() < deadline) {
                     devicePortIsUptodated = checkIfDevicePortIsUpdatedWithInterface(nodeId, ifBuilder);
+                    if (!devicePortIsUptodated) {
+                        try {
+                            Thread.sleep(Timeouts.DEVICE_PORT_UPDATE_POLL_INTERVAL);
+                        } catch (InterruptedException ie) {
+                            Thread.currentThread().interrupt();
+                            break;
+                        }
+                    }
                 }
-                LOG.info("{} - {} - interface {} updated on port {}", nodeId, ifBuilder.getSupportingCircuitPackName(),
-                    ifBuilder.getName(), ifBuilder.getSupportingPort());
+                if (!devicePortIsUptodated) {
+                    LOG.warn("Interface {} on node {} was posted, but port {}/{} does not list it within {} ms."
+                        + " Continuing anyway.", ifBuilder.getName(), nodeId, ifBuilder.getSupportingCircuitPackName(),
+                        ifBuilder.getSupportingPort(), Timeouts.DEVICE_PORT_UPDATE_TIMEOUT);
+                } else {
+                    LOG.info("{} - {} - interface {} updated on port {}", nodeId,
+                            ifBuilder.getSupportingCircuitPackName(),
+                            ifBuilder.getName(), ifBuilder.getSupportingPort());
+                }
             }
-            timer.interrupt();
         } catch (InterruptedException | ExecutionException e) {
             throw new OpenRoadmInterfaceException(String.format("Failed to post interface %s on node %s!", ifBuilder
                 .getName(), nodeId), e);

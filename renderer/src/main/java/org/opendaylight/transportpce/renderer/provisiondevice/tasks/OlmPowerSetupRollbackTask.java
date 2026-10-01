@@ -40,6 +40,14 @@ public class OlmPowerSetupRollbackTask extends RollbackTask {
 
     @Override
     public Void call() throws Exception {
+        // If the corresponding rendering task failed, its olmList is null and there is
+        // nothing to turn down — skip the RPC instead of crashing on getNodes() == null.
+        if (this.powerSetupInput == null || this.powerSetupInput.getNodes() == null
+                || this.powerSetupInput.getNodes().isEmpty()) {
+            LOG.info("Olm power setup rollback for {} skipped: no nodes were configured.",
+                this.getId());
+            return null;
+        }
         ServicePowerTurndownInput powerTurndownInput = new ServicePowerTurndownInputBuilder()
                 .setNodes(this.powerSetupInput.getNodes())
                 .setServiceName(this.powerSetupInput.getServiceName())

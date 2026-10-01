@@ -439,7 +439,10 @@ public class OpenRoadmInterface710 {
             return interfaceOtsiName + "#"
                 + createOpenRoadmOtsiGroupInterface(nodeId, logicalConnPoint, interfaceOtsiName, spectrumInformation);
         }
-        return null;
+        throw new OpenRoadmInterfaceException(String.format(
+            "Node %s / port %s supports neither if-OCHOTU4ODU4 nor if-otsi-otsg (missing or empty"
+                + " supported-interface-capability in port-mapping); cannot create OCH/OTSi interfaces",
+            nodeId, logicalConnPoint));
     }
 
     public String createOpenRoadmOtu4Interface(String nodeId, String logicalConnPoint, String supportOchInterface,

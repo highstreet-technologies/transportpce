@@ -37,6 +37,7 @@ import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.org.open
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.org.openroadm.device.container.org.openroadm.device.RoadmConnections;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.org.openroadm.device.container.org.openroadm.device.RoadmConnectionsBuilder;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529.org.openroadm.device.container.org.openroadm.device.RoadmConnectionsKey;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.optical.channel.interfaces.rev200529.och.container.Och;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.optical.channel.interfaces.rev200529.och.container.OchBuilder;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.optical.channel.tributary.signal.interfaces.rev200529.Interface1;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.optical.channel.tributary.signal.interfaces.rev200529.Interface1Builder;
@@ -168,25 +169,48 @@ public final class PowerMgmtVersion710 {
         InterfaceBuilder ochOtsiInterfaceBuilder = new InterfaceBuilder(interfaceObj);
         if (portMap.getSupportedInterfaceCapability().contains(IfOCHOTU4ODU4.VALUE)
                 || portMap.getSupportedInterfaceCapability().contains(IfOCH.VALUE)) {
+            org.opendaylight.yang.gen.v1.http.org.openroadm.optical.channel.interfaces.rev200529
+                    .Interface1 ochAug =
+                ochOtsiInterfaceBuilder.augmentation(
+                    org.opendaylight.yang.gen.v1.http.org.openroadm.optical.channel.interfaces.rev200529
+                        .Interface1.class);
+            Och och = ochAug == null ? null : ochAug.getOch();
+            if (och == null) {
+                // Read-back lacks the och container (some simulators do not persist the
+                // augmentation). A MERGE only needs transmit-power, so build a minimal
+                // och container instead of failing the whole power setup.
+                LOG.warn("Interface {} on node {} has no och augmentation on read-back;"
+                    + " building a minimal och container for the transmit-power merge.",
+                    interfaceName, nodeId);
+                och = new OchBuilder().build();
+            }
             ochOtsiInterfaceBuilder
                 .addAugmentation(
                     new org.opendaylight.yang.gen.v1.http.org.openroadm.optical.channel.interfaces.rev200529
                             .Interface1Builder()
                         .setOch(
-                            new OchBuilder(
-                                    ochOtsiInterfaceBuilder
-                                        .augmentation(org.opendaylight.yang.gen.v1.http
-                                            .org.openroadm.optical.channel.interfaces.rev200529.Interface1.class)
-                                        .getOch())
+                            new OchBuilder(och)
                                 .setTransmitPower(new PowerDBm(Decimal64.valueOf(txPower)))
                                 .build())
                         .build());
         } else if (portMap.getSupportedInterfaceCapability().contains(IfOtsiOtsigroup.VALUE)) {
+            Interface1 otsiAug = ochOtsiInterfaceBuilder.augmentation(Interface1.class);
+            org.opendaylight.yang.gen.v1.http.org.openroadm.optical.channel.tributary.signal.interfaces.rev200529
+                    .otsi.container.Otsi otsi = otsiAug == null ? null : otsiAug.getOtsi();
+            if (otsi == null) {
+                // Read-back lacks the otsi container (some simulators do not persist the
+                // augmentation). A MERGE only needs transmit-power, so build a minimal
+                // otsi container instead of failing the whole power setup.
+                LOG.warn("Interface {} on node {} has no otsi augmentation on read-back;"
+                    + " building a minimal otsi container for the transmit-power merge.",
+                    interfaceName, nodeId);
+                otsi = new OtsiBuilder().build();
+            }
             ochOtsiInterfaceBuilder
                 .addAugmentation(
                     new Interface1Builder()
                         .setOtsi(
-                            new OtsiBuilder(ochOtsiInterfaceBuilder.augmentation(Interface1.class).getOtsi())
+                            new OtsiBuilder(otsi)
                                 .setTransmitPower(new PowerDBm(Decimal64.valueOf(txPower)))
                                 .build())
                         .build());

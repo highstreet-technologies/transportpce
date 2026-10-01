@@ -219,6 +219,10 @@ public class DeviceRendererServiceImpl implements DeviceRendererService {
                             crossConnectFlag++;
                             String supportingOchInterface = this.openRoadmInterfaceFactory.createOpenRoadmOchInterface(
                                     nodeId, destTp, spectrumInformation);
+                            if (supportingOchInterface == null) {
+                                throw new OpenRoadmInterfaceException("OCH interface creation on node " + nodeId
+                                        + " / port " + destTp + " returned no interface name");
+                            }
                             transactionHistory.add(new DeviceInterface(nodeId, supportingOchInterface));
 
                             // Split the string based on # pass the last element as the supported Interface
@@ -278,6 +282,10 @@ public class DeviceRendererServiceImpl implements DeviceRendererService {
                             // create OpenRoadm Xponder Line Interfaces
                             String supportingOchInterface = this.openRoadmInterfaceFactory.createOpenRoadmOchInterface(
                                     nodeId, srcTp, spectrumInformation);
+                            if (supportingOchInterface == null) {
+                                throw new OpenRoadmInterfaceException("OCH interface creation on node " + nodeId
+                                        + " / port " + srcTp + " returned no interface name");
+                            }
                             transactionHistory.add(new DeviceInterface(nodeId, supportingOchInterface));
 
                             // createdOchInterfaces.add(supportingOchInterface);
