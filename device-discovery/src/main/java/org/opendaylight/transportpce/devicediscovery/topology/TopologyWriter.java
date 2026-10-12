@@ -17,6 +17,7 @@ import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.netconf.base._1._0.re
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev130715.Host;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev130715.IpAddress;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev130715.Ipv4Address;
+import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev130715.Ipv6Address;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev130715.PortNumber;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.netconf.device.rev251205.ConnectionOper.ConnectionStatus;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.netconf.device.rev251205.connection.oper.AvailableCapabilities;
@@ -125,7 +126,7 @@ public class TopologyWriter {
                 ).build());
 
         if (remoteNode.getHost() != null && !remoteNode.getHost().isBlank()) {
-            netconfNodeBuilder.setHost(new Host(new IpAddress(new Ipv4Address(remoteNode.getHost()))));
+            netconfNodeBuilder.setHost(buildHost(remoteNode.getHost()));
         }
         if (remoteNode.getPort() > 0) {
             netconfNodeBuilder.setPort(new PortNumber(Uint16.valueOf(remoteNode.getPort())));
@@ -182,6 +183,24 @@ public class TopologyWriter {
         } catch (Exception e) {
             LOG.error("Failed to delete node {} from operational store", nodeId, e);
         }
+    }
+
+    /**
+     * Build a {@link Host} from a host string, supporting both IPv4 and IPv6 addresses.
+     *
+     * <p>The {@link Host} type is a union of {@link Ipv4Address} and {@link Ipv6Address}. Constructing an
+     * {@link Ipv4Address} from an IPv6 literal throws {@link IllegalArgumentException}, so the address family is
+     * detected first and the matching union member is used.
+     *
+     * @param host the host string (IPv4 or IPv6 literal)
+     * @return a {@link Host} wrapping the appropriate address type
+     */
+    private static Host buildHost(String host) {
+        if (host.indexOf(':') >= 0) {
+            // Contains a colon -> treat as IPv6 (IPv4 literals never contain colons).
+            return new Host(new IpAddress(new Ipv6Address(host)));
+        }
+        return new Host(new IpAddress(new Ipv4Address(host)));
     }
 
     /**
