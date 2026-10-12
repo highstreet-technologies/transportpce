@@ -81,9 +81,13 @@ class NTSDeviceModelCreator:
             time.sleep(0.01)
             print(rdmResp)
             for i in range(0, len(neighbours)):
-                xpdrResp = xmlParser.create_xpdr_data_models(str(node[:4]) + str(neighbours[i][:4]), 'xpdr', xpdrNum)
+                # Strip a trailing dash from the 4-char city truncation
+                # (e.g. "San-" from "San-Diego"): device names must not end
+                # with "-", they are used as ietf-system hostnames by pyNTS.
+                xpdrName = (str(node[:4]) + str(neighbours[i][:4])).rstrip("-")
+                xpdrResp = xmlParser.create_xpdr_data_models(xpdrName, 'xpdr', xpdrNum)                
                 xpdrNum = xpdrNum + 1
-               # print(xpdrResp)
+              # print(xpdrResp)
                 interfaceDict[i + 1] = str(neighbours[i])
                 time.sleep(0.01)
            # print("Node {} has {} degrees and links {}".format(str(node), degree, node_edges))
