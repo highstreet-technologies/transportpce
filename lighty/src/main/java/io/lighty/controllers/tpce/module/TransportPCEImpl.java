@@ -7,9 +7,12 @@
  */
 package io.lighty.controllers.tpce.module;
 
+import io.lighty.controllers.tpce.utils.Preload;
 import io.lighty.core.controller.api.AbstractLightyModule;
 import io.lighty.core.controller.api.LightyServices;
 import io.lighty.server.LightyJettyServerProvider;
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import org.opendaylight.mdsal.binding.api.DataBroker;
@@ -105,6 +108,10 @@ public class TransportPCEImpl extends AbstractLightyModule implements TransportP
     private final DeviceTransactionManager deviceTransactionManager;
     private final NetworkTransactionService networkTransaction;
     private final OCMetaDataTransaction ocMetaDataTransaction;
+    // kept for data preloading in initProcedure()
+    private final DataBroker dataBroker;
+    private final org.opendaylight.yangtools.binding.data.codec.spi.BindingDOMCodecServices codecServices;
+    private final org.opendaylight.transportpce.devicediscovery.config.TransportPceConfig config;
     // network model beans
     private final NetworkModelProvider networkModelProvider;
     // service-handler beans
@@ -125,46 +132,48 @@ public class TransportPCEImpl extends AbstractLightyModule implements TransportP
             LightyServices lightyServices, boolean activateNbiNotification, boolean activateTapi,
             String olmtimer1, String olmtimer2, LightyJettyServerProvider jettyServerProvider) {
         LOG.info("Initializing transaction providers ...");
-        DataBroker dataBroker = lightyServices.getBindingDataBroker();
-        var config = TransportPceConfigLoader.load("etc/org.opendaylight.transportpce.cfg");
-        if (config.hasRemoteControllers()) {
+        this.dataBroker = lightyServices.getBindingDataBroker();
+        this.codecServices = lightyServices.getAdapterContext().currentSerializer();
+        this.config = TransportPceConfigLoader.load("etc/org.opendaylight.transportpce.cfg");
+        if (this.config.hasRemoteControllers()) {
             LOG.info("using remote netconf connections");
             deviceTransactionManager =
                     new RestDeviceTransactionManager(
-                            new SbRestconfClient(config,
-                                    new ControllerUuidResolver(dataBroker),
+                            new SbRestconfClient(this.config,
+                                    new ControllerUuidResolver(this.dataBroker),
                                     SbRestconfDataCodecFactory.createForDeviceModel(
                                             org.opendaylight.yang.gen.v1.http.org.openroadm.device.rev200529
                                                     .OrgOpenroadmDeviceData.class)),
-                            new ControllerUuidResolver(dataBroker),
-                            dataBroker);
+                            new ControllerUuidResolver(this.dataBroker),
+                            this.dataBroker);
         } else {
             LOG.info("using local netconf connections");
             deviceTransactionManager = new DeviceTransactionManagerImpl(lightyServices.getBindingMountPointService(),
                     MAX_TIME_FOR_TRANSACTION);
         }
-        networkTransaction = new NetworkTransactionImpl(dataBroker);
-        ocMetaDataTransaction = new OCMetaDataTransactionImpl(dataBroker);
+        networkTransaction = new NetworkTransactionImpl(this.dataBroker);
+        ocMetaDataTransaction = new OCMetaDataTransactionImpl(this.dataBroker);
 
         LOG.info("Creating network-model beans ...");
-        PortMapping portMapping = initPortMapping(dataBroker);
+        PortMapping portMapping = initPortMapping();
         NotificationPublishService notificationPublishService = lightyServices.getBindingNotificationPublishService();
-        NetworkModelService networkModelService = new NetworkModelServiceImpl(dataBroker, deviceTransactionManager,
+        NetworkModelService networkModelService = new NetworkModelServiceImpl(this.dataBroker, deviceTransactionManager,
                 networkTransaction, portMapping, notificationPublishService);
-        new NetConfTopologyListener(networkModelService, dataBroker, deviceTransactionManager, portMapping);
+        new NetConfTopologyListener(networkModelService, this.dataBroker, deviceTransactionManager, portMapping);
         new PortMappingListener(networkModelService);
         RpcProviderService rpcProviderService = lightyServices.getRpcProviderService();
         NotificationService notificationService = lightyServices.getNotificationService();
-        new NetworkUtilsImpl(dataBroker, rpcProviderService);
-        networkModelProvider = new NetworkModelProvider(networkTransaction, dataBroker, networkModelService,
-                deviceTransactionManager, portMapping, notificationService, new FrequenciesServiceImpl(dataBroker));
+        new NetworkUtilsImpl(this.dataBroker, rpcProviderService);
+        networkModelProvider = new NetworkModelProvider(networkTransaction, this.dataBroker, networkModelService,
+                deviceTransactionManager, portMapping, notificationService,
+                new FrequenciesServiceImpl(this.dataBroker));
 
         LOG.info("Creating PCE beans ...");
         GnpyConsumerImpl gnpy;
-        if (config.isGnpyEnabled()) {
+        if (this.config.isGnpyEnabled()) {
             LOG.info("gnpy is enabled");
             gnpy = new GnpyConsumerImpl(
-                    config.getGnpyUrl(), config.getGnpyUsername(), config.getGnpyPassword(),
+                    this.config.getGnpyUrl(), this.config.getGnpyUsername(), this.config.getGnpyPassword(),
                     lightyServices.getAdapterContext().currentSerializer());
         } else {
             LOG.info("gnpy is disabled");
@@ -320,11 +329,24 @@ public class TransportPCEImpl extends AbstractLightyModule implements TransportP
 
     @Override
     protected boolean initProcedure() {
+        // Preload data from JSON files into MDSAL (if configured)
+        if (config.isPreloadEnabled()) {
+            LOG.info("Starting data preload from {} ...", config.getPreloadDir());
+            try {
+                new Preload(dataBroker, codecServices).preloadDirectory(Path.of(config.getPreloadDir()));
+            } catch (IOException e) {
+                LOG.error("Data preload from {} failed", config.getPreloadDir(), e);
+            }
+        } else {
+            LOG.info("Data preload disabled (no preload.dir configured)");
+        }
+
         // Start health check early so /ready is reachable during startup (returns 503 until ready)
         if (healthCheckProvider != null) {
             LOG.info("Starting health-check endpoint ...");
             healthCheckProvider.start();
         }
+
         if (tapiProvider != null) {
             LOG.info("Initializing tapi provider ...");
         }
@@ -339,6 +361,7 @@ public class TransportPCEImpl extends AbstractLightyModule implements TransportP
             LOG.info("Starting sb-restconf-client provider ...");
             sbRestconfProvider.start();
         }
+
         // Mark as ready — all providers started
         if (healthCheckProvider != null) {
             healthCheckProvider.setReady();
@@ -382,7 +405,7 @@ public class TransportPCEImpl extends AbstractLightyModule implements TransportP
         return true;
     }
 
-    private PortMapping initPortMapping(DataBroker dataBroker) {
+    private PortMapping initPortMapping() {
         PortMappingVersion710 portMappingVersion710 = new PortMappingVersion710(dataBroker, deviceTransactionManager);
         PortMappingVersion221 portMappingVersion221 = new PortMappingVersion221(dataBroker, deviceTransactionManager);
         PortMappingVersion121 portMappingVersion121 = new PortMappingVersion121(dataBroker, deviceTransactionManager);

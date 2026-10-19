@@ -61,6 +61,9 @@ public class TransportPceConfig {
     private String gnpyUrl;
     private String gnpyUsername;
 
+    /** Directory with RFC 7951 JSON files imported into MDSAL at startup; null disables preloading. */
+    private String preloadDir;
+
     public void setGnpyUrl(String gnpyUrl) {
         this.gnpyUrl = gnpyUrl;
     }
@@ -77,6 +80,21 @@ public class TransportPceConfig {
 
     public boolean isGnpyEnabled() {
         return this.gnpyUrl != null && !this.gnpyUrl.isBlank();
+    }
+
+    /**
+     * Whether data preloading is enabled, i.e. a preload directory is configured.
+     */
+    public boolean isPreloadEnabled() {
+        return this.preloadDir != null && !this.preloadDir.isBlank();
+    }
+
+    public String getPreloadDir() {
+        return preloadDir;
+    }
+
+    public void setPreloadDir(String preloadDir) {
+        this.preloadDir = preloadDir;
     }
 
     public boolean isIetfNetworkTopology() {

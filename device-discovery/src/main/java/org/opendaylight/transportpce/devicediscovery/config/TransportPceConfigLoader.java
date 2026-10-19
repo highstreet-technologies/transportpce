@@ -110,6 +110,7 @@ public final class TransportPceConfigLoader {
         config.setVesReportingEntityName(resolveValue(props, "ves.reporting.entity.name", "transportpce"));
         config.setVesPublisherTopic(resolveValue(props, "ves.topic", "unauthenticated.VES_NOTIFICATION_OUTPUT"));
         config.setVesSourceName(resolveValue(props, "ves.source.name", "networkmodel"));
+        config.setPreloadDir(resolveValue(props, "preload.dir", null));
 
         // Parse controller list
         String controllerListStr = resolveValue(props, "controller.list", "");
@@ -132,9 +133,10 @@ public final class TransportPceConfigLoader {
         }
         config.setControllers(controllers);
 
-        LOG.info("TransportPCE config loaded: kafka={}, topic={}, groupId={}, mountPrefix={}, controllers={}",
+        LOG.info("TransportPCE config loaded: kafka={}, topic={}, groupId={}, mountPrefix={}, controllers={},"
+                + " preloadDir={}",
                 config.getKafkaBootstrapServers(), config.getKafkaTopic(), config.getKafkaGroupId(),
-                config.getMountPrefix(), controllers.size());
+                config.getMountPrefix(), controllers.size(), config.getPreloadDir());
 
         return config;
     }
