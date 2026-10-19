@@ -50,7 +50,9 @@ public class VesKafkaConsumer {
         this.config = config;
         this.topologyWriter = topologyWriter;
         this.restconfClient = restconfClient;
+
     }
+
 
     public void start() {
         if (running.get()) {
@@ -114,6 +116,10 @@ public class VesKafkaConsumer {
             }
 
             String controllerUuid = wrapper.getControllerUuid();
+            if(controllerUuid!=null && controllerUuid.equals(this.config.getVesReportingEntityId())){
+                LOG.warn("VES event from myself, ignoring (key={})", key);
+                return;
+            }
             String nodeId = wrapper.getNodeId();
             String newState = wrapper.getNewState();
 

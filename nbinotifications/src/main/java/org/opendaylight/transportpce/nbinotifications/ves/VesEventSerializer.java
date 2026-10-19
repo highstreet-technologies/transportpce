@@ -22,6 +22,7 @@ import org.opendaylight.transportpce.devicediscovery.model.ves.CommonEventHeader
 import org.opendaylight.transportpce.devicediscovery.model.ves.CommonEventHeader.Priority;
 import org.opendaylight.transportpce.devicediscovery.model.ves.Event;
 import org.opendaylight.transportpce.devicediscovery.model.ves.NotificationFields;
+import org.opendaylight.transportpce.devicediscovery.model.ves.NotificationFields.NotificationFieldsVersion;
 import org.opendaylight.transportpce.devicediscovery.ves.VesEventWrapper;
 import org.opendaylight.transportpce.nbinotifications.serialization.ConfigConstants;
 import org.opendaylight.yangtools.binding.DataObject;
@@ -89,10 +90,7 @@ public class VesEventSerializer implements Serializer<VesEvent<? extends DataObj
             return new byte[0];
         }
         try {
-            JsonNode additionalFieldsNode = toAdditionalFieldsNode(
-                    serializeDataObject((DataObjectIdentifier<DataObject>) data.getIdentifier(),
-                        (DataObject) data.getDataObject()));
-            LOG.debug("Serialized data object for VES additionalFields: {}", additionalFieldsNode);
+
             Event event = new Event();
             event.setCommonEventHeader(createHeader(data));
             event.setNotificationFields(createNotificationFields(data));
@@ -103,8 +101,6 @@ public class VesEventSerializer implements Serializer<VesEvent<? extends DataObj
             // Map<String, String>, therefore it is injected as a raw JSON
             // node after converting the event POJO to a tree.
             ObjectNode eventNode = mapper.valueToTree(new VesEventWrapper(event));
-            ObjectNode notificationFields = (ObjectNode) eventNode.get("event").get("notificationFields");
-            notificationFields.set("additionalFields", additionalFieldsNode);
             byte[] payload = mapper.writeValueAsBytes(eventNode);
             LOG.info("Serialized VES event: {}", new String(payload, StandardCharsets.UTF_8));
             return payload;
@@ -136,6 +132,11 @@ public class VesEventSerializer implements Serializer<VesEvent<? extends DataObj
         NotificationFields fields = new NotificationFields();
         fields.setChangeIdentifier(data.getDataObject().implementedInterface().getName());
         fields.setChangeType(data.getChangeType().getValue());
+        fields.setNotificationFieldsVersion(NotificationFieldsVersion._2_0);
+        var additionalFieldsNode = toAdditionalFieldsNode(
+                serializeDataObject((DataObjectIdentifier<DataObject>) data.getIdentifier(),
+                        data.getDataObject()));
+        fields.setAdditionalFields(additionalFieldsNode);
         return fields;
     }
 
@@ -215,7 +216,7 @@ public class VesEventSerializer implements Serializer<VesEvent<? extends DataObj
      * node, preserving the original tree structure (nested objects stay
      * objects, lists stay arrays).
      */
-    private JsonNode toAdditionalFieldsNode(String json) throws IOException {
+    private ObjectNode toAdditionalFieldsNode(String json) throws IOException {
         JsonNode node = mapper.readTree(json);
         // Unwrap single-element name/namespace wrappers, e.g.
         // {"ietf-network-topology:link":[{...}]} produced by writing the
@@ -230,6 +231,6 @@ public class VesEventSerializer implements Serializer<VesEvent<? extends DataObj
                 break;
             }
         }
-        return node;
+        return (ObjectNode) node;
     }
 }

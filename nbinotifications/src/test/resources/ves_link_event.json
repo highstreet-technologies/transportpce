@@ -1,0 +1,13 @@
+{
+  "ietf-network-topology:link": {
+    "link-id": "ROADM1-DEG1-DEG1-OTH-1-1_to_SRG1-ETHERNET-SRG1-1-2",
+    "source": {
+      "source-node": "ROADM1-DEG1",
+      "source-tp": "DEG1-OTH-1-1"
+    },
+    "destination": {
+      "dest-node": "SRG1-ETHERNET",
+      "dest-tp": "SRG1-1-2"
+    }
+  }
+}

@@ -196,19 +196,40 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
                     </execution>
                 </executions>
             </plugin>
- <!--           <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-bundle-plugin</artifactId>
-                <extensions>true</extensions>
-                <configuration>
-                    <instructions>
-                        <Export-Package>
-                            org.opendaylight.transportpce.devicediscovery,
-                            org.opendaylight.transportpce.devicediscovery.model.ves
-                        </Export-Package>
-                    </instructions>
-                </configuration>
-            </plugin>-->
+            <!-- Patch generated NotificationFields: additionalFields must be
+                 Map<String, JsonNode> (nested JSON trees, not the flat
+                 string-only HashMap POJO) -->
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>patch-notificationfields-additionalfields</id>
+                        <phase>process-sources</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <property name="gen.dir" value="${project.build.directory}/generated-sources/jsonschema2pojo/org/opendaylight/transportpce/devicediscovery/model/ves"/>
+                                <fileset id="patch.files" dir="${gen.dir}">
+                                    <include name="NotificationFields.java"/>
+                                </fileset>
+                                <replace file="${gen.dir}/NotificationFields.java">
+                                    <replacefilter token="org.opendaylight.transportpce.devicediscovery.model.ves.HashMap"
+                                                   value="com.fasterxml.jackson.databind.node.ObjectNode"/>
+                                </replace>
+                                <replace file="${gen.dir}/NotificationFields.java">
+                                    <replacetoken>import com.fasterxml.jackson.annotation.JsonCreator;</replacetoken>
+                                    <replacevalue>import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.databind.node.ObjectNode;</replacevalue>
+                                </replace>
+                                <pathconvert property="patched.files" refid="patch.files" setonempty="false"/>
+                                <fail message="NotificationFields.java not found in ${gen.dir}" unless="patched.files"/>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <!-- have to overwrite checkstyle plugin due library with a default exception
                     thrown which I have to catch -->
             <plugin>
