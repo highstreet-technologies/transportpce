@@ -8,26 +8,30 @@
 package org.opendaylight.transportpce.nbinotifications.producer;
 
 import com.google.common.annotations.VisibleForTesting;
+import java.util.Map;
 import java.util.Properties;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
-import org.opendaylight.transportpce.common.converter.JsonStringConverter;
 import org.opendaylight.transportpce.nbinotifications.serialization.ConfigConstants;
 import org.opendaylight.transportpce.nbinotifications.utils.NbiNotificationsUtils;
-import org.opendaylight.yangtools.binding.DataObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Publisher<T extends DataObject> {
+public class Publisher<T> {
     private static final Logger LOG = LoggerFactory.getLogger(Publisher.class);
 
     private final String id;
     private final Producer<String, T> producer;
 
-    public Publisher(String id, String publisherServer, JsonStringConverter<T> serializer, Class<?> serializerConf) {
+    public Publisher(String id, String publisherServer, Object serializer, Class<?> serializerConf) {
+        this(id, publisherServer, serializer, serializerConf, Map.of());
+    }
+
+    public Publisher(String id, String publisherServer, Object serializer, Class<?> serializerConf,
+            Map<String, Object> serializerConfigs) {
         Properties properties = NbiNotificationsUtils.loadProperties("publisher.properties");
         properties.put(ProducerConfig.CLIENT_ID_CONFIG, id);
         properties.put(ProducerConfig.RECONNECT_BACKOFF_MS_CONFIG, 600000);
@@ -37,6 +41,7 @@ public class Publisher<T extends DataObject> {
         properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG , serializerConf);
         properties.put(ConfigConstants.CONVERTER , serializer);
+        properties.putAll(serializerConfigs);
         LOG.info("Creation publisher for id {} with properties {}", id, properties);
         producer = new KafkaProducer<>(properties);
         this.id = id;

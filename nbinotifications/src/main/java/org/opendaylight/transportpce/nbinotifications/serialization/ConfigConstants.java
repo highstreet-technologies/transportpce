@@ -8,9 +8,14 @@
 package org.opendaylight.transportpce.nbinotifications.serialization;
 
 public final class ConfigConstants {
+
     private ConfigConstants() {
     }
 
     public static final String CONVERTER = "converter";
+
+    public static final String REPORTING_ENTITY_ID = "reportingEntityId";
+
+    public static final String REPORTING_ENTITY_NAME = "reportingEntityName";
 
 }

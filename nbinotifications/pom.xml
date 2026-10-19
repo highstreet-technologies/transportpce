@@ -49,6 +49,18 @@
     </dependency>
     <dependency>
       <groupId>org.opendaylight.transportpce.models</groupId>
+      <artifactId>openroadm-network-13.1.1</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.opendaylight.ietf.model</groupId>
+      <artifactId>rfc8345-ietf-network</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.opendaylight.ietf.model</groupId>
+      <artifactId>rfc8345-ietf-network-topology</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.opendaylight.transportpce.models</groupId>
       <artifactId>tapi-2.4.0</artifactId>
     </dependency>
     <dependency>
@@ -60,6 +72,15 @@
       <groupId>${project.groupId}</groupId>
       <artifactId>transportpce-common</artifactId>
       <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>transportpce-device-discovery</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
     </dependency>
     <dependency>
       <groupId>org.opendaylight.yangtools</groupId>
@@ -80,6 +101,10 @@
     <dependency>
       <groupId>org.opendaylight.yangtools</groupId>
       <artifactId>yang-data-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.opendaylight.yangtools</groupId>
+      <artifactId>yang-data-impl</artifactId>
     </dependency>
     <dependency>
       <groupId>org.opendaylight.yangtools</groupId>
@@ -135,7 +160,6 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.skyscreamer</groupId>

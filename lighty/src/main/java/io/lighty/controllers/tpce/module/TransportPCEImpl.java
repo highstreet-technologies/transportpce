@@ -290,13 +290,21 @@ public class TransportPCEImpl extends AbstractLightyModule implements TransportP
                     tapiContext);
             rpcRegistrations.add(tapiProvider.getRegisteredRpcs());
         }
+        activateNbiNotification = true;
         if (activateNbiNotification) {
             LOG.info("Creating nbi-notifications beans ...");
             nbiNotificationsProvider = new NbiNotificationsProvider(
+                    "localhost:9092",
+                    config.getKafkaBootstrapServers(),
                     rpcProviderService,
                     notificationService,
                     lightyServices.getAdapterContext().currentSerializer(),
-                    networkTransaction, null);
+                    networkTransaction,
+                    dataBroker,
+                    config.getVesReportingEntityId(),
+                    config.getVesReportingEntityName(),
+                    config.getVesPublisherTopic(),
+                    config.getVesSourceName());
         }
 
         LOG.info("Creating device-discovery beans ...");

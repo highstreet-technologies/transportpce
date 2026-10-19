@@ -106,6 +106,10 @@ public final class TransportPceConfigLoader {
         config.setGnpyUrl(resolveValue(props, "gnpy.url", null));
         config.setGnpyUsername(resolveValue(props, "gnpy.username", null));
         config.setGnpyPassword(resolveValue(props, "gnpy.password", null));
+        config.setVesReportingEntityId(resolveValue(props, "ves.reporting.entity.id", null));
+        config.setVesReportingEntityName(resolveValue(props, "ves.reporting.entity.name", "transportpce"));
+        config.setVesPublisherTopic(resolveValue(props, "ves.topic", "unauthenticated.VES_NOTIFICATION_OUTPUT"));
+        config.setVesSourceName(resolveValue(props, "ves.source.name", "networkmodel"));
 
         // Parse controller list
         String controllerListStr = resolveValue(props, "controller.list", "");

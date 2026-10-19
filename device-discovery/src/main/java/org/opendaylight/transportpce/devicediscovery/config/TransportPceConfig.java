@@ -53,6 +53,11 @@ public class TransportPceConfig {
     private String mountPrefix = DEFAULT_MOUNT_PREFIX;
     private List<ControllerEntry> controllers;
 
+    private String vesReportingEntityId;
+    private String vesReportingEntityName = "transportpce";
+    private String vesPublisherTopic = "unauthenticated.VES_NOTIFICATION_OUTPUT";
+    private String vesSourceName = "networkmodel";
+
     private String gnpyUrl;
     private String gnpyUsername;
 
@@ -107,6 +112,38 @@ public class TransportPceConfig {
 
     public String getKafkaBootstrapServers() {
         return kafkaBootstrapServers;
+    }
+
+    public String getVesReportingEntityId() {
+        return vesReportingEntityId;
+    }
+
+    public void setVesReportingEntityId(String vesReportingEntityId) {
+        this.vesReportingEntityId = vesReportingEntityId;
+    }
+
+    public String getVesReportingEntityName() {
+        return vesReportingEntityName;
+    }
+
+    public void setVesReportingEntityName(String vesReportingEntityName) {
+        this.vesReportingEntityName = vesReportingEntityName;
+    }
+
+    public String getVesPublisherTopic() {
+        return vesPublisherTopic;
+    }
+
+    public void setVesPublisherTopic(String vesPublisherTopic) {
+        this.vesPublisherTopic = vesPublisherTopic;
+    }
+
+    public String getVesSourceName() {
+        return vesSourceName;
+    }
+
+    public void setVesSourceName(String vesSourceName) {
+        this.vesSourceName = vesSourceName;
     }
 
     public void setKafkaBootstrapServers(String kafkaBootstrapServers) {
