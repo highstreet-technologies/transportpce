@@ -106,8 +106,8 @@ public class VesKafkaConsumer {
             }
 
             VesEventWrapper wrapper = new VesEventWrapper(event);
-            if (!wrapper.isNotification()) {
-                LOG.debug("VES event is not a notification, ignoring (key={})", key);
+            if (!wrapper.isConnectionStateChangeNotification()) {
+                LOG.debug("VES event is not a connection state notification, ignoring (key={})", key);
                 return;
             }
             if (!wrapper.assertFields()) {

@@ -109,6 +109,8 @@ public class TransportPceConfig {
         return this.controllers != null && !this.controllers.isEmpty();
     }
 
+    public boolean isVesPushEnabled(){ return this.vesReportingEntityId!=null && !this.vesReportingEntityId.isBlank(); }
+
     public static class ControllerEntry {
 
         private final String uuid;

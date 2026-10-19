@@ -299,8 +299,8 @@ public class TransportPCEImpl extends AbstractLightyModule implements TransportP
                     tapiContext);
             rpcRegistrations.add(tapiProvider.getRegisteredRpcs());
         }
-        activateNbiNotification = true;
-        if (activateNbiNotification) {
+
+        if (this.config.isVesPushEnabled()) {
             LOG.info("Creating nbi-notifications beans ...");
             nbiNotificationsProvider = new NbiNotificationsProvider(
                     "localhost:9092",

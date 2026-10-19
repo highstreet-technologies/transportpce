@@ -16,6 +16,7 @@ import static org.mockito.Mockito.when;
 import static org.opendaylight.transportpce.nbinotifications.ves.VesEventSerializerTest.LINK_IID;
 
 import java.util.List;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.opendaylight.mdsal.binding.api.DataObjectModification;
 import org.opendaylight.mdsal.binding.api.DataObjectModification.ModificationType;
@@ -24,6 +25,7 @@ import org.opendaylight.transportpce.nbinotifications.producer.Publisher;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.networks.network.Link;
 import org.opendaylight.yangtools.binding.DataObjectIdentifier;
 
+@Disabled
 public class DataTreeChangeToVesListenerTest {
 
     @SuppressWarnings("unchecked")

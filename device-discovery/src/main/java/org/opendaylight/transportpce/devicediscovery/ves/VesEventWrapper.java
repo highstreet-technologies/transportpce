@@ -16,11 +16,10 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Convenience wrapper around the generated VES Event POJO.
- *
- * Provides type-safe access to the fields relevant for device discovery:
- * - reportingEntityId (controller UUID) from commonEventHeader
- * - changeIdentifier (device node ID) from notificationFields
- * - newState (connecting / connected / disconnected) from notificationFields
+ * <p>
+ * Provides type-safe access to the fields relevant for device discovery: - reportingEntityId (controller UUID) from
+ * commonEventHeader - changeIdentifier (device node ID) from notificationFields - newState (connecting / connected /
+ * disconnected) from notificationFields
  */
 public class VesEventWrapper {
 
@@ -28,9 +27,10 @@ public class VesEventWrapper {
 
     private Event event;
 
-    public VesEventWrapper(){
+    public VesEventWrapper() {
 
     }
+
     public VesEventWrapper(Event event) {
         this.event = event;
     }
@@ -52,6 +52,15 @@ public class VesEventWrapper {
         return header.getDomain() == Domain.NOTIFICATION;
     }
 
+    public boolean isConnectionStateChangeNotification() {
+        if (!isNotification()) {
+            return false;
+        }
+        var fields = this.getEvent().getNotificationFields();
+        var changeType = fields != null ? fields.getChangeType() : null;
+        return "ConnectionState".equals(changeType);
+    }
+
     /**
      * Validate that all fields required for device-discovery processing are present.
      *
@@ -71,18 +80,22 @@ public class VesEventWrapper {
             LOG.warn("invalid ves event: reportingEntityId is null or empty");
             return false;
         }
-        NotificationFields fields = event.getNotificationFields();
-        if (fields == null) {
-            LOG.warn("invalid ves event: notificationFields is null");
-            return false;
-        }
-        if (fields.getChangeIdentifier() == null || fields.getChangeIdentifier().isBlank()) {
-            LOG.warn("invalid ves event: changeIdentifier is null or empty");
-            return false;
-        }
-        if (fields.getNewState() == null || fields.getNewState().isBlank()) {
-            LOG.warn("invalid ves event: newState is null or empty");
-            return false;
+        if (this.isNotification()) {
+
+            NotificationFields fields = event.getNotificationFields();
+            if (fields == null) {
+                LOG.warn("invalid ves event: notificationFields is null");
+                return false;
+            }
+
+            if (fields.getChangeIdentifier() == null || fields.getChangeIdentifier().isBlank()) {
+                LOG.warn("invalid ves event: changeIdentifier is null or empty");
+                return false;
+            }
+            if (fields.getNewState() == null || fields.getNewState().isBlank()) {
+                LOG.warn("invalid ves event: newState is null or empty");
+                return false;
+            }
         }
         return true;
     }

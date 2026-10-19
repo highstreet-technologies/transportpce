@@ -69,7 +69,7 @@ public class DataTreeChangeToVesListener<T extends DataObject> implements DataTr
             }
             LOG.info("Publishing VES event '{}' for object '{}'", event.getChangeType(),
                     event.getDataObject().implementedInterface().getSimpleName());
-            publisher.sendEvent((VesEvent) event, topic);
+            publisher.sendEvent(event, topic);
         }
     }
 
