@@ -7,6 +7,8 @@
  */
 package org.opendaylight.transportpce.devicediscovery.ves;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import org.opendaylight.transportpce.devicediscovery.model.ves.CommonEventHeader;
 import org.opendaylight.transportpce.devicediscovery.model.ves.CommonEventHeader.Domain;
 import org.opendaylight.transportpce.devicediscovery.model.ves.Event;
@@ -21,6 +23,7 @@ import org.slf4j.LoggerFactory;
  * commonEventHeader - changeIdentifier (device node ID) from notificationFields - newState (connecting / connected /
  * disconnected) from notificationFields
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class VesEventWrapper {
 
     private static final Logger LOG = LoggerFactory.getLogger(VesEventWrapper.class);
@@ -44,6 +47,7 @@ public class VesEventWrapper {
      *
      * @return true if domain == NOTIFICATION
      */
+    @JsonIgnore
     public boolean isNotification() {
         CommonEventHeader header = getHeader();
         if (header == null) {
@@ -52,6 +56,7 @@ public class VesEventWrapper {
         return header.getDomain() == Domain.NOTIFICATION;
     }
 
+    @JsonIgnore
     public boolean isConnectionStateChangeNotification() {
         if (!isNotification()) {
             return false;
