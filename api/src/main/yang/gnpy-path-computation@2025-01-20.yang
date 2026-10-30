@@ -1,10 +1,15 @@
-module gnpy-path-computation-simplified {
+module gnpy-path-computation {
   yang-version 1.1;
-  namespace "gnpy:path";
+  namespace "gnpy:gnpy-path-computation";
 
   prefix "gnpypc";
 
-    organization
+  import gnpy-api {
+    prefix "gapi";
+    revision-date 2025-06-13;
+  }
+
+  organization
     "Telecom Infra Project OOPT PSE Working Group";
 
   contact
@@ -13,66 +18,20 @@ module gnpy-path-computation-simplified {
      contact:  <mailto:esther.lerouzic@orange.com>
    ";
 
-  description
-    "YANG model for gnpy path computation simplified -
-    The license used for all the yang files of GNPy is BSD 3-Clause License
+  description "YANG model for gnpy path computation simplified for - 2020 - candi preversion";
 
-    BSD 3-Clause License
-
-    Copyright (c) 2018, Telecom Infra Project
-    All rights reserved.
-
-    Redistribution and use in source and binary forms, with or without
-    modification, are permitted provided that the following conditions are met:
-
-    * Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
-
-    * Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
-
-    * Neither the name of the copyright holder nor the names of its
-      contributors may be used to endorse or promote products derived from
-      this software without specific prior written permission.
-
-    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 'AS IS'
-    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-    DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-    FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-    DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-    SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-    CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-    OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.";
-
-  revision 2022-06-15 {
-    description
-      "change fraction digits from 2 to 6 for accumulative-value leaf, from 5 to 6 for output-power leaf";
-    reference
-      "YANG model for api input for path computation with gnpy";
-  }
-
-  revision 2022-02-21 {
-    description
-      "draft for GNPy4TPCE preversion - non official version relevant for v2.4 GNPy file format";
-    reference
-      "YANG model for api input for path computation with gnpy";
-  }
-
-  revision 2020-10-22 {
-    description
-      "draft for experimental/2020-candi";
-    reference
+  revision "2025-01-20" {
+    description 
+      "Add tx_power";
+    reference 
       "YANG model for path computation with gnpy inputs";
   }
 
-  revision 2019-01-03 {
-    description
-      "first draft for GNPy4TPCE preversion - non official version relevant for v1.2 GNPy file format";
-    reference
-      "YANG model for api input for path computation with gnpy";
+  revision "2022-12-01" {
+    description 
+      "draft for detecon - GNPy API";
+    reference 
+      "YANG model for path computation with gnpy inputs";
   }
 
   grouping effective-freq-slot{
@@ -85,7 +44,10 @@ module gnpy-path-computation-simplified {
             width";
          reference "rfc7698";
             leaf N {
-              type int32;
+              type union {
+                type int32;
+                type empty;
+              }
               description
                   "Is used to determine the Nominal Central
                   Frequency. The set of nominal central frequencies
@@ -97,7 +59,10 @@ module gnpy-path-computation-simplified {
                reference "rfc7698";
             }
             leaf M {
-              type uint32;
+              type union {
+                type uint32;
+                type empty;
+              }
               description
                   "Is used to determine the slot width. A slot width
                   is constrained to be M x SWG (that is, M x 12.5 GHz),
@@ -118,49 +83,70 @@ module gnpy-path-computation-simplified {
       leaf trx_type {
         type string ;
         mandatory true;
-        description "name of the transponder type (to be read from equipment library";
+        description "name of the transceiver type (to be read from equipment library";
 
       }
       leaf trx_mode {
-        type string;
-        description "name of the transponder mode (to be read from equipment library";
-
+        type union {
+          type string;
+          type empty;
+        }
+        description "name of the transceiver mode (to be read from equipment library";
       }
       list effective-freq-slot {
         key "N";
+        description
+          "Definition of a list of frequency slots using n and m values (ITU T G694.1)";
         uses effective-freq-slot ;
       }
       leaf spacing {
-        mandatory true;
         type decimal64 {
-          fraction-digits 1;
+          fraction-digits 2;
         }
         units Hz;
+        mandatory true;
         description
           "It is the spacing between channels assuming full load with
           same channels as the requested one. multiple of 12.5 GHz";
 
       }
       leaf max-nb-of-channel{
-        type int32;
+        type union {
+          type int32;
+          type empty;
+        }
         description "Nb of channel to take into account for the full load case.
         ";
 
       }
       leaf output-power{
-        type decimal64 {
-          fraction-digits 6;
+        type union {
+          type decimal64 {
+            fraction-digits 8;
+          }
+          type empty;
         }
         units W;
         description "optical power setting to be used for the propagation";
 
       }
+      leaf tx_power{
+        type union {
+          type decimal64 {
+            fraction-digits 5;
+          }
+          type empty;
+        }
+        units W;
+        description "optical power out of transceiver";
+
+      }
       leaf path_bandwidth{
         type decimal64 {
-          fraction-digits 5;
+          fraction-digits 1;
         }
-        mandatory true;
         units bit/s;
+        mandatory true;
         description "Capacity required";
       }
   }
@@ -189,6 +175,36 @@ module gnpy-path-computation-simplified {
       "A metric that records OSNR in 0.1nm";
   }
 
+  identity lowest_SNR-0.1nm {
+    base path-metric-type;
+    description
+      "A metric that records the lowest SNR in 0.1nm in spectrum";
+  }
+
+  identity biggest_SNR-0.1nm {
+    base path-metric-type;
+    description
+      "A metric that records the lowest SNR in 0.1nm in spectrum";
+  }
+
+  identity PDL_penalty {
+    base path-metric-type;
+    description
+      "A metric that records the PDL penalty.";
+  }
+
+  identity PMD_penalty {
+    base path-metric-type;
+    description
+      "A metric that records the PMD penalty.";
+  }
+
+  identity CD_penalty {
+    base path-metric-type;
+    description
+      "A metric that records the CD penalty.";
+  }
+
   identity reference_power {
     base path-metric-type;
     description
@@ -202,49 +218,108 @@ module gnpy-path-computation-simplified {
   }
 
   grouping transponder{
-        leaf transponder-type {
-        type string ;
-        description
-          "transponder type.";
-          }
+    description
+      "Transponder type and mode used in the hop.";
+    leaf transponder-type {
+      type string ;
+      description
+        "transceiver type.";
+    }
       leaf transponder-mode {
-        type string ;
-        description
-          "transponder mode.";
-          }
+      type string ;
+      description
+        "transceiver mode.";
+    }
   }
 
   grouping hop-attribute{
     description
       "This grouping defines the hop attribute parameters for request or response";
     choice hop-type{
+      description
+        "Hop may be a regenerator or a terminal.";
       case tsp {
-        container transponder{
+        container transponder {
+          description
+            "Transponder hop in the path. (at source and at destination)";
           uses transponder ;
         }
       }
       case regen {
         container regenerator{
-          leaf regenerator-id{
-            type string ;
-          }
+          description
+            "Regenerator hop in the path.";
           uses transponder ;
-        }
-      }
-      case pow {
-        container optical-power{
-          leaf optical-power{
-            type decimal64 {
-              fraction-digits 5;
-            }
-            units W;
-            description "not used yet. hop output (input??) power";
-          }
         }
       }
     }
 
   }
+
+  identity no-path-type {
+    description
+    "base for blocking reasons";
+  }
+
+  identity NO_PATH {
+    base no-path-type;
+    description
+      "Cause of feasibility failure: no path could be computed.";
+
+  }
+
+  identity NO_PATH_WITH_CONSTRAINT {
+    base no-path-type;
+    description
+      "Cause of feasibility failure: no path can meet the includec
+      node constraint.";
+
+  }
+
+  identity NO_FEASIBLE_BAUDRATE_WITH_SPACING {
+    base no-path-type;
+    description
+      "Cause of feasibility failure: no mode can fit in the
+      requested spectrum.";
+  }
+
+  identity NO_COMPUTED_SNR {
+    base no-path-type;
+    description
+      "Cause of feasibility failure: requests SNR performance
+      could not be computed";
+  }
+
+  identity MODE_NOT_FEASIBLE {
+    base no-path-type;
+    description
+      "Cause of feasibility failure: requested mode does not provide
+      enough performance for this path.";
+
+  }
+
+  identity NO_FEASIBLE_MODE {
+    base no-path-type;
+    description
+      "Cause of feasibility failure: no mode of this transceiver
+      can achieve enough performance for the path.";
+
+  }
+
+  identity NO_SPECTRUM {
+    base no-path-type;
+    description
+      "Cause of feasibility failure: requests requires more spectrum
+      than the actual available spectrum on the path.";
+  }
+
+  identity NOT_ENOUGH_RESERVED_SPECTRUM {
+    base no-path-type;
+    description
+      "Cause of feasibility failure: signal requires more spectrum
+      than the one defined in the request.";
+  }
+
 
   identity path-metric-type {
     description
@@ -333,6 +408,8 @@ module gnpy-path-computation-simplified {
       description
         "Container for the route object list";
       list route-object-include-exclude {
+        key "index";
+        config false;
         description
           "List of explicit route objects to include or
            exclude in path computation";
@@ -342,7 +419,6 @@ module gnpy-path-computation-simplified {
           }
           description "Explicit-route usage.";
         }
-        key "index";
         uses explicit-route-hop ;
       }
     }
@@ -384,7 +460,7 @@ module gnpy-path-computation-simplified {
       type uint32;
       description "ERO subobject index";
     }
-    choice type {
+    choice subobject-type {
       description
         "The explicit route subobject type";
       case num-unnum-hop {
@@ -413,7 +489,9 @@ module gnpy-path-computation-simplified {
         }
       }
       case label {
-        container label-hop {
+        list label-hop {
+          key "N";
+          config false;
           description "Label hop type";
           uses effective-freq-slot;
         }
@@ -490,130 +568,161 @@ module gnpy-path-computation-simplified {
     }
   }
 
-  grouping path-metric {
-    description "TE path metric type";
+   grouping service {
+    description
+      "reusable grouping for path computation requests.";
+
+    list path-request {
+      key "request-id";
+      description "request-list";
+      leaf request-id {
+        type string;
+        mandatory true;
+        description "Each path computation request is uniquely identified by the request-id-number.";
+      }
+      leaf bidirectional {
+        type boolean;
+        mandatory true;
+        description "Specify the bidirectionality of the path";
+      }
+
+      uses end-points;
+      uses path-route-objects;
+      uses generic-path-constraints;
+    }
+    uses synchronization-info;
+  }
+
+  grouping accumulated-metric-object {
+    description
+      "Reusable grouping for performance metrics.";
     leaf metric-type {
       type identityref {
         base path-metric-type;
       }
-      description "TE path metric type";
+      description
+        "Metric type.";
     }
     leaf accumulative-value {
-      type decimal64 {
-          fraction-digits 6;
-      }
-      description "TE path metric accumulative value";
-    }
-  }
-  grouping generic-path-properties {
-    description "TE generic path properties grouping";
-    container path-properties {
-      config false;
-      description "The TE path properties";
-      list path-metric {
-        key metric-type;
-        uses path-metric;
-      }
-      list z-a-path-metric {
-        key metric-type;
-        uses path-metric;
-      }
-      list path-route-objects {
-          description
-            "Container for the list of route objects either returned by
-             the computation engine or actually used by an LSP";
-          container path-route-object {
-            description
-              "List of route objects either returned by the computation
-               engine or actually used by an LSP";
-            uses explicit-route-hop;
-          }
+      type union {
+        type decimal64 {
+          fraction-digits 8;
         }
-    }
-  }
-
-  grouping path-info {
-    uses generic-path-properties;
-    description "Path computation output information";
-  }
-
-// adding some blocking reasons and info on path in case of blocking
-
-  grouping no-path-info {
-    description "no-path-info";
-    container no-path {
-      presence "Response without path information, due to failure
-        performing the path computation";
-      leaf no-path {
+        type decimal64 {
+          fraction-digits 2;
+        }
+        type decimal64 {
+          fraction-digits 1;
+        }
         type string;
-        mandatory true ;
-        description
-          "returned blocking reasons:
-            NO_PATH
-            NO_COMPUTED_SNR
-            NO_FEASIBLE_BAUDRATE_WITH_SPACING
-            NO_PATH_WITH_CONSTRAINT
-            NO_FEASIBLE_MODE
-            MODE_NOT_FEASIBLE
-            NO_SPECTRUM
-          ";
-        }
-      uses generic-path-properties ;
-      description "if path computation cannot identify a path,
-        rpc returns no path.";
+        type empty;
+      }        
+      description
+        "Accumulative value.";
     }
   }
 
-   grouping service {
-     list path-request {
-       key "request-id";
-       description "request-list";
-       leaf request-id {
-         type string;
-         mandatory true;
-         description "Each path computation request is uniquely identified by the request-id-number.";
-       }
-       leaf bidirectional {
-         type boolean;
-         mandatory true;
-         description "Specify the bidirectionality of the path";
-       }
-
-       uses end-points;
-       uses path-route-objects;
-       uses generic-path-constraints;
-     }
-     uses synchronization-info;
-   }
-
-   grouping result {
-     list response {
-       key response-id;
-       config false;
-       description "response";
-       leaf response-id {
-         type string;
-         description
-         "The list key that has to reuse request-id-number.";
-       }
-       choice response-type {
-         config false;
-         description "response-type";
-         case no-path-case {
-           uses no-path-info;
-         }
-         case path-case {
-           uses path-info;
-           description "Path computation service.";
-         }
-       }
-     }
-   }
-
-
-  container result {
-    uses gnpypc:result;
+  grouping response-path-property {
     description
-      "Describe the response object to gnpy";
+      "Reusable grouping for responses of a path computation request.";
+    list path-metric {
+      key metric-type;
+      description
+        "List of accumulated metrics at the end of the path.";
+      uses accumulated-metric-object;
+    }
+    list z-a-path-metric {
+      key metric-type;
+      description
+        "List of accumulated metrics at the end of the path.";
+      uses accumulated-metric-object;
+    }
+  }
+
+  grouping response-path-route-object {
+    description
+      "Definition of the explicit path of one response";
+    list path-route-objects {
+      config false;
+      description
+        "List of the explicit path hops.";
+      container path-route-object {
+        description
+          "Definition of the hop.";
+        uses explicit-route-hop ;
+      }
+    }
+  }
+
+  grouping response {
+    description
+      "Reusable grouping for path computation response.";
+    list response {
+      key response-id;
+      description
+        "List of responses for the path-computation request.";
+      leaf response-id {
+         type string;
+         mandatory true;
+         description "Each path computation response is uniquely identified by the response-id number.";
+      }
+      container path-properties {
+        description
+          "Definition of the content of the successful response";
+        uses response-path-property;
+        uses response-path-route-object;
+      }
+      container no-path {
+        description
+          "Definition of the content of the response when feasibility is not achieved.";
+        leaf no-path {
+          type identityref {
+            base no-path-type;
+          }
+          description
+            "Detailed reason for feasibility failure.";
+        }
+        container path-properties {
+          description
+            "Definition of the content of the failed response";
+          uses response-path-property;
+          uses response-path-route-object;
+        }
+      }
+    }
+   }
+
+  grouping path-computation {
+    description
+      "Reusable grouping that defined data for requests or for
+      responses of a path-computation";
+    container services {
+      description
+        "Definition of path-computation requests.";
+      uses service;
+    }
+
+    container responses {
+      description
+        "Definition of path-computation responses.";
+      uses response;
+    }
+  }
+
+  container services {
+    description
+      "Definition of path-computation requests.";
+    uses service;
+  }
+
+  container responses {
+    description
+      "Definition of path-computation responses.";
+    uses response;
+  }
+
+  augment "/gapi:api" {
+    description "Add the gnpy-path-computation imput in the API request.";
+    uses path-computation;
   }
 }

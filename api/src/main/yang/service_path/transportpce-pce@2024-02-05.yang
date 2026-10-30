@@ -1,4 +1,5 @@
 module transportpce-pce {
+  yang-version 1.1;
   namespace "http://org/opendaylight/transportpce/pce";
   prefix org-opendaylight-transportpce-pce;
 
@@ -14,8 +15,9 @@ module transportpce-pce {
   import transportpce-pathDescription {
     prefix transportpce-pathDescription;
   }
-  import gnpy-path-computation-simplified {
+  import gnpy-path-computation {
     prefix gnpypc;
+    revision-date 2025-01-20;
   }
 
   organization
@@ -142,7 +144,24 @@ module transportpce-pce {
         description
           "response-type";
         case no-path-case {
-          uses gnpypc:no-path-info;
+          container no-path {
+            presence "Response without path information, due to failure
+              performing the path computation";
+            leaf no-path {
+              type string;
+              mandatory true;
+              description
+                "returned blocking reasons:
+                  NO_PATH
+                  NO_COMPUTED_SNR
+                  NO_FEASIBLE_BAUDRATE_WITH_SPACING
+                  NO_PATH_WITH_CONSTRAINT
+                  NO_FEASIBLE_MODE
+                  MODE_NOT_FEASIBLE
+                  NO_SPECTRUM
+                ";
+            }
+          }
         }
         case path-case {
           description
