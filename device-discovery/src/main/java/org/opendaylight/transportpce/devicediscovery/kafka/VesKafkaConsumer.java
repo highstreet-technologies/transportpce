@@ -99,6 +99,7 @@ public class VesKafkaConsumer {
 
     private void processRecord(String key, VesEventWrapper value) {
         try {
+            LOG.debug("handle event for key {}", key);
             Event event = value.getEvent();
             if (event == null) {
                 LOG.debug("VES event has no event field, ignoring (key={})", key);

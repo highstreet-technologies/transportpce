@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.opendaylight.mdsal.binding.api.DataObjectModification;
 import org.opendaylight.mdsal.binding.api.DataObjectModification.ModificationType;
 import org.opendaylight.mdsal.binding.api.DataTreeModification;
+import org.opendaylight.transportpce.common.network.NetworkTransactionService;
 import org.opendaylight.transportpce.nbinotifications.producer.Publisher;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.networks.network.Link;
 import org.opendaylight.yangtools.binding.DataObjectIdentifier;
@@ -46,12 +47,13 @@ public class DataTreeChangeToVesListenerTest {
     void createdEventTest() {
         Publisher<VesEvent<?>> publisher = mock(Publisher.class);
         DataTreeChangeToVesListener<Link> listener =
-                new DataTreeChangeToVesListener<>(publisher, "ves-topic", "networkmodel");
+                new DataTreeChangeToVesListener<>(publisher, "ves-topic", "networkmodel",
+                        mock(NetworkTransactionService.class));
         Link link = mock(Link.class);
         DataObjectIdentifier<Link> path = LINK_IID;
 
         List<DataTreeModification<Link>> changes = List.of(
-            mockModification(ModificationType.WRITE, null, link, path));
+                mockModification(ModificationType.WRITE, null, link, path));
 
         listener.onDataTreeChanged(changes);
 
@@ -63,13 +65,14 @@ public class DataTreeChangeToVesListenerTest {
     void updatedEventTest() {
         Publisher<VesEvent<?>> publisher = mock(Publisher.class);
         DataTreeChangeToVesListener<Link> listener =
-                new DataTreeChangeToVesListener<>(publisher, "ves-topic", "networkmodel");
+                new DataTreeChangeToVesListener<>(publisher, "ves-topic", "networkmodel",
+                        mock(NetworkTransactionService.class));
         Link linkBefore = mock(Link.class);
         Link linkAfter = mock(Link.class);
         DataObjectIdentifier<Link> path = LINK_IID;
 
         List<DataTreeModification<Link>> changes = List.of(
-            mockModification(ModificationType.WRITE, linkBefore, linkAfter, path));
+                mockModification(ModificationType.WRITE, linkBefore, linkAfter, path));
 
         listener.onDataTreeChanged(changes);
 
@@ -81,12 +84,13 @@ public class DataTreeChangeToVesListenerTest {
     void deletedEventTest() {
         Publisher<VesEvent<?>> publisher = mock(Publisher.class);
         DataTreeChangeToVesListener<Link> listener =
-                new DataTreeChangeToVesListener<>(publisher, "ves-topic", "networkmodel");
+                new DataTreeChangeToVesListener<>(publisher, "ves-topic", "networkmodel", mock(
+                        NetworkTransactionService.class));
         Link link = mock(Link.class);
         DataObjectIdentifier<Link> path = LINK_IID;
 
         List<DataTreeModification<Link>> changes = List.of(
-            mockModification(ModificationType.DELETE, link, null, path));
+                mockModification(ModificationType.DELETE, link, null, path));
 
         listener.onDataTreeChanged(changes);
 

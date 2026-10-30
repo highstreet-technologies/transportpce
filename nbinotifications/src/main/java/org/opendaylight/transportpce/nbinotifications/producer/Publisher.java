@@ -61,4 +61,10 @@ public class Publisher<T> {
         producer.send(new ProducerRecord<>(topic, id, notification));
         producer.flush();
     }
+
+    public void sendEvent(String key, T notification, String topic) {
+        LOG.info("SendEvent request to topic '{}' ", topic);
+        producer.send(new ProducerRecord<>(topic, key, notification));
+        producer.flush();
+    }
 }

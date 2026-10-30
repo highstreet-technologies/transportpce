@@ -162,10 +162,12 @@ public class NbiNotificationsProvider {
             vesListenerRegistrations = new ArrayList<>();
             vesListenerRegistrations.add(dataBroker.registerTreeChangeListener(
                 LogicalDatastoreType.CONFIGURATION, LINK_DOR, new DataTreeChangeToVesListener<>(
-                    topicManager.getVesTopicMap().get(vesTopic), vesTopic, vesSourceName)));
+                    topicManager.getVesTopicMap().get(vesTopic), vesTopic, vesSourceName,
+                            this.networkTransactionService)));
             vesListenerRegistrations.add(dataBroker.registerTreeChangeListener(
                 LogicalDatastoreType.OPERATIONAL, SERVICE_DOR, new DataTreeChangeToVesListener<>(
-                    topicManager.getVesTopicMap().get(vesTopic), vesTopic, vesSourceName)));
+                    topicManager.getVesTopicMap().get(vesTopic), vesTopic, vesSourceName,
+                            this.networkTransactionService)));
         }
 
         rpcRegistration = rpcProviderService.registerRpcImplementations(
