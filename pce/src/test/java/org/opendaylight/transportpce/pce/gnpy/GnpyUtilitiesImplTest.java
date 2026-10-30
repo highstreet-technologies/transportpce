@@ -75,7 +75,7 @@ class GnpyUtilitiesImplTest extends AbstractTest {
         wireMockServer.start();
         wireMockServer.resetAll();
         configureFor("localhost", 9998);
-        stubFor(get(urlEqualTo("/api/v1/status"))
+        stubFor(get(urlEqualTo("/api/v1.0/status"))
                 .willReturn(okJson(Files.readString(Path.of("src", "test", "resources", "gnpy", "gnpy_status.json")))));
     }
 
@@ -126,7 +126,7 @@ class GnpyUtilitiesImplTest extends AbstractTest {
     @Test
     void askNewPathFromGnpyNullResultTest() throws Exception {
         // GIVEN
-        stubFor(post(urlEqualTo("/api/v1/path-computation"))
+        stubFor(post(urlEqualTo("/api/v1.0/path-request"))
                 .willReturn(aResponse()
                         .withStatus(201)
                         .withHeader("Content-Type", "application/json")
@@ -142,7 +142,7 @@ class GnpyUtilitiesImplTest extends AbstractTest {
 
     @Test
     void askNewPathFromGnpyTest() throws Exception {
-        stubFor(post(urlEqualTo("/api/v1/path-computation"))
+        stubFor(post(urlEqualTo("/api/v1.0/path-request"))
                 .willReturn(aResponse()
                         .withStatus(201)
                         .withHeader("Content-Type", "application/json")
@@ -160,7 +160,7 @@ class GnpyUtilitiesImplTest extends AbstractTest {
 
     @Test
     void verifyComputationByGnpyTest() throws Exception {
-        stubFor(post(urlEqualTo("/api/v1/path-computation"))
+        stubFor(post(urlEqualTo("/api/v1.0/path-request"))
                 .willReturn(aResponse()
                         .withStatus(201)
                         .withHeader("Content-Type", "application/json")

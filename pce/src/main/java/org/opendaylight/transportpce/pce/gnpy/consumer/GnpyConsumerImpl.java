@@ -17,8 +17,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import org.opendaylight.transportpce.common.converter.JsonStringConverter;
-import org.opendaylight.yang.gen.v1.gnpy.gnpy.api.rev220221.Request;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.Result;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.path.computation.rev250120.Responses;
+import org.opendaylight.yang.gen.v1.urn.gnpy.api.rev250613.Api;
 import org.opendaylight.yangtools.binding.DataObjectIdentifier;
 import org.opendaylight.yangtools.binding.data.codec.spi.BindingDOMCodecServices;
 import org.opendaylight.yangtools.yang.data.api.YangInstanceIdentifier;
@@ -38,7 +38,7 @@ public class GnpyConsumerImpl implements GnpyConsumer {
     @ObjectClassDefinition
     public @interface Configuration {
         @AttributeDefinition
-        String url() default "http://127.0.0.1:8008";
+        String url() default "http://127.0.0.1:8080";
         @AttributeDefinition
         String username() default "gnpy";
         @AttributeDefinition
@@ -46,13 +46,13 @@ public class GnpyConsumerImpl implements GnpyConsumer {
     }
 
     private static final Logger LOG = LoggerFactory.getLogger(GnpyConsumerImpl.class);
-    private static final String STATUS_ENDPOINT = "/api/v1/status";
-    private static final String PATH_COMPUTATION_ENDPOINT = "/api/v1/path-computation";
+    private static final String STATUS_ENDPOINT = "/api/v1.0/status";
+    private static final String PATH_REQUEST_ENDPOINT = "/api/v1.0/path-request";
     private final HttpClient client;
     private final URI statusUri;
-    private final URI pathComputationUri;
-    private final JsonStringConverter<Request> requestConverter;
-    private final JsonStringConverter<Result> resultConverter;
+    private final URI pathRequestUri;
+    private final JsonStringConverter<Api> requestConverter;
+    private final JsonStringConverter<Responses> resultConverter;
 
     @Activate
     public GnpyConsumerImpl(final Configuration configuration,
@@ -73,7 +73,7 @@ public class GnpyConsumerImpl implements GnpyConsumer {
                     }
                 }).build();
         this.statusUri = URI.create(baseUrl + STATUS_ENDPOINT);
-        this.pathComputationUri = URI.create(baseUrl + PATH_COMPUTATION_ENDPOINT);
+        this.pathRequestUri = URI.create(baseUrl + PATH_REQUEST_ENDPOINT);
         requestConverter = new JsonStringConverter<>(bindingDOMCodecServices);
         resultConverter = new JsonStringConverter<>(bindingDOMCodecServices);
     }
@@ -108,17 +108,16 @@ public class GnpyConsumerImpl implements GnpyConsumer {
     }
 
     @Override
-    public Result computePaths(final Request request) {
+    public Responses computePaths(final Api request) {
         try {
             String requestBody = requestConverter.createJsonStringFromDataObject(
-                            DataObjectIdentifier.builder(Request.class).build(),
+                            DataObjectIdentifier.builder(Api.class).build(),
                             request,
-                            JSONCodecFactorySupplier.DRAFT_LHOTKA_NETMOD_YANG_JSON_02)
-                    .replace("gnpy-network-topology:", "");
+                            JSONCodecFactorySupplier.DRAFT_LHOTKA_NETMOD_YANG_JSON_02);
             LOG.info("requestbody = {}", requestBody);
 
             HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(pathComputationUri)
+                    .uri(pathRequestUri)
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(requestBody))
                     .build();
@@ -128,8 +127,13 @@ public class GnpyConsumerImpl implements GnpyConsumer {
 
             if (response.statusCode() == 201) {
                 LOG.info("response body = {}", response.body());
-                return resultConverter.createDataObjectFromJsonString(YangInstanceIdentifier.of(Result.QNAME),
-                        response.body(),
+                // The official gnpy-api returns the content of the responses grouping
+                // ({"response": [...]}) without the surrounding "responses" container.
+                // Wrap the body so that the JSON parser can resolve it against the schema.
+                String wrappedBody = "{\"gnpy-path-computation:responses\":" + response.body() + "}";
+                return resultConverter.createDataObjectFromJsonString(
+                        YangInstanceIdentifier.of(Responses.QNAME),
+                        wrappedBody,
                         JSONCodecFactorySupplier.DRAFT_LHOTKA_NETMOD_YANG_JSON_02);
             } else {
                 LOG.info("Error response: {}", response.body());

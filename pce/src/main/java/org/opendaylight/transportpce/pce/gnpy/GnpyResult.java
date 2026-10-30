@@ -9,21 +9,19 @@
 package org.opendaylight.transportpce.pce.gnpy;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.Result;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.explicit.route.hop.type.NumUnnumHop;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.generic.path.properties.path.properties.PathMetric;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.generic.path.properties.path.properties.PathRouteObjects;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.result.Response;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.result.response.response.type.NoPathCase;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.result.response.response.type.PathCase;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.path.computation.rev250120.AccumulatedMetricObject;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.path.computation.rev250120.Responses;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.path.computation.rev250120.explicit.route.hop.subobject.type.NumUnnumHop;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.path.computation.rev250120.response.Response;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.path.computation.rev250120.response.path.property.PathMetric;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.path.computation.rev250120.response.path.route.object.PathRouteObjects;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.path.computation.rev250120.response.path.route.object.path.route.objects.PathRouteObject;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.node.types.rev210528.NodeIdType;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev221209.constraints.Include;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev221209.constraints.IncludeBuilder;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev221209.routing.constraints.HardConstraints;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev221209.routing.constraints.HardConstraintsBuilder;
-import org.opendaylight.yangtools.yang.common.Decimal64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,22 +38,22 @@ public class GnpyResult {
     private Response response = null;
     private List<String> ordNodeList = new ArrayList<>();
 
-    public GnpyResult(Result result, GnpyTopoImpl gnpyTopo) throws GnpyException {
+    public GnpyResult(Responses responses, GnpyTopoImpl gnpyTopo) throws GnpyException {
         this.ordNodeList = gnpyTopo.getElementsList();
-        List<Response> responses = new ArrayList<>(result.nonnullResponse().values());
-        if (responses.isEmpty()) {
+        List<Response> responsesList = new ArrayList<>(responses.nonnullResponse().values());
+        if (responsesList.isEmpty()) {
             throw new GnpyException("In GnpyResult: the response from GNpy is null!");
         }
-        LOG.info("The response id is {}; ", responses.get(0).getResponseId());
-        this.response = responses.get(0);
+        LOG.info("The response id is {}; ", responsesList.get(0).getResponseId());
+        this.response = responsesList.get(0);
     }
 
     public boolean getPathFeasibility() {
         boolean isFeasible = false;
         if (response != null) {
-            if (response.getResponseType() instanceof NoPathCase) {
+            if (response.getNoPath() != null) {
                 LOG.info("In GnpyResult: The path is not feasible ");
-            } else if (response.getResponseType() instanceof PathCase) {
+            } else if (response.getPathProperties() != null) {
                 isFeasible = true;
                 LOG.info("In GnpyResult: The path is feasible ");
             }
@@ -66,39 +64,35 @@ public class GnpyResult {
     public List<PathRouteObjects> analyzeResult() {
         List<PathRouteObjects> pathRouteObjectList = null;
         if (response != null) {
-            if (response.getResponseType() instanceof NoPathCase) {
-                NoPathCase noPathCase = (NoPathCase) response.getResponseType();
-                String noPathType = noPathCase.getNoPath().getNoPath();
+            if (response.getNoPath() != null) {
+                String noPathType = String.valueOf(response.getNoPath().getNoPath());
                 LOG.info("GNPy: No path - {}", noPathType);
-                if (((noPathType.equals("NO_FEASIBLE_BAUDRATE_WITH_SPACING"))
-                    && (noPathType.equals("NO_FEASIBLE_MODE"))) && ((noPathType.equals("MODE_NOT_FEASIBLE"))
-                        && (noPathType.equals("NO_SPECTRUM")))) {
-                    Collection<PathMetric> pathMetricList = noPathCase.getNoPath()
-                            .getPathProperties().nonnullPathMetric().values();
+                if (response.getNoPath().getPathProperties() != null) {
+                    List<PathMetric> pathMetricList = new ArrayList<>(response.getNoPath().getPathProperties()
+                            .nonnullPathMetric().values());
                     LOG.info("GNPy : path is not feasible : {}", noPathType);
-                    for (PathMetric pathMetric : pathMetricList) {
-                        String metricType = pathMetric.getMetricType().toString();
-                        Decimal64 accumulativeValue = pathMetric.getAccumulativeValue();
-                        LOG.info("Metric type {} // AccumulatriveValue {}", metricType, accumulativeValue);
-                    }
+                    logPathMetrics(pathMetricList);
                 }
-            } else if (response.getResponseType() instanceof PathCase) {
+            } else if (response.getPathProperties() != null) {
                 LOG.info("GNPy : path is feasible");
-                PathCase pathCase = (PathCase) response.getResponseType();
-                Collection<PathMetric> pathMetricList = pathCase
-                        .getPathProperties().nonnullPathMetric().values();
+                List<PathMetric> pathMetricList = new ArrayList<>(response.getPathProperties()
+                        .nonnullPathMetric().values());
                 // Path metrics
-                for (PathMetric pathMetric : pathMetricList) {
-                    String metricType = pathMetric.getMetricType().toString();
-                    Decimal64 accumulativeValue = pathMetric.getAccumulativeValue();
-                    LOG.info("Metric type {} // AccumulatriveValue {}", metricType, accumulativeValue);
-                }
+                logPathMetrics(pathMetricList);
                 // Path route objects
-                pathRouteObjectList = pathCase.getPathProperties().getPathRouteObjects();
+                pathRouteObjectList = response.getPathProperties().getPathRouteObjects();
                 LOG.info("in GnpyResult: finishing the computation of pathRouteObjectList");
             }
         }
         return pathRouteObjectList;
+    }
+
+    private void logPathMetrics(List<PathMetric> pathMetricList) {
+        for (PathMetric pathMetric : pathMetricList) {
+            String metricType = pathMetric.getMetricType().toString();
+            AccumulatedMetricObject.AccumulativeValue accumulativeValue = pathMetric.getAccumulativeValue();
+            LOG.info("Metric type {} // AccumulatriveValue {}", metricType, accumulativeValue);
+        }
     }
 
     public HardConstraints computeHardConstraintsFromGnpyPath(List<PathRouteObjects> pathRouteObjectList) {
@@ -107,8 +101,9 @@ public class GnpyResult {
         // for the PCE
         List<NodeIdType> nodeIdList = new ArrayList<>();
         for (PathRouteObjects pathRouteObjects : pathRouteObjectList) {
-            if (pathRouteObjects.getPathRouteObject().getType() instanceof NumUnnumHop) {
-                NumUnnumHop numUnnumHop = (NumUnnumHop) pathRouteObjects.getPathRouteObject().getType();
+            PathRouteObject pathRouteObject = pathRouteObjects.getPathRouteObject();
+            if (pathRouteObject != null && pathRouteObject.getSubobjectType() instanceof NumUnnumHop) {
+                NumUnnumHop numUnnumHop = (NumUnnumHop) pathRouteObject.getSubobjectType();
                 String nodeId = numUnnumHop.getNumUnnumHop().getNodeId();
                 if (nodeId != null && this.ordNodeList.contains(nodeId)) {
                     nodeIdList.add(new NodeIdType(nodeId));

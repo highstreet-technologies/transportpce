@@ -9,7 +9,6 @@
 package org.opendaylight.transportpce.pce.gnpy;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -21,30 +20,34 @@ import java.util.stream.IntStream;
 import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
 import org.opendaylight.transportpce.common.StringConstants;
 import org.opendaylight.transportpce.common.network.NetworkTransactionService;
-import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev220615.Coordinate;
-import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev220615.Km;
-import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev220615.edfa.params.Operational;
-import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev220615.edfa.params.OperationalBuilder;
-import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev220615.element.type.choice.element.type.Edfa;
-import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev220615.element.type.choice.element.type.EdfaBuilder;
-import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev220615.element.type.choice.element.type.FiberRoadmBuilder;
-import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev220615.element.type.choice.element.type.Transceiver;
-import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev220615.element.type.choice.element.type.TransceiverBuilder;
-import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev220615.element.type.choice.element.type.fiberroadm.Params;
-import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev220615.element.type.choice.element.type.fiberroadm.ParamsBuilder;
-import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev220615.element.type.choice.element.type.fiberroadm.params.fiberroadmfused.Fiber;
-import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev220615.element.type.choice.element.type.fiberroadm.params.fiberroadmfused.FiberBuilder;
-import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev220615.element.type.choice.element.type.fiberroadm.params.fiberroadmfused.Roadm;
-import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev220615.element.type.choice.element.type.fiberroadm.params.fiberroadmfused.RoadmBuilder;
-import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev220615.location.attributes.Location;
-import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev220615.location.attributes.LocationBuilder;
-import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev220615.topo.Connections;
-import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev220615.topo.ConnectionsBuilder;
-import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev220615.topo.Elements;
-import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev220615.topo.ElementsBuilder;
-import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev220615.topo.ElementsKey;
-import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev220615.topo.elements.Metadata;
-import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev220615.topo.elements.MetadataBuilder;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev250301.Coordinate;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev250301.EdfaParams;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev250301.FiberCommonParams;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev250301.Km;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev250301.element.type.choice.Operational;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev250301.element.type.choice.OperationalBuilder;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev250301.element.type.choice.element.type.FiberRoadmBuilder;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev250301.element.type.choice.element.type.fiberroadm.Params;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev250301.element.type.choice.element.type.fiberroadm.ParamsBuilder;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev250301.element.type.choice.element.type.fiberroadm.params.fiberroadmfused.Fiber;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev250301.element.type.choice.element.type.fiberroadm.params.fiberroadmfused.FiberBuilder;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev250301.element.type.choice.element.type.fiberroadm.params.fiberroadmfused.RoadmTransceiver;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev250301.element.type.choice.element.type.fiberroadm.params.fiberroadmfused.RoadmTransceiverBuilder;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev250301.element.type.choice.element.type.fiberroadm.params.fiberroadmfused.roadmtransceiver.Roadm;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev250301.element.type.choice.element.type.fiberroadm.params.fiberroadmfused.roadmtransceiver.roadm.RoadmBuilder;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev250301.element.type.choice.operational.ramanfiber.Edfa;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev250301.element.type.choice.operational.ramanfiber.EdfaBuilder;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev250301.fiber.common.params.loss_coef.vector.or.scalar.Scalar;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev250301.fiber.common.params.loss_coef.vector.or.scalar.ScalarBuilder;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev250301.location.attributes.Location;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev250301.location.attributes.LocationBuilder;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev250301.topo.Connections;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev250301.topo.ConnectionsBuilder;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev250301.topo.Elements;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev250301.topo.ElementsBuilder;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev250301.topo.ElementsKey;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev250301.topo.elements.Metadata;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev250301.topo.elements.MetadataBuilder;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250110.Link1;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.link.rev250110.SpanAttributes;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.link.rev250110.amplified.link.attributes.AmplifiedLink;
@@ -208,7 +211,7 @@ public class GnpyTopoImpl {
         Network1 nw1 = openRoadmTopo.orElseThrow().augmentation(Network1.class);
         Collection<Link> linksList = nw1.nonnullLink().values();
         // 1:EXPRESS-LINK    2:ADD-LINK       3:DROP-LINK
-        // 4:ROADM-To-ROADM  5:XPONDER-INPUT  6:XPONDER-OUTPUT
+        // 4:ROADM-To-ROADM  5:XPONDER-INPUT 6:XPONDER-OUTPUT
         int[] externalLink = {OpenroadmLinkType.ROADMTOROADM.getIntValue(),OpenroadmLinkType.XPONDERINPUT.getIntValue(),
             OpenroadmLinkType.XPONDEROUTPUT.getIntValue()};
 
@@ -333,27 +336,44 @@ public class GnpyTopoImpl {
     }
 
     /*
+     * Build a metadata location. Region and city are union types in the 2025 gnpy
+     * network topology model and cannot be null, so empty string is used as default.
+     */
+    private Location buildLocation(double latitude, double longitude, String region, String city) {
+        Coordinate c1 = new Coordinate(Decimal64.valueOf(String.valueOf(latitude)));
+        Coordinate c2 = new Coordinate(Decimal64.valueOf(String.valueOf(longitude)));
+        LocationBuilder builder = new LocationBuilder().setLatitude(c1).setLongitude(c2);
+        if (region != null) {
+            builder.setRegion(new Location.Region(region));
+        }
+        if (city != null) {
+            builder.setCity(new Location.City(city));
+        }
+        return builder.build();
+    }
+
+    /*
      * Method to create Fiber
      */
     private Elements createElementsFiber(double latitude, double longitude, String region, String city, String uidFiber,
             double length, double attIn, double lossCoef, double connIn, double connOut, String typeVariety) {
         // Create an amplifier after the ROADM
-        Coordinate c1 = new Coordinate(Decimal64.valueOf(String.valueOf(latitude)));
-        Coordinate c2 = new Coordinate(Decimal64.valueOf(String.valueOf(longitude)));
-        Location location1 = new LocationBuilder().setRegion(region).setCity(city).setLatitude(c1).setLongitude(c2)
-                .build();
+        Location location1 = buildLocation(latitude, longitude, region, city);
         Metadata metadata1 = new MetadataBuilder().setLocation(location1).build();
+        Scalar lossCoefScalar = new ScalarBuilder()
+                .setLossCoef(Decimal64.valueOf(String.valueOf(lossCoef)))
+                .build();
         Fiber fiber = new FiberBuilder()
             .setLength(Decimal64.valueOf(String.valueOf(length)))
             .setLengthUnits(Km.VALUE)
             .setAttIn(Decimal64.valueOf(String.valueOf(attIn)))
-            .setLossCoef(Decimal64.valueOf(String.valueOf(lossCoef)).scaleTo(5, RoundingMode.CEILING))
-            .setConIn(Decimal64.valueOf(String.valueOf(connIn)))
-            .setConOut(Decimal64.valueOf(String.valueOf(connOut)))
+            .setLossCoefVectorOrScalar(lossCoefScalar)
+            .setConIn(new FiberCommonParams.ConIn(Decimal64.valueOf(String.valueOf(connIn))))
+            .setConOut(new FiberCommonParams.ConOut(Decimal64.valueOf(String.valueOf(connOut))))
             .build();
         Params params1 = new ParamsBuilder().setFiberroadmfused(fiber).build();
         return new ElementsBuilder().setUid(uidFiber)
-                .setType(org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev220615.Fiber.VALUE)
+                .setType(org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev250301.Fiber.VALUE)
                 .setTypeVariety(typeVariety).setMetadata(metadata1)
                 .setElementType(new FiberRoadmBuilder().setParams(params1).build()).build();
     }
@@ -364,21 +384,17 @@ public class GnpyTopoImpl {
     private Elements createElementsEdfa(double latitude, double longitude, String region, String city,
             BigDecimal gainTarget, BigDecimal tiltTarget, BigDecimal outVoa, String typeVariety, String uidEdfa) {
         // Create an amplifier after the ROADM
-        Coordinate c1 = new Coordinate(Decimal64.valueOf(String.valueOf(latitude)));
-        Coordinate c2 = new Coordinate(Decimal64.valueOf(String.valueOf(longitude)));
-        Location location1 = new LocationBuilder().setRegion(region).setCity(city).setLatitude(c1).setLongitude(c2)
-                .build();
+        Location location1 = buildLocation(latitude, longitude, region, city);
         Metadata metadata1 = new MetadataBuilder().setLocation(location1).build();
-        Operational operational = new OperationalBuilder()
-            .setGainTarget(Decimal64.valueOf(gainTarget))
-            .setTiltTarget(Decimal64.valueOf(tiltTarget))
-            .setOutVoa(Decimal64.valueOf(outVoa))
-            .build();
         Edfa edfa = new EdfaBuilder()
-                .setOperational(operational).build();
+            .setGainTarget(new EdfaParams.GainTarget(Decimal64.valueOf(gainTarget)))
+            .setTiltTarget(new EdfaParams.TiltTarget(Decimal64.valueOf(tiltTarget)))
+            .setOutVoa(new EdfaParams.OutVoa(Decimal64.valueOf(outVoa)))
+            .build();
+        Operational operational = new OperationalBuilder().setRamanfiber(edfa).build();
         return new ElementsBuilder().setUid(uidEdfa)
-                .setType(org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev220615.Edfa.VALUE)
-                .setMetadata(metadata1).setElementType(edfa).setTypeVariety(typeVariety).build();
+                .setType(org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev250301.Edfa.VALUE)
+                .setMetadata(metadata1).setOperational(operational).setTypeVariety(typeVariety).build();
     }
 
     /*
@@ -386,17 +402,20 @@ public class GnpyTopoImpl {
      */
     private Elements createElementsRoadm(double latitude, double longitude, String region, String city,
             double targetPchOutDb, String uidRoadm) {
-        Coordinate c1 = new Coordinate(Decimal64.valueOf(String.valueOf(latitude)));
-        Coordinate c2 = new Coordinate(Decimal64.valueOf(String.valueOf(longitude)));
-        Location location1 = new LocationBuilder().setRegion(region).setCity(city).setLatitude(c1).setLongitude(c2)
-                .build();
+        Location location1 = buildLocation(latitude, longitude, region, city);
         Metadata metadata1 = new MetadataBuilder().setLocation(location1).build();
-        Roadm roadm = new RoadmBuilder()
-            .setTargetPchOutDb(Decimal64.valueOf(String.valueOf(targetPchOutDb)))
-            .build();
-        Params params1 = new ParamsBuilder().setFiberroadmfused(roadm).build();
+        // roadm-params: target_type/constant_power with target_pch_out_db
+        Roadm roadm = new RoadmBuilder().setTargetType(
+                new org.opendaylight.yang.gen.v1.urn.ns.gnpy.equipment_library.rev250526.roadm.equalization.params
+                    .target_type.ConstantPowerBuilder()
+                    .setTargetPchOutDb(Decimal64.valueOf(String.valueOf(targetPchOutDb)))
+                    .build())
+                .build();
+        RoadmTransceiver roadmTransceiver = new RoadmTransceiverBuilder()
+                .setRoadm(roadm).build();
+        Params params1 = new ParamsBuilder().setFiberroadmfused(roadmTransceiver).build();
         return new ElementsBuilder().setUid(uidRoadm)
-                .setType(org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev220615.Roadm.VALUE)
+                .setType(org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev250301.Roadm.VALUE)
                 .setMetadata(metadata1).setElementType(new FiberRoadmBuilder().setParams(params1).build()).build();
     }
 
@@ -405,15 +424,14 @@ public class GnpyTopoImpl {
      */
     private Elements createElementsTransceiver(double latitude, double longitude, String region, String city,
             String uidTrans) {
-        Coordinate c1 = new Coordinate(Decimal64.valueOf(String.valueOf(latitude)));
-        Coordinate c2 = new Coordinate(Decimal64.valueOf(String.valueOf(longitude)));
-        Location location1 = new LocationBuilder().setRegion(region).setCity(city).setLatitude(c1).setLongitude(c2)
-                .build();
+        Location location1 = buildLocation(latitude, longitude, region, city);
         Metadata metadata1 = new MetadataBuilder().setLocation(location1).build();
-        Transceiver transceiver = new TransceiverBuilder().build();
+        RoadmTransceiver transceiver = new RoadmTransceiverBuilder().build();
         return new ElementsBuilder().setUid(uidTrans)
-                .setType(org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev220615.Transceiver.VALUE)
-                .setMetadata(metadata1).setElementType(transceiver).build();
+                .setType(org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev250301.Transceiver.VALUE)
+                .setMetadata(metadata1).setElementType(
+                    new FiberRoadmBuilder().setParams(new ParamsBuilder()
+                        .setFiberroadmfused(transceiver).build()).build()).build();
     }
 
     /*

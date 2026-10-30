@@ -22,15 +22,15 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import org.opendaylight.transportpce.common.converter.JsonStringConverter;
 import org.opendaylight.transportpce.test.AbstractTest;
-import org.opendaylight.yang.gen.v1.gnpy.gnpy.api.rev220221.Request;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.service.PathRequest;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.path.computation.rev250120.service.PathRequest;
+import org.opendaylight.yang.gen.v1.urn.gnpy.api.rev250613.Api;
 import org.opendaylight.yangtools.yang.common.QName;
 import org.opendaylight.yangtools.yang.data.api.YangInstanceIdentifier;
 import org.opendaylight.yangtools.yang.data.codec.gson.JSONCodecFactorySupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Path("/api/v1")
+@Path("/api/v1.0")
 public class GnpyStub {
     private static final Logger LOG = LoggerFactory.getLogger(GnpyStub.class);
 
@@ -56,14 +56,13 @@ public class GnpyStub {
     @POST
     @Produces({ "application/json" })
     @Consumes({ "application/json" })
-    @Path("/path-computation")
+    @Path("/path-request")
     public Response computePath(String request) {
         LOG.info("Received path request {}", request);
-        URI location = URI.create("http://127.0.0.1:9998/api/v1/path-computation");
-        // TODO: return different response based on body data
-        QName pathQname = Request.QNAME;
+        URI location = URI.create("http://127.0.0.1:9998/api/v1.0/path-request");
+        QName pathQname = Api.QNAME;
         YangInstanceIdentifier yangId = YangInstanceIdentifier.of(pathQname);
-        JsonStringConverter<Request> converter = new JsonStringConverter<>(
+        JsonStringConverter<Api> converter = new JsonStringConverter<>(
                 AbstractTest.getDataStoreContextUtil().getBindingDOMCodecServices());
         try {
             String response = null;
@@ -71,10 +70,12 @@ public class GnpyStub {
                     .replace("Roadm", "gnpy-network-topology:Roadm")
                     .replace("Fiber", "gnpy-network-topology:Fiber")
                     .replace("km", "gnpy-network-topology:km");
-            Request data = converter.createDataObjectFromJsonString(yangId,
+            Api data = converter.createDataObjectFromJsonString(yangId,
                     request, JSONCodecFactorySupplier.DRAFT_LHOTKA_NETMOD_YANG_JSON_02);
             LOG.info("Converted request {}", data);
-            List<PathRequest> pathRequest = new ArrayList<>(data.getService().nonnullPathRequest().values());
+            List<PathRequest> pathRequest = new ArrayList<>(data.augmentation(
+                    org.opendaylight.yang.gen.v1.gnpy.gnpy.path.computation.rev250120.Api1.class)
+                    .nonnullServices().nonnullPathRequest().values());
             // this condition is totally arbitrary and could be modified
             if (!pathRequest.isEmpty() && "XPONDER-3".contentEquals(pathRequest.get(0).getSource())) {
                 response = Files.readString(

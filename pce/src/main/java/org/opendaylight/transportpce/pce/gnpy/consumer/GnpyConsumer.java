@@ -8,8 +8,8 @@
 package org.opendaylight.transportpce.pce.gnpy.consumer;
 
 
-import org.opendaylight.yang.gen.v1.gnpy.gnpy.api.rev220221.Request;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.Result;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.path.computation.rev250120.Responses;
+import org.opendaylight.yang.gen.v1.urn.gnpy.api.rev250613.Api;
 
 
 public interface GnpyConsumer {
@@ -22,9 +22,9 @@ public interface GnpyConsumer {
 
     /**
      * Path computation request.
-     * @param request GnpyApi.
-     * @return Result the result of pat computation.
+     * @param request GnpyApi top-level container.
+     * @return Responses the result of path computation.
      */
-    Result computePaths(Request request);
+    Responses computePaths(Api request);
 
 }

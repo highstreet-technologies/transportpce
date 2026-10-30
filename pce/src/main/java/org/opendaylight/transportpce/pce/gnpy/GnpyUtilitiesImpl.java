@@ -13,15 +13,16 @@ import java.util.List;
 import org.opendaylight.transportpce.common.network.NetworkTransactionService;
 import org.opendaylight.transportpce.pce.constraints.PceConstraints;
 import org.opendaylight.transportpce.pce.gnpy.consumer.GnpyConsumer;
-import org.opendaylight.yang.gen.v1.gnpy.gnpy.api.rev220221.RequestBuilder;
-import org.opendaylight.yang.gen.v1.gnpy.gnpy.api.rev220221.request.ServiceBuilder;
-import org.opendaylight.yang.gen.v1.gnpy.gnpy.api.rev220221.request.TopologyBuilder;
-import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev220615.topo.Connections;
-import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev220615.topo.Elements;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.Result;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.generic.path.properties.path.properties.PathRouteObjects;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.service.PathRequest;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.synchronization.info.Synchronization;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev250301.gnpytopo.Topology;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev250301.gnpytopo.TopologyBuilder;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev250301.topo.Connections;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev250301.topo.Elements;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.path.computation.rev250120.Responses;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.path.computation.rev250120.path.computation.Services;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.path.computation.rev250120.path.computation.ServicesBuilder;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.path.computation.rev250120.response.path.route.object.PathRouteObjects;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.path.computation.rev250120.service.PathRequest;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.path.computation.rev250120.synchronization.info.Synchronization;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.PathComputationRequestInput;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.routing.constraints.rev221209.routing.constraints.HardConstraints;
 import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev230501.path.description.AToZDirection;
@@ -81,7 +82,7 @@ public class GnpyUtilitiesImpl {
         // Send the computed path to GNPY tool
         List<Elements> elementsList = new ArrayList<>(gnpyTopo.getElements().values());
         List<Connections> connectionsList = gnpyTopo.getConnections();
-        Result gnpyResponse = getGnpyResponse(elementsList, connectionsList, pathRequestList,
+        Responses gnpyResponse = getGnpyResponse(elementsList, connectionsList, pathRequestList,
                 synchronizationList);
         // Analyze the response
         if (gnpyResponse == null) {
@@ -112,20 +113,31 @@ public class GnpyUtilitiesImpl {
         return result.computeHardConstraintsFromGnpyPath(pathRouteObjectList);
     }
 
-    public Result getGnpyResponse(List<Elements> elementsList, List<Connections> connectionsList,
+    public Responses getGnpyResponse(List<Elements> elementsList, List<Connections> connectionsList,
             List<PathRequest> pathRequestList, List<Synchronization> synchronizationList) {
 
-        return gnpyConsumer.computePaths(new RequestBuilder()
-            .setTopology(
-                new TopologyBuilder()
-                .setElements(elementsList.stream().collect(BindingMap.toMap()))
-                .setConnections(connectionsList).build())
-            .setService(
-                new ServiceBuilder()
-                .setPathRequest(pathRequestList.stream()
-                        .collect(BindingMap.toMap()))
-                .build())
-            .build());
+        // top-level container gnpy-api:api with augmented services and topology
+        org.opendaylight.yang.gen.v1.urn.gnpy.api.rev250613.ApiBuilder apiBuilder =
+                new org.opendaylight.yang.gen.v1.urn.gnpy.api.rev250613.ApiBuilder();
+        Services services = new ServicesBuilder()
+            .setPathRequest(pathRequestList.stream()
+                    .collect(BindingMap.toMap()))
+            .setSynchronization(synchronizationList.stream()
+                    .collect(BindingMap.toMap()))
+            .build();
+        apiBuilder.addAugmentation(
+                new org.opendaylight.yang.gen.v1.gnpy.gnpy.path.computation.rev250120.Api1Builder()
+                    .setServices(services)
+                    .build());
+        Topology topology = new TopologyBuilder()
+            .setElements(elementsList.stream().collect(BindingMap.toMap()))
+            .setConnections(connectionsList.stream().collect(BindingMap.toOrderedMap()))
+            .build();
+        apiBuilder.addAugmentation(
+                new org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev250301.Api1Builder()
+                    .setTopology(topology)
+                    .build());
+        return gnpyConsumer.computePaths(apiBuilder.build());
     }
 
     public GnpyResult getGnpyAtoZ() {

@@ -30,32 +30,33 @@ import org.opendaylight.transportpce.pce.constraints.PceConstraints;
 import org.opendaylight.transportpce.pce.constraints.PceConstraints.ResourcePair;
 import org.opendaylight.transportpce.pce.gnpy.utils.AToZComparator;
 import org.opendaylight.transportpce.pce.gnpy.utils.ZToAComparator;
-import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev220615.topo.Elements;
-import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev220615.topo.ElementsKey;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.RouteIncludeEro;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.TeHopType;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.TePathDisjointness;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.common.constraints_config.TeBandwidth;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.common.constraints_config.TeBandwidthBuilder;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.explicit.route.hop.Type;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.explicit.route.hop.type.NumUnnumHopBuilder;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.explicit.route.hop.type.num.unnum.hop.NumUnnumHop;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.generic.path.constraints.PathConstraints;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.generic.path.constraints.PathConstraintsBuilder;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.gnpy.specific.parameters.EffectiveFreqSlot;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.gnpy.specific.parameters.EffectiveFreqSlotBuilder;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.path.route.objects.ExplicitRouteObjects;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.path.route.objects.ExplicitRouteObjectsBuilder;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.path.route.objects.explicit.route.objects.RouteObjectIncludeExclude;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.path.route.objects.explicit.route.objects.RouteObjectIncludeExcludeBuilder;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.path.route.objects.explicit.route.objects.RouteObjectIncludeExcludeKey;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.service.PathRequest;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.service.PathRequestBuilder;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.service.PathRequestKey;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.synchronization.info.Synchronization;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.synchronization.info.SynchronizationBuilder;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.synchronization.info.synchronization.Svec;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.synchronization.info.synchronization.SvecBuilder;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev250301.topo.Elements;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.network.topology.rev250301.topo.ElementsKey;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.path.computation.rev250120.GnpySpecificParameters;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.path.computation.rev250120.RouteIncludeEro;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.path.computation.rev250120.TeHopType;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.path.computation.rev250120.TePathDisjointness;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.path.computation.rev250120.common.constraints_config.TeBandwidth;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.path.computation.rev250120.common.constraints_config.TeBandwidthBuilder;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.path.computation.rev250120.explicit.route.hop.SubobjectType;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.path.computation.rev250120.explicit.route.hop.subobject.type.NumUnnumHopBuilder;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.path.computation.rev250120.explicit.route.hop.subobject.type.num.unnum.hop.NumUnnumHop;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.path.computation.rev250120.generic.path.constraints.PathConstraints;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.path.computation.rev250120.generic.path.constraints.PathConstraintsBuilder;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.path.computation.rev250120.gnpy.specific.parameters.EffectiveFreqSlot;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.path.computation.rev250120.gnpy.specific.parameters.EffectiveFreqSlotBuilder;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.path.computation.rev250120.path.route.objects.ExplicitRouteObjects;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.path.computation.rev250120.path.route.objects.ExplicitRouteObjectsBuilder;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.path.computation.rev250120.path.route.objects.explicit.route.objects.RouteObjectIncludeExclude;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.path.computation.rev250120.path.route.objects.explicit.route.objects.RouteObjectIncludeExcludeBuilder;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.path.computation.rev250120.path.route.objects.explicit.route.objects.RouteObjectIncludeExcludeKey;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.path.computation.rev250120.service.PathRequest;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.path.computation.rev250120.service.PathRequestBuilder;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.path.computation.rev250120.service.PathRequestKey;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.path.computation.rev250120.synchronization.info.Synchronization;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.path.computation.rev250120.synchronization.info.SynchronizationBuilder;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.path.computation.rev250120.synchronization.info.synchronization.Svec;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.path.computation.rev250120.synchronization.info.synchronization.SvecBuilder;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.pce.rev240205.PathComputationRequestInput;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.optical.channel.types.rev250110.FrequencyTHz;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.types.rev181019.ModulationFormat;
@@ -67,6 +68,7 @@ import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdes
 import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev230501.pce.resource.resource.resource.Link;
 import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev230501.pce.resource.resource.resource.Node;
 import org.opendaylight.yangtools.yang.common.Decimal64;
+import org.opendaylight.yangtools.yang.common.Empty;
 import org.opendaylight.yangtools.yang.common.Uint32;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -320,15 +322,16 @@ public class GnpyServiceImpl {
 
     // Add routeObjectIncludeExclude
     private RouteObjectIncludeExclude addRouteObjectIncludeExclude(String nodeId, Uint32 teTpValue, Long index) {
-        NumUnnumHop numUnnumHop = new org.opendaylight.yang.gen.v1.gnpy.path.rev220615.explicit.route.hop.type.num
-            .unnum.hop.NumUnnumHopBuilder()
+        NumUnnumHop numUnnumHop = new org.opendaylight.yang.gen.v1.gnpy.gnpy.path.computation.rev250120.explicit.route
+            .hop.subobject.type.num.unnum.hop.NumUnnumHopBuilder()
                 .setNodeId(nodeId)
                 .setLinkTpId(teTpValue.toString())
                 .setHopType(TeHopType.STRICT).build();
-        Type type1 = new NumUnnumHopBuilder().setNumUnnumHop(numUnnumHop).build();
+        SubobjectType type1 = new NumUnnumHopBuilder().setNumUnnumHop(numUnnumHop).build();
         // Create routeObjectIncludeExclude element
         return new RouteObjectIncludeExcludeBuilder()
-            .setIndex(Uint32.valueOf(index)).setExplicitRouteUsage(RouteIncludeEro.VALUE).setType(type1).build();
+            .setIndex(Uint32.valueOf(index)).setExplicitRouteUsage(RouteIncludeEro.VALUE)
+            .setSubobjectType(type1).build();
     }
 
     //Create the path constraints
@@ -355,19 +358,30 @@ public class GnpyServiceImpl {
         LOG.info("Creating path constraints for rate {}, mvalue {}, nvalue {}, spacing {}", rate,
                 mvalue, nvalue, spacing);
         EffectiveFreqSlot effectiveFreqSlot = new EffectiveFreqSlotBuilder()
-                .setM(Uint32.valueOf(mvalue / 2)).setN(nvalue).build();
+                .setM(new EffectiveFreqSlot.M(Uint32.valueOf(mvalue / 2))).setN(new EffectiveFreqSlot.N(nvalue))
+                .build();
 
         TeBandwidth teBandwidth = new TeBandwidthBuilder()
                 .setPathBandwidth(Decimal64.valueOf(BigDecimal.valueOf(rate * 1e9)))
                 .setTechnology("flexi-grid").setTrxType("OpenROADM MSA ver. 5.0")
-                .setTrxMode(TRX_MODE_TABLE.get(Uint32.valueOf(rate), spacing))
-                .setOutputPower(Decimal64.valueOf(GridUtils.convertDbmW(GridConstant.OUTPUT_POWER_100GB_DBM
+                .setTrxMode(new GnpySpecificParametersHolder().trxMode(TRX_MODE_TABLE.get(Uint32.valueOf(rate),
+                        spacing)))
+                .setOutputPower(new GnpySpecificParameters.OutputPower(Decimal64.valueOf(
+                        GridUtils.convertDbmW(GridConstant.OUTPUT_POWER_100GB_DBM
                         + 10 * Math.log10(mvalue / (double)GridConstant.NB_SLOTS_100G))
-                        .setScale(6, RoundingMode.CEILING)))
+                        .setScale(6, RoundingMode.CEILING))))
                 .setEffectiveFreqSlot(Map.of(effectiveFreqSlot.key(), effectiveFreqSlot))
                 .setSpacing(Decimal64.valueOf(spacing.multiply(BigDecimal.valueOf(1e9))))
                 .build();
         return new PathConstraintsBuilder().setTeBandwidth(teBandwidth).build();
+    }
+
+    // helper to build the TrxMode union type without importing the inner class twice
+    private static final class GnpySpecificParametersHolder {
+        GnpySpecificParameters.TrxMode trxMode(String mode) {
+            return mode == null ? new GnpySpecificParameters.TrxMode(Empty.value())
+                : new GnpySpecificParameters.TrxMode(mode);
+        }
     }
 
     //Create the synchronization

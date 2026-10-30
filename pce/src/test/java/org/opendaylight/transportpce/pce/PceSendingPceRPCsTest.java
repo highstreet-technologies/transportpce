@@ -83,9 +83,9 @@ class PceSendingPceRPCsTest extends AbstractTest {
         // GIVEN
         WireMockServer wireMockServer = new WireMockServer(9998);
         wireMockServer.start();
-        wireMockServer.stubFor(get(urlEqualTo("/api/v1/status"))
+        wireMockServer.stubFor(get(urlEqualTo("/api/v1.0/status"))
                 .willReturn(okJson(Files.readString(Path.of("src", "test", "resources", "gnpy", "gnpy_status.json")))));
-        wireMockServer.stubFor(post(urlEqualTo("/api/v1/path-computation"))
+        wireMockServer.stubFor(post(urlEqualTo("/api/v1.0/path-request"))
                 .willReturn(aResponse()
                         .withStatus(201)
                         .withHeader("Content-Type", "application/json")

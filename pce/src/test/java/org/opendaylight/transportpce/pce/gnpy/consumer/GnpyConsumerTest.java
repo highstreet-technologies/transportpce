@@ -26,8 +26,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.opendaylight.transportpce.common.converter.JsonStringConverter;
 import org.opendaylight.transportpce.test.AbstractTest;
-import org.opendaylight.yang.gen.v1.gnpy.gnpy.api.rev220221.Request;
-import org.opendaylight.yang.gen.v1.gnpy.path.rev220615.Result;
+import org.opendaylight.yang.gen.v1.gnpy.gnpy.path.computation.rev250120.Responses;
+import org.opendaylight.yang.gen.v1.urn.gnpy.api.rev250613.Api;
 import org.opendaylight.yangtools.yang.common.QName;
 import org.opendaylight.yangtools.yang.data.api.YangInstanceIdentifier;
 import org.opendaylight.yangtools.yang.data.codec.gson.JSONCodecFactorySupplier;
@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
 
 class GnpyConsumerTest {
     private static final Logger LOG = LoggerFactory.getLogger(GnpyConsumerTest.class);
-    private final JsonStringConverter<Request> gnpyApiConverter = new JsonStringConverter<>(
+    private final JsonStringConverter<Api> gnpyApiConverter = new JsonStringConverter<>(
             AbstractTest.getDataStoreContextUtil().getBindingDOMCodecServices());
     private final WireMockServer wireMockServer = new WireMockServer(9998);
 
@@ -55,7 +55,7 @@ class GnpyConsumerTest {
     @Test
     void isAvailableTest() throws IOException {
         // GIVEN
-        stubFor(get(urlEqualTo("/api/v1/status"))
+        stubFor(get(urlEqualTo("/api/v1.0/status"))
                 .willReturn(okJson(Files.readString(Path.of("src", "test", "resources", "gnpy", "gnpy_status.json")))));
 
         // WHEN
@@ -72,7 +72,7 @@ class GnpyConsumerTest {
     @Test
     void computePathsTest() throws IOException {
         // GIVEN
-        stubFor(post(urlEqualTo("/api/v1/path-computation"))
+        stubFor(post(urlEqualTo("/api/v1.0/path-request"))
                 .willReturn(aResponse()
                         .withStatus(201)
                         .withHeader("Content-Type", "application/json")
@@ -84,13 +84,13 @@ class GnpyConsumerTest {
                 "mylogin",
                 "mypassword",
                 AbstractTest.getDataStoreContextUtil().getBindingDOMCodecServices());
-        QName pathQname = Request.QNAME;
+        QName pathQname = Api.QNAME;
         YangInstanceIdentifier yangId = YangInstanceIdentifier.of(pathQname);
-        Request request = gnpyApiConverter.createDataObjectFromJsonString(
+        Api request = gnpyApiConverter.createDataObjectFromJsonString(
                 yangId,
                 Files.readString(Path.of("src/test/resources/gnpy/gnpy_request.json")),
                 JSONCodecFactorySupplier.DRAFT_LHOTKA_NETMOD_YANG_JSON_02);
-        Result result = gnpyConsumer.computePaths(request);
+        Responses result = gnpyConsumer.computePaths(request);
 
         // THEN
         LOG.info("Response received {}", result);
