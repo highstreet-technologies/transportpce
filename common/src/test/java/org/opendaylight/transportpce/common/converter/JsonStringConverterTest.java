@@ -20,7 +20,7 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import org.opendaylight.transportpce.test.AbstractTest;
 import org.opendaylight.transportpce.test.converter.JSONDataObjectConverter;
-import org.opendaylight.yang.gen.v1.gnpy.gnpy.api.rev220221.Request;
+import org.opendaylight.yang.gen.v1.urn.gnpy.api.rev250613.Api;
 import org.opendaylight.yangtools.binding.DataObjectIdentifier;
 import org.opendaylight.yangtools.yang.data.api.YangInstanceIdentifier;
 import org.opendaylight.yangtools.yang.data.codec.gson.JSONCodecFactorySupplier;
@@ -34,14 +34,13 @@ public class JsonStringConverterTest extends AbstractTest {
                 StandardCharsets.UTF_8)) {
             assertEquals(
                 Files.readString(Path.of("src/test/resources/expected_string.json")),
-                new JsonStringConverter<Request>(getDataStoreContextUtil().getBindingDOMCodecServices())
+                new JsonStringConverter<Api>(getDataStoreContextUtil().getBindingDOMCodecServices())
                     .createJsonStringFromDataObject(
-                        DataObjectIdentifier.builder(Request.class).build(),
-                        //gnpyRequest
-                        (Request) getDataStoreContextUtil()
+                        DataObjectIdentifier.builder(Api.class).build(),
+                        (Api) getDataStoreContextUtil()
                             .getBindingDOMCodecServices()
                             .fromNormalizedNode(
-                                YangInstanceIdentifier.of(Request.QNAME),
+                                YangInstanceIdentifier.of(Api.QNAME),
                                 JSONDataObjectConverter
                                     .createWithDataStoreUtil(getDataStoreContextUtil())
                                     .transformIntoNormalizedNode(reader)
@@ -57,9 +56,9 @@ public class JsonStringConverterTest extends AbstractTest {
     @Test
     void createDataObjectFromJsonStringTest() throws IOException {
         assertNotNull(
-            new JsonStringConverter<Request>(getDataStoreContextUtil().getBindingDOMCodecServices())
+            new JsonStringConverter<Api>(getDataStoreContextUtil().getBindingDOMCodecServices())
                 .createDataObjectFromJsonString(
-                    YangInstanceIdentifier.of(Request.QNAME),
+                    YangInstanceIdentifier.of(Api.QNAME),
                     Files.readString(Path.of("src/test/resources/expected_string.json")),
                     JSONCodecFactorySupplier.DRAFT_LHOTKA_NETMOD_YANG_JSON_02),
             "Should not be null");

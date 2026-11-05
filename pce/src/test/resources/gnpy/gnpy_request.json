@@ -3,7 +3,7 @@
         "gnpy-path-computation:services": {
             "path-request": [
                 {
-                    "request-id": 2,
+                    "request-id": "2",
                     "bidirectional": false,
                     "source": "127.0.0.11",
                     "destination": "127.0.0.41",
@@ -34,8 +34,8 @@
                     "path-constraints": {
                         "te-bandwidth": {
                             "technology": "flexi-grid",
-                            "trx_type": "openroadm-beta1",
-                            "trx_mode": "W100G",
+                            "trx_type": "OpenROADM MSA ver. 5.0",
+                            "trx_mode": "100 Gbit/s, 27.95 Gbaud, DP-QPSK",
                             "effective-freq-slot": [
                                 {
                                     "N": 0,

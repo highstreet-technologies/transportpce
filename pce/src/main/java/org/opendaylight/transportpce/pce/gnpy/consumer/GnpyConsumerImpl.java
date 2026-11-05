@@ -53,6 +53,7 @@ public class GnpyConsumerImpl implements GnpyConsumer {
     private final URI pathRequestUri;
     private final JsonStringConverter<Api> requestConverter;
     private final JsonStringConverter<Responses> resultConverter;
+    private final GnpyEquipmentLoader equipmentLoader;
 
     @Activate
     public GnpyConsumerImpl(final Configuration configuration,
@@ -76,6 +77,8 @@ public class GnpyConsumerImpl implements GnpyConsumer {
         this.pathRequestUri = URI.create(baseUrl + PATH_REQUEST_ENDPOINT);
         requestConverter = new JsonStringConverter<>(bindingDOMCodecServices);
         resultConverter = new JsonStringConverter<>(bindingDOMCodecServices);
+        equipmentLoader = new GnpyEquipmentLoader(
+                new JsonStringConverter<>(bindingDOMCodecServices));
     }
 
     @Deactivate
@@ -110,10 +113,11 @@ public class GnpyConsumerImpl implements GnpyConsumer {
     @Override
     public Responses computePaths(final Api request) {
         try {
-            String requestBody = requestConverter.createJsonStringFromDataObject(
+            String requestBody = toGnpyWireFormat(requestConverter
+                    .createJsonStringFromDataObject(
                             DataObjectIdentifier.builder(Api.class).build(),
-                            request,
-                            JSONCodecFactorySupplier.DRAFT_LHOTKA_NETMOD_YANG_JSON_02);
+                            withDefaultEquipment(request),
+                            JSONCodecFactorySupplier.DRAFT_LHOTKA_NETMOD_YANG_JSON_02));
             LOG.info("requestbody = {}", requestBody);
 
             HttpRequest httpRequest = HttpRequest.newBuilder()
@@ -146,5 +150,57 @@ public class GnpyConsumerImpl implements GnpyConsumer {
             Thread.currentThread().interrupt();
             return null;
         }
+    }
+
+    /**
+     * Converts the JSON produced by the ODL codec into the wire format expected
+     * by the official gnpy-api, which validates the payload with libyang:
+     * decimal64 values must be RFC7951-encoded (quoted), and identity values
+     * must carry no module namespace prefix. Both deviations of the ODL
+     * draft codec are corrected with targeted textual replacements; container
+     * names keep their namespace prefix and are not matched because they are
+     * never followed by a number.
+     */
+    private String toGnpyWireFormat(String requestBody) {
+        return requestBody
+                .replace("\"gnpy-network-topology:", "\"")
+                .replace("\"gnpy-path-computation:route-", "\"route-")
+                // the ODL codec renders the topology augmentation container without its
+                // module prefix when further augmentations are present; the gnpy server
+                // expects the fully-qualified container name
+                .replace("{\"topology\":", "{\"gnpy-network-topology:topology\":")
+                .replaceAll(":(-?\\d+\\.\\d+)", ":\"$1\"");
+    }
+
+    /**
+     * The official gnpy-api requires the equipment library to be part of the
+     * path-request. If the caller did not provide any equipment, the default
+     * library bundled in this module is merged into the request on binding
+     * level, mirroring the hard-coded server-side library of the former
+     * gnpy4tpce server.
+     */
+    private Api withDefaultEquipment(Api request) {
+        if (request.augmentation(
+                org.opendaylight.yang.gen.v1.urn.ns.gnpy.equipment_library.rev250526.Api1.class) != null
+                && request.augmentation(
+                        org.opendaylight.yang.gen.v1.urn.ns.gnpy.equipment_library.rev250526.Api1.class)
+                        .getEquipment() != null) {
+            return request;
+        }
+        org.opendaylight.yang.gen.v1.urn.ns.gnpy.equipment_library.rev250526.Equipment equipment =
+                equipmentLoader.loadDefaultEquipment();
+        if (equipment == null) {
+            LOG.warn("No equipment library found in request and default library could not be loaded");
+            return request;
+        }
+        org.opendaylight.yang.gen.v1.urn.gnpy.api.rev250613.ApiBuilder builder =
+                new org.opendaylight.yang.gen.v1.urn.gnpy.api.rev250613.ApiBuilder();
+        // carry over all existing augmentations (services, topology, ...)
+        request.augmentations().values().forEach(builder::addAugmentation);
+        builder.addAugmentation(new org.opendaylight.yang.gen.v1.urn.ns.gnpy.equipment_library
+                .rev250526.Api1Builder()
+                .setEquipment(GnpyEquipmentLoader.toEquipmentEntry(equipment))
+                .build());
+        return builder.build();
     }
 }
