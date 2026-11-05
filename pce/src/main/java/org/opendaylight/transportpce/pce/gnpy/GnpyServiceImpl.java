@@ -95,6 +95,9 @@ public class GnpyServiceImpl {
     private AToZComparator atoZComparator =  new AToZComparator();
     private ZToAComparator ztoAComparator =  new ZToAComparator();
     private static final Table<Uint32, BigDecimal, String> TRX_MODE_TABLE = initTrxModeTable();
+    // Guardband in THz reserved by GNPy below the upper spectrum boundary f_max
+    // (gnpy topology/spectrum_assignment.py, DEFAULT_GUARDBAND = 0.025e12)
+    private static final BigDecimal GNPY_GUARDBAND_THZ = new BigDecimal("0.025");
 
     private static Table<Uint32, BigDecimal, String> initTrxModeTable() {
         Table<Uint32, BigDecimal, String> trxModeTable = HashBasedTable.create();
@@ -354,6 +357,29 @@ public class GnpyServiceImpl {
             int centralFrequencyBitSetIndex = GridUtils.getIndexFromFrequency(centralFrequency.getValue());
             mvalue = (int) Math.ceil(spacing.doubleValue() / (GridConstant.GRANULARITY));
             nvalue = GridUtils.getNFromFrequencyIndex(centralFrequencyBitSetIndex);
+            // GNPy (official oopt-gnpy-api, core v2.14) reserves a 0.025 THz guardband below the
+            // upper spectrum boundary f_max before assigning a requested frequency slot
+            // (spectrum_assignment.py: freq_index_max = frequency_to_n(f_max - DEFAULT_GUARDBAND)).
+            // The internal spectrum assignment of TransportPCE (AssignSpectrumHighToLow) may select
+            // the topmost 50 GHz slot of the C band, whose center frequency N is then no longer
+            // assignable in GNPy and would block the path computation with NO_SPECTRUM.
+            // Clamp the requested center frequency N so that the requested slot with width
+            // mvalue/2 (in 6.25 GHz granularity units on each side of the center) stays within
+            // the guardband-reduced upper boundary. The shift only affects the GNPy feasibility
+            // check request: the SNR/OSNR evaluation of the path is not impacted by moving the
+            // center frequency by a few GHz within the same band, and the actual spectrum
+            // assignment configured later by the renderer is not modified.
+            // freqIndexMax = (f_max - 0.025 THz - 193.1 THz) / 6.25 GHz
+            int freqIndexMax = GridUtils.getNFromFrequencyIndex(
+                    GridUtils.getIndexFromFrequency(Decimal64.valueOf(maxFrequency.getValue().decimalValue()
+                            .subtract(GNPY_GUARDBAND_THZ))));
+            int nmax = freqIndexMax - (mvalue / 2 - 1);
+            if (nvalue > nmax) {
+                LOG.info("Requested center frequency N {} exceeds GNPy guardband-reduced boundary {}"
+                        + " (f_max {} THz, slot width m/2 = {}), clamping N to {}", nvalue, nmax,
+                        maxFrequency, mvalue / 2, nmax);
+                nvalue = nmax;
+            }
         }
         LOG.info("Creating path constraints for rate {}, mvalue {}, nvalue {}, spacing {}", rate,
                 mvalue, nvalue, spacing);
@@ -385,7 +411,16 @@ public class GnpyServiceImpl {
     }
 
     //Create the synchronization
+    //A synchronization (svec with disjointness constraints) is only meaningful when several
+    //path requests are computed together. For a single request, GNPy's disjunction algorithm
+    //(compute_path_dsjctn) would apply the strict explicit-route constraints to the disjoint
+    //path candidate set, where the automatically inserted roadm boosters break the route
+    //constraint check (ispart) and lead to a DisjunctionError. A single request is correctly
+    //handled by GNPy's simple constrained path computation instead.
     private List<Synchronization> extractSynchronization(Uint32 requestId) {
+        if (this.pathRequest.size() <= 1) {
+            return new ArrayList<>();
+        }
         // Create RequestIdNumber
         Set<String> requestIdNumber = new HashSet<>();
         requestIdNumber.add(requestId.toString());
