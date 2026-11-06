@@ -7,7 +7,9 @@
  */
 package org.opendaylight.transportpce.nbinotifications.ves;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import org.eclipse.jdt.annotation.NonNull;
@@ -19,7 +21,25 @@ import org.opendaylight.transportpce.common.network.NetworkTransactionService;
 import org.opendaylight.transportpce.nbinotifications.producer.Publisher;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.common.network.rev250110.Link1;
 import org.opendaylight.yang.gen.v1.http.org.openroadm.network.types.rev250110.OpenroadmLinkType;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250110.service.list.Services;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev230501.path.description.AToZDirection;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev230501.path.description.AToZDirectionBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev230501.path.description.ZToADirection;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev230501.path.description.ZToADirectionBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev230501.path.description.atoz.direction.AToZ;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev230501.path.description.atoz.direction.AToZBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev230501.path.description.atoz.direction.AToZKey;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev230501.path.description.ztoa.direction.ZToA;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev230501.path.description.ztoa.direction.ZToABuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev230501.path.description.ztoa.direction.ZToAKey;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev230501.pce.resource.Resource;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev230501.pce.resource.ResourceBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev230501.pce.resource.resource.resource.NodeBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev230501.pce.resource.resource.resource.TerminationPoint;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription.rev230501.pce.resource.resource.resource.TerminationPointBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.service.path.PathDescription;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.service.types.rev220118.service.path.PathDescriptionBuilder;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.servicepath.rev171017.service.path.list.ServicePaths;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.servicepath.rev171017.service.path.list.ServicePathsBuilder;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.NetworkId;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.Networks;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.NodeId;
@@ -91,10 +111,10 @@ public class DataTreeChangeToVesListener<T extends DataObject> implements DataTr
                 if (betterEvent != null) {
                     publisher.sendEvent(link.getLinkId().getValue(), betterEvent, topic);
                 }
-            } else if (event.getDataObject() instanceof Services service) {
-                var betterEvent = toServiceSimplified(service, event.getChangeType(), event.getIdentifier());
+            } else if (event.getDataObject() instanceof ServicePaths servicePaths) {
+                var betterEvent = toServiceSimplified(servicePaths, event.getChangeType(), event.getIdentifier());
                 if (betterEvent != null) {
-                    publisher.sendEvent(service.getServiceName(), betterEvent, topic);
+                    publisher.sendEvent(servicePaths.getServicePathName(), betterEvent, topic);
                 }
             } else {
                 LOG.warn("unknown class {}. wont handle", event.getDataObject().getClass().getName());
@@ -102,9 +122,151 @@ public class DataTreeChangeToVesListener<T extends DataObject> implements DataTr
         }
     }
 
-    private VesEvent<? extends DataObject> toServiceSimplified(Services service, VesEvent.ChangeType changeType,
-            DataObjectIdentifier<T> identifier) {
+    /**
+     * Map a service path to a simplified service path event.
+     *
+     * <p>The service-path-name and the path description are kept, but all
+     * node references (node cases and tp-node-id of termination points) are
+     * mapped from openroadm-topology node ids to the mounted openroadm-network
+     * node ids, as expected by the unm-controller. Service end points are
+     * dropped: they reference a different node-id domain and are not needed
+     * for topology correlation.
+     */
+    private VesEvent<? extends DataObject> toServiceSimplified(ServicePaths servicePaths,
+            VesEvent.ChangeType changeType, DataObjectIdentifier<T> identifier) {
+        if (servicePaths.getServicePathName() == null) {
+            LOG.debug("wont map service path without service-path-name");
+            return null;
+        }
+        PathDescription pathDescription = servicePaths.getPathDescription();
+        if (pathDescription == null) {
+            LOG.debug("wont map service path without path-description");
+            return null;
+        }
+        AToZDirection atozDirection = pathDescription.getAToZDirection();
+        ZToADirection ztoaDirection = pathDescription.getZToADirection();
+        if (atozDirection == null || ztoaDirection == null) {
+            LOG.debug("wont map service path with incomplete path-description");
+            return null;
+        }
+        // LinkedHashMap keeps the hop order of the original path, which is
+        // the essential information of a service route. The generated key
+        // classes do not implement Comparable, so a TreeMap cannot be used.
+        // Hops are therefore sorted by their numeric key id (which is the
+        // hop index assigned by the PCE) before insertion.
+        Map<AToZKey, AToZ> atozMapped = new LinkedHashMap<>();
+        atozDirection.nonnullAToZ().values().stream()
+                .sorted(java.util.Comparator.comparingInt(hop -> parseHopIndex(hop.key().getId())))
+                .forEach(atoz -> {
+                    atozMapped.put(atoz.key(), atoz);
+                });
+        for (AToZ atoz : atozMapped.values()) {
+            Resource mappedResource = mapResource(atoz.getResource());
+            if (mappedResource == null) {
+                return null;
+            }
+            atozMapped.put(atoz.key(), new AToZBuilder()
+                    .withKey(atoz.key())
+                    .setId(atoz.getId())
+                    .setResource(mappedResource)
+                    .build());
+        }
+        Map<ZToAKey, ZToA> ztoaMapped = new LinkedHashMap<>();
+        ztoaDirection.nonnullZToA().values().stream()
+                .sorted(java.util.Comparator.comparingInt(hop -> parseHopIndex(hop.key().getId())))
+                .forEach(ztoa -> {
+                    ztoaMapped.put(ztoa.key(), ztoa);
+                });
+        for (ZToA ztoa : ztoaMapped.values()) {
+            Resource mappedResource = mapResource(ztoa.getResource());
+            if (mappedResource == null) {
+                return null;
+            }
+            ztoaMapped.put(ztoa.key(), new ZToABuilder()
+                    .withKey(ztoa.key())
+                    .setId(ztoa.getId())
+                    .setResource(mappedResource)
+                    .build());
+        }
+        var simplifiedPathDescription = new PathDescriptionBuilder()
+                .setAToZDirection(new AToZDirectionBuilder()
+                        .setAToZ(atozMapped)
+                        .build())
+                .setZToADirection(new ZToADirectionBuilder()
+                        .setZToA(ztoaMapped)
+                        .build())
+                .build();
+        return new VesEvent<>(changeType, identifier,
+                (T) new ServicePathsBuilder()
+                        .setServicePathName(servicePaths.getServicePathName())
+                        .setPathDescription(simplifiedPathDescription)
+                        .build(),
+                sourceName);
+    }
 
+    /**
+     * Parse the numeric hop index from a path hop key id. Falls back to
+     * Integer.MAX_VALUE for non-numeric ids so they are kept at the end of
+     * the ordered hop list.
+     */
+    private static int parseHopIndex(String id) {
+        try {
+            return Integer.parseInt(id);
+        } catch (NumberFormatException e) {
+            return Integer.MAX_VALUE;
+        }
+    }
+
+    /**
+     * Map the node references of a single path hop resource to mounted node
+     * ids. Link resources are kept as-is, node and termination point
+     * resources get their node ids resolved.
+     */
+    private Resource mapResource(Resource resource) {
+        if (resource == null || resource.getResource() == null) {
+            return null;
+        }
+        var choice = resource.getResource();
+        if (choice
+                instanceof org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription
+                .rev230501.pce.resource.resource.resource.Link link) {
+            return new ResourceBuilder()
+                    .setResource(new org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface
+                            .pathdescription.rev230501.pce.resource.resource.resource.LinkBuilder()
+                            .setLinkId(link.getLinkId()).build())
+                    .setState(resource.getState())
+                    .build();
+        }
+        if (choice
+                instanceof org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.pathdescription
+                .rev230501.pce.resource.resource.resource.Node node) {
+            var mappedNode = resolveNodeId(node.getNodeId());
+            if (mappedNode.isEmpty()) {
+                LOG.debug("unable to map path node {} to mounted node", node.getNodeId());
+                return null;
+            }
+            return new ResourceBuilder()
+                    .setResource(new NodeBuilder()
+                            .setNodeId(mappedNode.orElseThrow())
+                            .build())
+                    .setState(resource.getState())
+                    .build();
+        }
+        if (choice instanceof TerminationPoint tp) {
+            var mappedTpNode = resolveNodeId(tp.getTpNodeId());
+            if (mappedTpNode.isEmpty()) {
+                LOG.debug("unable to map path tp node {} to mounted node", tp.getTpNodeId());
+                return null;
+            }
+            return new ResourceBuilder()
+                    .setResource(new TerminationPointBuilder()
+                            .setTpId(tp.getTpId())
+                            .setTpNodeId(mappedTpNode.orElseThrow())
+                            .build())
+                    .setState(resource.getState())
+                    .build();
+        }
+        LOG.debug("wont map unknown path resource {}", choice.implementedInterface().getName());
         return null;
     }
 

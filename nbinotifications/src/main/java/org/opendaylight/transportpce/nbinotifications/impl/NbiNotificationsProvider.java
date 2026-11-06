@@ -31,8 +31,8 @@ import org.opendaylight.transportpce.nbinotifications.listener.NbiNotificationsH
 import org.opendaylight.transportpce.nbinotifications.producer.Publisher;
 import org.opendaylight.transportpce.nbinotifications.utils.TopicManager;
 import org.opendaylight.transportpce.nbinotifications.ves.DataTreeChangeToVesListener;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250110.ServiceList;
-import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250110.service.list.Services;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.servicepath.rev171017.ServicePathList;
+import org.opendaylight.yang.gen.v1.http.org.transportpce.b.c._interface.servicepath.rev171017.service.path.list.ServicePaths;
 import org.opendaylight.yang.gen.v1.nbi.notifications.rev230728.NotificationAlarmService;
 import org.opendaylight.yang.gen.v1.nbi.notifications.rev230728.NotificationProcessService;
 import org.opendaylight.yang.gen.v1.nbi.notifications.rev230728.NotificationTapiService;
@@ -85,8 +85,9 @@ public class NbiNotificationsProvider {
             .child(Link.class)
             .build();
 
-    private static final DataObjectReference<Services> SERVICE_DOR = DataObjectReference.builder(ServiceList.class)
-            .child(Services.class)
+    private static final DataObjectReference<ServicePaths> SERVICE_DOR = DataObjectReference
+            .builder(ServicePathList.class)
+            .child(ServicePaths.class)
             .build();
 
     private Map<String, Publisher<NotificationProcessService>> publishersServiceMap;
