@@ -37,7 +37,7 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
         <gnpy.git.repo>https://github.com/Telecominfraproject/oopt-gnpy-api.git</gnpy.git.repo>
 
         <!-- GNPy version tag — configurable via -Dgnpy.git.tag=... -->
-        <gnpy.git.tag>v0.2.0</gnpy.git.tag>
+        <gnpy.git.tag>v1.0</gnpy.git.tag>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
