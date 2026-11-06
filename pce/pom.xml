@@ -257,6 +257,19 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <!-- The full test suite builds the complete YANG schema context repeatedly
+               (e.g. PceGraphTest builds it once per test method) on top of the jacoco
+               and mockito agents. With the default fork heap this intermittently
+               exhausts memory, surfacing as SIGSEGV in G1 GC, VerifyException in
+               YangTextSchemaContextResolver or IncompatibleClassChangeError in the
+               YANG parser reactor. Give the forked VM enough headroom. -->
+          <argLine>@{argLine} -Xmx4g -XX:MaxMetaspaceSize=2g</argLine>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
 </project>
