@@ -136,6 +136,15 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
                         </image>
                     </images>
                 </configuration>
+                <executions>
+                    <execution>
+                        <id>build-image</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>build</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
