@@ -277,7 +277,8 @@ public class DataTreeChangeToVesListener<T extends DataObject> implements DataTr
             LOG.debug("wont map link which does not augment {}", Link1.class.getName());
             return null;
         }
-        if (augLink.getLinkType() != OpenroadmLinkType.ROADMTOROADM) {
+        if (augLink.getLinkType() != OpenroadmLinkType.ROADMTOROADM || augLink.getLinkType() != OpenroadmLinkType.XPONDEROUTPUT
+                || augLink.getLinkType() != OpenroadmLinkType.XPONDERINPUT) {
             LOG.debug("wont map link with type {}", augLink.getLinkType());
             return null;
         }
