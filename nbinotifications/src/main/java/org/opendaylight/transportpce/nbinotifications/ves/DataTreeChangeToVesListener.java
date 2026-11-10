@@ -126,11 +126,9 @@ public class DataTreeChangeToVesListener<T extends DataObject> implements DataTr
      * Map a service path to a simplified service path event.
      *
      * <p>The service-path-name and the path description are kept, but all
-     * node references (node cases and tp-node-id of termination points) are
-     * mapped from openroadm-topology node ids to the mounted openroadm-network
-     * node ids, as expected by the unm-controller. Service end points are
-     * dropped: they reference a different node-id domain and are not needed
-     * for topology correlation.
+     * node references (node cases and tp-node-id of termination points) are mapped from openroadm-topology node ids to
+     * the mounted openroadm-network node ids, as expected by the unm-controller. Service end points are dropped: they
+     * reference a different node-id domain and are not needed for topology correlation.
      */
     private VesEvent<? extends DataObject> toServiceSimplified(ServicePaths servicePaths,
             VesEvent.ChangeType changeType, DataObjectIdentifier<T> identifier) {
@@ -205,9 +203,8 @@ public class DataTreeChangeToVesListener<T extends DataObject> implements DataTr
     }
 
     /**
-     * Parse the numeric hop index from a path hop key id. Falls back to
-     * Integer.MAX_VALUE for non-numeric ids so they are kept at the end of
-     * the ordered hop list.
+     * Parse the numeric hop index from a path hop key id. Falls back to Integer.MAX_VALUE for non-numeric ids so they
+     * are kept at the end of the ordered hop list.
      */
     private static int parseHopIndex(String id) {
         try {
@@ -218,9 +215,8 @@ public class DataTreeChangeToVesListener<T extends DataObject> implements DataTr
     }
 
     /**
-     * Map the node references of a single path hop resource to mounted node
-     * ids. Link resources are kept as-is, node and termination point
-     * resources get their node ids resolved.
+     * Map the node references of a single path hop resource to mounted node ids. Link resources are kept as-is, node
+     * and termination point resources get their node ids resolved.
      */
     private Resource mapResource(Resource resource) {
         if (resource == null || resource.getResource() == null) {
@@ -272,24 +268,28 @@ public class DataTreeChangeToVesListener<T extends DataObject> implements DataTr
 
     private VesEvent<? extends DataObject> toLinkSimplified(Link link, VesEvent.ChangeType changeType,
             DataObjectIdentifier<T> identifier) {
+        if (link == null) {
+            return null;
+        }
         var augLink = link.augmentation(Link1.class);
         if (augLink == null) {
             LOG.debug("wont map link which does not augment {}", Link1.class.getName());
             return null;
         }
-        if (augLink.getLinkType() != OpenroadmLinkType.ROADMTOROADM || augLink.getLinkType() != OpenroadmLinkType.XPONDEROUTPUT
-                || augLink.getLinkType() != OpenroadmLinkType.XPONDERINPUT) {
+        //if (!List.of(OpenroadmLinkType.ROADMTOROADM, OpenroadmLinkType.XPONDEROUTPUT, OpenroadmLinkType.XPONDERINPUT)
+        if (!List.of(OpenroadmLinkType.ROADMTOROADM)
+                .contains(augLink.getLinkType())) {
             LOG.debug("wont map link with type {}", augLink.getLinkType());
             return null;
         }
-        var src = link != null ? link.getSource() : null;
+        var src = link.getSource();
         var srcNode = src != null ? src.getSourceNode().getValue() : null;
         var mappedSourceNode = this.resolveNodeId(srcNode);
         if (mappedSourceNode.isEmpty()) {
             LOG.debug("unable to map sourceNode {} to mounted node", srcNode);
             return null;
         }
-        var dst = link != null ? link.getDestination() : null;
+        var dst = link.getDestination();
         var dstNode = dst != null ? dst.getDestNode().getValue() : null;
         var mappedDestNode = this.resolveNodeId(dstNode);
         if (mappedDestNode.isEmpty()) {
