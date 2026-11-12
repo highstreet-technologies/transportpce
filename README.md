@@ -2,12 +2,13 @@
 
 Optical transport controller based on [OpenDaylight](https://www.opendaylight.org) (MD-SAL) for OpenROADM networks: topology management, service creation (RDM-2-RDM), path computation and rendering onto XPDRA/ROADM devices.
 
-This fork (`stable/vanadium`, version 12.1.0) extends the OpenDaylight community edition of TransportPCE with four major features:
+This fork (`stable/vanadium`, version 12.1.0) extends the OpenDaylight community edition of TransportPCE with five major features:
 
 1. **SB-RESTCONF client** — type-safe southbound device access via RESTCONF instead of NETCONF
 2. **Extended NBI notifications** — VES event publication to Kafka for topology and service-path changes
 3. **Node connection states via Kafka** — consuming connection events from external controllers with automatic topology reconciliation
 4. **GNPy integration** — integration of the official GNPy REST API (oopt-gnpy-api v1.0) for physical path validation
+5. **Datastore replication** — MD-SAL configuration datastore replication (`mdsal-replicate-netty`) for geo-redundant controller deployments
 
 ---
 
@@ -147,6 +148,45 @@ Integration of the **official GNPy REST API** ([oopt-gnpy-api](https://github.co
 The **internal PCE path computation** (Yen K-shortest-paths, JGraphT, k=15, first-fit selection) remains in place; GNPy provides the physical validation/evaluation of the candidates.
 
 **Configuration:** `gnpy.url`, `gnpy.username`, `gnpy.password` in the config file (see below). Test fixtures in `pce/src/test/resources/gnpy/`, E2E integration test `lighty/.../GnpyTest.java` (skipped via Assume when no GNPy server is running).
+
+---
+
+## 5. MD-SAL Datastore Replication (`lighty`)
+
+Integration of OpenDaylight's **`odl-mdsal-replicate-netty`** datastore replication ([mdsal `replicate`](https://github.com/opendaylight/mdsal/tree/master/replicate), bundled as `mdsal-replicate-netty` 15.0.4) into the Lighty runtime — the foundation for **geo-redundant controller deployments**: a standby controller at a remote site continuously receives a copy of the primary controller's configuration datastore.
+
+**What is replicated:** the complete **CONFIGURATION** datastore (all data, root path). The OPERATIONAL datastore is not replicated. Source and sink are guarded by the cluster singleton service — in a single-node Lighty setup each side assumes mastership immediately.
+
+**How it works in Lighty:** the upstream components are OSGi Declarative Services and do not start without OSGi. The Lighty module provides `ReplicationService` (`org.opendaylight.mdsal.replicate.netty`, started by `Main` after the TransportPCE beans) as a non-OSGi replacement. It reads the same configuration files as an OpenDaylight Karaf distribution, relative to the working directory:
+
+- **`etc/org.opendaylight.mdsal.replicate.netty.source.cfg`** — replication source (the primary controller)
+- **`etc/org.opendaylight.mdsal.replicate.netty.sink.cfg`** — replication sink (the standby controller)
+
+| Property | File | Default | Meaning |
+|---|---|---|---|
+| `enabled` | both | `false` | Master switch per side |
+| `listen-port` | source | `9999` | TCP port the source listens on |
+| `keepalive-interval-seconds` | both | `10` | Keepalive interval |
+| `max-missed-keepalives` | both | `5` | Missed keepalives before the connection is torn down |
+| `source-host` | sink | `127.0.0.1` | Address of the primary controller |
+| `source-port` | sink | `9999` | Port of the primary controller's replication source |
+| `reconnect-delay-millis` | sink | `3000` | Delay between reconnect attempts |
+
+A missing configuration file is not an error — the defaults apply (replication disabled). Both sides can be enabled at the same time, just like in an OSGi deployment.
+
+**Geo-redundancy setup (primary + standby):**
+
+```
+Primary site:    etc/org.opendaylight.mdsal.replicate.netty.source.cfg   → enabled = true
+Standby site:    etc/org.opendaylight.mdsal.replicate.netty.sink.cfg     → enabled = true, source-host = <primary>
+```
+
+The sink reconnects automatically (`reconnect-delay-millis`) and re-subscribes after a source restart; connection health is monitored via keepalives. Verification log lines: `Replication source started on port 9999` / `Replication sink started with source …`. A quick functional check: PUT data via RESTCONF on the primary and read it back on the standby.
+
+**Notes for multi-instance operation:**
+
+- Each instance must use its own RESTCONF port and its own Akka/Pekko cluster port (`singlenode/pekko-default.conf`: `canonical.port` and `seed-nodes`) — the default `2550` only works for a single instance per host.
+- In the Docker image the two config files are shipped to `etc/` with their ODL names (from the `.example` templates in `distribution/transportpce-lighty/src/main/resources`).
 
 ---
 
