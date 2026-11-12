@@ -40,6 +40,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.opendaylight.mdsal.replicate.netty.ReplicationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -150,7 +151,7 @@ public class Main {
     private void startLighty(ControllerConfiguration controllerConfiguration,
             RestConfConfiguration restConfConfiguration, NetconfConfiguration netconfSBPConfiguration,
             boolean registerShutdownHook, boolean activateNbiNotification, boolean activateTapi, String olmtimer1,
-            String olmtimer2) throws ConfigurationException, ExecutionException, InterruptedException {
+            String olmtimer2) throws ConfigurationException, ExecutionException, IOException, InterruptedException {
 
         // 1. initialize and start Lighty controller (MD-SAL, Controller, YangTools,
         // Akka)
@@ -189,8 +190,16 @@ public class Main {
             activateTapi, olmtimer1, olmtimer2, jettyServerBuilder);
         transportPCE.start().get();
 
-        // 6. Register shutdown hook for graceful shutdown.
-        shutdownHook = new ShutdownHook(lightyController, communityRestConf, netconfSouthboundPlugin, transportPCE);
+        // 6. start MD-SAL datastore replication (geo-redundancy), configured via
+        //    etc/org.opendaylight.mdsal.replicate.netty.source.cfg and .sink.cfg (ODL-compatible)
+        ReplicationService replicationService = new ReplicationService(
+                lightyController.getServices().getClusteredDOMDataBroker(),
+                lightyController.getServices().getClusterSingletonServiceProvider());
+        replicationService.start();
+
+        // 7. Register shutdown hook for graceful shutdown.
+        shutdownHook = new ShutdownHook(lightyController, communityRestConf, netconfSouthboundPlugin, transportPCE,
+                replicationService);
         if (registerShutdownHook) {
             Runtime.getRuntime().addShutdownHook(shutdownHook);
         }
@@ -231,13 +240,16 @@ public class Main {
         private final CommunityRestConf communityRestConf;
         private final LightyModule netconfSouthboundPlugin;
         private final TransportPCE transportPCE;
+        private final ReplicationService replicationService;
 
         ShutdownHook(LightyController lightyController, CommunityRestConf communityRestConf,
-                LightyModule netconfSouthboundPlugin, TransportPCE transportPCE) {
+                LightyModule netconfSouthboundPlugin, TransportPCE transportPCE,
+                ReplicationService replicationService) {
             this.lightyController = lightyController;
             this.communityRestConf = communityRestConf;
             this.netconfSouthboundPlugin = netconfSouthboundPlugin;
             this.transportPCE = transportPCE;
+            this.replicationService = replicationService;
         }
 
         @Override
@@ -245,6 +257,11 @@ public class Main {
         public void run() {
             LOG.info("lighty.io and RESTCONF-NETCONF shutting down ...");
             long startTime = System.nanoTime();
+            try {
+                replicationService.close();
+            } catch (Exception e) {
+                LOG.error("Exception while shutting down datastore replication: ", e);
+            }
             try {
                 transportPCE.shutdown().get();
             } catch (Exception e) {
