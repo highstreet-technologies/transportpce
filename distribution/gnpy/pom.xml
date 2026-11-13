@@ -92,25 +92,6 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
                             </arguments>
                         </configuration>
                     </execution>
-                    <!--<execution>
-                        <id>docker-build</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>exec</goal>
-                        </goals>
-                        <configuration>
-                            <executable>docker</executable>
-                            <workingDirectory>${project.build.directory}/gnpy-source</workingDirectory>
-                            <arguments>
-                                <argument>build</argument>
-                                <argument>-t</argument>
-                                <argument>${image.name}:latest</argument>
-                                <argument>-t</argument>
-                                <argument>${image.name}:${gnpy.git.tag}</argument>
-                                <argument>.</argument>
-                            </arguments>
-                        </configuration>
-                    </execution>-->
                 </executions>
             </plugin>
 
@@ -124,10 +105,13 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
                 <artifactId>docker-maven-plugin</artifactId>
                 <version>0.49.0</version>
                 <configuration>
+                    <dockerHost></dockerHost>
                     <images>
                         <image>
                             <name>${image.name}</name>
                             <build>
+                                <dockerFile>${build.directory}/gnpy-source/Dockerfile</dockerFile>
+                                <contextDir>${build.directory}/gnpy-source</contextDir>
                                 <tags>
                                     <tag>${gnpy.git.tag}</tag>
                                     <tag>latest</tag>
