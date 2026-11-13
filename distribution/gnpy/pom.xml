@@ -95,23 +95,23 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
                 </executions>
             </plugin>
 
-            <!-- Push-only declaration of the fabric8 docker-maven-plugin.
-                 The Jenkins pipeline invokes the `docker:push` goal, which needs
-                 this plugin to be declared here. Its build goal must never be
-                 invoked (see comment above); the image is built by the docker
-                 CLI and only pushed by fabric8. -->
+            <!-- Build the Docker image via the fabric8 docker-maven-plugin.
+                 IMPORTANT: useDefaultExcludes must stay false — the plugin's
+                 default excludes strip .git from the build context tar, and the
+                 GNPy Dockerfile relies on pbr reading the .git directory
+                 during `pip install .`. -->
             <plugin>
                 <groupId>io.fabric8</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
                 <version>0.49.0</version>
                 <configuration>
-                    <dockerHost></dockerHost>
                     <images>
                         <image>
                             <name>${image.name}</name>
                             <build>
                                 <dockerFile>${build.directory}/gnpy-source/Dockerfile</dockerFile>
                                 <contextDir>${build.directory}/gnpy-source</contextDir>
+                                <useDefaultExcludes>false</useDefaultExcludes>
                                 <tags>
                                     <tag>${gnpy.git.tag}</tag>
                                     <tag>latest</tag>
