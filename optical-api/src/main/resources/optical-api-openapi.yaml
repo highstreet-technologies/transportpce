@@ -97,7 +97,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/NetworkLink'
-  /read-optical-links:
+  /read-link-list:
     post:
       summary: Filtered, paginated link query (odlux dataprovider format)
       description: |

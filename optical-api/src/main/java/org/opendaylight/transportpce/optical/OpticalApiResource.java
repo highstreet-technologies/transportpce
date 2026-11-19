@@ -159,10 +159,10 @@ public class OpticalApiResource {
     }
 
     @POST
-    @Path("/read-optical-links")
+    @Path("/read-link-list")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public DataproviderOutputWrapper getLinks(DataproviderInputWrapper inputWrapper) throws IOException {
+    public DataproviderOutputWrapper getLinks(DataproviderInputWrapper inputWrapper) {
         var links = this.getAllLinks();
         var input = inputWrapper.getInput();
         final var pagination = input != null ? input.getPagination() : null;
@@ -195,6 +195,13 @@ public class OpticalApiResource {
                         Uint64.valueOf(total))));
     }
 
+    @POST
+    @Path("/read-service-list")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public DataproviderOutputWrapper getServices(DataproviderInputWrapper inputWrapper) {
+
+    }
 
     private List<Link> getAllLinks() {
         var linkIID = DataObjectIdentifier.builder(Networks.class)
