@@ -1,0 +1,101 @@
+{
+  "input": {
+    "sdnc-request-header": {
+      "request-id": "f3028bae-a90f-4ddd-a83f-cf224eba0e58",
+      "rpc-action": "service-create",
+      "request-system-id": "appname",
+      "notification-url": "http://localhost:8585/NotificationServer/notify"
+    },
+    "service-name": "service1",
+    "common-id": "ASATT1234567",
+    "connection-type": "service",
+    "service-a-end": {
+      "service-rate": "100",
+      "node-id": "XPDR-UlmMuen",
+      "service-format": "Ethernet",
+      "clli": "SNJSCAMCJP8",
+      "tx-direction": [
+        {
+          "index": 1,
+          "port": {
+            "port-device-name": "XPDR-UlmMuen",
+            "port-type": "router",
+            "port-name": "XPDR1-CLIENT1",
+            "port-rack": "000000.00",
+            "port-shelf": "00"
+          },
+          "lgx": {
+            "lgx-device-name": "LGX Panel_SNJSCAMCJP8_000000.00_00",
+            "lgx-port-name": "LGX Back.3",
+            "lgx-port-rack": "000000.00",
+            "lgx-port-shelf": "00"
+          }
+        }
+      ],
+      "rx-direction": [
+        {
+          "index": 1,
+          "port": {
+            "port-device-name": "XPDR-UlmMuen",
+            "port-type": "router",
+            "port-name": "XPDR1-CLIENT1",
+            "port-rack": "000000.00",
+            "port-shelf": "00"
+          },
+          "lgx": {
+            "lgx-device-name": "LGX Panel_SNJSCAMCJP8_000000.00_00",
+            "lgx-port-name": "LGX Back.4",
+            "lgx-port-rack": "000000.00",
+            "lgx-port-shelf": "00"
+          }
+        }
+      ],
+      "optic-type": "gray"
+    },
+    "service-z-end": {
+      "service-rate": "100",
+      "node-id": "XPDR-EsseDues",
+      "service-format": "Ethernet",
+      "clli": "SNJSCAMCJT4",
+      "tx-direction": [
+        {
+          "index": 1,
+          "port": {
+            "port-device-name": "XPDR-EsseDues",
+            "port-type": "router",
+            "port-name": "XPDR1-CLIENT1",
+            "port-rack": "000000.00",
+            "port-shelf": "00"
+          },
+          "lgx": {
+            "lgx-device-name": "LGX Panel_SNJSCAMCJT4_000000.00_00",
+            "lgx-port-name": "LGX Back.29",
+            "lgx-port-rack": "000000.00",
+            "lgx-port-shelf": "00"
+          }
+        }
+      ],
+      "rx-direction": [
+        {
+          "index": 1,
+          "port": {
+            "port-device-name": "XPDR-EsseDues",
+            "port-type": "router",
+            "port-name": "XPDR1-CLIENT1",
+            "port-rack": "000000.00",
+            "port-shelf": "00"
+          },
+          "lgx": {
+            "lgx-device-name": "LGX Panel_SNJSCAMCJT4_000000.00_00",
+            "lgx-port-name": "LGX Back.30",
+            "lgx-port-rack": "000000.00",
+            "lgx-port-shelf": "00"
+          }
+        }
+      ],
+      "optic-type": "gray"
+    },
+    "due-date": "2016-11-28T00:00:01Z",
+    "operator-contact": "pw1234"
+  }
+}

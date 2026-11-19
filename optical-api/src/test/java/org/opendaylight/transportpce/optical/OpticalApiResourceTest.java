@@ -52,6 +52,8 @@ public class OpticalApiResourceTest extends AbstractTest {
     private static JsonSchema nodeSchema;
     private static JsonSchema portMappingSchema;
     private static JsonSchema linkSchema;
+    private static JsonSchema serviceCreateRequestSchema;
+    private static JsonSchema serviceDeleteRequestSchema;
     private static OpticalApiResource resource;
 
     @BeforeAll
@@ -94,6 +96,8 @@ public class OpticalApiResourceTest extends AbstractTest {
             nodeSchema = buildSchema(factory, schemas, "PortMappingNode");
             portMappingSchema = buildSchema(factory, schemas, "PortMapping");
             linkSchema = buildSchema(factory, schemas, "NetworkLink");
+            serviceCreateRequestSchema = buildSchema(factory, schemas, "ServiceCreateRequest");
+            serviceDeleteRequestSchema = buildSchema(factory, schemas, "ServiceDeleteRequest");
         }
     }
 
@@ -267,5 +271,33 @@ public class OpticalApiResourceTest extends AbstractTest {
         Set<ValidationMessage> violations = linkSchema.validate(link);
         assertTrue(violations.isEmpty(),
                 "dataprovider link entry must conform to NetworkLink schema: " + violations);
+    }
+
+    @Test
+    void serviceCreateExampleRequestMatchesSchema() throws IOException {
+        // the documented service-create example payload (from the UI) must
+        // validate against the ServiceCreateRequest schema of the spec
+        JsonNode request = MAPPER.readTree(
+                resourceStream("/preload/service-create-request.json"));
+        assertTrue(request.has("input"), "request must carry the input wrapper");
+        assertEquals("service-create",
+                request.get("input").get("sdnc-request-header").get("rpc-action").asText());
+        Set<ValidationMessage> violations = serviceCreateRequestSchema.validate(request);
+        assertTrue(violations.isEmpty(),
+                "service-create example must conform to ServiceCreateRequest schema: " + violations);
+    }
+
+    @Test
+    void serviceDeleteExampleRequestMatchesSchema() throws IOException {
+        // the documented service-delete example payload must validate
+        // against the ServiceDeleteRequest schema of the spec
+        JsonNode request = MAPPER.readTree(
+                resourceStream("/preload/service-delete-request.json"));
+        assertTrue(request.has("input"), "request must carry the input wrapper");
+        assertEquals("service-delete",
+                request.get("input").get("sdnc-request-header").get("rpc-action").asText());
+        Set<ValidationMessage> violations = serviceDeleteRequestSchema.validate(request);
+        assertTrue(violations.isEmpty(),
+                "service-delete example must conform to ServiceDeleteRequest schema: " + violations);
     }
 }
