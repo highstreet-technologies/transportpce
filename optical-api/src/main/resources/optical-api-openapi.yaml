@@ -370,11 +370,21 @@ components:
       properties:
         property:
           type: string
-          description: Filter property name (link-id, device-discovery:uuid, source, destination)
+          description: |
+            Filter property name. Supported link properties:
+            link-id, device-discovery:uuid, source.source-node, source.source-tp,
+            destination.dest-node, destination.dest-tp,
+            org-openroadm-common-network:link-type,
+            org-openroadm-common-network:operational-state,
+            org-openroadm-common-network:administrative-state,
+            org-openroadm-common-network:opposite-link.
+            Values may contain * and ? wildcards (regex matching).
         filtervalue:
           type: string
+          description: Single filter value (wildcards allowed)
         filtervalues:
           type: array
+          description: Multiple filter values — matches if one of them hits
           items:
             type: string
     DataproviderSortOrder:
@@ -382,11 +392,21 @@ components:
       properties:
         property:
           type: string
-        direction:
+          description: |
+            Sort property name. Same properties as the filter:
+            link-id, device-discovery:uuid, source.source-node, source.source-tp,
+            destination.dest-node, destination.dest-tp,
+            org-openroadm-common-network:link-type,
+            org-openroadm-common-network:operational-state,
+            org-openroadm-common-network:administrative-state,
+            org-openroadm-common-network:opposite-link.
+            Null/missing values sort last; unknown properties are ignored.
+        sortorder:
           type: string
+          description: Sort direction
           enum:
-            - ASC
-            - DESC
+            - ascending
+            - descending
     DataproviderPaginationIn:
       type: object
       properties:

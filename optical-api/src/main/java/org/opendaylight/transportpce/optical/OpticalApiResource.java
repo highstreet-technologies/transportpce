@@ -172,7 +172,7 @@ public class OpticalApiResource {
 
         LOG.info("found {} links. filtering...", links.size());
         final var result = links.stream().filter(e -> LinkMatchFilter.matchFilter(e, input != null ? input.getFilter() : null))
-                .sorted(new LinkDataProviderComparator<>(input != null ? input.getSortorder() : null))
+                .sorted(new LinkDataProviderComparator(input != null ? input.getSortorder() : null))
                 .toList();
         long total = result.size();
         LOG.info("found {} nodes for filter {}", total, input != null ? input.getFilter() : null);
