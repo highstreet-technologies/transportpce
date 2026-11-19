@@ -20,7 +20,7 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
 
   <groupId>org.opendaylight.transportpce</groupId>
   <artifactId>odl-transportpce-device-discovery</artifactId>
-  <version>12.1.0</version>
+  <version>12.1.1-SNAPSHOT</version>
   <packaging>feature</packaging>
   <name>OpenDaylight :: transportpce :: device-discovery</name>
 

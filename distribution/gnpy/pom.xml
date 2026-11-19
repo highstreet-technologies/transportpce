@@ -20,7 +20,7 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
 
     <groupId>org.opendaylight.transportpce</groupId>
     <artifactId>distribution-gnpy</artifactId>
-    <version>12.1.0</version>
+    <version>12.1.1-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>TransportPCE :: Distribution (GNPy)</name>
     <description>
