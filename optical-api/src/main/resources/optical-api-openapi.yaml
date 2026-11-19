@@ -1,0 +1,426 @@
+openapi: 3.0.3
+info:
+  title: TransportPCE Optical API
+  description: |
+    Fork-specific northbound REST API for optical network data served by
+    TransportPCE on the same Jetty instance as RESTCONF. Designed for UI
+    applications (odlux-nx networkViewApp integration).
+
+    All GET endpoints return RFC7951 JSON - the same wire format as
+    /restconf/data/... - with YANG node names in kebab-case and namespace
+    prefixes for augmentations. Each list entry is a bare RFC7951 object;
+    list endpoints wrap entries in a JSON array.
+  version: 1.0.0
+  license:
+    name: Eclipse Public License 1.0
+    url: https://www.eclipse.org/legal/epl-v10.html
+servers:
+  - url: http://localhost:8181/optical-api
+paths:
+  /nodes:
+    get:
+      summary: All port-mapping nodes
+      description: |
+        Returns every node stored in the port-mapping datastore
+        (transportpce-portmapping:network/nodes), each as a bare RFC7951
+        entry object wrapped in a JSON array.
+      operationId: getNodes
+      responses:
+        '200':
+          description: Node list (may be empty)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PortMappingNode'
+  /nodes/{nodeId}:
+    get:
+      summary: Single port-mapping node
+      description: |
+        Returns one node from the port-mapping datastore as a bare RFC7951
+        entry object (including its port mappings).
+      operationId: getNode
+      parameters:
+        - $ref: '#/components/parameters/NodeId'
+      responses:
+        '200':
+          description: The port-mapping node
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PortMappingNode'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /nodes/{nodeId}/ports:
+    get:
+      summary: Port mappings of a node
+      description: |
+        Returns the port mappings (logical-connection-point / supporting
+        port / rate etc.) of one node, each as a bare RFC7951 entry object
+        wrapped in a JSON array.
+      operationId: getPorts
+      parameters:
+        - $ref: '#/components/parameters/NodeId'
+      responses:
+        '200':
+          description: Port mapping list (may be empty)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PortMapping'
+  /links/uuids={uuids}:
+    get:
+      summary: Links by device-discovery UUID
+      description: |
+        Returns network topology links (ietf-network-topology, network
+        'openroadm-topology') carrying the given device-discovery UUID
+        augmentation, each as a bare RFC7951 entry object wrapped in a
+        JSON array. Links without the augmentation are skipped.
+      operationId: getLinksByUuids
+      parameters:
+        - name: uuids
+          in: path
+          required: true
+          description: Comma-separated list of device-discovery UUIDs
+          schema:
+            type: string
+          example: aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee
+      responses:
+        '200':
+          description: Matching links (may be empty)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NetworkLink'
+  /read-optical-links:
+    post:
+      summary: Filtered, paginated link query (odlux dataprovider format)
+      description: |
+        Returns links in the odlux dataprovider envelope
+        (data-provider:output with data and pagination). The link entries
+        inside data are in RFC7951 format - the same wire format as the GET
+        endpoints and /restconf/data.
+      operationId: readOpticalLinks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataproviderInput'
+      responses:
+        '200':
+          description: Link page in dataprovider envelope
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataproviderOutputLinks'
+components:
+  parameters:
+    NodeId:
+      name: nodeId
+      in: path
+      required: true
+      description: Port-mapping node identifier (node-id)
+      schema:
+        type: string
+      example: XPDR-UlmMuen
+  responses:
+    NotFound:
+      description: No port-mapping node with this id
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+      example:
+        message: No port-mapping node with id 'XPDR-UlmMuen'
+    PortMappingNode:
+      type: object
+      description: RFC7951 entry of transportpce-portmapping:network/nodes
+      required:
+        - node-id
+      properties:
+        node-id:
+          type: string
+          description: Unique identifier for the node in the network
+        datamodel-type:
+          type: string
+          description: Data model used to control this node
+          enum:
+            - OPENROADM
+            - OPENCONFIG
+        node-info:
+          $ref: '#/components/schemas/NodeInfo'
+        mapping:
+          type: array
+          description: Logical-to-physical port mapping list
+          items:
+            $ref: '#/components/schemas/PortMapping'
+        mc-capabilities:
+          type: array
+          items:
+            $ref: '#/components/schemas/McCapability'
+        shared-risk-group:
+          type: array
+          items:
+            $ref: '#/components/schemas/Srg'
+        switching-pool-lcp:
+          type: array
+          items:
+            type: string
+        cp-to-degree:
+          type: array
+          items:
+            $ref: '#/components/schemas/CpToDegree'
+    NodeInfo:
+      type: object
+      description: transportpce-portmapping node-info container
+      properties:
+        node-type:
+          type: string
+          description: OpenROADM node type
+          enum:
+            - rdm
+            - xpdr
+            - ila
+            - extplug
+        openroadm-version:
+          type: string
+          description: OpenROADM version
+          enum:
+            - '1.2.1'
+            - '2.2.1'
+            - '7.1'
+        openconfig-version:
+          type: string
+        sw-version:
+          type: string
+        node-clli:
+          type: string
+        node-vendor:
+          type: string
+        node-model:
+          type: string
+        node-ip-address:
+          type: string
+        node-instance:
+          type: integer
+    PortMapping:
+      type: object
+      description: RFC7951 entry of transportpce-portmapping mapping list
+      required:
+        - logical-connection-point
+      properties:
+        logical-connection-point:
+          type: string
+          description: Logical connection point name (e.g. XPDR1-CLIENT1)
+        supporting-circuit-pack-name:
+          type: string
+        supporting-port:
+          type: string
+        supporting-oms:
+          type: string
+        supporting-ots:
+          type: string
+        port-direction:
+          type: string
+          description: Port direction (e.g. bidirectional, tx, rx)
+        port-qual:
+          type: string
+          description: Port qualification (e.g. client, network)
+        port-admin-state:
+          type: string
+        port-oper-state:
+          type: string
+        supporting-ethernet:
+          type: string
+        supporting-otu4:
+          type: string
+        supporting-otucn:
+          type: string
+        supporting-odu4:
+          type: string
+        supporting-oducn:
+          type: string
+        rate:
+          type: string
+          description: Rate supported by the port
+        supported-interface-capability:
+          type: array
+          description: Supported interface capabilities (identityrefs)
+          items:
+            type: string
+        supported-operational-mode:
+          type: array
+          items:
+            type: string
+        xpdr-type:
+          type: string
+          description: Transponder type when node-type is xpdr
+        connection-map-lcp:
+          type: string
+        partner-lcp:
+          type: string
+    McCapability:
+      type: object
+      description: Media-channel capability of a node (keyed by mc-node-name)
+      required:
+        - mc-node-name
+      properties:
+        mc-node-name:
+          type: string
+        slot-width-granularity:
+          type: string
+        min-slots:
+          type: integer
+        max-slots:
+          type: integer
+        center-freq-granularity:
+          type: string
+        available-frequency:
+          type: array
+          items:
+            type: string
+        available-slot-count:
+          type: integer
+    Srg:
+      type: object
+      description: Shared risk group (keyed by srg-number)
+      required:
+        - srg-number
+      properties:
+        srg-number:
+          type: integer
+        srg-name:
+          type: string
+        srg-clli:
+          type: string
+    CpToDegree:
+      type: object
+      description: Circuit-pack to degree association
+      required:
+        - circuit-pack-name
+      properties:
+        circuit-pack-name:
+          type: string
+        degree-number:
+          type: integer
+        interface-name:
+          type: string
+    NetworkLink:
+      type: object
+      description: |
+        RFC7951 entry of an ietf-network-topology link of network
+        'openroadm-topology', including the device-discovery uuid
+        augmentation.
+      required:
+        - link-id
+      properties:
+        link-id:
+          type: string
+          description: Link identifier
+        source:
+          type: object
+          properties:
+            source-node:
+              type: string
+            source-tp:
+              type: string
+        destination:
+          type: object
+          properties:
+            dest-node:
+              type: string
+            dest-tp:
+              type: string
+        device-discovery:uuid:
+          type: string
+          description: Autogenerated unique identifier over all items inside the network
+    DataproviderInput:
+      type: object
+      description: odlux dataprovider request envelope
+      required:
+        - data-provider:input
+      properties:
+        data-provider:input:
+          type: object
+          properties:
+            filter:
+              type: array
+              items:
+                $ref: '#/components/schemas/DataproviderFilter'
+            sortorder:
+              type: array
+              items:
+                $ref: '#/components/schemas/DataproviderSortOrder'
+            pagination:
+              $ref: '#/components/schemas/DataproviderPaginationIn'
+    DataproviderFilter:
+      type: object
+      properties:
+        property:
+          type: string
+          description: Filter property name (link-id, device-discovery:uuid, source, destination)
+        filtervalue:
+          type: string
+        filtervalues:
+          type: array
+          items:
+            type: string
+    DataproviderSortOrder:
+      type: object
+      properties:
+        property:
+          type: string
+        direction:
+          type: string
+          enum:
+            - ASC
+            - DESC
+    DataproviderPaginationIn:
+      type: object
+      properties:
+        page:
+          type: integer
+          format: int64
+        size:
+          type: integer
+          format: int32
+    DataproviderOutputLinks:
+      type: object
+      description: odlux dataprovider response envelope for links
+      required:
+        - data-provider:output
+      properties:
+        data-provider:output:
+          type: object
+          properties:
+            data:
+              type: array
+              description: Link entries in RFC7951 format (same as GET endpoints)
+              items:
+                $ref: '#/components/schemas/NetworkLink'
+            pagination:
+              $ref: '#/components/schemas/DataproviderPaginationOut'
+    DataproviderPaginationOut:
+      type: object
+      properties:
+        page:
+          type: integer
+          format: int64
+        size:
+          type: integer
+          format: int32
+        total:
+          type: integer
+          format: int64

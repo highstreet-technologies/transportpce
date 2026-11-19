@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import javax.servlet.ServletException;
 import org.opendaylight.mdsal.binding.api.DataBroker;
 import org.opendaylight.mdsal.binding.api.NotificationPublishService;
 import org.opendaylight.mdsal.binding.api.NotificationService;
@@ -58,6 +59,7 @@ import org.opendaylight.transportpce.networkmodel.service.NetworkModelServiceImp
 import org.opendaylight.transportpce.olm.OlmPowerServiceRpcImpl;
 import org.opendaylight.transportpce.olm.power.PowerMgmtImpl;
 import org.opendaylight.transportpce.olm.service.OlmPowerServiceImpl;
+import org.opendaylight.transportpce.optical.OpticalApiProvider;
 import org.opendaylight.transportpce.pce.gnpy.consumer.GnpyConsumerImpl;
 import org.opendaylight.transportpce.pce.impl.PceServiceRPCImpl;
 import org.opendaylight.transportpce.pce.service.PathComputationService;
@@ -126,6 +128,8 @@ public class TransportPCEImpl extends AbstractLightyModule implements TransportP
     private SbRestconfProvider sbRestconfProvider;
     // health check endpoint
     private HealthCheckProvider healthCheckProvider;
+    // optical API (JAX-RS on the RESTCONF Jetty server)
+    private OpticalApiProvider opticalApiProvider;
     private List<Registration> rpcRegistrations = new ArrayList<>();
 
     public TransportPCEImpl(
@@ -325,6 +329,10 @@ public class TransportPCEImpl extends AbstractLightyModule implements TransportP
 
         LOG.info("Creating health-check beans ...");
         healthCheckProvider = new HealthCheckProvider(jettyServerProvider);
+
+        LOG.info("Creating optical-api beans ...");
+        opticalApiProvider = new OpticalApiProvider(jettyServerProvider, dataBroker,
+                lightyServices.getAdapterContext().currentSerializer());
     }
 
     @Override
@@ -345,6 +353,15 @@ public class TransportPCEImpl extends AbstractLightyModule implements TransportP
         if (healthCheckProvider != null) {
             LOG.info("Starting health-check endpoint ...");
             healthCheckProvider.start();
+        }
+
+        if (opticalApiProvider != null) {
+            LOG.info("Starting optical-api endpoint ...");
+            try {
+                opticalApiProvider.start();
+            } catch (ServletException e) {
+                LOG.error("Failed to register optical-api web context", e);
+            }
         }
 
         if (tapiProvider != null) {
@@ -372,6 +389,10 @@ public class TransportPCEImpl extends AbstractLightyModule implements TransportP
 
     @Override
     protected boolean stopProcedure() {
+        if (opticalApiProvider != null) {
+            LOG.info("Shutting down optical-api endpoint ...");
+            opticalApiProvider.close();
+        }
         if (healthCheckProvider != null) {
             LOG.info("Shutting down health-check endpoint ...");
             healthCheckProvider.close();

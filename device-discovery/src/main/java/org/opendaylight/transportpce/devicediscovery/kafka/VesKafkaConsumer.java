@@ -7,6 +7,7 @@
  */
 package org.opendaylight.transportpce.devicediscovery.kafka;
 
+import java.io.InvalidObjectException;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.Optional;
@@ -107,43 +108,58 @@ public class VesKafkaConsumer {
             }
 
             VesEventWrapper wrapper = new VesEventWrapper(event);
-            if (!wrapper.isConnectionStateChangeNotification()) {
-                LOG.debug("VES event is not a connection state notification, ignoring (key={})", key);
-                return;
+            if (wrapper.isConnectionStateChangeNotification()) {
+                this.handleConnectionStateChange(key, wrapper);
+            } else if (wrapper.isUuidGenNotification() && wrapper.changeIdentifierIs(
+                    "org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.networks.network.Link"))
+            {
+                this.handleUuidChange(key, wrapper);
             }
-            if (!wrapper.assertFields()) {
-                LOG.warn("VES event fields invalid, ignoring (key={})", key);
-                return;
-            }
-
-            String controllerUuid = wrapper.getControllerUuid();
-            if(controllerUuid!=null && controllerUuid.equals(this.config.getVesReportingEntityId())){
-                LOG.warn("VES event from myself, ignoring (key={})", key);
-                return;
-            }
-            String nodeId = wrapper.getNodeId();
-            String newState = wrapper.getNewState();
-
-            // Validate controller is known
-            Optional<TransportPceConfig.ControllerEntry> controllerOpt =
-                    config.findController(controllerUuid);
-            if (controllerOpt.isEmpty()) {
-                LOG.warn("Unknown controller UUID '{}', ignoring event for node {}", controllerUuid, nodeId);
-                return;
+            else{
+                LOG.debug("VES event discarded for key={}", key);
             }
 
-            LOG.info("VES event: controller={}, node={}, state={}", controllerUuid, nodeId, newState);
-
-            String baseUrl = controllerOpt.orElseThrow().getBaseUrl();
-
-            switch (newState.toLowerCase()) {
-                case "connected", "connecting" -> fetchAndWriteNode(nodeId, controllerUuid, baseUrl);
-                case "disconnected", "removed" -> topologyWriter.deleteNode(nodeId);
-                default -> LOG.warn("Unknown newState '{}' for node {}, ignoring", newState, nodeId);
-            }
 
         } catch (Exception e) {
             LOG.error("Failed to process Kafka record (key={})", key, e);
+        }
+    }
+
+    private void handleUuidChange(String key, VesEventWrapper wrapper) throws InvalidObjectException {
+        var data = wrapper.getUuidGenData();
+        this.topologyWriter.updateLinkUuid(data.getValue(),data.getUuid());
+    }
+
+    private void handleConnectionStateChange(String key, VesEventWrapper wrapper) {
+        if (!wrapper.assertFields()) {
+            LOG.warn("VES event fields invalid, ignoring (key={})", key);
+            return;
+        }
+
+        String controllerUuid = wrapper.getControllerUuid();
+        if (controllerUuid != null && controllerUuid.equals(this.config.getVesReportingEntityId())) {
+            LOG.warn("VES event from myself, ignoring (key={})", key);
+            return;
+        }
+        String nodeId = wrapper.getNodeId();
+        String newState = wrapper.getNewState();
+
+        // Validate controller is known
+        Optional<TransportPceConfig.ControllerEntry> controllerOpt =
+                this.config.findController(controllerUuid);
+        if (controllerOpt.isEmpty()) {
+            LOG.warn("Unknown controller UUID '{}', ignoring event for node {}", controllerUuid, nodeId);
+            return;
+        }
+
+        LOG.info("VES event: controller={}, node={}, state={}", controllerUuid, nodeId, newState);
+
+        String baseUrl = controllerOpt.orElseThrow().getBaseUrl();
+
+        switch (newState.toLowerCase()) {
+            case "connected", "connecting" -> fetchAndWriteNode(nodeId, controllerUuid, baseUrl);
+            case "disconnected", "removed" -> topologyWriter.deleteNode(nodeId);
+            default -> LOG.warn("Unknown newState '{}' for node {}, ignoring", newState, nodeId);
         }
     }
 

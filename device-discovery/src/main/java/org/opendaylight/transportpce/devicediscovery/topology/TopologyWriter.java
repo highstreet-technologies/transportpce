@@ -19,6 +19,15 @@ import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev130715.Ipv4Address;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev130715.Ipv6Address;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev130715.PortNumber;
+import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.NetworkId;
+import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.Networks;
+import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.networks.Network;
+import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev180226.networks.NetworkKey;
+import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.LinkId;
+import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.Network1;
+import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.networks.network.Link;
+import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev180226.networks.network.LinkKey;
+import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.yang.types.rev130715.Uuid;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.netconf.device.rev251205.ConnectionOper.ConnectionStatus;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.netconf.device.rev251205.connection.oper.AvailableCapabilities;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.netconf.device.rev251205.connection.oper.AvailableCapabilitiesBuilder;
@@ -36,6 +45,8 @@ import org.opendaylight.yang.gen.v1.urn.opendaylight.netconf.node.topology.rev25
 import org.opendaylight.yang.gen.v1.urn.opendaylight.netconf.node.topology.rev251205.NetconfNodeAugmentBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.netconf.node.topology.rev251205.netconf.node.augment.NetconfNode;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.netconf.node.topology.rev251205.netconf.node.augment.NetconfNodeBuilder;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.transportpce.device.discovery.rev260907.Link1;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.transportpce.device.discovery.rev260907.Link1Builder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.transportpce.device.discovery.rev260907.Node1;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.transportpce.device.discovery.rev260907.Node1Builder;
 import org.opendaylight.yang.gen.v1.urn.tbd.params.xml.ns.yang.network.topology.rev131021.NetworkTopology;
@@ -219,5 +230,23 @@ public class TopologyWriter {
                 yield ConnectionStatus.Connecting;
             }
         };
+    }
+
+    public void updateLinkUuid(String linkId, String uuid) {
+        DataObjectIdentifier<Link1> linkIID = DataObjectIdentifier.builder(Networks.class)
+                .child(Network.class, new NetworkKey(new NetworkId("openroadm-topology")))
+                .augmentation(Network1.class)
+                .child(Link.class, new LinkKey(new LinkId(linkId)))
+                .augmentation(Link1.class)
+                .build();
+        WriteTransaction tx = dataBroker.newWriteOnlyTransaction();
+        Link1 data = new Link1Builder().setUuid(new Uuid(uuid)).build();
+        tx.merge(LogicalDatastoreType.CONFIGURATION, linkIID, data);
+        try {
+            tx.commit().get();
+            LOG.debug("uuid {} successfully written into configurational store", linkId);
+        } catch (Exception e) {
+            LOG.error("Failed to store uuid for link {} into configurational store", linkId, e);
+        }
     }
 }
