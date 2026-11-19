@@ -31,6 +31,8 @@ import org.opendaylight.transportpce.optical.model.DataproviderOutput;
 import org.opendaylight.transportpce.optical.model.DataproviderOutputPagination;
 import org.opendaylight.transportpce.optical.model.DataproviderOutputWrapper;
 import org.opendaylight.transportpce.optical.model.LinkMatchFilter;
+import org.opendaylight.transportpce.optical.model.ServiceMatchFilter;
+import org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250110.service.list.Services;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905.Network;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905.mapping.Mapping;
 import org.opendaylight.yang.gen.v1.http.org.opendaylight.transportpce.portmapping.rev250905.network.Nodes;
@@ -200,7 +202,51 @@ public class OpticalApiResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public DataproviderOutputWrapper getServices(DataproviderInputWrapper inputWrapper) {
+        var services = this.getAllServices();
+        var input = inputWrapper.getInput();
+        final var pagination = input != null ? input.getPagination() : null;
+        long pageSize = pagination != null ? pagination.getSize().longValue() : 20;
+        long offset = pagination != null ? (pagination.getPage().longValue() - 1) * pageSize : 0;
+        long page = offset / pageSize + 1;
 
+        LOG.info("found {} services. filtering...", services.size());
+        final var result = services.stream()
+                .filter(e -> ServiceMatchFilter.matchFilter(e, input != null ? input.getFilter() : null))
+                .sorted(new ServiceDataProviderComparator(input != null ? input.getSortorder() : null))
+                .toList();
+        long total = result.size();
+        LOG.info("found {} services for filter {}", total, input != null ? input.getFilter() : null);
+
+        // serialize each service with the RFC7951 serializer (same wire format
+        // as /restconf/data) and embed the resulting JSON tree into the
+        // dataprovider envelope
+        List<JsonNode> data = result.stream().skip(offset).limit(pageSize).map(e -> {
+                    try {
+                        return MAPPER.readTree(serializeService(e));
+                    } catch (IOException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                })
+                .toList();
+
+        return new DataproviderOutputWrapper(new DataproviderOutput(
+                data,
+                new DataproviderOutputPagination(Uint64.valueOf(page), Uint32.valueOf(pageSize),
+                        Uint64.valueOf(total))));
+    }
+
+    private List<Services> getAllServices() {
+        var serviceListIID = DataObjectIdentifier.builder(
+                org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250110.ServiceList.class)
+                .build();
+
+        try (ReadTransaction readTx = dataBroker.newReadOnlyTransaction()) {
+            var result = readTx.read(LogicalDatastoreType.OPERATIONAL, serviceListIID).get().orElse(null);
+            var services = result != null ? result.getServices() : null;
+            return services != null ? new ArrayList<>(services.values()) : Collections.emptyList();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new IllegalStateException("Failed to read services: ", e);
+        }
     }
 
     private List<Link> getAllLinks() {
@@ -259,6 +305,17 @@ public class OpticalApiResource {
                 .build();
         return Rfc7951Serializer.unwrapSingleElement(
                 serializer.serializeDataObject(identifier, link));
+    }
+
+    private String serializeService(Services service) throws IOException {
+        DataObjectIdentifier<Services> identifier = DataObjectIdentifier.builder(
+                org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250110.ServiceList.class)
+                .child(Services.class,
+                        new org.opendaylight.yang.gen.v1.http.org.openroadm.service.rev250110.service.list
+                                .ServicesKey(service.getServiceName()))
+                .build();
+        return Rfc7951Serializer.unwrapSingleElement(
+                serializer.serializeDataObject(identifier, service));
     }
 
     private static String joinArray(List<String> entries) {

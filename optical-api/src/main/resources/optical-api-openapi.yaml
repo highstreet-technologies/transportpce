@@ -105,7 +105,7 @@ paths:
         (data-provider:output with data and pagination). The link entries
         inside data are in RFC7951 format - the same wire format as the GET
         endpoints and /restconf/data.
-      operationId: readOpticalLinks
+      operationId: readLinkList
       requestBody:
         required: true
         content:
@@ -119,6 +119,27 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DataproviderOutputLinks'
+  /read-service-list:
+    post:
+      summary: Filtered, paginated service query (odlux dataprovider format)
+      description: |
+        Returns OpenROADM service list entries (operational datastore) in
+        the odlux dataprovider envelope. The service entries inside data
+        are in RFC7951 format - the same wire format as /restconf/data.
+      operationId: readServiceList
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataproviderInput'
+      responses:
+        '200':
+          description: Service page in dataprovider envelope
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataproviderOutputServices'
 components:
   parameters:
     NodeId:
@@ -444,3 +465,82 @@ components:
         total:
           type: integer
           format: int64
+    Service:
+      type: object
+      description: |
+        RFC7951 entry of org-openroadm-service service-list services.
+      required:
+        - service-name
+      properties:
+        service-name:
+          type: string
+        common-id:
+          type: string
+        connection-type:
+          type: string
+          enum:
+            - service
+            - infrastructure
+            - roadm-line
+            - optical-tunnel
+        lifecycle-state:
+          type: string
+          description: Service lifecycle state
+          enum:
+            - deployed
+            - planned
+            - maintenance
+            - deploying
+            - undeploying
+            - undeployed
+            - proposed
+            - draft
+            - deploy-failed
+            - undeploy-failed
+            - deployed-augmented
+            - deployed-updating
+        administrative-state:
+          type: string
+          enum:
+            - inService
+            - outOfService
+            - maintenance
+        operational-state:
+          type: string
+          enum:
+            - inService
+            - outOfService
+            - degraded
+        service-a-end:
+          $ref: '#/components/schemas/ServiceEndpoint'
+        service-z-end:
+          $ref: '#/components/schemas/ServiceEndpoint'
+    ServiceEndpoint:
+      type: object
+      description: Service endpoint (service-a-end / service-z-end)
+      properties:
+        node-id:
+          type: string
+        clli:
+          type: string
+        service-format:
+          type: string
+        service-rate:
+          type: integer
+          format: int32
+    DataproviderOutputServices:
+      type: object
+      description: odlux dataprovider response envelope for services
+      required:
+        - data-provider:output
+      properties:
+        data-provider:output:
+          type: object
+          properties:
+            data:
+              type: array
+              description: Service entries in RFC7951 format
+              items:
+                $ref: '#/components/schemas/Service'
+            pagination:
+              $ref: '#/components/schemas/DataproviderPaginationOut'
